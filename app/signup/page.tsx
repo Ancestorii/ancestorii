@@ -61,38 +61,49 @@ export default function SignupPage() {
   };
   const strength = getStrength(password);
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+const onSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+  setSuccess('');
 
-    if (!agree) {
-      setError('You must agree to the Terms of Service and Privacy Policy.');
-      return;
-    }
+  if (!agree) {
+    setError('You must agree to the Terms of Service and Privacy Policy.');
+    return;
+  }
 
-    setLoading(true);
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          promo_code: promoCode || null,
-          newsletter_opt_in: newsletter,
-        },
-      },
-    });
+  setLoading(true);
 
-    if (signUpError) {
-      setError(signUpError.message);
-    } else {
-      // ✅ redirect straight to choose-plan page
-      router.push('/choose-plan');
-    }
+ const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    emailRedirectTo: `${window.location.origin}/auth/confirm`,
+    data: {
+      full_name: fullName,
+      promo_code: promoCode || null,
+      newsletter_opt_in: newsletter,
+    },
+  },
+});
 
-    setLoading(false);
-  };
+setLoading(false);
+
+if (error) {
+  setError(error.message);
+  return;
+}
+
+// 🔑 Email confirmation ON → user exists but no session yet
+if (data.user && !data.session) {
+  setSuccess(
+    'Account created! Please check your email to confirm your account before choosing a plan.'
+  );
+  return;
+}
+
+// 🔑 Email confirmation OFF (instant login)
+router.push('/choose-plan');};
+
 
   return (
     <main className="h-screen overflow-hidden flex flex-col md:flex-row">
@@ -204,11 +215,23 @@ export default function SignupPage() {
             </div>
 
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-            {success && <p className="text-green-600 text-sm mt-2">{success}</p>}
-
+            {success && (
+            <div className="mt-4 rounded-xl border border-[#d4af37]/40 bg-[#fffdf7] p-4 text-center">
+           <p className="font-semibold text-[#0f2040] mb-1">
+             Confirm your email to continue
+            </p>
+            <p className="text-sm text-gray-600">
+            We’ve sent a confirmation link to your email.  
+            Please confirm your email address before choosing your plan.
+           </p>
+           <p className="text-xs text-gray-500 mt-2">
+           Didn’t receive it? Check your spam folder or try again shortly.
+          </p>
+          </div>
+           )}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !!success}
               className="w-full bg-[#d4af37] hover:bg-[#b9972b] text-black text-sm font-semibold py-3 rounded-full shadow-md transition-all duration-300 hover:shadow-[0_0_20px_rgba(212,175,55,0.6)] disabled:opacity-60"
             >
               {loading ? 'Creating Account…' : 'Create Account'}
