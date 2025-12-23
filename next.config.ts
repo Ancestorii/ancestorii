@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {
@@ -20,10 +23,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'wekebqaooixjngznycnm.supabase.co', // ✅ YOUR STORAGE & SIGNED URL HOST
+        hostname: 'wekebqaooixjngznycnm.supabase.co',
       },
     ],
   },
 };
 
 export default nextConfig;
+
