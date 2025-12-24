@@ -103,16 +103,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [hydrated]);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    (async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (!error && data?.user) {
-        setUserEmail(data.user.email ?? null);
-        setUserId(data.user.id ?? null);
-      }
-    })();
-  }, [hydrated]);
+useEffect(() => {
+  if (!hydrated) return;
+
+  (async () => {
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error || !data?.user) {
+      router.replace("/login");
+      return;
+    }
+
+    setUserEmail(data.user.email ?? null);
+    setUserId(data.user.id ?? null);
+  })();
+}, [hydrated, router]);
+
 
   useEffect(() => {
     if (!hydrated) return;

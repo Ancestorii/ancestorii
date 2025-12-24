@@ -5,10 +5,10 @@ import { useEffect, useState } from 'react';
 import Particles from '@/components/Particles';
 
 const images = [
-  '/album.jpg',
   '/family4.jpg',
-  '/family6.jpg',
   '/family9.jpg',
+  '/family6.jpg',
+  '/album.jpg',
   '/family7.jpg',
 ];
 

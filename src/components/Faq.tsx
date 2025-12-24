@@ -21,7 +21,7 @@ const faqs = [
   {
     question: "Can I share with my family?",
     answer:
-      "Definitely. Standard allows one nominated inheritor, while Premium lets you appoint up to two trusted people to manage or inherit your digital legacy. You can also invite loved ones to view and contribute to shared timelines and albums.",
+      "Not yet. Ancestorii is designed as a private space where you preserve memories for the future. Sharing and collaborative access with loved ones will be introduced in a later update.",
   },
   {
     question: "What happens if I stop paying?",

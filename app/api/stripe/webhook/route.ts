@@ -41,27 +41,27 @@ export async function POST(req: Request) {
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const customerId = session.customer as string;
-        const subscriptionId = session.subscription as string;
-        const userId = session.metadata?.user_id;
-        const plan = session.metadata?.plan;
+      const session = event.data.object as Stripe.Checkout.Session;
+      const customerId = session.customer as string;
+      const subscriptionId = session.subscription as string;
+      const userId = session.metadata?.user_id;
+      const plan = session.metadata?.plan;
 
-        // ✅ Update subscription info in Supabase
-        await supabase
-          .from('subscriptions')
-          .update({
-            stripe_customer_id: customerId,
-            stripe_subscription_id: subscriptionId,
-            status: 'trialing', // starts with trialing
-            plan_name: plan,
-            started_at: new Date().toISOString(),
-          })
-          .eq('user_id', userId);
+       await supabase
+       .from('subscriptions')
+       .upsert({
+      user_id: userId,
+      stripe_customer_id: customerId,
+      stripe_subscription_id: subscriptionId,
+      status: 'trialing',
+      plan_name: plan,
+      started_at: new Date().toISOString(),
+    });
 
-        console.log(`✅ Subscription created for ${userId} (${plan})`);
-        break;
-      }
+  console.log(`✅ Subscription created for ${userId} (${plan})`);
+  break;
+}
+
 
       case 'customer.subscription.updated': {
      const subscription = event.data.object as Stripe.Subscription & {

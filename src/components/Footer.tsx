@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="p-6 bg-white">
@@ -5,13 +7,13 @@ export default function Footer() {
         <div className="md:flex md:justify-between items-center">
           {/* Logo only */}
           <div className="mb-6 md:mb-0">
-            <a href="/" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <img
-                src="/Actual white logo.png"
-                className="h-10"
-                alt="Ancestorii Logo"
-              />
-            </a>
+               src="/Actual white logo.png"
+               className="h-10"
+               alt="Ancestorii Logo"
+               />
+              </Link>
           </div>
 
           {/* Links */}
@@ -115,14 +117,14 @@ export default function Footer() {
               </h2>
               <ul className="text-gray-500">
                 <li className="mb-2">
-                  <a href="#" className="hover:underline">
-                    Privacy Policy
-                  </a>
+                  <Link href="/privacy-policy" className="hover:underline">
+                   Privacy Policy
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:underline">
-                    Terms &amp; Conditions
-                  </a>
+                  <Link href="/terms" className="hover:underline">
+                   Terms &amp; Conditions
+                  </Link>
                 </li>
               </ul>
             </div>

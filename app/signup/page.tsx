@@ -208,7 +208,7 @@ router.push('/choose-plan');};
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="text-[#d4af37] underline">
+                <Link href="/privacy-policy" className="text-[#d4af37] underline">
                   Privacy Policy
                 </Link>.
               </label>
@@ -218,11 +218,11 @@ router.push('/choose-plan');};
             {success && (
             <div className="mt-4 rounded-xl border border-[#d4af37]/40 bg-[#fffdf7] p-4 text-center">
            <p className="font-semibold text-[#0f2040] mb-1">
-             Confirm your email to continue
+             Please confirm your email address
             </p>
             <p className="text-sm text-gray-600">
-            We’ve sent a confirmation link to your email.  
-            Please confirm your email address before choosing your plan.
+            To choose a plan and access the Ancestorii platform, you must first confirm your email address.
+            We’ve sent a confirmation link to your inbox. Once confirmed, you’ll be able to continue setting up your legacy.
            </p>
            <p className="text-xs text-gray-500 mt-2">
            Didn’t receive it? Check your spam folder or try again shortly.

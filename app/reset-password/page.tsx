@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
       toast.error(error.message);
     } else {
       toast.success('Password updated successfully.');
-      window.location.href = '/dashboard';
+      window.location.href = '/login';
     }
   };
 
