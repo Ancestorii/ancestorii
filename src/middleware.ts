@@ -5,41 +5,79 @@ import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+  const pathname = req.nextUrl.pathname;
 
-  // Public routes that never need gating
-  const publicPaths = ["/", "/login", "/join", "/pricing", "/checkout",  "/choose-plan", "/auth/confirm", "/api/stripe"];
-  if (publicPaths.some((p) => req.nextUrl.pathname.startsWith(p))) {
+  /**
+   * ------------------------------------------------------------
+   * 1️⃣ Public routes (NO auth, NO billing)
+   * ------------------------------------------------------------
+   */
+  const publicPaths = [
+    "/",                 // landing
+    "/login",
+    "/signup",
+    "/join",
+    "/auth/confirm",     // email confirmation
+    "/pricing",          // marketing pricing page
+    "/choose-plan",      // payment selection page
+    "/checkout",         // stripe redirect helpers
+    "/api",              // api routes
+  ];
+
+  if (publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return res;
   }
 
-  // Supabase session from cookies (no extra setup needed)
+  /**
+   * ------------------------------------------------------------
+   * 2️⃣ Require authenticated session for EVERYTHING ELSE
+   * ------------------------------------------------------------
+   */
   const supabase = createMiddlewareClient({ req, res });
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // No session -> send to join
   if (!session) {
     const url = req.nextUrl.clone();
-    url.pathname = "/join";
-    url.searchParams.set("redirect", req.nextUrl.pathname);
+    url.pathname = "/login";
+    url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }
 
-  // Check DB gate: active or trialing-with-card
-  const { data: access } = await supabase.rpc("has_active_access", { uid: session.user.id });
+  /**
+   * ------------------------------------------------------------
+   * 3️⃣ Billing gate — ONLY for app/dashboard routes
+   * ------------------------------------------------------------
+   */
+  const isAppRoute =
+    pathname.startsWith("/dashboard") || pathname.startsWith("/app");
 
-  if (!access) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/pricing";
-    url.searchParams.set("reason", "upgrade_required");
-    return NextResponse.redirect(url);
+  if (isAppRoute) {
+    const { data: hasAccess, error } = await supabase.rpc(
+      "has_active_access",
+      { uid: session.user.id }
+    );
+
+    if (error || !hasAccess) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/choose-plan";
+      return NextResponse.redirect(url);
+    }
   }
 
   return res;
 }
 
+/**
+ * ------------------------------------------------------------
+ * Only run middleware where it matters
+ * ------------------------------------------------------------
+ */
 export const config = {
-  matcher: ["/dashboard/:path*", "/app/:path*"], // protect your app routes here
+  matcher: [
+    "/dashboard/:path*",
+    "/app/:path*",
+    "/choose-plan",
+  ],
 };
-

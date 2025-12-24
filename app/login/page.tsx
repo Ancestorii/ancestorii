@@ -24,7 +24,7 @@ export default function LoginPage() {
       } = await supabase.auth.getSession();
 
       if (session?.user) {
-        router.replace("/dashboard/profile");
+        router.replace("/choose-plan");
       }
     })();
   }, [router]);
@@ -53,7 +53,7 @@ export default function LoginPage() {
         throw new Error("Login failed. Please try again.");
       }
 
-      router.replace("/dashboard/profile");
+      router.replace("/choose-plan");
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong");
     } finally {
