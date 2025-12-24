@@ -98,11 +98,11 @@ export default function SignupPage() {
 
   setLoading(true);
 
- const { data, error } = await supabase.auth.signUp({
+const { data, error } = await supabase.auth.signUp({
   email,
   password,
   options: {
-    emailRedirectTo: `${window.location.origin}/auth/confirm`,
+    emailRedirectTo: "https://www.ancestorii.com/auth/confirm",
     data: {
       full_name: fullName,
       promo_code: promoCode || null,

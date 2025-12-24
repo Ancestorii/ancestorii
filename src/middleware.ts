@@ -7,7 +7,7 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
   // Public routes that never need gating
-  const publicPaths = ["/", "/login", "/join", "/pricing", "/checkout", "/api/stripe"];
+  const publicPaths = ["/", "/login", "/join", "/pricing", "/checkout",  "/choose-plan", "/auth/confirm", "/api/stripe"];
   if (publicPaths.some((p) => req.nextUrl.pathname.startsWith(p))) {
     return res;
   }
