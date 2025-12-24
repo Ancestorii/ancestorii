@@ -55,12 +55,26 @@ export default function SignupPage() {
   }, [features.length]);
 
   useEffect(() => {
+  if (success) return; // ⛔ do nothing while showing modal
+
   supabase.auth.getSession().then(({ data }) => {
     if (data.session) {
       router.replace('/choose-plan');
     }
   });
-  }, []);
+  }, [success, router]);
+
+  useEffect(() => {
+  if (success) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+
+  return () => {
+    document.body.style.overflow = '';
+  };
+  }, [success]);
 
 
   const getStrength = (pwd: string) => {
@@ -229,20 +243,6 @@ return};
             </div>
 
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-            {success && (
-            <div className="mt-4 rounded-xl border border-[#d4af37]/40 bg-[#fffdf7] p-4 text-center">
-           <p className="font-semibold text-[#0f2040] mb-1">
-             Please confirm your email address
-            </p>
-            <p className="text-sm text-gray-600">
-            To choose a plan and access the Ancestorii platform, you must first confirm your email address.
-            We’ve sent a confirmation link to your inbox. Once confirmed, you’ll be able to continue setting up your legacy.
-           </p>
-           <p className="text-xs text-gray-500 mt-2">
-           Didn’t receive it? Check your spam folder or try again shortly.
-          </p>
-          </div>
-           )}
             <button
               type="submit"
               disabled={loading || !!success}
@@ -316,6 +316,45 @@ return};
         </div>
       </motion.div>
       )}
+      <AnimatePresence>
+  {success && (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+      />
+
+      {/* Modal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="fixed inset-0 z-50 flex items-center justify-center px-6"
+      >
+        <div className="w-full max-w-md rounded-2xl border border-[#d4af37]/40 bg-[#fffdf7] p-6 text-center shadow-xl">
+          <p className="font-semibold text-[#0f2040] mb-2 text-lg">
+            Please confirm your email address
+          </p>
+
+          <p className="text-sm text-gray-600">
+            To choose a plan and access the Ancestorii platform, you must first
+            confirm your email address.
+            <br />
+            We’ve sent a confirmation link to your inbox.
+          </p>
+
+          <p className="text-xs text-gray-500 mt-3">
+            Didn’t receive it? Check your spam folder or try again shortly.
+          </p>
+        </div>
+      </motion.div>
+    </>
+  )}
+</AnimatePresence>
     </main>
   );
 }
