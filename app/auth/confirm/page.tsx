@@ -8,21 +8,21 @@ import { motion } from 'framer-motion';
 export default function AuthConfirmPage() {
   const router = useRouter();
 
-  useEffect(() => {
-    const finishAuth = async () => {
-      const { data } = await supabase.auth.getSession();
+useEffect(() => {
+  const confirmEmail = async () => {
+    const { data, error } =
+      await supabase.auth.exchangeCodeForSession(window.location.href);
 
-      if (data.session) {
-        router.replace('/choose-plan');
-      } else {
-        router.replace('/login');
-      }
-      // Email confirmed → continue onboarding
+    if (data?.session) {
       router.replace('/choose-plan');
-    };
+    } else {
+      router.replace('/login');
+    }
+  };
 
-    finishAuth();
-  }, [router]);
+  confirmEmail();
+}, [router]);
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0F2040]">
