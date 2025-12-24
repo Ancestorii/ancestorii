@@ -17,6 +17,8 @@ export default function AuthConfirmPage() {
       } else {
         router.replace('/login');
       }
+      // Email confirmed → continue onboarding
+      router.replace('/choose-plan');
     };
 
     finishAuth();

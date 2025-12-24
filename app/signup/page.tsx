@@ -54,6 +54,15 @@ export default function SignupPage() {
     return () => clearInterval(interval);
   }, [features.length]);
 
+  useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) {
+      router.replace('/choose-plan');
+    }
+  });
+  }, []);
+
+
   const getStrength = (pwd: string) => {
     if (pwd.length < 6) return 'weak';
     if (/[A-Z]/.test(pwd) && /\d/.test(pwd) && pwd.length >= 8) return 'strong';
@@ -61,8 +70,10 @@ export default function SignupPage() {
   };
   const strength = getStrength(password);
 
-const onSubmit = async (e: React.FormEvent) => {
+ const onSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
+  if (loading) return; 
+
   setError('');
   setSuccess('');
 
@@ -102,8 +113,8 @@ if (data.user && !data.session) {
 }
 
 // 🔑 Email confirmation OFF (instant login)
-router.push('/choose-plan');};
-
+router.push('/choose-plan');
+return};
 
   return (
     <main className="h-screen overflow-hidden flex flex-col md:flex-row">
@@ -117,7 +128,10 @@ router.push('/choose-plan');};
             Preserve your family legacy securely and beautifully.
           </p>
 
-          <form onSubmit={onSubmit} className="mt-6 space-y-5">
+          <form 
+          onSubmit={onSubmit} 
+          className={`mt-6 space-y-5 ${success ? 'opacity-60 pointer-events-none' : ''}`}
+          >
             <div>
               <label className="block text-[#0f2040] font-semibold mb-1 text-sm">Full Name</label>
               <input
@@ -252,6 +266,7 @@ router.push('/choose-plan');};
       </div>
 
       {/* RIGHT: Carousel Side */}
+      {!success && (
       <motion.div
         className="md:w-1/2 w-full flex flex-col justify-center items-center text-center text-white px-10 py-10 relative"
         initial={{ opacity: 0, x: 60 }}
@@ -300,6 +315,7 @@ router.push('/choose-plan');};
           </div>
         </div>
       </motion.div>
+      )}
     </main>
   );
 }
