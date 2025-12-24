@@ -34,7 +34,7 @@ export default function ChoosePlanPage() {
         .from("subscription_summary")
         .select("plan_name")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       // 🚫 Already subscribed → dashboard
       if (subscription?.plan_name) {
