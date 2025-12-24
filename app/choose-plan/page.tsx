@@ -10,44 +10,48 @@ export default function ChoosePlanPage() {
   const supabase = createClientComponentClient();
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAccess = async () => {
-      // 1️⃣ Get authenticated user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+useEffect(() => {
+  const checkAccess = async () => {
+    // 0️⃣ Wait for session to exist
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-      // 🚫 Not logged in → signup
-      if (!user) {
-        router.replace("/signup");
-        return;
-      }
-
-      // 🚫 Email not confirmed → signup (confirm email gate)
-      if (!user.email_confirmed_at) {
-        router.replace("/signup");
-        return;
-      }
-
-      // 2️⃣ Check if user already has a subscription
-      const { data: subscription } = await supabase
-        .from("subscription_summary")
-        .select("plan_name")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      // 🚫 Already subscribed → dashboard
-      if (subscription?.plan_name) {
-        router.replace("/dashboard/profile");
-        return;
-      }
-
-      // ✅ Allowed to choose a plan
+    if (!session) {
       setLoading(false);
-    };
+      return;
+    }
 
-    checkAccess();
-  }, [router, supabase]);
+    // 1️⃣ Get authenticated user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // 2️⃣ Check subscription
+    const { data: subscription } = await supabase
+      .from("subscription_summary")
+      .select("plan_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    // 🚫 Already subscribed → dashboard
+    if (subscription?.plan_name) {
+      router.replace("/dashboard/profile");
+      return;
+    }
+
+    // ✅ Allowed to choose plan
+    setLoading(false);
+  };
+
+  checkAccess();
+}, [router, supabase]);
+
 
   // Loading state
   if (loading) {

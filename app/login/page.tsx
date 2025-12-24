@@ -16,19 +16,6 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false);
   const [resetBusy, setResetBusy] = useState(false);
 
-  // 🔒 If already logged in, redirect immediately
-  useEffect(() => {
-    (async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.user) {
-        router.replace("/choose-plan");
-      }
-    })();
-  }, [router]);
-
   // ---------------------------
   // LOGIN
   // ---------------------------
