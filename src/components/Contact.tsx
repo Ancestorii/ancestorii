@@ -70,7 +70,7 @@ export default function Contact() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
-              className="shadow-sm bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-3"
+              className="shadow-sm bg-gray-50 border border-gray-300 text-sm text-[#0F2040] placeholder-gray-400 rounded-lg w-full p-3"
             />
           </div>
 
@@ -85,7 +85,7 @@ export default function Contact() {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Let us know how we can help"
-              className="shadow-sm bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-3"
+              className="shadow-sm bg-gray-50 border border-gray-300 text-sm text-[#0F2040] placeholder-gray-400 rounded-lg w-full p-3"
             />
           </div>
 
@@ -100,7 +100,7 @@ export default function Contact() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Leave your message here…"
-              className="shadow-sm bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-3"
+              className="shadow-sm bg-gray-50 border border-gray-300 text-sm text-[#0F2040] placeholder-gray-400 rounded-lg w-full p-3"
             />
           </div>
 
