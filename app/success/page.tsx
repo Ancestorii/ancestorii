@@ -29,7 +29,7 @@ export default function SuccessPage() {
         .single();
 
       if (!subscription) {
-        router.replace("/dashboard");
+        router.replace('/dashboard/profile');;
         return;
       }
 

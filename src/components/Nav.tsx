@@ -99,7 +99,7 @@ export default function Nav() {
             {userEmail ? (
               <>
                 <Link
-                  href="/profile"
+                  href="/dashboard/profile" 
                   className="text-sm font-medium text-[#0F2040] hover:text-[#D4AF37] transition-colors"
                 >
                   Hi, {userEmail}
@@ -142,7 +142,7 @@ export default function Nav() {
                 {userEmail ? (
                   <>
                     <Link
-                      href="/profile"
+                      href="/dashboard/profile" 
                       className="block py-2 text-[#0F2040] hover:text-[#D4AF37] transition-colors"
                     >
                       Hi, {userEmail}
