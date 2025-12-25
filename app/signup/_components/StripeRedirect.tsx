@@ -9,37 +9,30 @@ type Plan = {
 };
 
 export default function StripeRedirect({ plan }: { plan: Plan }) {
-  const hasRun = useRef(false);
+  const ran = useRef(false);
 
   useEffect(() => {
-    if (hasRun.current) return;
-    hasRun.current = true;
+    if (ran.current) return;
+    ran.current = true;
 
-    console.log('🚀 StripeRedirect mounted', plan);
-
-    const goToCheckout = async () => {
-      // 1️⃣ Get session (token)
+    const start = async () => {
+      // 1️⃣ Get session
       const {
         data: { session },
         error: sessionError,
       } = await supabase.auth.getSession();
 
-      console.log('🔐 Session', session);
-
       if (sessionError || !session?.access_token) {
-        alert('Not authenticated');
+        alert('No session or access token');
         return;
       }
 
-      console.log('💳 Calling create-checkout');
-
-      // 2️⃣ Call Edge Function WITH HEADERS
+      // 2️⃣ Call edge function WITH auth
       const { data, error } = await supabase.functions.invoke(
         'create-checkout',
         {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
-            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
           },
           body: {
             plan: plan.name,
@@ -49,10 +42,8 @@ export default function StripeRedirect({ plan }: { plan: Plan }) {
         }
       );
 
-      console.log('📦 create-checkout response', { data, error });
-
       if (error || !data?.url) {
-        alert(data?.error || error?.message || 'Checkout failed');
+        alert(error?.message || data?.error || 'Checkout failed');
         return;
       }
 
@@ -60,7 +51,7 @@ export default function StripeRedirect({ plan }: { plan: Plan }) {
       window.location.href = data.url;
     };
 
-    goToCheckout();
+    start();
   }, [plan]);
 
   return null;
