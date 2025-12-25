@@ -1,41 +1,36 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
-  /**
-   * ------------------------------------------------------------
-   * 1️⃣ Public routes
-   * ------------------------------------------------------------
-   */
-  const publicPaths = [
-    "/",
-    "/login",
-    "/signup",
-    "/join",
-    "/auth",
-    "/pricing",
-    "/checkout",
-    "/api",
-  ];
-
+  // Public routes
+  const publicPaths = ["/", "/login", "/signup", "/join", "/auth", "/pricing", "/checkout", "/api"];
   if (publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return res;
   }
 
-  /**
-   * ------------------------------------------------------------
-   * 2️⃣ Require auth
-   * ------------------------------------------------------------
-   */
-  const supabase = createMiddlewareClient({ req, res });
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return req.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          res.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          res.cookies.set({ name, value: "", ...options, maxAge: 0 });
+        },
+      },
+    }
+  );
+
+  const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
     const url = req.nextUrl.clone();
@@ -43,33 +38,19 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const allowWithoutBilling = [
-  "/dashboard/profile",
-  "/dashboard/plans",
-];
+  // Allow profile + plans without billing
+  const allowWithoutBilling = ["/dashboard/profile", "/dashboard/plans"];
+  if (allowWithoutBilling.includes(pathname)) {
+    return res;
+  }
 
-if (allowWithoutBilling.includes(pathname)) {
-  return res;
-}
+  // Billing gate
+  const isDashboard = pathname.startsWith("/dashboard") || pathname.startsWith("/app");
 
-  /**
-   * ------------------------------------------------------------
-   * 3️⃣ Billing gate (ALLOW Stripe success redirect)
-   * ------------------------------------------------------------
-   */
-  const isDashboard =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/app");
-
-  // 🔥 allow first Stripe return BEFORE webhook finishes
-  const isStripeReturn =
-    pathname === "/dashboard/profile" &&
-    req.nextUrl.searchParams.get("success") === "true";
-
-  if (isDashboard && !isStripeReturn) {
-    const { data: hasAccess } = await supabase.rpc(
-      "has_active_access",
-      { uid: session.user.id }
-    );
+  if (isDashboard) {
+    const { data: hasAccess } = await supabase.rpc("has_active_access", {
+      uid: session.user.id,
+    });
 
     if (!hasAccess) {
       const url = req.nextUrl.clone();
@@ -82,8 +63,5 @@ if (allowWithoutBilling.includes(pathname)) {
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/app/:path*",
-  ],
+  matcher: ["/dashboard/:path*", "/app/:path*"],
 };
