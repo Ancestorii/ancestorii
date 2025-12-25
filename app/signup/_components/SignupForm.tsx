@@ -62,7 +62,16 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
     }
 
     // ✅ move to step 2 (Choose Plan)
-    onSuccess();
+    // ✅ WAIT for Supabase to finish creating the session
+const { data: authListener } = supabase.auth.onAuthStateChange(
+  (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      authListener.subscription.unsubscribe();
+      onSuccess(); // move to step 2 ONLY now
+    }
+  }
+);
+
   };
 
   return (
