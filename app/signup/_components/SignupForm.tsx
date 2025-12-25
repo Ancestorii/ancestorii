@@ -42,32 +42,38 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: 'https://www.ancestorii.com/auth/confirm',
-        data: {
-          full_name: fullName,
-          promo_code: promoCode || null,
-          newsletter_opt_in: newsletter,
-        },
-      },
-    });
-
-    setLoading(false);
+  email,
+  password,
+  options: {
+    data: {
+      full_name: fullName,
+      promo_code: promoCode || null,
+      newsletter_opt_in: newsletter,
+    },
+  },
+});
 
 if (error) {
   setError(error.message);
   return;
 }
 
-// ✅ 1️⃣ IMMEDIATE session check (MOST IMPORTANT)
-const {
-  data: { session },
-} = await supabase.auth.getSession();
+const { data: { session } } = await supabase.auth.getSession();
+const { data: { user } } = await supabase.auth.getUser();
+
+if (user && !sessionStorage.getItem('verification_sent')) {
+  sessionStorage.setItem('verification_sent', '1');
+
+  await supabase.functions.invoke('send-verification-email', {
+    body: {
+      userId: user.id,
+      email: user.email,
+    },
+  });
+}
 
 if (session) {
-  onSuccess(); // go to ChoosePlan immediately
+  onSuccess();
   return;
 }
 
