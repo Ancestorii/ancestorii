@@ -162,12 +162,9 @@ export default function PricingSection({ onPlanSelect }: PricingSectionProps) {
                 {/* CTA Buttons with shimmer */}
                 <button
                 type="button"
-                onClick={() =>
-                 onPlanSelect?.({
-                 name: plan.name.toLowerCase(),
-                 billingCycle,
-                  })
-                  }
+                onClick={() => {
+                window.location.href = `/signup?plan=${plan.name.toLowerCase()}&billing=${billingCycle}`;
+                }}
                   className={`relative overflow-hidden mt-auto inline-flex justify-center px-6 py-4 font-semibold rounded-full shadow-md transition-transform duration-300 hover:scale-105 ${
                   plan.popular
                   ? 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837]'

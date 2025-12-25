@@ -17,6 +17,8 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const getStrength = (pwd: string) => {
     if (pwd.length < 6) return 'weak';
@@ -93,13 +95,24 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
 
         <div>
           <label className="block font-semibold text-sm mb-1">Password</label>
-          <input
-            required
-            type="password"
+          <div className="relative">
+         <input
+          required
+           type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2.5 rounded-lg border focus:ring-[#d4af37]"
-          />
+           onChange={(e) => setPassword(e.target.value)}
+           className="w-full p-2.5 pr-12 rounded-lg border focus:ring-[#d4af37]"
+           />
+
+   <button
+    type="button"
+    onClick={() => setShowPassword((v) => !v)}
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#0F2040]/70 hover:text-[#D4AF37]"
+  >
+    {showPassword ? 'Hide' : 'Show'}
+  </button>
+</div>
+
           {password && (
             <div className="mt-2 h-2 bg-gray-200 rounded-full">
               <div

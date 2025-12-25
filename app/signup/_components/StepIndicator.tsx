@@ -87,12 +87,23 @@ export default function StepIndicator({ step }: StepIndicatorProps) {
 
               {/* Label */}
               <span
-              className={`mt-2 text-[13px] sm:text-base md:text-lg font-semibold leading-tight whitespace-nowrap transition-colors ${
+              className={`mt-2 font-semibold leading-tight whitespace-nowrap transition-colors ${
               isActive ? 'text-[#0F2040]' : 'text-gray-400'
               }`}
              >
-                {s.label}
-              </span>
+             {/* Mobile */}
+              <span className="block sm:hidden text-[13px]">
+                  {s.key === 'signup' && 'Create'}
+                  {s.key === 'plan' && 'Choose'}
+                  {s.key === 'pay' && 'Seal'}
+                  </span>
+
+           {/* Desktop */}
+            <span className="hidden sm:block text-base md:text-lg">
+            {s.label}
+  </span>
+</span>
+
 
               {/* Subtext */}
               <span
