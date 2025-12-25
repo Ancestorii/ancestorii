@@ -55,15 +55,9 @@ export default function SignupPage() {
           )}
 
           {step === 'pay' && selectedPlan && (
-            <motion.div
-              key="pay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              <StripeRedirect plan={selectedPlan} />
-            </motion.div>
-          )}
+  <StripeRedirect plan={selectedPlan} />
+)}
+
         </AnimatePresence>
       </div>
     </main>
