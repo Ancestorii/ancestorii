@@ -56,18 +56,27 @@ export default function SignupForm({ onSuccess }: SignupFormProps) {
 
     setLoading(false);
 
-    if (error) {
-      setError(error.message);
-      return;
-    }
+if (error) {
+  setError(error.message);
+  return;
+}
 
-    // ✅ move to step 2 (Choose Plan)
-    // ✅ WAIT for Supabase to finish creating the session
+// ✅ 1️⃣ IMMEDIATE session check (MOST IMPORTANT)
+const {
+  data: { session },
+} = await supabase.auth.getSession();
+
+if (session) {
+  onSuccess(); // go to ChoosePlan immediately
+  return;
+}
+
+// ✅ 2️⃣ FALLBACK listener (edge cases only)
 const { data: authListener } = supabase.auth.onAuthStateChange(
   (event, session) => {
     if (event === 'SIGNED_IN' && session) {
       authListener.subscription.unsubscribe();
-      onSuccess(); // move to step 2 ONLY now
+      onSuccess();
     }
   }
 );
