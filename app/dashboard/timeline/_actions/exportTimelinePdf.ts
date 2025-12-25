@@ -1,6 +1,8 @@
 // app/dashboard/timeline/_actions/exportTimelinePdf.ts
 // Server-only helper that generates a branded, zoomed-out, strictly horizontal timeline PDF.
 // Designed for V1 export when clicking "Preserve My Legacy".
+'use server';
+
 import { getServerClient } from "@/lib/supabase/server";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import fs from 'fs';
