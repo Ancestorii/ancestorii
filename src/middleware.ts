@@ -7,7 +7,7 @@ export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
   // -----------------------------
-  // PUBLIC ROUTES
+  // PUBLIC ROUTES (NO AUTH)
   // -----------------------------
   const publicPaths = [
     "/",
@@ -47,7 +47,7 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getSession();
 
   // -----------------------------
-  // REDIRECT HELPER (PRESERVE COOKIES)
+  // REDIRECT HELPER (KEEP COOKIES)
   // -----------------------------
   const redirect = (path: string) => {
     const url = req.nextUrl.clone();
@@ -63,34 +63,10 @@ export async function middleware(req: NextRequest) {
   };
 
   // -----------------------------
-  // ALLOW PROFILE + PLANS
-  // -----------------------------
-  if (
-    pathname.startsWith("/dashboard/profile") ||
-    pathname.startsWith("/dashboard/plans")
-  ) {
-    if (!session) return redirect("/login");
-    return res;
-  }
-
-  // -----------------------------
-  // BLOCK UNAUTHENTICATED
+  // BLOCK EVERYTHING WITHOUT AUTH
   // -----------------------------
   if (!session) {
     return redirect("/login");
-  }
-
-  // -----------------------------
-  // BILLING GATE
-  // -----------------------------
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/app")) {
-    const { data: hasAccess } = await supabase.rpc("has_active_access", {
-      uid: session.user.id,
-    });
-
-    if (!hasAccess) {
-      return redirect("/signup");
-    }
   }
 
   return res;
