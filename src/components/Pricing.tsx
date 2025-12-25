@@ -166,7 +166,7 @@ export default function PricingSection({ onPlanSelect }: PricingSectionProps) {
                 if (onPlanSelect) {
                 // 🟢 Signup flow → go to Stripe step
                  onPlanSelect({
-                 name: plan.name.toLowerCase(),
+                 name: plan.name, // ← DO NOT lowercase
                  billingCycle,
                 });
                 } else {
