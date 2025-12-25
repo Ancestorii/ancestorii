@@ -19,7 +19,6 @@ export async function middleware(req: NextRequest) {
     "/join",
     "/auth/confirm",     // email confirmation
     "/pricing",          // marketing pricing page
-    "/choose-plan",      // payment selection page
     "/checkout",         // stripe redirect helpers
     "/api",              // api routes
   ];
@@ -61,7 +60,7 @@ export async function middleware(req: NextRequest) {
 
     if (error || !hasAccess) {
       const url = req.nextUrl.clone();
-      url.pathname = "/choose-plan";
+      url.pathname = "/signup";
       return NextResponse.redirect(url);
     }
   }
@@ -78,6 +77,5 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/app/:path*",
-    "/choose-plan",
   ],
 };

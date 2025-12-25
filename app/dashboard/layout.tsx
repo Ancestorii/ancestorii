@@ -128,6 +128,33 @@ useEffect(() => {
     }
   }, [router, hydrated]);
 
+  useEffect(() => {
+  if (!userId) return;
+
+  (async () => {
+    const { data } = await supabase.auth.getUser();
+    const user = data?.user;
+    if (!user || user.email_confirmed_at) return;
+
+    const { data: existing } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('title', 'Verify your email')
+      .maybeSingle();
+
+    if (!existing) {
+      await supabase.from('notifications').insert({
+        user_id: user.id,
+        title: 'Verify your email',
+        content: 'Please confirm your email address to unlock all features.',
+        read: false,
+      });
+    }
+  })();
+}, [userId]);
+
+
   const fetchProfile = async () => {
     if (!userId) return;
     const { data: prof } = await supabase

@@ -2,7 +2,15 @@
 
 import { useState } from 'react';
 
-export default function PricingSection() {
+type PricingSectionProps = {
+  onPlanSelect?: (plan: {
+    name: string;
+    billingCycle: 'monthly' | 'yearly';
+  }) => void;
+};
+
+
+export default function PricingSection({ onPlanSelect }: PricingSectionProps) {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   const plans = [
@@ -152,14 +160,20 @@ export default function PricingSection() {
                 </div>
 
                 {/* CTA Buttons with shimmer */}
-                <a
-                  href="/signup"
+                <button
+                type="button"
+                onClick={() =>
+                 onPlanSelect?.({
+                 name: plan.name.toLowerCase(),
+                 billingCycle,
+                  })
+                  }
                   className={`relative overflow-hidden mt-auto inline-flex justify-center px-6 py-4 font-semibold rounded-full shadow-md transition-transform duration-300 hover:scale-105 ${
-                    plan.popular
-                      ? 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] hover:shadow-[0_0_25px_rgba(212,175,55,0.6)]'
-                      : 'bg-gradient-to-r from-[#0F2040] to-[#182C54] border-2 border-[#D4AF37] text-white hover:shadow-[0_0_25px_rgba(212,175,55,0.5)]'
+                  plan.popular
+                  ? 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837]'
+                  : 'bg-gradient-to-r from-[#0F2040] to-[#182C54] border-2 border-[#D4AF37] text-white'
                   }`}
-                >
+                     >
                   <span className="relative z-10">
                     {plan.popular
                       ? 'Begin Your Legacy'
@@ -168,7 +182,8 @@ export default function PricingSection() {
                   <span
                     className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_3s_linear_infinite]`}
                   />
-                </a>
+                  
+                </button>
               </div>
             );
           })}

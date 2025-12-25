@@ -40,7 +40,7 @@ export default function LoginPage() {
         throw new Error("Login failed. Please try again.");
       }
 
-      router.replace("/choose-plan");
+      router.replace("/dashboard");
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong");
     } finally {

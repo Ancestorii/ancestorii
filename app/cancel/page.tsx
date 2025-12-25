@@ -16,7 +16,7 @@ export default function CancelPage() {
       </p>
 
       <button
-        onClick={() => router.push("/choose-plan")}
+        onClick={() => router.push("/signup")}
         className="px-6 py-3 rounded-full bg-[#D4AF37] text-[#0F2040] font-semibold"
       >
         Back to plans
