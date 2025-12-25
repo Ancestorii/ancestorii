@@ -98,7 +98,7 @@ export default function MemoryDrawer({ open, onOpenChange, eventId, eventTitle }
       const map: Record<string, string> = {};
       for (const row of media) {
         try {
-          const url = await getSignedMediaUrl(supabase, row.file_path);
+          const url = await getSignedMediaUrl(row.file_path);
           map[row.id] = url;
         } catch {}
       }
@@ -119,7 +119,7 @@ export default function MemoryDrawer({ open, onOpenChange, eventId, eventTitle }
     setLoading(true);
     setStatus('Uploading…');
     try {
-      await uploadEventMedia(supabase, { eventId, file });
+      await uploadEventMedia({ eventId, file });
       setStatus('Uploaded ✅');
       await fetchMedia();
     } catch (err: any) {
