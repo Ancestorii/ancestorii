@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Bell, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase/browser';
 import { motion, AnimatePresence } from 'framer-motion';
 import { safeToast as toast } from '@/lib/safeToast';
 

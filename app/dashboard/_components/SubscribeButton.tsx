@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabase/browser";
+
 
 type Props = {
   plan: "Basic" | "Standard" | "Premium";
@@ -9,7 +10,6 @@ type Props = {
 };
 
 export default function SubscribeButton({ plan, billingCycle }: Props) {
-  const supabase = createClientComponentClient();
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {

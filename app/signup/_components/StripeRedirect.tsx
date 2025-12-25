@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase } from '@/lib/supabase/browser';
 
 type Plan = {
   name: string;

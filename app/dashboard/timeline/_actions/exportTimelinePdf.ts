@@ -1,9 +1,8 @@
 // app/dashboard/timeline/_actions/exportTimelinePdf.ts
 // Server-only helper that generates a branded, zoomed-out, strictly horizontal timeline PDF.
 // Designed for V1 export when clicking "Preserve My Legacy".
-
+import { getServerClient } from "@/lib/supabase/server";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
 
@@ -125,7 +124,7 @@ function detectJpg(bytes: Uint8Array) {
 }
 
 async function downloadStorageBytes(
-  supabase: SupabaseClient,
+  supabase: any,
   bucket: string,
   filePath: string
 ): Promise<Uint8Array | null> {
@@ -150,9 +149,9 @@ async function downloadStorageBytes(
 }
 
 export async function exportTimelinePdf(
-  supabase: SupabaseClient,
   params: { timelineId: string }
 ): Promise<ExportTimelinePdfResult> {
+  const supabase = await getServerClient();
 
   const { timelineId } = params;
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase } from '@/lib/supabase/browser';
 
 type SignupFormProps = {
   onSuccess: () => void; // move to next step (ChoosePlan)

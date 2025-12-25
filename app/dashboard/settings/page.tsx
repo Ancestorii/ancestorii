@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { safeToast as toast } from '@/lib/safeToast';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase/browser';
 import {
   Bell,
   Mail,

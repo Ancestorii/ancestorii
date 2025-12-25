@@ -20,7 +20,7 @@ import {
   HandHeart,
   User
 } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import NotificationBell from './_components/NotificationBell';
 

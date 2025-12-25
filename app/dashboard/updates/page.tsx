@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase/browser';
 import { motion } from 'framer-motion';
 import { Megaphone, Star, Trash2 } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
