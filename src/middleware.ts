@@ -6,48 +6,76 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
-  // Public routes
-  const publicPaths = ["/", "/login", "/signup", "/join", "/auth", "/pricing", "/checkout", "/api"];
+  // -----------------------------
+  // PUBLIC ROUTES
+  // -----------------------------
+  const publicPaths = [
+    "/",
+    "/login",
+    "/signup",
+    "/join",
+    "/auth",
+    "/pricing",
+    "/checkout",
+    "/api",
+  ];
+
   if (publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return res;
   }
 
+  // -----------------------------
+  // SUPABASE SSR CLIENT (✅ CORRECT)
+  // -----------------------------
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return req.cookies.get(name)?.value;
+        getAll() {
+          return req.cookies.getAll();
         },
-        set(name: string, value: string, options: any) {
-          res.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          res.cookies.set({ name, value: "", ...options, maxAge: 0 });
+        setAll(cookies) {
+          cookies.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
         },
       },
     }
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
+  // ------------------------------------------------
+  // ALLOW PROFILE + PLANS AFTER LOGIN (NO BILLING)
+  // ------------------------------------------------
+  if (
+    pathname.startsWith("/dashboard/profile") ||
+    pathname.startsWith("/dashboard/plans")
+  ) {
+    if (!session) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    return res;
+  }
+
+  // -----------------------------
+  // BLOCK EVERYTHING WITHOUT AUTH
+  // -----------------------------
   if (!session) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Allow profile + plans without billing
-  const allowWithoutBilling = ["/dashboard/profile", "/dashboard/plans"];
-  if (allowWithoutBilling.includes(pathname)) {
-    return res;
-  }
-
-  // Billing gate
-  const isDashboard = pathname.startsWith("/dashboard") || pathname.startsWith("/app");
-
-  if (isDashboard) {
+  // -----------------------------
+  // BILLING GATE
+  // -----------------------------
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/app")) {
     const { data: hasAccess } = await supabase.rpc("has_active_access", {
       uid: session.user.id,
     });
