@@ -106,21 +106,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [hydrated]);
 
-useEffect(() => {
-  if (!hydrated) return;
-
-  (async () => {
-    const { data } = await supabase.auth.getSession();
-
-    if (!data.session) {
-      router.replace('/login');
-      return;
-    }
-
-    setUserEmail(data.session.user.email ?? null);
-    setUserId(data.session.user.id ?? null);
-  })();
-}, [hydrated, router]);
 
 
 
