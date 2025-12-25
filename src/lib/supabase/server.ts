@@ -1,6 +1,6 @@
 import "server-only";
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
 export async function getServerClient() {
   const cookieStore = await cookies();
