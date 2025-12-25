@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/browser";
+import { getBrowserClient } from '@/lib/supabase/browser';
 
+const supabase = getBrowserClient();
 
 type Props = {
   plan: "Basic" | "Standard" | "Premium";

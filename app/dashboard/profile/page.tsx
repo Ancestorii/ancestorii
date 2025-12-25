@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/browser';
+import { getBrowserClient } from '@/lib/supabase/browser';
 
 type Profile = {
   id: string;
@@ -17,6 +17,7 @@ type Profile = {
 };
 
 export default function ProfilePage() {
+  const supabase = getBrowserClient();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false); 
   const [userId, setUserId] = useState<string | null>(null);

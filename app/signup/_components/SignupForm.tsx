@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase/browser';
+import { getBrowserClient } from '@/lib/supabase/browser';
 
 type SignupFormProps = {
   onSuccess: () => void; // move to next step (ChoosePlan)
 };
 
 export default function SignupForm({ onSuccess }: SignupFormProps) {
+  const supabase = getBrowserClient();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

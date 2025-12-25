@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import CreateAlbumDrawer from './_components/CreateAlbumDrawer';
-import { EllipsisVertical } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
 import { motion } from 'framer-motion';
 import LegacyCelebration from "@/components/LegacyCelebration";

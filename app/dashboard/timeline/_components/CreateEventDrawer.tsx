@@ -4,6 +4,7 @@
 import { useState, useRef } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { createTimelineEvent } from '../_actions/createEvent';
+import { getServerClient } from '@/lib/supabase/server';
 import {
   Sheet,
   SheetContent,
@@ -27,7 +28,8 @@ const isUuid = (v?: string) =>
   typeof v === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
-export default function CreateEventDrawer({
+
+  export default function CreateEventDrawer({
   open,
   onOpenChange,
   timelineId,
@@ -64,11 +66,11 @@ export default function CreateEventDrawer({
     setErr('');
 
     try {
-      const evt = await createTimelineEvent(supabase, {
-        timelineId,
-        title,
-        eventDateISO: date,
-      });
+      const evt = await createTimelineEvent({
+      timelineId,
+      title,
+      eventDateISO: date,
+});
 
       // media upload happens after event creation (existing flow)
       setTitle('');

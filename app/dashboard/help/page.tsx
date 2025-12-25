@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from '@/lib/supabase/browser';
+import { getBrowserClient } from '@/lib/supabase/browser';
 
 type StatusState = "success" | "error" | null;
 
 export default function HelpPage() {
+  const supabase = getBrowserClient();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");

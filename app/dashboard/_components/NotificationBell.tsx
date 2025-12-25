@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Bell, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase/browser';
+import { getBrowserClient } from '@/lib/supabase/browser';
 import { motion, AnimatePresence } from 'framer-motion';
 import { safeToast as toast } from '@/lib/safeToast';
 
@@ -17,6 +17,7 @@ type Notification = {
 };
 
 export default function NotificationBell() {
+  const supabase = getBrowserClient();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [hasUnread, setHasUnread] = useState(false);

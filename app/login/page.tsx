@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase/browser";
+import { getBrowserClient } from '@/lib/supabase/browser';
 
 export default function LoginPage() {
+  const supabase = getBrowserClient();
   const router = useRouter();
 
   const [email, setEmail] = useState("");

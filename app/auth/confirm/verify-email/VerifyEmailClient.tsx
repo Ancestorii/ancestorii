@@ -2,7 +2,9 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/browser';
+import { getBrowserClient } from '@/lib/supabase/browser';
+
+const supabase = getBrowserClient();
 
 export default function VerifyEmailClient() {
   const params = useSearchParams();

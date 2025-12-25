@@ -2,8 +2,11 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/browser';
 import { motion } from 'framer-motion';
+import { getBrowserClient } from '@/lib/supabase/browser'
+
+const supabase = getBrowserClient()
+
 
 export default function AuthConfirmPage() {
   const router = useRouter();

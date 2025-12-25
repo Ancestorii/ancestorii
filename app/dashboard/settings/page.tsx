@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { safeToast as toast } from '@/lib/safeToast';
-import { supabase } from '@/lib/supabase/browser';
+import { getBrowserClient } from '@/lib/supabase/browser';
 import {
   Bell,
   Mail,
@@ -23,6 +23,7 @@ type Prefs = {
 };
 
 export default function SettingsPage() {
+  const supabase = getBrowserClient();
   const [prefs, setPrefs] = useState<Prefs | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

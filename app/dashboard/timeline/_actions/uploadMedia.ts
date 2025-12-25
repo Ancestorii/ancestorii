@@ -1,6 +1,8 @@
 "use client";
 
-import { supabase } from "@/lib/supabase/browser";
+import { getBrowserClient } from '@/lib/supabase/browser';
+
+const supabase = getBrowserClient();
 
 type UploadResult = { mediaId: string; storagePath: string };
 

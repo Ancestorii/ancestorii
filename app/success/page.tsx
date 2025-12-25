@@ -3,9 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle } from "lucide-react";
-import { supabase } from "@/lib/supabase/browser";
+import { getBrowserClient } from '@/lib/supabase/browser';
 
 export default function SuccessPage() {
+  const supabase = getBrowserClient();
   const router = useRouter();
 
   useEffect(() => {

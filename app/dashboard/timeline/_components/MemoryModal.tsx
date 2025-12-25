@@ -119,7 +119,7 @@ export default function MemoryModal({
           try {
            if (!row.file_path) throw new Error('No media path');
             const path = row.file_path;
-            const signed = await getSignedMediaUrl(supabase, path, 3600);
+            const signed = await getSignedMediaUrl(path, 3600);
 
             out.push({
               id: row.id,
@@ -183,7 +183,7 @@ async function fetchVoicesFor(mediaId: string) {
       if (!row.file_path) continue;
       const path = row.file_path;
 
-      const signed = await getSignedMediaUrl(supabase, path, 3600);
+      const signed = await getSignedMediaUrl(path, 3600);
 
       list.push({
          id: row.id,
@@ -250,7 +250,7 @@ async function uploadMedia(file: File) {
       const path = row.file_path;
 
 
-        const signed = await getSignedMediaUrl(supabase, path, 3600);
+        const signed = await getSignedMediaUrl(path, 3600);
 
       out.push({
         id: row.id,
@@ -437,7 +437,7 @@ async function deleteComment(commentId: string, mediaId: string) {
       }
 
       if (!ins.error && ins.data) {
-        const signed = await getSignedMediaUrl(supabase, (ins.data as any).file_path, 3600);
+        const signed = await getSignedMediaUrl((ins.data as any).file_path, 3600);
         setVoicesByMedia((p) => ({
           ...p,
           [mediaId]: [

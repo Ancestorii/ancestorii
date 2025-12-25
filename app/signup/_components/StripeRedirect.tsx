@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase/browser';
+import { getBrowserClient } from '@/lib/supabase/browser';
 
 type Plan = {
   name: string;
   billingCycle: 'monthly' | 'yearly';
 };
+
+const supabase = getBrowserClient();
 
 export default function StripeRedirect({ plan }: { plan: Plan }) {
   const ran = useRef(false);

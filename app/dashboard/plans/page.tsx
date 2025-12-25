@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from '@/lib/supabase/browser';
+import { getBrowserClient } from '@/lib/supabase/browser';
 import Link from "next/link";
 
 type PlanName = "Basic" | "Standard" | "Premium";
@@ -23,6 +23,7 @@ type UsageRow = {
 };
 
 export default function PlansPage() {
+  const supabase = getBrowserClient();
   const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
