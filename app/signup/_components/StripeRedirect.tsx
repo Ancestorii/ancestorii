@@ -22,7 +22,7 @@ export default function StripeRedirect({ plan }: any) {
               Authorization: `Bearer ${session.access_token}`,
             },
             body: {
-              plan: capitalize(plan.name),
+              plan: plan.name, // ← EXACT value, no transform
               billingCycle: plan.billingCycle,
               returnPath: '/dashboard/profile',
             },
