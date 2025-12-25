@@ -19,10 +19,8 @@ export default function SignupPage() {
 
   return (
     <main className="min-h-screen bg-[#fffdf7] flex flex-col items-center justify-center px-6 py-16">
-      {/* Step indicator */}
       <StepIndicator step={step} />
 
-      {/* Step content */}
       <div className="w-full mt-12">
         <AnimatePresence mode="wait">
           {step === 'signup' && (
@@ -53,13 +51,14 @@ export default function SignupPage() {
               />
             </motion.div>
           )}
-
-          {step === 'pay' && selectedPlan && (
-  <StripeRedirect plan={selectedPlan} />
-)}
-
         </AnimatePresence>
+
+        {/* 🚨 MUST BE OUTSIDE AnimatePresence */}
+        {step === 'pay' && selectedPlan && (
+          <StripeRedirect plan={selectedPlan} />
+        )}
       </div>
     </main>
   );
 }
+
