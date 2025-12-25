@@ -1,3 +1,5 @@
+'use server';
+
 import { getServerClient } from "@/lib/supabase/server";
 
 export type NewEventPayload = {
