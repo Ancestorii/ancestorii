@@ -17,7 +17,7 @@ export async function middleware(req: NextRequest) {
     "/login",
     "/signup",
     "/join",
-    "/auth/confirm",
+    "/auth",
     "/pricing",
     "/checkout",
     "/api",
@@ -42,6 +42,15 @@ export async function middleware(req: NextRequest) {
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
+
+  const allowWithoutBilling = [
+  "/dashboard/profile",
+  "/dashboard/plans",
+];
+
+if (allowWithoutBilling.includes(pathname)) {
+  return res;
+}
 
   /**
    * ------------------------------------------------------------

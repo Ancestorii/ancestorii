@@ -107,17 +107,18 @@ useEffect(() => {
   if (!hydrated) return;
 
   (async () => {
-    const { data, error } = await supabase.auth.getUser();
+    const { data } = await supabase.auth.getSession();
 
-    if (error || !data?.user) {
-      router.replace("/login");
+    if (!data.session) {
+      router.replace('/login');
       return;
     }
 
-    setUserEmail(data.user.email ?? null);
-    setUserId(data.user.id ?? null);
+    setUserEmail(data.session.user.email ?? null);
+    setUserId(data.session.user.id ?? null);
   })();
 }, [hydrated, router]);
+
 
 
   useEffect(() => {
