@@ -163,8 +163,18 @@ export default function PricingSection({ onPlanSelect }: PricingSectionProps) {
                 <button
                 type="button"
                 onClick={() => {
-                window.location.href = `/signup?plan=${plan.name.toLowerCase()}&billing=${billingCycle}`;
+                if (onPlanSelect) {
+                // 🟢 Signup flow → go to Stripe step
+                 onPlanSelect({
+                 name: plan.name.toLowerCase(),
+                 billingCycle,
+                });
+                } else {
+                // 🟢 Landing page → go to signup
+                 window.location.href = `/signup?plan=${plan.name.toLowerCase()}&billing=${billingCycle}`;
+                 }
                 }}
+
                   className={`relative overflow-hidden mt-auto inline-flex justify-center px-6 py-4 font-semibold rounded-full shadow-md transition-transform duration-300 hover:scale-105 ${
                   plan.popular
                   ? 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837]'
