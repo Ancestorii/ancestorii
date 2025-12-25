@@ -76,7 +76,7 @@ export default function StepIndicator({ step }: StepIndicatorProps) {
             >
               {/* Circle */}
               <div
-                className={`flex items-center justify-center w-8 h-8 rounded-full border-2 text-sm font-semibold transition-all duration-300 ${
+                className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 text-sm font-semibold transition-all duration-300 ${
                   isActive
                     ? 'bg-[#D4AF37] border-[#D4AF37] text-[#0F2040] shadow-[0_0_12px_rgba(212,175,55,0.45)]'
                     : 'bg-[#fffdf7] border-[#D4AF37]/40 text-gray-400'
@@ -87,21 +87,22 @@ export default function StepIndicator({ step }: StepIndicatorProps) {
 
               {/* Label */}
               <span
-                className={`mt-3 text-lg font-semibold transition-colors ${
-                  isActive ? 'text-[#0F2040]' : 'text-gray-400'
-                }`}
-              >
+              className={`mt-2 text-[13px] sm:text-base md:text-lg font-semibold leading-tight whitespace-nowrap transition-colors ${
+              isActive ? 'text-[#0F2040]' : 'text-gray-400'
+              }`}
+             >
                 {s.label}
               </span>
 
               {/* Subtext */}
               <span
-                className={`mt-1 text-[14px] leading-tight transition-colors ${
-                  isCurrent
-                    ? 'text-[#0F2040]/70'
-                    : 'text-gray-400/70'
-                }`}
-              >
+             className={`mt-1 hidden sm:block text-xs md:text-sm leading-tight transition-colors ${
+             isCurrent
+             ? 'text-[#0F2040]/70'
+             : 'text-gray-400/70'
+             }`}
+             >
+
                 {s.sub}
               </span>
             </div>

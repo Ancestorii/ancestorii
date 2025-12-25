@@ -180,9 +180,8 @@ export default function PricingSection({ onPlanSelect }: PricingSectionProps) {
                       : 'Begin Your Legacy'}
                   </span>
                   <span
-                    className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_3s_linear_infinite]`}
+                  className="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shine_3s_linear_infinite]"
                   />
-                  
                 </button>
               </div>
             );
