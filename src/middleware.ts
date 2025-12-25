@@ -20,24 +20,22 @@ export async function middleware(req: NextRequest) {
     "/api",
   ];
 
-  if (publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+  if (publicPaths.some(p => pathname === p || pathname.startsWith(`${p}/`))) {
     return res;
   }
 
   // -----------------------------
-  // SUPABASE SSR CLIENT (✅ CORRECT)
+  // SUPABASE SERVER CLIENT
   // -----------------------------
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return req.cookies.getAll();
-        },
-        setAll(cookies) {
-          cookies.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options);
+        getAll: () => req.cookies.getAll(),
+        setAll: cookies => {
+          cookies.forEach(c => {
+            res.cookies.set(c.name, c.value);
           });
         },
       },
@@ -48,28 +46,38 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // ------------------------------------------------
-  // ALLOW PROFILE + PLANS AFTER LOGIN (NO BILLING)
-  // ------------------------------------------------
+  // -----------------------------
+  // REDIRECT HELPER (PRESERVE COOKIES)
+  // -----------------------------
+  const redirect = (path: string) => {
+    const url = req.nextUrl.clone();
+    url.pathname = path;
+
+    const redirectRes = NextResponse.redirect(url);
+
+    res.cookies.getAll().forEach(c => {
+      redirectRes.cookies.set(c.name, c.value);
+    });
+
+    return redirectRes;
+  };
+
+  // -----------------------------
+  // ALLOW PROFILE + PLANS
+  // -----------------------------
   if (
     pathname.startsWith("/dashboard/profile") ||
     pathname.startsWith("/dashboard/plans")
   ) {
-    if (!session) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
+    if (!session) return redirect("/login");
     return res;
   }
 
   // -----------------------------
-  // BLOCK EVERYTHING WITHOUT AUTH
+  // BLOCK UNAUTHENTICATED
   // -----------------------------
   if (!session) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    return redirect("/login");
   }
 
   // -----------------------------
@@ -81,9 +89,7 @@ export async function middleware(req: NextRequest) {
     });
 
     if (!hasAccess) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/signup";
-      return NextResponse.redirect(url);
+      return redirect("/signup");
     }
   }
 
