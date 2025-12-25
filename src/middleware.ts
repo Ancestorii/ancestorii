@@ -9,18 +9,18 @@ export async function middleware(req: NextRequest) {
 
   /**
    * ------------------------------------------------------------
-   * 1️⃣ Public routes (NO auth, NO billing)
+   * 1️⃣ Public routes
    * ------------------------------------------------------------
    */
   const publicPaths = [
-    "/",                 // landing
+    "/",
     "/login",
     "/signup",
     "/join",
-    "/auth/confirm",     // email confirmation
-    "/pricing",          // marketing pricing page
-    "/checkout",         // stripe redirect helpers
-    "/api",              // api routes
+    "/auth/confirm",
+    "/pricing",
+    "/checkout",
+    "/api",
   ];
 
   if (publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
@@ -29,7 +29,7 @@ export async function middleware(req: NextRequest) {
 
   /**
    * ------------------------------------------------------------
-   * 2️⃣ Require authenticated session for EVERYTHING ELSE
+   * 2️⃣ Require auth
    * ------------------------------------------------------------
    */
   const supabase = createMiddlewareClient({ req, res });
@@ -40,25 +40,29 @@ export async function middleware(req: NextRequest) {
   if (!session) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }
 
   /**
    * ------------------------------------------------------------
-   * 3️⃣ Billing gate — ONLY for app/dashboard routes
+   * 3️⃣ Billing gate (ALLOW Stripe success redirect)
    * ------------------------------------------------------------
    */
-  const isAppRoute =
+  const isDashboard =
     pathname.startsWith("/dashboard") || pathname.startsWith("/app");
 
-  if (isAppRoute) {
-    const { data: hasAccess, error } = await supabase.rpc(
+  // 🔥 allow first Stripe return BEFORE webhook finishes
+  const isStripeReturn =
+    pathname === "/dashboard/profile" &&
+    req.nextUrl.searchParams.get("success") === "true";
+
+  if (isDashboard && !isStripeReturn) {
+    const { data: hasAccess } = await supabase.rpc(
       "has_active_access",
       { uid: session.user.id }
     );
 
-    if (error || !hasAccess) {
+    if (!hasAccess) {
       const url = req.nextUrl.clone();
       url.pathname = "/signup";
       return NextResponse.redirect(url);
@@ -68,11 +72,6 @@ export async function middleware(req: NextRequest) {
   return res;
 }
 
-/**
- * ------------------------------------------------------------
- * Only run middleware where it matters
- * ------------------------------------------------------------
- */
 export const config = {
   matcher: [
     "/dashboard/:path*",
