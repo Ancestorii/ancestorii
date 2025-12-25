@@ -32,7 +32,7 @@ export default function StepIndicator({ step }: StepIndicatorProps) {
   const currentIndex = steps.findIndex((s) => s.key === step);
 
   return (
-    <div className="w-full max-w-5xl mx-auto mb-2">
+    <div className="w-full max-w-screen-xl mx-auto mb-2 px-6 lg:px-16">
       {/* Headline */}
       <div className="text-center mb-6">
   <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-[#0F2040]">

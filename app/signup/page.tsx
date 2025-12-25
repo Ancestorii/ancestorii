@@ -23,7 +23,7 @@ export default function SignupPage() {
       <StepIndicator step={step} />
 
       {/* Step content */}
-      <div className="w-full flex justify-center mt-12">
+      <div className="w-full mt-12">
         <AnimatePresence mode="wait">
           {step === 'signup' && (
             <motion.div
