@@ -1,40 +1,38 @@
-import { exportTimelinePdf } from '../../../../dashboard/timeline/_actions/exportTimelinePdf';
-import { getServiceClient } from '@/lib/supabase/server';
+import { exportTimelinePdf } from "../../../../dashboard/timeline/_actions/exportTimelinePdf";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function GET(
   req: Request,
-  context: { params: Promise<{ timelineId: string }> }
+  context: { params: { timelineId: string } }
 ) {
   try {
-    const supabase = getServiceClient();
+    const { timelineId } = context.params;
 
-    const { timelineId } = await context.params;
     if (!timelineId) {
-      return new Response('Missing timeline id', { status: 400 });
+      return new Response("Missing timeline id", { status: 400 });
     }
 
     // Detect preview mode (?preview=true)
     const url = new URL(req.url);
-    const isPreview = url.searchParams.get('preview') === 'true';
+    const isPreview = url.searchParams.get("preview") === "true";
 
-    const { bytes, filename } = await exportTimelinePdf(supabase, {
+    const { bytes, filename } = await exportTimelinePdf({
       timelineId,
     });
 
     return new Response(Buffer.from(bytes), {
       headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': isPreview
-          ? 'inline'
+        "Content-Type": "application/pdf",
+        "Content-Disposition": isPreview
+          ? "inline"
           : `attachment; filename="${filename}"`,
       },
     });
   } catch (err: any) {
-    console.error('[TIMELINE_PDF_EXPORT]', err);
+    console.error("[TIMELINE_PDF_EXPORT]", err);
     return new Response(
-      err?.message || 'Failed to export timeline',
+      err?.message || "Failed to export timeline",
       { status: 500 }
     );
   }
