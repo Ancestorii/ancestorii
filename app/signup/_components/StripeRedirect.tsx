@@ -10,9 +10,13 @@ type Plan = {
 
 export default function StripeRedirect({ plan }: { plan: Plan }) {
   useEffect(() => {
+    console.log('🚀 StripeRedirect mounted', plan);
+
     let unsub: (() => void) | null = null;
 
     const goToCheckout = async (accessToken: string) => {
+      console.log('💳 Calling create-checkout');
+
       const { data, error } = await supabase.functions.invoke(
         'create-checkout',
         {
@@ -27,6 +31,8 @@ export default function StripeRedirect({ plan }: { plan: Plan }) {
         }
       );
 
+      console.log('📦 create-checkout response', { data, error });
+
       if (error || !data?.url) {
         alert(error?.message || 'Checkout failed');
         return;
@@ -35,14 +41,16 @@ export default function StripeRedirect({ plan }: { plan: Plan }) {
       window.location.href = data.url;
     };
 
-    // 1️⃣ Try immediate session (already signed in case)
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔐 Session result', session);
+
       if (session?.access_token) {
         goToCheckout(session.access_token);
       } else {
-        // 2️⃣ Wait for sign-in (fresh signup case)
         const { data } = supabase.auth.onAuthStateChange(
           (event, session) => {
+            console.log('🧠 Auth event', event, session);
+
             if (event === 'SIGNED_IN' && session?.access_token) {
               goToCheckout(session.access_token);
             }
