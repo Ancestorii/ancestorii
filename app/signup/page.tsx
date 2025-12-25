@@ -55,8 +55,16 @@ export default function SignupPage() {
 
         {/* 🚨 MUST BE OUTSIDE AnimatePresence */}
         {step === 'pay' && selectedPlan && (
-          <StripeRedirect plan={selectedPlan} />
-        )}
+  <div className="flex flex-col items-center justify-center py-24">
+    <div className="animate-spin h-10 w-10 rounded-full border-4 border-[#E6C26E] border-t-transparent" />
+    <p className="mt-6 text-sm text-gray-600">
+      Redirecting you to secure checkout…
+    </p>
+
+    <StripeRedirect plan={selectedPlan} />
+  </div>
+)}
+
       </div>
     </main>
   );
