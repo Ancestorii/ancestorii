@@ -1,19 +1,19 @@
 import { exportTimelinePdf } from "../../../../dashboard/timeline/_actions/exportTimelinePdf";
+import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
 export async function GET(
-  req: Request,
-  context: { params: { timelineId: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ timelineId: string }> }
 ) {
   try {
-    const { timelineId } = context.params;
+    const { timelineId } = await params;
 
     if (!timelineId) {
       return new Response("Missing timeline id", { status: 400 });
     }
 
-    // Detect preview mode (?preview=true)
     const url = new URL(req.url);
     const isPreview = url.searchParams.get("preview") === "true";
 
