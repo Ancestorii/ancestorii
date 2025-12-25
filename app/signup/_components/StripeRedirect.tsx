@@ -23,18 +23,16 @@ export default function StripeRedirect({ plan }: { plan: Plan }) {
       console.log('💳 Calling create-checkout');
 
       const { data, error } = await supabase.functions.invoke(
-        'create-checkout',
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: {
-            plan: plan.name,
-            billingCycle: plan.billingCycle,
-            returnPath: '/dashboard/profile',
-          },
-        }
-      );
+  'create-checkout',
+  {
+    body: {
+      plan: plan.name,
+      billingCycle: plan.billingCycle,
+      returnPath: '/dashboard/profile',
+    },
+  }
+);
+
 
       console.log('📦 create-checkout response', { data, error });
 
