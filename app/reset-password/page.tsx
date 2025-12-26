@@ -12,14 +12,28 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.auth.getSession();
+      useEffect(() => {
+  (async () => {
+    const { data } = await supabase.auth.getSession();
 
-      if (!data.session) {
-        window.location.href = '/login';
-        return;
-      }
-
+    if (data.session) {
       setChecked(true);
+      return;
+    }
+
+    // ⏳ recovery session can hydrate slightly late
+    setTimeout(async () => {
+      const { data: retry } = await supabase.auth.getSession();
+
+      if (!retry.session) {
+        window.location.href = '/login';
+      } else {
+        setChecked(true);
+      }
+    }, 300);
+  })();
+}, [supabase]);
+
     })();
   }, [supabase]);
 

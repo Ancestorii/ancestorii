@@ -138,10 +138,21 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   if (!userId) return;
 
   (async () => {
-    const { data } = await supabase.auth.getUser();
-    const user = data?.user;
-    if (!user || user.email_confirmed_at) return;
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (!user) return;
 
+    // 🔑 Check YOUR verification system, not Supabase
+    const { data: verification } = await supabase
+      .from('email_verifications')
+      .select('used_at')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    // If verified, do nothing
+    if (verification?.used_at) return;
+
+    // Avoid duplicate notifications
     const { data: existing } = await supabase
       .from('notifications')
       .select('id')

@@ -23,7 +23,7 @@ export default async function DashboardLayout({
     .eq("user_id", session.user.id)
     .maybeSingle();
 
-  if (!sub || sub.status !== "active") {
+  if (!sub || !["active", "trialing"].includes(sub.status)) {
     redirect("/pricing");
   }
 
