@@ -21,7 +21,7 @@ export default function SuccessPage() {
       }
 
       // User is authenticated, middleware will handle access
-      router.replace("/dashboard/profile");
+      router.replace("/dashboard/home");
     };
 
     run();

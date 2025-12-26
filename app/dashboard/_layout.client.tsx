@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Users,
   Calendar,
+  Home,
   Package,
   Image,
   Megaphone,
@@ -43,8 +44,8 @@ function NavItem({
 }) {
   const pathname = usePathname();
   const active =
-    href === '/dashboard/profile'
-      ? pathname === '/dashboard' || pathname === '/dashboard/profile'
+    href === '/dashboard/home'
+      ? pathname === '/dashboard' || pathname === '/dashboard/home'
       : pathname === href || pathname.startsWith(href + '/');
 
   return (
@@ -94,6 +95,22 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 
   const router = useRouter();
 
+  useEffect(() => {
+  if (!hydrated) return;
+
+  (async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data?.user) {
+      router.push('/login');
+      return;
+    }
+
+    setUserId(data.user.id);
+    setUserEmail(data.user.email ?? null);
+  })();
+}, [hydrated, router]);
+
+
   /* Hydration fix */
   useEffect(() => {
     setHydrated(true);
@@ -113,7 +130,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     if (!hydrated) return;
     if (typeof window !== 'undefined') {
       const path = window.location.pathname;
-      if (path === '/dashboard') router.replace('/dashboard/profile');
+      if (path === '/dashboard') router.replace('/dashboard/home');
     }
   }, [router, hydrated]);
 
@@ -210,6 +227,14 @@ setAvatarUrl(data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null);
       <div className="px-3 pt-2 sm:pt-4 md:pt-8 lg:pt-12 space-y-8">
         <div className="space-y-2">
           <NavItem
+           href="/dashboard/home"
+           label="Home"
+           Icon={Home}
+           onClick={() => {
+           if (window.innerWidth < 1024) setDrawerOpen(false);
+           }}
+           />
+          <NavItem
             href="/dashboard/profile"
             label="My Profile"
             Icon={User}
@@ -249,35 +274,6 @@ setAvatarUrl(data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null);
               if (window.innerWidth < 1024) setDrawerOpen(false);
             }}
           />
-        </div>
-
-        {/* 🕰️ Coming Soon Section */}
-        <div className="mt-4">
-          <p className="px-4 text-[15px] font-semibold tracking-wide text-[#D4AF37] mb-2 uppercase border-b border-[#D4AF37]/60 pb-1">
-            Coming Soon
-          </p>
-          <div className="space-y-2 mt-2">
-            <NavItem
-              href="#"
-              label="Memorials / Tributes"
-              Icon={Heart}
-              onClick={(e) => {
-                e.preventDefault();
-                toast.info('Coming soon to Ancestorii ✨');
-                if (window.innerWidth < 1024) setDrawerOpen(false);
-              }}
-            />
-            <NavItem
-              href="#"
-              label="Digital Vault"
-              Icon={Lock}
-              onClick={(e) => {
-                e.preventDefault();
-                toast.info('Coming soon to Ancestorii ✨');
-                if (window.innerWidth < 1024) setDrawerOpen(false);
-              }}
-            />
-          </div>
         </div>
 
         <div className="border-t border-white/20 my-3" />
@@ -337,7 +333,7 @@ setAvatarUrl(data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null);
       >
         <nav className="relative px-4 sm:px-6 md:px-10 py-2 md:py-4">
           <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-2xl">
-            <Link href="/dashboard/profile" className="flex items-center">
+            <Link href="/dashboard/home" className="flex items-center">
               <img
                 src="/logo1.png"
                 className="mr-3 h-11 md:h-14 lg:h-[3.8rem]"
@@ -355,9 +351,9 @@ setAvatarUrl(data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null);
               </span>
 
               <Link
-                href="/dashboard/profile"
+                href="/dashboard/home"
                 className="h-12 w-12 rounded-full overflow-hidden border-2 border-[#D4AF37]/40 flex items-center justify-center bg-white hover:shadow-[0_0_12px_rgba(212,175,55,0.4)] hover:scale-105 transition-all duration-300"
-                title="My Profile"
+                title="Home"
               >
                 {avatarUrl ? (
                   <img

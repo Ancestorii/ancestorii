@@ -39,7 +39,7 @@ export default function StripeRedirect({ plan }: { plan: Plan }) {
           body: {
             plan: plan.name,
             billingCycle: plan.billingCycle,
-            returnPath: '/dashboard/profile',
+            returnPath: '/dashboard/home',
           },
         }
       );

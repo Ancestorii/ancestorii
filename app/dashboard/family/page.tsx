@@ -47,11 +47,51 @@ export default function FamilyPage() {
   const [memberCount, setMemberCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const [playAnimation, setPlayAnimation] = useState(false);
-
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
   const [groups, setGroups] = useState<Record<string, FamilyMember[]> | null>(null);
+
+  // ✅ PUT THIS INSIDE FamilyPage() (same place Albums has it)
+const line1 = '“The people who shaped your life — remembered forever.”';
+const line2 = 'Add your loved ones and preserve their stories, memories, and legacy.';
+const [typed1, setTyped1] = useState('');
+const [typed2, setTyped2] = useState('');
+const [isTyping1Done, setIsTyping1Done] = useState(false);
+
+useEffect(() => {
+  let i1 = 0,
+    i2 = 0,
+    t1: any,
+    t2: any;
+
+  const speed = 45;
+
+  t1 = setInterval(() => {
+    i1++;
+    setTyped1(line1.slice(0, i1));
+
+    if (i1 >= line1.length) {
+      clearInterval(t1);
+      setIsTyping1Done(true);
+
+      const start2 = setTimeout(() => {
+        t2 = setInterval(() => {
+          i2++;
+          setTyped2(line2.slice(0, i2));
+          if (i2 >= line2.length) clearInterval(t2);
+        }, speed);
+      }, 600);
+
+      return () => clearTimeout(start2);
+    }
+  }, speed);
+
+  return () => {
+    clearInterval(t1);
+    clearInterval(t2);
+  };
+}, []);
+
 
   /* ===========================================================
       LOAD MEMBER COUNT
@@ -85,13 +125,6 @@ export default function FamilyPage() {
     const last = localStorage.getItem(key);
     const now = Date.now();
     const day = 24 * 60 * 60 * 1000;
-
-    if (!last || now - Number(last) > day) {
-      setPlayAnimation(true);
-      localStorage.setItem(key, String(now));
-    } else {
-      setPlayAnimation(false);
-    }
   }, []);
 
   /* ===========================================================
@@ -245,45 +278,42 @@ export default function FamilyPage() {
       {/* ---------- MAIN UI ---------- */}
       {!loading && memberCount > 0 && (
         <div className="relative z-10 px-6 sm:px-8 pt-16 pb-16 max-w-7xl mx-auto">
-          {/* HEADER */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-14">
-            <div className="text-center md:text-left flex-1">
-              <h1 className="text-4xl md:text-5xl font-bold text-[#1F2837] mb-4 relative inline-block">
-                <span className="relative inline-block">
-                  My
-                  {playAnimation ? (
-                    <motion.span
-                      className="absolute left-0 -bottom-2 h-[3px] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: 105 }}
-                      transition={{ duration: 0.55, ease: "easeOut" }}
-                    />
-                  ) : (
-                    <span className="absolute left-0 -bottom-2 h-[3px] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] rounded-full w-[105px]" />
-                  )}
-                </span>{" "}
-                <span className="text-[#C8A557]">Loved Ones</span>
-              </h1>
+         {/* ✅ REPLACE YOUR HEADER WITH THIS (1:1 Albums header, just “Loved Ones”) */}
+<div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-14">
+  <div className="text-center md:text-left flex-1">
+    <h1 className="text-4xl md:text-5xl font-bold text-[#222B3A] mb-4 relative inline-block">
+      <span className="relative">
+        My
+        <motion.span
+          className="absolute left-0 -bottom-2 h-[3px] bg-[#C8A557] rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: 70 }}
+          transition={{ delay: 0.2, duration: 0.8, ease: 'easeOut' }}
+        />
+      </span>{' '}
+      <span className="text-[#C8A557]">Loved Ones</span>
+    </h1>
 
-              <motion.p className="text-[#5B6473] text-lg italic">
-                The people who shaped your life — remembered forever.
-              </motion.p>
-              <motion.p className="text-[#7A8596] text-sm mt-2">
-                Add your loved ones and preserve their stories, memories, and legacy.
-              </motion.p>
-            </div>
+    <p className="text-[#5B6473] mt-3 text-lg italic min-h-[30px]">{typed1}</p>
+    <p
+      className={`text-[#7A8596] text-sm mt-2 transition-opacity duration-500 ${
+        isTyping1Done ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
+      {typed2}
+    </p>
+  </div>
 
-            <div className="flex gap-4 justify-center md:justify-end">
-              <motion.button
-                onClick={() => setAddOpen(true)}
-                className="px-6 py-3 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
-                           text-[#1F2837] font-semibold shadow-md relative overflow-hidden"
-              >
-                <span className="relative z-10">+ Add A Loved One</span>
-              </motion.button>
-            </div>
-          </div>
-
+  <div className="flex justify-center md:justify-end flex-1">
+    <button
+      className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
+      onClick={() => setAddOpen(true)}
+    >
+      <span className="relative z-10">+ Add A Loved One</span>
+      <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
+    </button>
+  </div>
+</div>
           {/* ---------- GROUPED CARDS ---------- */}
           {groups && (
             <div className="space-y-10">
@@ -302,3 +332,16 @@ export default function FamilyPage() {
     </div>
   );
 }
+// ✅ ALSO ADD THIS (copy from Albums) somewhere in your FamilyPage return (global style block)
+// If you already have it globally, skip this.
+<style jsx global>{`
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+`}</style>
+

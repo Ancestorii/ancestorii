@@ -41,7 +41,7 @@ export default function LoginPage() {
         throw new Error("Login failed. Please try again.");
       }
 
-      router.replace('/dashboard/profile');
+      router.replace('/dashboard/home');
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong");
     } finally {

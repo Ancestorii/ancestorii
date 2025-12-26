@@ -332,8 +332,6 @@ export default function AlbumsPage() {
   emoji="🎉"
   message="A new chapter of memories begins."
 />
-
-
       <style jsx global>{`
         @keyframes shine {
           0% {
