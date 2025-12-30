@@ -127,12 +127,11 @@ export default function VoiceNoteDrawer({
           user_id: user.id,
           file_path: path,
         })
-        .select('id, media_id, user_id, file_path, created_at')
+        .select('id, media_id, user_id, file_path, created_at, Profiles(full_name)')
         .single();
 
       if (insertErr) throw insertErr;
 
-      toast.success('Voice note saved.');
       onUploaded(data as UploadedVoice);
       onClose();
     } catch (e: any) {

@@ -81,7 +81,21 @@ export default function MediaInteractionsPanel({
         if (voiceRes.error) throw voiceRes.error;
 
         setComments(commentRes.data ?? []);
-        setVoiceNotes(voiceRes.data ?? []);
+        const signedVoices = await Promise.all(
+  (voiceRes.data ?? []).map(async (v) => {
+    const { data } = await supabase.storage
+      .from('album-media')
+      .createSignedUrl(v.file_path, 3600);
+
+    return {
+      ...v,
+      file_path: data?.signedUrl ?? '',
+    };
+  })
+);
+
+setVoiceNotes(signedVoices);
+
       } catch (e) {
         console.error(e);
         toast.error('Failed to load comments/voice notes.');

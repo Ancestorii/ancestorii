@@ -126,7 +126,6 @@ export default function VoiceNoteDrawer({
 
       if (insertErr) throw insertErr;
 
-      toast.success('Voice note saved.');
       onUploaded(data as UploadedVoice);
       onClose();
     } catch (e: any) {
