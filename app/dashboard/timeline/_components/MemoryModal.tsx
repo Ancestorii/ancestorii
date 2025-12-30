@@ -275,15 +275,56 @@ async function uploadMedia(file: File) {
   }
 }
 
-  // load per-media comments/voices when media changes
-  useEffect(() => {
+// load per-media comments/voices when media IDs change (SAFE)
+useEffect(() => {
   if (!open || media.length === 0) return;
 
-  media.forEach((m) => {
-    fetchCommentsFor(m.id);
-    fetchVoicesFor(m.id);
-  });
-}, [open, media]);
+  let cancelled = false;
+
+  (async () => {
+    for (const mediaId of media.map(m => m.id)) {
+      const [{ data: comments }, { data: voices }] = await Promise.all([
+        supabase
+          .from('timeline_event_media_comments')
+          .select('id, comment, created_at, media_id, user_id, profile:profiles!user_id ( full_name )')
+          .eq('media_id', mediaId)
+          .order('created_at', { ascending: true }),
+
+        supabase
+          .from('timeline_event_media_voice_notes')
+          .select('id, file_path, created_at, media_id, user_id, profile:profiles!user_id ( full_name )')
+          .eq('media_id', mediaId)
+          .order('created_at', { ascending: true }),
+      ]);
+
+      if (cancelled) return;
+
+      setCommentsByMedia(prev => ({
+        ...prev,
+        [mediaId]: comments ?? prev[mediaId] ?? [],
+      }));
+
+      if (voices) {
+        const signed = await Promise.all(
+          voices.map(async (v) => ({
+            ...v,
+            url: await getSignedMediaUrl(v.file_path, 3600),
+          }))
+        );
+
+        setVoicesByMedia(prev => ({
+          ...prev,
+          [mediaId]: signed ?? prev[mediaId] ?? [],
+        }));
+      }
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [open, media.map(m => m.id).join(',')]);
+
 
 
   // Save title with visible confirmation
