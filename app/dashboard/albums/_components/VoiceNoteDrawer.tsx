@@ -108,10 +108,11 @@ export default function VoiceNoteDrawer({
         throw new Error('No audio selected.');
       }
 
-      const path = `${albumId}/${mediaId}/voice-${Date.now()}-${fileName}`.replace(
-        /\s+/g,
-        '_'
-      );
+      const path = `${user.id}/${albumId}/${mediaId}/voice-${Date.now()}-${fileName}`.replace(
+      /\s+/g,
+      '_'
+     );
+
 
       const { error: uploadErr } = await supabase.storage
         .from('album-media')
