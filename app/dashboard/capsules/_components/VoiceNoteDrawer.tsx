@@ -11,6 +11,7 @@ type UploadedVoice = {
   user_id: string;
   file_path: string;
   created_at: string;
+  signed_url?: string | null;
 };
 
 type Props = {
@@ -128,7 +129,7 @@ export default function VoiceNoteDrawer({
         user_id: user.id,
         file_path: path,
       })
-      .select('id, capsule_id, user_id, file_path, created_at')
+      .select('id, capsule_id, user_id, file_path, created_at,Profiles(full_name)')
       .single();
 
     if (insertErr) throw insertErr;
@@ -140,7 +141,7 @@ export default function VoiceNoteDrawer({
 
     onUploaded({
       ...data,
-      file_path: signed?.signedUrl ?? '',
+      signed_url: signed?.signedUrl ?? null,
     });
 
     onClose();
