@@ -77,7 +77,10 @@ export default function HorizontalTimeline({
   }, [events]);
 
   const start = startYear ?? autoStart;
-  const end = endYear ?? autoEnd;
+  const endRaw = endYear ?? autoEnd;
+  // 👇 ensure at least 2 years of visual space
+ const end = endRaw === start ? start + 1 : endRaw;
+
   const domainStart = new Date(Date.UTC(start, 0, 1));
   const domainEnd = new Date(Date.UTC(end + 1, 0, 1));
   const midY = height / 2;

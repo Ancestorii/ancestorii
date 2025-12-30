@@ -126,6 +126,23 @@ export default function TimelineDetailPage() {
     setTlLoading(false);
   }
 
+  useEffect(() => {
+  if (!timelineId) return;
+
+  const refresh = () => {
+    loadEvents();
+    // optional, but safe if you want title/desc to stay synced
+    // loadTimeline();
+  };
+
+  window.addEventListener('timeline-media-updated', refresh);
+
+  return () => {
+    window.removeEventListener('timeline-media-updated', refresh);
+  };
+}, [timelineId]);
+
+
   async function loadTaggedPeople() {
   if (!timelineId) return;
 

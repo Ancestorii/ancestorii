@@ -97,6 +97,13 @@ export default function MemoryModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, eventId]);
 
+  useEffect(() => {
+  if (!open) return;
+  setCommentsByMedia({});
+  setVoicesByMedia({});
+}, [open]);
+
+
   // load media for this event
   useEffect(() => {
     if (!open || !eventId) return;
@@ -152,55 +159,54 @@ async function fetchCommentsFor(mediaId: string) {
     .order('created_at', { ascending: true });
 
   if (error) {
-    console.debug('No comments for media', mediaId);
-    setCommentsByMedia((p) => ({ ...p, [mediaId]: [] }));
+    console.debug('Comments fetch failed for', mediaId);
     return;
   }
 
-   setCommentsByMedia((p) => ({
-    ...p,
-    [mediaId]: (data ?? []) as CommentItem[],
- }));
+  setCommentsByMedia((prev) => ({
+    ...prev,
+    [mediaId]: data ? (data as CommentItem[]) : [],
+  }));
 }
+
 
 
 async function fetchVoicesFor(mediaId: string) {
   const { data, error } = await supabase
     .from('timeline_event_media_voice_notes')
-    .select('id, file_path, created_at, media_id,  user_id,  profile:profiles!user_id ( full_name )')
+    .select('id, file_path, created_at, media_id, user_id, profile:profiles!user_id ( full_name )')
     .eq('media_id', mediaId)
     .order('created_at', { ascending: true });
 
   if (error) {
-    console.debug('No voice notes for media', mediaId);
-    setVoicesByMedia((p) => ({ ...p, [mediaId]: [] }));
+    console.debug('Voice fetch failed for', mediaId);
     return;
   }
 
   const list: VoiceItem[] = [];
+
   for (const row of data ?? []) {
+    if (!row.file_path) continue;
+
     try {
-      if (!row.file_path) continue;
-      const path = row.file_path;
-
-      const signed = await getSignedMediaUrl(path, 3600);
-
+      const signed = await getSignedMediaUrl(row.file_path, 3600);
       list.push({
-         id: row.id,
-          url: signed,
-         created_at: row.created_at,
-         media_id: row.media_id,
-         user_id: row.user_id,
-         profile: row.profile ?? null,
-});
-
-    } catch {
-      // never block UI
-    }
+        id: row.id,
+        url: signed,
+        created_at: row.created_at,
+        media_id: row.media_id,
+        user_id: row.user_id,
+        profile: row.profile ?? null,
+      });
+    } catch {}
   }
 
-  setVoicesByMedia((p) => ({ ...p, [mediaId]: list }));
+  setVoicesByMedia((prev) => ({
+    ...prev,
+    [mediaId]: list,
+  }));
 }
+
 
 async function uploadMedia(file: File) {
   try {
@@ -262,6 +268,7 @@ async function uploadMedia(file: File) {
 
     setMedia(out);
     toast.success('Media added to memory.');
+    window.dispatchEvent(new Event('timeline-media-updated'));
   } catch (err) {
     console.error(err);
     toast.error('Failed to upload media.');
@@ -270,14 +277,14 @@ async function uploadMedia(file: File) {
 
   // load per-media comments/voices when media changes
   useEffect(() => {
-    if (!open) return;
-    (async () => {
-      for (const m of media) {
-        await Promise.all([fetchCommentsFor(m.id), fetchVoicesFor(m.id)]);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, media.map((m) => m.id).join(',')]);
+  if (!open || media.length === 0) return;
+
+  media.forEach((m) => {
+    fetchCommentsFor(m.id);
+    fetchVoicesFor(m.id);
+  });
+}, [open, media]);
+
 
   // Save title with visible confirmation
   async function saveTop() {
@@ -312,6 +319,7 @@ async function uploadMedia(file: File) {
     if (error) throw error;
 
     toast.success('Memory deleted.');
+    window.dispatchEvent(new Event('timeline-media-updated')); // 👈 ADD
     setConfirmDeleteOpen(false);
     onOpenChange(false);
   } catch (err) {
@@ -453,6 +461,7 @@ async function deleteComment(commentId: string, mediaId: string) {
           ],
         }));
         toast.success('Voice preserved.');
+        window.dispatchEvent(new Event('timeline-media-updated'));
       }
       } catch (err) {
     console.error(err);
@@ -548,7 +557,9 @@ async function deleteComment(commentId: string, mediaId: string) {
 
     {/* CLOSE */}
     <button
-      onClick={() => onOpenChange(false)}
+       onClick={() => {
+      window.dispatchEvent(new Event('timeline-media-updated'));
+      onOpenChange(false);}}
       className="
         inline-flex items-center justify-center
         px-12 h-[42px]
@@ -659,5 +670,5 @@ async function deleteComment(commentId: string, mediaId: string) {
 
     </div>
   </div>
-);
+   );
 }
