@@ -52,10 +52,18 @@ export default function UniversalPeopleTagger({
 
     (async () => {
       try {
-        const { data: fam } = await supabase
-          .from("family_members")
-          .select("id, full_name, avatar_url")
-          .order("created_at", { ascending: true });
+        const {
+       data: { user },
+       } = await supabase.auth.getUser();
+
+if (!user) return;
+
+const { data: fam } = await supabase
+  .from("family_members")
+  .select("id, full_name, avatar_url")
+  .eq("owner_id", user.id)
+  .order("created_at", { ascending: true });
+
 
         const signedMembers = await Promise.all(
           (fam || []).map(async (m) => {
