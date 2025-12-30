@@ -60,54 +60,56 @@ export default function CapsuleSealedOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[999] flex items-center justify-center bg-[#0B0C10]/75 backdrop-blur-sm"
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-[#0B0C10]/80 backdrop-blur-md"
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 30 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
+            initial={{ scale: 0.85, opacity: 0, y: 40 }}
+            animate={{ scale: 1.05, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="relative flex flex-col items-center text-center px-10"
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="relative flex flex-col items-center text-center px-12 py-10"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Lock */}
+            {/* Lock Emblem */}
             <motion.div
-              initial={{ y: -40, scale: 0.8, opacity: 0 }}
+              initial={{ y: -50, scale: 0.75, opacity: 0 }}
               animate={{ y: 0, scale: 1, opacity: 1 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="mb-6"
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+              className="mb-8"
             >
               <motion.div
-                animate={{ scale: [1, 1.12, 1] }}
-                transition={{ duration: 0.35, delay: 0.6, ease: 'easeOut' }}
-                className="p-6 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] shadow-[0_0_30px_rgba(230,194,110,0.6)]"
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 0.45, delay: 0.7, ease: 'easeOut' }}
+                className="p-8 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] shadow-[0_0_45px_rgba(230,194,110,0.75)]"
               >
-                <Lock className="w-10 h-10 text-[#1F2837]" />
+                <Lock className="w-14 h-14 text-[#1F2837]" />
               </motion.div>
             </motion.div>
 
-            {/* Text */}
+            {/* Headline */}
             <motion.h2
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.5 }}
-              className="text-3xl font-semibold text-white mb-2"
+              className="text-4xl font-semibold tracking-tight text-white mb-3"
             >
               Capsule Locked
             </motion.h2>
 
+            {/* Capsule Title */}
             <motion.p
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45, duration: 0.5 }}
-              className="text-sm text-[#EADFB5] italic mb-4"
+              className="text-base text-[#EADFB5] italic mb-5"
             >
               “{capsuleTitle}”
             </motion.p>
 
+            {/* Unlock Date */}
             <motion.p
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, duration: 0.5 }}
               className="text-sm text-[#F3E6BF]"
@@ -115,11 +117,12 @@ export default function CapsuleSealedOverlay({
               Sealed until {formattedDate}
             </motion.p>
 
+            {/* Time Remaining */}
             <motion.p
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.65, duration: 0.5 }}
-              className="text-xs text-[#E6C26E] mt-1"
+              className="text-xs tracking-wide uppercase text-[#E6C26E] mt-2"
             >
               {remaining}
             </motion.p>
