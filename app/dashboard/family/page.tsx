@@ -11,6 +11,7 @@ import DeleteLovedOneModal from "./_components/DeleteLovedOneModal";
 import { getLovedOneGroups } from "./_utils/getLovedOneGroups";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { safeToast as toast } from "@/lib/safeToast";
+import { useSearchParams } from "next/navigation";
 
 const Particles = dynamic(() => import("@/components/ParticlesPlatform"), {
   ssr: false,
@@ -50,6 +51,8 @@ export default function FamilyPage() {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
   const [groups, setGroups] = useState<Record<string, FamilyMember[]> | null>(null);
+  const searchParams = useSearchParams();
+  const shouldOpenAdd = searchParams.get("add") === "true";
 
   // ✅ PUT THIS INSIDE FamilyPage() (same place Albums has it)
 const line1 = '“The people who shaped your life — remembered forever.”';
@@ -57,6 +60,13 @@ const line2 = 'Add your loved ones and preserve their stories, memories, and leg
 const [typed1, setTyped1] = useState('');
 const [typed2, setTyped2] = useState('');
 const [isTyping1Done, setIsTyping1Done] = useState(false);
+
+useEffect(() => {
+  if (shouldOpenAdd) {
+    setAddOpen(true);
+  }
+}, [shouldOpenAdd]);
+
 
 useEffect(() => {
   let i1 = 0,

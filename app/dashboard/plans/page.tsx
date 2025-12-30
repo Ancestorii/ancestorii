@@ -14,9 +14,11 @@ type Plan = {
 
 type SubscriptionRow = {
   user_id: string;
-   plan_id: string;          // stores plan_id (uuid) in your DB
-  renews_at: string | null;
+  plan_id: string;
+  status: string;
+  current_period_end: string | null;
 };
+
 
 type UsageRow = {
   used_bytes: number;
@@ -63,10 +65,10 @@ export default function PlansPage() {
       let sub: SubscriptionRow | null = null;
       if (uid) {
         const { data: subRows, error: subErr } = await supabase
-          .from("subscriptions")
-          .select("user_id, plan_id, renews_at")
-          .eq("user_id", uid)
-          .maybeSingle();
+        .from("subscriptions")
+        .select("user_id, plan_id, status, current_period_end")
+        .eq("user_id", uid)
+        .maybeSingle();
         if (subErr) console.warn("Subscription fetch error:", subErr.message);
         sub = (subRows ?? null) as SubscriptionRow | null;
         setSubscription(sub);
@@ -101,6 +103,15 @@ export default function PlansPage() {
 
   const formatDate = (iso: string | null | undefined) =>
     iso ? new Date(iso).toLocaleDateString() : "—";
+
+  const daysUntil = (iso: string | null | undefined) => {
+  if (!iso) return null;
+  const end = new Date(iso).getTime();
+  const now = Date.now();
+  const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : 0;
+};
+
 
   // ---- Stripe Upgrade ----
  const handleUpgrade = async (planName: PlanName) => {
@@ -156,7 +167,7 @@ export default function PlansPage() {
 
   const FEATURES: Record<PlanName, string[]> = {
     Basic: [
-      "50GB of secure storage",
+      "25GB of secure storage",
       "3 timelines, 3 capsules & 3 albums",
       "Max upload 1GB per file, videos up to 5 minutes",
       "Add voice & written notes to your memories",
@@ -167,9 +178,8 @@ export default function PlansPage() {
       "Everything in Basic plan plus",
       "250GB of secure storage",
       "Unlimited timelines, albums & capsules",
-      "Link timelines, albums & capsules to your Family Tree",
+      "Organise timelines, albums & capsules into one private legacy",
       "Max upload 5GB per file, videos up to 15 minutes",
-      "Download a shareable Poster for social media",
       "Appoint 1 person to inherit your digital legacy",
       "Priority 24/7 support",
     ],
@@ -179,7 +189,7 @@ export default function PlansPage() {
       "Max upload 10GB per file, videos up to 30 minutes with 4K processing priority",
       "Appoint 2 people to inherit your digital legacy",
       "30-day vault recovery for deleted items",
-      "Secure Digital Will & Asset Vault (coming soon)",
+      "Future legal integration: Secure Digital Will & Asset Vault",
       "Access new features early such as Memorials & Tributes",
     ],
   };
@@ -203,10 +213,17 @@ export default function PlansPage() {
               <span className="ml-2 text-slate-500 text-sm">
                 {currentPlan ? PRICE[currentPlan.name] : ""}
               </span>
+              {subscription?.status === "trialing" && (
+              <span className="ml-2 text-xs font-semibold text-amber-600">
+              Trial ends in {daysUntil(subscription.current_period_end)} days
+              </span>
+             )}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              Renewal date: {formatDate(subscription?.renews_at)}
-            </p>
+            {subscription?.status === "trialing"
+              ? `Your trial ends on ${formatDate(subscription.current_period_end)}`
+              : `Renews on ${formatDate(subscription?.current_period_end)}`}
+             </p>
           </div>
           <div className="flex items-center gap-3">
             <button

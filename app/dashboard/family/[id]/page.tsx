@@ -266,12 +266,12 @@ setCapsules(
 
       <div className="relative z-10 max-w-[1500px] mx-auto px-8 pt-28 pb-24">
         {/* HEADER */}
-        <div className="flex items-start gap-8 mb-12">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 mb-12 text-center sm:text-left">
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative w-[150px] h-[150px]"
+            className="relative w-[110px] h-[110px] sm:w-[150px] sm:h-[150px]"
           >
             <div className="absolute inset-0 rounded-full bg-[#E6C26E]/40 blur-xl" />
             <div className="absolute inset-0 rounded-full bg-[#E6C26E]/20 blur-2xl" />
@@ -287,11 +287,8 @@ setCapsules(
             {/* Name with subtle serif shadow */}
             <div className="mb-2">
               <h1
-              className="
-              text-5xl font-bold
-               text-[#d4af37]
-               drop-shadow-[0_1px_3px_rgba(0,0,0,0.10)]
-               "
+              className="text-3xl sm:text-5xl font-bold text-[#d4af37]
+               drop-shadow-[0_1px_3px_rgba(0,0,0,0.10)]"
                 >
                   {member.full_name}
                 </h1>
@@ -320,11 +317,34 @@ setCapsules(
                 )}
               </div>
 
-              {nextCelebration && (
-                <div className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-violet-50 border border-violet-200 shadow-sm text-sm text-violet-700">
-                  🎉 {nextCelebration.label}
-                </div>
-              )}
+             {nextCelebration && (
+  <div
+    className="
+      inline-flex items-center gap-2
+      h-[42px]
+      px-5
+      rounded-full
+      bg-violet-50
+      border border-violet-200
+      shadow-sm
+      text-sm
+      text-violet-700
+      whitespace-nowrap
+    "
+  >
+    🎉
+    <span>
+      {firstName}'s {nextCelebration.ageTurning}ᵗʰ birthday is in{" "}
+      <span className="font-medium">
+        {nextCelebration.daysDiff} day
+        {nextCelebration.daysDiff === 1 ? "" : "s"}
+      </span>
+    </span>
+  </div>
+)}
+
+
+
             </div>
           </div>
         </div>

@@ -4,6 +4,8 @@ import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
 
 const Particles = dynamic(() => import('@/components/ParticlesPlatform'), {
   ssr: false,
@@ -12,6 +14,7 @@ const Particles = dynamic(() => import('@/components/ParticlesPlatform'), {
 export default function DashboardHomePage() {
   const supabase = getBrowserClient();
   const [homeImages, setHomeImages] = useState<(string | null)[]>([null, null, null]);
+  const router = useRouter();
 
   const [name, setName] = useState<string | null>(null);
   const [typedYours, setTypedYours] = useState('');
@@ -131,6 +134,7 @@ useEffect(() => {
           className="
             absolute
             left-[52%]
+            lg:left-[47%]
             -translate-x-1/2
             top-[30%]
             -translate-y-1/2
@@ -140,13 +144,20 @@ useEffect(() => {
         >
           {/* WELCOME */}
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 1.6 }}
-            className="tracking-[0.45em] text-lg text-[#0f2040]/70 mb-5 uppercase"
-          >
-            Welcome
-          </motion.p>
+         initial={{ opacity: 0 }}
+         animate={{ opacity: 1 }}
+         transition={{ delay: 0.5, duration: 1.6 }}
+         className="
+         tracking-[0.45em]
+         text-lg
+         uppercase
+         text-[#0f2040]/90
+         mb-6
+         mt-24 md:mt-10
+        "
+        >
+        Welcome
+       </motion.p>
 
           {/* NAME */}
           <motion.h1
@@ -157,7 +168,7 @@ useEffect(() => {
               duration: 1.8,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="text-6xl md:text-8xl font-extrabold text-[#0f2040] leading-tight"
+            className="text-4xl sm:text-5xl md:text-5xl font-extrabold text-[#0f2040] leading-tight"
           >
             {name}
           </motion.h1>
@@ -175,7 +186,13 @@ useEffect(() => {
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          transition={{ delay: 1.8, duration: 1.8 }}
-         className="text-lg md:text-xl leading-[1.75] text-[#2a3550] max-w-[680px]"
+         className="text-base
+         md:text-lg
+         leading-[1.65]
+         md:leading-[1.85]
+         text-[#2a3550]
+         max-w-[92%]
+         md:max-w-[680px]"
         >
          This is a private space designed to preserve memories, stories, and voices —
          where moments are carefully held, histories are protected, and the people who
@@ -186,16 +203,48 @@ useEffect(() => {
         {typedYours}
         </span>.
          </motion.p>
+
+<motion.div
+  initial={{ opacity: 0, y: 12 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 2.2, duration: 1.4, ease: 'easeOut' }}
+  className="mt-12 flex justify-center md:justify-start"
+>
+  <button
+    onClick={() => router.push('/dashboard/family?add=true')}
+    className="
+      px-8 py-4
+      rounded-full
+      bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
+      text-[#1F2837]
+      font-semibold
+      text-lg
+      shadow-md
+      hover:shadow-lg
+      transition-transform
+      hover:scale-[1.03]
+      relative
+      overflow-hidden
+    "
+  >
+    <span className="relative z-10">Preserve a Loved One</span>
+    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
+  </button>
+</motion.div>
+
+<p className="mt-4 text-xs text-[#6b7280] text-center md:hidden">
+  Crafted for deeper storytelling on desktop.
+</p>
         </div>
         {/* HOME MEMORY COLLAGE */}
-<div className="hidden lg:block absolute right-[4%] top-[44%] w-[620px] h-[620px] -translate-y-1/2">
-  <MemoryDropCard
-  index={0}
-  image={homeImages[0]}
-  placeholder="A moment you’ll never forget. Drag a photo here — maybe a trip that changed you."
-  className="top-0 left-10 rotate-[-3deg]"
-  onUpload={uploadHomeImage}
-/>
+       <div className="hidden lg:block absolute right-[4%] top-[44%] w-[620px] h-[620px] -translate-y-1/2">
+       <MemoryDropCard
+        index={0}
+        image={homeImages[0]}
+          placeholder="A moment you’ll never forget. Drag a photo here — maybe a trip that changed you."
+          className="top-0 left-10 rotate-[-3deg]"
+          onUpload={uploadHomeImage}
+          />
 
 <MemoryDropCard
   index={1}
@@ -212,8 +261,7 @@ useEffect(() => {
   className="bottom-0 left-24 rotate-[-1deg]"
   onUpload={uploadHomeImage}
 />
-
-</div>
+       </div>
       </div>
     </div>
   );

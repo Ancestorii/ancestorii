@@ -90,7 +90,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [scrolled, setScrolled] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
+  const [fullName, setFullName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const router = useRouter();
@@ -175,12 +175,12 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const fetchProfile = async () => {
     if (!userId) return;
     const { data: prof } = await supabase
-      .from('Profiles')
-      .select('username, profile_image_url')
-      .eq('id', userId)
-      .maybeSingle();
+    .from('Profiles')
+    .select('full_name, profile_image_url')
+    .eq('id', userId)
+    .maybeSingle();
 
-    setUsername(prof?.username ?? null);
+   setFullName(prof?.full_name ?? null);
 
     if (prof?.profile_image_url) {
       const { data } = await supabase.storage
@@ -226,7 +226,7 @@ setAvatarUrl(data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null);
     setUserEmail(null);
     setUserId(null);
     setAvatarUrl(null);
-    setUsername(null);
+    setFullName(null);
     router.push('/');
   };
 
@@ -357,7 +357,7 @@ setAvatarUrl(data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null);
               <span className="text-2xl font-bold text-[#0F2040] tracking-wide">
                 Hi,{' '}
                 <span className="text-[#D4AF37] font-extrabold bg-clip-text hover:animate-shimmer transition">
-                  {username || userEmail || 'Guest'}
+                  {fullName || userEmail || 'Guest'}
                 </span>
               </span>
 

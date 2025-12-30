@@ -8,7 +8,6 @@ type Profile = {
   full_name: string | null;
   dob: string | null;
   profile_image_url: string | null;
-  username?: string | null;
   bio?: string | null;
   phone?: string | null;
   location?: string | null;
@@ -85,22 +84,6 @@ useEffect(() => {
     setError(null);
     setSuccess(null);
 
-    if (!profile.username || profile.username.trim() === '') {
-      setError('Username is required.');
-      return;
-    }
-
-    const { data: existing } = await supabase
-      .from('Profiles')
-      .select('id')
-      .eq('username', profile.username)
-      .neq('id', userId)
-      .maybeSingle();
-
-    if (existing) {
-      setError('Username is already taken.');
-      return;
-    }
 
     setSaving(true);
     const { error: upErr } = await supabase
@@ -108,7 +91,6 @@ useEffect(() => {
       .update({
         full_name: profile.full_name,
         dob: profile.dob,
-        username: profile.username,
         profile_image_url: profile.profile_image_url,
         bio: profile.bio,
         phone: profile.phone,
@@ -202,15 +184,6 @@ setTimeout(() => {
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Contact */}
         <AccentCard title="Contact" accent="gold">
-          <Field label="Username">
-            <input
-              type="text"
-              placeholder="e.g. danteleon"
-              value={profile?.username ?? ''}
-              onChange={(e) => onChange('username', e.target.value)}
-              className="w-full rounded-md border px-3 py-2 bg-white focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] border-slate-300 text-sm md:text-base"
-            />
-          </Field>
 
           <Field label="Email">
             <input
