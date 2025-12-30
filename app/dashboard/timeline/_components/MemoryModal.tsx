@@ -26,7 +26,7 @@ type CommentItem = {
   id: string;
   comment: string;
   created_at: string;
-  media_id: string;
+  event_id: string;
   user_id: string;
   profile?: { full_name: string | null }[] | null;
 };
@@ -35,7 +35,7 @@ type VoiceItem = {
   id: string;
   url: string;
   created_at: string;
-  media_id: string;
+  event_id: string;
   user_id: string;
   profile?: { full_name: string | null }[] | null;
 };
@@ -63,15 +63,15 @@ export default function MemoryModal({
   const [loading, setLoading] = useState(true);
 
   // per-media comments & voices
-  const [commentsByMedia, setCommentsByMedia] = useState<Record<string, CommentItem[]>>({});
-  const [voicesByMedia, setVoicesByMedia] = useState<Record<string, VoiceItem[]>>({});
+  const [comments, setComments] = useState<CommentItem[]>([]);
+  const [voices, setVoices] = useState<VoiceItem[]>([]);
 
   // new per-media comment inputs
-  const [newComment, setNewComment] = useState<Record<string, string>>({});
-  const [addingComment, setAddingComment] = useState<Record<string, boolean>>({});
+  const [newComment, setNewComment] = useState('');
+  const [addingComment, setAddingComment] = useState(false);
 
   // new per-media voice uploads
-  const [addingVoice, setAddingVoice] = useState<Record<string, boolean>>({});
+  const [addingVoice, setAddingVoice] = useState(false);
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -97,11 +97,6 @@ export default function MemoryModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, eventId]);
 
-  useEffect(() => {
-  if (!open) return;
-  setCommentsByMedia({});
-  setVoicesByMedia({});
-}, [open]);
 
 
   // load media for this event
@@ -151,61 +146,6 @@ export default function MemoryModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, eventId]);
 
-async function fetchCommentsFor(mediaId: string) {
-  const { data, error } = await supabase
-    .from('timeline_event_media_comments')
-    .select('id, comment, created_at, media_id, user_id, profile:profiles!user_id ( full_name )')
-    .eq('media_id', mediaId)
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    console.debug('Comments fetch failed for', mediaId);
-    return;
-  }
-
-  setCommentsByMedia((prev) => ({
-    ...prev,
-    [mediaId]: data ? (data as CommentItem[]) : [],
-  }));
-}
-
-
-
-async function fetchVoicesFor(mediaId: string) {
-  const { data, error } = await supabase
-    .from('timeline_event_media_voice_notes')
-    .select('id, file_path, created_at, media_id, user_id, profile:profiles!user_id ( full_name )')
-    .eq('media_id', mediaId)
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    console.debug('Voice fetch failed for', mediaId);
-    return;
-  }
-
-  const list: VoiceItem[] = [];
-
-  for (const row of data ?? []) {
-    if (!row.file_path) continue;
-
-    try {
-      const signed = await getSignedMediaUrl(row.file_path, 3600);
-      list.push({
-        id: row.id,
-        url: signed,
-        created_at: row.created_at,
-        media_id: row.media_id,
-        user_id: row.user_id,
-        profile: row.profile ?? null,
-      });
-    } catch {}
-  }
-
-  setVoicesByMedia((prev) => ({
-    ...prev,
-    [mediaId]: list,
-  }));
-}
 
 
 async function uploadMedia(file: File) {
@@ -275,55 +215,41 @@ async function uploadMedia(file: File) {
   }
 }
 
-// load per-media comments/voices when media IDs change (SAFE)
 useEffect(() => {
-  if (!open || media.length === 0) return;
+  if (!open || !eventId) return;
 
-  let cancelled = false;
+  supabase
+    .from('timeline_event_media_comments')
+    .select('id, comment, created_at, event_id, user_id, profile:"Profiles"!user_id(full_name)')
+    .eq('event_id', eventId)
+    .order('created_at', { ascending: true })
+    .then(({ data }) => {
+      setComments(data ?? []);
+    });
+}, [open, eventId]);
+
+useEffect(() => {
+  if (!open || !eventId) return;
 
   (async () => {
-    for (const mediaId of media.map(m => m.id)) {
-      const [{ data: comments }, { data: voices }] = await Promise.all([
-        supabase
-          .from('timeline_event_media_comments')
-          .select('id, comment, created_at, media_id, user_id, profile:profiles!user_id ( full_name )')
-          .eq('media_id', mediaId)
-          .order('created_at', { ascending: true }),
+    const { data } = await supabase
+      .from('timeline_event_media_voice_notes')
+      .select('id, file_path, created_at, event_id, user_id, profile:"Profiles"!user_id(full_name)')
+      .eq('event_id', eventId)
+      .order('created_at', { ascending: true });
 
-        supabase
-          .from('timeline_event_media_voice_notes')
-          .select('id, file_path, created_at, media_id, user_id, profile:profiles!user_id ( full_name )')
-          .eq('media_id', mediaId)
-          .order('created_at', { ascending: true }),
-      ]);
+    if (!data) return;
 
-      if (cancelled) return;
+    const signed = await Promise.all(
+      data.map(async (v) => ({
+        ...v,
+        url: await getSignedMediaUrl(v.file_path, 3600),
+      }))
+    );
 
-      setCommentsByMedia(prev => ({
-        ...prev,
-        [mediaId]: comments ?? prev[mediaId] ?? [],
-      }));
-
-      if (voices) {
-        const signed = await Promise.all(
-          voices.map(async (v) => ({
-            ...v,
-            url: await getSignedMediaUrl(v.file_path, 3600),
-          }))
-        );
-
-        setVoicesByMedia(prev => ({
-          ...prev,
-          [mediaId]: signed ?? prev[mediaId] ?? [],
-        }));
-      }
-    }
+    setVoices(signed);
   })();
-
-  return () => {
-    cancelled = true;
-  };
-}, [open, media.map(m => m.id).join(',')]);
+}, [open, eventId]);
 
 
 
@@ -372,11 +298,11 @@ useEffect(() => {
 }
 
 
-async function addComment(mediaId: string) {
-  const text = newComment[mediaId]?.trim();
+async function addComment() {
+  const text = newComment.trim();
   if (!text) return;
 
-  setAddingComment((p) => ({ ...p, [mediaId]: true }));
+  setAddingComment(true);
 
   try {
     const { data: sess } = await supabase.auth.getSession();
@@ -386,7 +312,7 @@ async function addComment(mediaId: string) {
     const { data, error } = await supabase
       .from('timeline_event_media_comments')
       .insert({
-        media_id: mediaId,
+        event_id: eventId,
         user_id: user.id,
         comment: text,
       })
@@ -395,52 +321,37 @@ async function addComment(mediaId: string) {
 
     if (error) throw error;
 
-    // ✅ update UI immediately
-    setCommentsByMedia((p) => ({
-  ...p,
-  [mediaId]: [
-    ...(p[mediaId] ?? []),
-   {
-  id: data.id,
-   comment: data.comment,
-  created_at: data.created_at,
-  media_id: mediaId,
-  user_id: user.id,
-  profile: null, // resolved on next fetch
-},
-  ],
-}));
+    setComments((p) => [
+      ...p,
+      {
+        ...data,
+        event_id: eventId,
+        user_id: user.id,
+        profile: null,
+      },
+    ]);
 
-
-
-    setNewComment((p) => ({ ...p, [mediaId]: '' }));
+    setNewComment('');
     toast.success('Your words have been preserved.');
-
   } catch (e) {
-    console.error(e);
+    console.error('COMMENT INSERT ERROR:', e);
     toast.error('Failed to save memory.');
   } finally {
-    setAddingComment((p) => ({ ...p, [mediaId]: false }));
+    setAddingComment(false);
   }
 }
 
-async function deleteComment(commentId: string, mediaId: string) {
+
+async function deleteComment(commentId: string) {
   try {
-    // 1️⃣ Try dedicated per-media comments table
-    let res = await supabase
+    const { error } = await supabase
       .from('timeline_event_media_comments')
       .delete()
       .eq('id', commentId);
 
+    if (error) throw error;
 
-    if (res.error) throw res.error;
-
-    // 3️⃣ Remove comment from local state (UI)
-    setCommentsByMedia((prev) => ({
-      ...prev,
-      [mediaId]: prev[mediaId].filter((c) => c.id !== commentId),
-    }));
-
+    setComments((p) => p.filter((c) => c.id !== commentId));
     toast.success('Comment deleted.');
   } catch (err) {
     console.error(err);
@@ -449,68 +360,64 @@ async function deleteComment(commentId: string, mediaId: string) {
 }
 
 
+
   // Upload a per-media voice note (store + show author)
-  async function uploadVoice(mediaId: string, file: File) {
-    if (!file) return;
-    setAddingVoice((p) => ({ ...p, [mediaId]: true }));
-    try {
-      const { data: sess } = await supabase.auth.getSession();
-      const user = sess?.session?.user;
-      if (!user) throw new Error('Not authenticated');
+async function uploadVoice(file: File) {
+  if (!file) return;
+  setAddingVoice(true);
 
-     const fileId = crypto.randomUUID();
-     const storagePath = `${user.id}/${eventId}/voices/${fileId}.webm`;
+  try {
+    const { data: sess } = await supabase.auth.getSession();
+    const user = sess?.session?.user;
+    if (!user) throw new Error('Not authenticated');
 
-      const { error: upErr } = await supabase.storage
-        .from('timeline-media')
-        .upload(storagePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: file.type || 'audio/webm',
-        });
-      if (upErr) throw upErr;
+    const fileId = crypto.randomUUID();
+    const storagePath = `${user.id}/${eventId}/voices/${fileId}.webm`;
 
-      // insert (prefer media-linked), return author name
-      let ins = await supabase
-        .from('timeline_event_media_voice_notes')
-        .insert({ media_id: mediaId, user_id: user.id, file_path: storagePath, })
-        .select('id, file_path, created_at, media_id, user_id')
-        .single();
+    const { error: upErr } = await supabase.storage
+      .from('timeline-media')
+      .upload(storagePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || 'audio/webm',
+      });
+    if (upErr) throw upErr;
 
-      if (ins.error) {
-        ins = await supabase
-          .from('timeline_event_media_voice_notes')
-          .insert({ media_id: mediaId, user_id: user.id, file_path: storagePath, })
-          .select('id, file_path, created_at, media_id, user_id')
-          .single();
-      }
+    const { data, error } = await supabase
+      .from('timeline_event_media_voice_notes')
+      .insert({
+        event_id: eventId,
+        user_id: user.id,
+        file_path: storagePath,
+      })
+      .select('id, file_path, created_at')
+      .single();
 
-      if (!ins.error && ins.data) {
-        const signed = await getSignedMediaUrl((ins.data as any).file_path, 3600);
-        setVoicesByMedia((p) => ({
-          ...p,
-          [mediaId]: [
-            ...(p[mediaId] || []),
-            {
-           id: ins.data.id,
-          url: signed,
-          created_at: ins.data.created_at,
-          media_id: ins.data.media_id,
-          user_id: user.id,
-           profile: null,
-           },
-          ],
-        }));
-        toast.success('Voice preserved.');
-        window.dispatchEvent(new Event('timeline-media-updated'));
-      }
-      } catch (err) {
+    if (error) throw error;
+
+    const signed = await getSignedMediaUrl(data.file_path, 3600);
+
+    setVoices((p) => [
+      ...p,
+      {
+        id: data.id,
+        url: signed,
+        created_at: data.created_at,
+        event_id: eventId,
+        user_id: user.id,
+        profile: null,
+      },
+    ]);
+
+    toast.success('Voice preserved.');
+  } catch (err) {
     console.error(err);
     toast.error('Failed to save voice.');
   } finally {
-    setAddingVoice((p) => ({ ...p, [mediaId]: false }));
+    setAddingVoice(false);
   }
 }
+
 
   if (!open) return null;
 
@@ -646,21 +553,20 @@ async function deleteComment(commentId: string, mediaId: string) {
 
         {/* BODY */}
         <MemoryModalBody
-          loading={loading}
-          media={media}
-          commentsByMedia={commentsByMedia}
-          voicesByMedia={voicesByMedia}
-          newComment={newComment}
-          addingComment={addingComment}
-          addingVoice={addingVoice}
-          onChangeComment={(mediaId, value) =>
-            setNewComment((p) => ({ ...p, [mediaId]: value }))
-          }
-          onAddComment={addComment}
-          onUploadVoice={uploadVoice}
-          onDeleteComment={deleteComment}
-          onUploadMedia={uploadMedia}
-        />
+  loading={loading}
+  media={media}
+  comments={comments}
+  voices={voices}
+  newComment={newComment}
+  addingComment={addingComment}
+  addingVoice={addingVoice}
+  onChangeComment={(value) => setNewComment(value)}
+  onAddComment={addComment}
+  onUploadVoice={uploadVoice}
+  onDeleteComment={deleteComment}
+  onUploadMedia={uploadMedia}
+/>
+
 
       </div>
       {confirmDeleteOpen && (

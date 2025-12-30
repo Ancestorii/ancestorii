@@ -17,7 +17,7 @@ type CommentItem = {
   id: string;
   comment: string;
   created_at: string;
-  media_id: string;
+  event_id: string;
   user_id: string;
   profile?: { full_name: string | null }[] | null;
 };
@@ -27,7 +27,7 @@ type VoiceItem = {
   id: string;
   url: string;
   created_at: string;
-  media_id: string;
+  event_id: string;
   user_id: string;
   profile?: { full_name: string | null }[] | null;
 };
@@ -37,8 +37,8 @@ type VoiceItem = {
 export default function MemoryModalBody({
   loading,
   media,
-  commentsByMedia,
-  voicesByMedia,
+  comments,
+  voices,
   newComment,
   addingComment,
   addingVoice,
@@ -50,45 +50,52 @@ export default function MemoryModalBody({
 }: {
   loading: boolean;
   media: MediaItem[];
-  commentsByMedia: Record<string, CommentItem[]>;
-  voicesByMedia: Record<string, VoiceItem[]>;
-  newComment: Record<string, string>;
-  addingComment: Record<string, boolean>;
-  addingVoice: Record<string, boolean>;
-  onChangeComment: (mediaId: string, value: string) => void;
-  onAddComment: (mediaId: string) => void;
-  onUploadVoice: (mediaId: string, file: File) => Promise<void>;
-  onDeleteComment: (commentId: string, mediaId: string) => void;
+  comments: CommentItem[];
+  voices: VoiceItem[];
+  newComment: string;
+  addingComment: boolean;
+  addingVoice: boolean;
+  onChangeComment: (value: string) => void;
+  onAddComment: () => void;
+  onUploadVoice: (file: File) => Promise<void>;
+  onDeleteComment: (commentId: string) => void;
   onUploadMedia: (file: File) => void;
 }) {
 
+
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
-  const [recordingFor, setRecordingFor] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
 
-  const startRecording = async (mediaId: string) => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const recorder = new MediaRecorder(stream);
-    recorderRef.current = recorder;
-    chunks.current = [];
+const startRecording = async () => {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
+if (!stream) return;
+  const recorder = new MediaRecorder(stream);
+  recorderRef.current = recorder;
+  chunks.current = [];
 
-    recorder.ondataavailable = (e) => chunks.current.push(e.data);
-    recorder.onstop = () => {
-      const blob = new Blob(chunks.current, { type: 'audio/webm' });
-      setAudioBlob(blob);
-      setAudioUrl(URL.createObjectURL(blob));
-    };
-
-    recorder.start();
-    setRecordingFor(mediaId);
+  recorder.ondataavailable = (e) => chunks.current.push(e.data);
+  recorder.onstop = () => {
+    const blob = new Blob(chunks.current, { type: 'audio/webm' });
+    setAudioBlob(blob);
+    setAudioUrl(URL.createObjectURL(blob));
+    setRecording(false);
   };
 
-  const stopRecording = () => {
-    recorderRef.current?.stop();
-    setRecordingFor(null);
-  };
+  recorder.start();
+  setRecording(true);
+};
+
+const stopRecording = () => {
+  const rec = recorderRef.current;
+  if (!rec) return;
+
+  const stream = rec.stream;
+  rec.stop();
+  stream.getTracks().forEach((t) => t.stop());
+};
 
   const UploadMediaBox = ({ compact = false }: { compact?: boolean }) => (
   <label
@@ -142,23 +149,23 @@ export default function MemoryModalBody({
 
   return (
     <div className="max-h-[78vh] overflow-y-auto bg-white">
-      <div className="divide-y divide-[#E6C26E]/40">
+      <div>
        {media.length === 0 && (
   <div className="h-[55vh] flex items-center justify-center">
     <UploadMediaBox />
   </div>
 )}
         {media.map((m, index) => {
-          const comments = commentsByMedia[m.id] || [];
-          const voices = voicesByMedia[m.id] || [];
 
           return (
-            <div key={m.id} className="grid lg:grid-cols-3 gap-0 px-10 py-12">
+            <div key={m.id} className="grid lg:grid-cols-3 gap-0 px-10 py-6">
               {/* MEDIA */}
-              <div className="lg:col-span-2 pr-10">
+              <div className="lg:col-span-2 pr-4">
+
                 <div className="rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 bg-white">
+
                    {m.type === 'photo' && (
-                    <img  src={m.url} className="w-full max-h-[70vh] object-contain bg-black/5"/>
+                    <img  src={m.url}  className="w-full max-h-[60vh] object-contain"/>
                   )}
                    {m.type === 'video' && (
                     <video src={m.url} controls className="w-full max-h-[70vh] object-contain bg-black" />
@@ -178,6 +185,7 @@ export default function MemoryModalBody({
                   </div>
 
               {/* RIGHT PANEL */}
+              {index === 0 && (
               <div className="border-l border-[#E6C26E]/50 pl-10 space-y-12">
                 {/* WRITTEN */}
                 <section>
@@ -197,7 +205,7 @@ export default function MemoryModalBody({
   >
     {/* DELETE ICON — ALWAYS VISIBLE */}
     <button
-      onClick={() => onDeleteComment(c.id, m.id)}
+      onClick={() => onDeleteComment(c.id)}
       title="Delete comment"
       className="
         absolute
@@ -231,8 +239,8 @@ export default function MemoryModalBody({
 
                   <div className="rounded-2xl border border-[#E6C26E]/40 bg-[#FFFDF7] p-4 shadow-sm">
                     <textarea
-                      value={newComment[m.id] || ''}
-                      onChange={(e) => onChangeComment(m.id, e.target.value)}
+                      value={newComment}
+                      onChange={(e) => onChangeComment(e.target.value)}
                       placeholder="Add a thought, detail or feeling..."
                      className="
                          w-full
@@ -247,8 +255,8 @@ export default function MemoryModalBody({
                     />
                       <div className="mt-3 flex justify-end">
                     <button
-                      onClick={() => onAddComment(m.id)}
-                      disabled={addingComment[m.id]}
+                      onClick={onAddComment}
+                      disabled={addingComment}
                       className="
                      px-6 h-[40px]
                      rounded-full
@@ -309,13 +317,13 @@ export default function MemoryModalBody({
                           onChange={async (e) => {
                             const f = e.target.files?.[0];
                             if (!f) return;
-                            await onUploadVoice(m.id, f);
+                            await onUploadVoice(f);
                           }}
                         />
                       </label>
 
                       <button
-                        onClick={() => startRecording(m.id)}
+                        onClick={startRecording}
                         className="flex-1 rounded-full bg-[#1F2837] text-white px-4 py-2 text-sm hover:opacity-90"
                       >
                         <Mic className="inline w-4 h-4 mr-1" />
@@ -324,7 +332,7 @@ export default function MemoryModalBody({
                     </div>
                   )}
 
-                  {recordingFor === m.id && (
+                  {recording && (
                     <div className="flex flex-col items-center mt-6">
                       <button
                         onClick={stopRecording}
@@ -344,10 +352,8 @@ export default function MemoryModalBody({
                       <button
                         onClick={async () => {
                           if (!audioBlob) return;
-                          await onUploadVoice(
-                            m.id,
-                            new File([audioBlob], 'recording.webm')
-                          );
+                          await onUploadVoice(new File([audioBlob], 'recording.webm'));
+                          setRecording(false);
                           setAudioBlob(null);
                           setAudioUrl(null);
                         }}
@@ -359,8 +365,8 @@ export default function MemoryModalBody({
                   )}
                 </section>
               </div>
+              )}
             </div>
-
           );
         })}
       </div>
