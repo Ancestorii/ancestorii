@@ -87,61 +87,75 @@ export default function VoiceNoteDrawer({
   };
 
   const handleUpload = async () => {
-    try {
-      setSubmitting(true);
-      setError(null);
+  try {
+    setSubmitting(true);
+    setError(null);
 
-      const { data: sess } = await supabase.auth.getSession();
-      const user = sess?.session?.user;
-      if (!user) throw new Error('You must be signed in.');
+    const { data: sess } = await supabase.auth.getSession();
+    const user = sess?.session?.user;
+    if (!user) throw new Error('You must be signed in.');
 
-      let blobToUpload: Blob;
-      let fileName: string;
+    let blobToUpload: Blob;
+    let fileName: string;
 
-      if (mode === 'upload' && file) {
-        blobToUpload = file;
-        fileName = file.name;
-      } else if (mode === 'record' && audioBlob) {
-        blobToUpload = audioBlob;
-        fileName = `recording-${Date.now()}.webm`;
-      } else {
-        throw new Error('No audio selected.');
-      }
+    if (mode === 'upload' && file) {
+      blobToUpload = file;
+      fileName = file.name;
+    } else if (mode === 'record' && audioBlob) {
+      blobToUpload = audioBlob;
+      fileName = `recording-${Date.now()}.webm`;
+    } else {
+      throw new Error('No audio selected.');
+    }
 
-      const path = `${user.id}/${albumId}/${mediaId}/voice-${Date.now()}-${fileName}`.replace(
+    const path = `${user.id}/${albumId}/${mediaId}/voice-${Date.now()}-${fileName}`.replace(
       /\s+/g,
       '_'
-     );
+    );
 
+    // ✅ UPLOAD WITH CORRECT MIME TYPE
+    const { error: uploadErr } = await supabase.storage
+      .from('album-media')
+      .upload(path, blobToUpload, {
+        upsert: true,
+        contentType: blobToUpload.type || 'audio/webm',
+      });
 
-      const { error: uploadErr } = await supabase.storage
-        .from('album-media')
-        .upload(path, blobToUpload, { upsert: true });
+    if (uploadErr) throw uploadErr;
 
-      if (uploadErr) throw uploadErr;
+    // ✅ INSERT DB ROW
+    const { data, error: insertErr } = await supabase
+      .from('album_media_voice_notes')
+      .insert({
+        media_id: mediaId,
+        user_id: user.id,
+        file_path: path,
+      })
+      .select('id, media_id, user_id, file_path, created_at, Profiles(full_name)')
+      .single();
 
-      const { data, error: insertErr } = await supabase
-        .from('album_media_voice_notes')
-        .insert({
-          media_id: mediaId,
-          user_id: user.id,
-          file_path: path,
-        })
-        .select('id, media_id, user_id, file_path, created_at, Profiles(full_name)')
-        .single();
+    if (insertErr) throw insertErr;
 
-      if (insertErr) throw insertErr;
+    // ✅ SIGN URL FOR IMMEDIATE PLAYBACK
+    const { data: signed } = await supabase.storage
+      .from('album-media')
+      .createSignedUrl(path, 3600);
 
-      onUploaded(data as UploadedVoice);
-      onClose();
-    } catch (e: any) {
-      console.error(e);
-      toast.error('Failed to upload voice note.');
-      setError(e.message || String(e));
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    onUploaded({
+      ...data,
+      file_path: signed?.signedUrl ?? '',
+    });
+
+    onClose();
+  } catch (e: any) {
+    console.error(e);
+    toast.error('Failed to upload voice note.');
+    setError(e.message || String(e));
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   if (!open) return null;
 

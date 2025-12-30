@@ -84,58 +84,74 @@ export default function VoiceNoteDrawer({
     }
   };
 
-  const handleUpload = async () => {
-    try {
-      setSubmitting(true);
-      setError(null);
+ const handleUpload = async () => {
+  try {
+    setSubmitting(true);
+    setError(null);
 
-      const { data: sess } = await supabase.auth.getSession();
-      const user = sess?.session?.user;
-      if (!user) throw new Error('You must be signed in.');
+    const { data: sess } = await supabase.auth.getSession();
+    const user = sess?.session?.user;
+    if (!user) throw new Error('You must be signed in.');
 
-      let blobToUpload: Blob;
-      let fileName: string;
+    let blobToUpload: Blob;
+    let fileName: string;
 
-      if (mode === 'upload' && file) {
-        blobToUpload = file;
-        fileName = file.name;
-      } else if (mode === 'record' && audioBlob) {
-        blobToUpload = audioBlob;
-        fileName = `recording-${Date.now()}.webm`;
-      } else {
-        throw new Error('No audio selected.');
-      }
-
-      const path = `${user.id}/${capsuleId}/voice/${Date.now()}-${fileName}`.replace(/\s+/g, '_');
-
-      const { error: uploadErr } = await supabase.storage
-        .from('capsule-media')
-        .upload(path, blobToUpload, { upsert: true });
-
-      if (uploadErr) throw uploadErr;
-
-      const { data, error: insertErr } = await supabase
-        .from('capsule_voice_notes')
-        .insert({
-          capsule_id: capsuleId,
-          user_id: user.id,
-          file_path: path,
-        })
-        .select('id, capsule_id, user_id, file_path, created_at')
-        .single();
-
-      if (insertErr) throw insertErr;
-
-      onUploaded(data as UploadedVoice);
-      onClose();
-    } catch (e: any) {
-      console.error(e);
-      toast.error('Failed to upload voice note.');
-      setError(e.message || String(e));
-    } finally {
-      setSubmitting(false);
+    if (mode === 'upload' && file) {
+      blobToUpload = file;
+      fileName = file.name;
+    } else if (mode === 'record' && audioBlob) {
+      blobToUpload = audioBlob;
+      fileName = `recording-${Date.now()}.webm`;
+    } else {
+      throw new Error('No audio selected.');
     }
-  };
+
+    const path = `${user.id}/${capsuleId}/voice/${Date.now()}-${fileName}`.replace(
+      /\s+/g,
+      '_'
+    );
+
+    // ✅ upload with correct MIME type
+    const { error: uploadErr } = await supabase.storage
+      .from('capsule-media')
+      .upload(path, blobToUpload, {
+        upsert: true,
+        contentType: blobToUpload.type || 'audio/webm',
+      });
+
+    if (uploadErr) throw uploadErr;
+
+    const { data, error: insertErr } = await supabase
+      .from('capsule_voice_notes')
+      .insert({
+        capsule_id: capsuleId,
+        user_id: user.id,
+        file_path: path,
+      })
+      .select('id, capsule_id, user_id, file_path, created_at')
+      .single();
+
+    if (insertErr) throw insertErr;
+
+    // ✅ sign URL for immediate playback
+    const { data: signed } = await supabase.storage
+      .from('capsule-media')
+      .createSignedUrl(path, 3600);
+
+    onUploaded({
+      ...data,
+      file_path: signed?.signedUrl ?? '',
+    });
+
+    onClose();
+  } catch (e: any) {
+    console.error(e);
+    toast.error('Failed to upload voice note.');
+    setError(e.message || String(e));
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   if (!open) return null;
 
