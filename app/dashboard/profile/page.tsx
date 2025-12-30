@@ -109,19 +109,39 @@ useEffect(() => {
   };
 
   const uploadAvatar = async (file: File) => {
-    if (!userId) return;
-    setSaving(true);
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const path = `${userId}/avatar.${ext}`;
-    await supabase.storage.from('user-media').upload(path, file, { upsert: true });
-    await supabase.from('Profiles').update({ profile_image_url: path }).eq('id', userId);
-    setProfile((p) => (p ? { ...p, profile_image_url: path } : p));
-    // 🔥 Tell the rest of the app the avatar changed
-setTimeout(() => {
+  if (!userId) return;
+  setSaving(true);
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const path = `${userId}/avatar.${ext}`;
+
+  await supabase.storage
+    .from('user-media')
+    .upload(path, file, { upsert: true });
+
+  await supabase
+    .from('Profiles')
+    .update({ profile_image_url: path })
+    .eq('id', userId);
+
+  // ✅ update local profile state
+  setProfile((p) => (p ? { ...p, profile_image_url: path } : p));
+
+  // ✅ FORCE fresh signed URL immediately
+  const { data } = await supabase.storage
+    .from('user-media')
+    .createSignedUrl(path, 3600);
+
+  setAvatarUrl(
+    data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null
+  );
+
+  // 🔔 notify rest of app
   window.dispatchEvent(new Event("profile-image-updated"));
-}, 150);
-    setSaving(false);
-  };
+
+  setSaving(false);
+};
+
 
   if (loading) return <div className="p-6">Loading...</div>;
 

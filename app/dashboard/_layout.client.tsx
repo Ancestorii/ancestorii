@@ -22,7 +22,6 @@ import {
   User
 } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
-import { safeToast as toast } from '@/lib/safeToast';
 import NotificationBell from './_components/NotificationBell';
 
 const supabase = getBrowserClient();
