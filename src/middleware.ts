@@ -57,7 +57,7 @@ export async function middleware(req: NextRequest) {
     const redirectRes = NextResponse.redirect(url);
 
     res.cookies.getAll().forEach(c => {
-      redirectRes.cookies.set(c.name, c.value, c.options);
+      redirectRes.cookies.set(c.name, c.value);
     });
 
     return redirectRes;
