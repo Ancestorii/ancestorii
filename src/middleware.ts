@@ -18,6 +18,7 @@ export async function middleware(req: NextRequest) {
     "/pricing",
     "/checkout",
     "/api",
+    "/dashboard/finalizing", // optional
   ];
 
   if (publicPaths.some(p => pathname === p || pathname.startsWith(`${p}/`))) {
@@ -27,20 +28,20 @@ export async function middleware(req: NextRequest) {
   // -----------------------------
   // SUPABASE SERVER CLIENT
   // -----------------------------
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => req.cookies.getAll(),
-        setAll: cookies => {
-          cookies.forEach(c => {
-            res.cookies.set(c.name, c.value);
-          });
-        },
+ const supabase = createServerClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    cookies: {
+      getAll: () => req.cookies.getAll(),
+      setAll: (cookies) => {
+        cookies.forEach((c) => {
+          res.cookies.set(c.name, c.value, c.options);
+        });
       },
-    }
-  );
+    },
+  }
+);
 
   const {
     data: { session },
@@ -56,7 +57,7 @@ export async function middleware(req: NextRequest) {
     const redirectRes = NextResponse.redirect(url);
 
     res.cookies.getAll().forEach(c => {
-      redirectRes.cookies.set(c.name, c.value);
+      redirectRes.cookies.set(c.name, c.value, c.options);
     });
 
     return redirectRes;
