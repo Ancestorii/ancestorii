@@ -41,6 +41,10 @@ export default function LoginPage() {
         throw new Error("Login failed. Please try again.");
       }
 
+       // ⏳ Give Supabase time to persist auth cookies
+      await new Promise((res) => setTimeout(res, 200));
+
+
       router.replace('/dashboard/home');
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong");
