@@ -53,7 +53,8 @@ const event = await stripe.webhooks.constructEventAsync(
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
-      const userId = session.client_reference_id;
+      const userId =
+  session.metadata?.user_id ?? session.client_reference_id;
       const planName = session.metadata?.plan;
       const customerId = session.customer;
       const stripeSubId = session.subscription;
