@@ -31,18 +31,18 @@ serve(async (req) => {
   apiVersion: "2023-10-16",
 });
 
-    // ---- Read raw body & verify signature ----
-    const body = await req.text();
-    const sig = req.headers.get("stripe-signature");
-    if (!sig) throw new Error("Missing Stripe signature");
+    // ---- Read raw body & verify signature (DENO SAFE) ----
+const body = await req.arrayBuffer();
+const payload = new TextDecoder().decode(body);
 
-    let event;
-    try {
-      event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
-      console.error("Webhook signature error", err.message);
-      return new Response(`Webhook Error: ${err.message}`, { status: 400 });
-    }
+const sig = req.headers.get("stripe-signature");
+if (!sig) throw new Error("Missing Stripe signature");
+
+const event = await stripe.webhooks.constructEventAsync(
+  payload,
+  sig,
+  STRIPE_WEBHOOK_SECRET
+);
 
     // ---- Supabase client ----
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
