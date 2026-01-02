@@ -39,6 +39,32 @@ export default function DashboardHomePage() {
     })();
   }, [supabase]);
 
+
+    // 🔒 ADD THIS RIGHT AFTER ↑
+  useEffect(() => {
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      const user = auth?.user;
+      if (!user) return;
+
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!sub) {
+        router.replace("/dashboard/finalizing");
+        return;
+      }
+
+      if (!["active", "trialing"].includes(sub.status)) {
+        router.replace("/pricing");
+      }
+    })();
+  }, [supabase, router]);
+
+
   /* Typed animation for "yours" */
   useEffect(() => {
   setTypedYours('');
