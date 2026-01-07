@@ -283,12 +283,12 @@ useEffect(() => {
       )}
 
       {/* ---------- EMPTY STATE ---------- */}
-      {!loading && memberCount === 0 && (
-        <LovedOneEmptyState onAdd={() => setAddOpen(true)} />
+      {!loading && members.length === 0 && (
+         <LovedOneEmptyState onAdd={() => setAddOpen(true)} />
       )}
 
       {/* ---------- MAIN UI ---------- */}
-      {!loading && memberCount > 0 && (
+      {!loading && members.length > 0 && (
         <div className="relative z-10 px-6 sm:px-8 pt-16 pb-16 max-w-7xl mx-auto">
          {/* ✅ REPLACE YOUR HEADER WITH THIS (1:1 Albums header, just “Loved Ones”) */}
 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-14">
