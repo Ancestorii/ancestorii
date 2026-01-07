@@ -1,0 +1,93 @@
+[33m942c1a9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: commit: Add landing image and compressed hero video
+[33m7d16c27[m HEAD@{1}: commit: Add landing image and compressed hero video
+[33m63a3c89[m HEAD@{2}: commit: Add landing image and compressed hero video
+[33m2cac68f[m HEAD@{3}: commit: Add landing image and compressed hero video
+[33m169214d[m HEAD@{4}: reset: moving to origin/main
+[33m8321350[m HEAD@{5}: commit: Add landing image and compressed hero video
+[33ma558c3d[m HEAD@{6}: commit: Add landing image and compressed hero video
+[33m0b5c1b1[m HEAD@{7}: commit: Add demo video and poster assets
+[33m169214d[m HEAD@{8}: commit: Fix tagging, demo video, and dashboard UI
+[33m5477917[m HEAD@{9}: commit: Add dashboard subscription gating
+[33me68eb77[m HEAD@{10}: commit: Fix user_id source for Stripe webhook
+[33mac570a4[m HEAD@{11}: commit: Fix userId source in Stripe webhook
+[33m131ade9[m HEAD@{12}: commit: Disable JWT for stripe-webhook edge function
+[33m565a1a3[m HEAD@{13}: commit: Fix dashboard redirect loop and move subscription gating to page
+[33m0d1798c[m HEAD@{14}: commit: Fix Supabase Edge Functions, Stripe checkout, and TS build config
+[33m6d53f89[m HEAD@{15}: commit: Fix Supabase Edge Functions, Stripe checkout, and TS build config
+[33m6033781[m HEAD@{16}: commit: Fix Supabase Edge Functions, Stripe checkout, and TS build config
+[33m4cb9ae1[m HEAD@{17}: commit: Fix login redirect race condition
+[33mfaff008[m HEAD@{18}: commit: Improve capsule sealing animation
+[33mfa02f32[m HEAD@{19}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33m7833413[m HEAD@{20}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33mc16d448[m HEAD@{21}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33m6cddbe5[m HEAD@{22}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33mc859c10[m HEAD@{23}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33mafd383b[m HEAD@{24}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33m84763a7[m HEAD@{25}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33m667e84f[m HEAD@{26}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33md449e97[m HEAD@{27}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33mda885b1[m HEAD@{28}: commit: Fix birthday pill layout, unify desktop pills, improve mobile text sizing
+[33m3795339[m HEAD@{29}: commit: Persist dashboard home images + navbar fixes
+[33m996d75b[m HEAD@{30}: commit: Persist dashboard home images + navbar fixes
+[33mbf619d4[m HEAD@{31}: commit: fix cookies typing for server client
+[33me2c18d7[m HEAD@{32}: commit: fix cookies typing for server client
+[33m54e51d1[m HEAD@{33}: commit: fix cookies typing for server client
+[33m85c2788[m HEAD@{34}: commit: fix cookies typing for server client
+[33mf949993[m HEAD@{35}: commit: fix cookies typing for server client
+[33m4e4af2e[m HEAD@{36}: commit: fix cookies typing for server client
+[33m5e4b9f1[m HEAD@{37}: commit: fix cookies typing for server client
+[33m38512f1[m HEAD@{38}: commit: fix cookies typing for server client
+[33m90550a3[m HEAD@{39}: commit: fix cookies typing for server client
+[33m54dbd84[m HEAD@{40}: commit: fix timeline pdf export route runtime
+[33md940e88[m HEAD@{41}: commit: fix timeline pdf export route runtime
+[33mb972452[m HEAD@{42}: commit: fix timeline pdf export route runtime
+[33m6d3acc2[m HEAD@{43}: commit: fix signup step auth race
+[33mf6081fe[m HEAD@{44}: commit: fix signup step auth race
+[33mb72db91[m HEAD@{45}: commit: fix signup step auth race
+[33mdd20d13[m HEAD@{46}: commit: fix signup step auth race
+[33m5b2d997[m HEAD@{47}: commit: fix signup step auth race
+[33mc0451ec[m HEAD@{48}: commit: fix signup step auth race
+[33md2aa7af[m HEAD@{49}: commit: fix signup step auth race
+[33m829d222[m HEAD@{50}: commit: fix signup step auth race
+[33m06467e8[m HEAD@{51}: commit: fix signup step auth race
+[33mc5c0827[m HEAD@{52}: commit: fix signup step auth race
+[33m91c0dc1[m HEAD@{53}: commit: fix create-checkout auth headers
+[33mc0b2912[m HEAD@{54}: commit: fix create-checkout auth headers
+[33mc8c3e34[m HEAD@{55}: commit: fix edge function auth by adding apikey
+[33m170ca85[m HEAD@{56}: commit: force render StripeRedirect
+[33m28c12bb[m HEAD@{57}: commit: force render StripeRedirect
+[33m2965f9e[m HEAD@{58}: commit: fix StripeRedirect mounting outside AnimatePresence
+[33m2a3f2a8[m HEAD@{59}: commit: force render StripeRedirect
+[33m45a1f85[m HEAD@{60}: commit: fix StripeRedirect mounting outside AnimatePresence
+[33m393273d[m HEAD@{61}: commit: debug stripe redirect
+[33m7132242[m HEAD@{62}: commit: fix stripe redirect animation issue
+[33md183e56[m HEAD@{63}: commit: fix stripe checkout auth timing
+[33m33f8088[m HEAD@{64}: commit: fix stripe checkout auth timing
+[33m3580d10[m HEAD@{65}: commit: fix stripe checkout
+[33m1851224[m HEAD@{66}: commit: Launch Ancestorii
+[33m7308d50[m HEAD@{67}: commit: Launch Ancestorii
+[33md2c4436[m HEAD@{68}: commit: Launch Ancestorii
+[33m9ae7665[m HEAD@{69}: commit: Launch Ancestorii
+[33ma0798a9[m HEAD@{70}: commit: Launch Ancestorii
+[33m670ccb8[m HEAD@{71}: commit: Launch Ancestorii
+[33m8048d90[m HEAD@{72}: commit: Launch Ancestorii
+[33m32da3ab[m HEAD@{73}: commit: Launch Ancestorii
+[33md479399[m HEAD@{74}: commit: Launch Ancestorii
+[33m30226bb[m HEAD@{75}: commit: Launch Ancestorii
+[33m4efcc9c[m HEAD@{76}: commit: Launch Ancestorii
+[33mcc33fe2[m HEAD@{77}: commit: Launch Ancestorii
+[33mba97229[m HEAD@{78}: commit: Launch Ancestorii
+[33m8cf7996[m HEAD@{79}: commit: Launch Ancestorii
+[33m8be509f[m HEAD@{80}: commit: Launch Ancestorii
+[33m150cfcc[m HEAD@{81}: commit: Launch Ancestorii
+[33mf1dcb7e[m HEAD@{82}: commit: Launch Ancestorii
+[33m4a3e256[m HEAD@{83}: commit: Launch Ancestorii
+[33m6af66f4[m HEAD@{84}: commit: Update signup email confirmation flow
+[33mae1b266[m HEAD@{85}: commit: Signup email confirmation flow + UI message
+[33mc590d90[m HEAD@{86}: commit: Fix Supabase browser client
+[33mba630a6[m HEAD@{87}: commit: fix: downgrade react-three packages for React 18 compatibility
+[33m94c26ba[m HEAD@{88}: commit: chore: upgrade Next.js to 16.1.1 (security fix)
+[33mabfc156[m HEAD@{89}: commit: chore: ignore lint during production builds
+[33md679cc2[m HEAD@{90}: commit: Launch
+[33m79faef3[m HEAD@{91}: Branch: renamed refs/heads/main to refs/heads/main
+[33m79faef3[m HEAD@{93}: commit (initial): first commit
