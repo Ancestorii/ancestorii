@@ -14,8 +14,6 @@ import { ContextMenuDots } from "@/components/ContextMenuDots";
 
 const Particles = dynamic(() => import('@/components/ParticlesPlatform'), { ssr: false });
 
-
-
 type Album = {
   id: string;
   title: string;
@@ -40,6 +38,10 @@ export default function AlbumsPage() {
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  const TYPING_KEY = "albums_typing_last_run";
+  const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+
   // Typed quote animation (same as Timeline/Capsules)
   const line1 = '“Preserve your favorite moments — organized, visual, timeless.”';
   const line2 = 'Create albums to group photos, videos, and voice notes.';
@@ -47,33 +49,49 @@ export default function AlbumsPage() {
   const [typed2, setTyped2] = useState('');
   const [isTyping1Done, setIsTyping1Done] = useState(false);
 
-  useEffect(() => {
-    let i1 = 0,
-      i2 = 0,
-      t1: any,
-      t2: any;
-    const speed = 45;
-    t1 = setInterval(() => {
-      i1++;
-      setTyped1(line1.slice(0, i1));
-      if (i1 >= line1.length) {
-        clearInterval(t1);
-        setIsTyping1Done(true);
-        const start2 = setTimeout(() => {
-          t2 = setInterval(() => {
-            i2++;
-            setTyped2(line2.slice(0, i2));
-            if (i2 >= line2.length) clearInterval(t2);
-          }, speed);
-        }, 600);
-        return () => clearTimeout(start2);
-      }
-    }, speed);
-    return () => {
+ useEffect(() => {
+  const lastRun = localStorage.getItem(TYPING_KEY);
+  const now = Date.now();
+
+  if (lastRun && now - Number(lastRun) < TYPING_RESET_MS) {
+    setTyped1(line1);
+    setTyped2(line2);
+    setIsTyping1Done(true);
+    return;
+  }
+
+  localStorage.setItem(TYPING_KEY, String(now));
+
+  let i1 = 0,
+    i2 = 0,
+    t1: any,
+    t2: any;
+
+  const speed = 45;
+
+  t1 = setInterval(() => {
+    i1++;
+    setTyped1(line1.slice(0, i1));
+    if (i1 >= line1.length) {
       clearInterval(t1);
-      clearInterval(t2);
-    };
-  }, []);
+      setIsTyping1Done(true);
+
+      const start2 = setTimeout(() => {
+        t2 = setInterval(() => {
+          i2++;
+          setTyped2(line2.slice(0, i2));
+          if (i2 >= line2.length) clearInterval(t2);
+        }, speed);
+      }, 600);
+    }
+  }, speed);
+
+  return () => {
+    clearInterval(t1);
+    clearInterval(t2);
+  };
+}, []);
+
 
   // Signed URL helper
   const getSignedCoverUrl = async (url: string | null): Promise<string | null> => {

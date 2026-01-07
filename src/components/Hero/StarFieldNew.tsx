@@ -27,13 +27,16 @@ function getRandomDirection() {
 
 export default function StarFieldNew() {
   const [index, setIndex] = useState(0);
-  const [started, setStarted] = useState(false);
-  const [entryOffsets, setEntryOffsets] = useState<{ x: number; y: number }[]>([]);
+  const [started, setStarted] = useState(true);
+  const [entryOffsets, setEntryOffsets] = useState<
+  { x: number; y: number }[] | null
+>(null);
 
-  // ✅ Fix hydration error — only generate random directions on client
-  useEffect(() => {
-    setEntryOffsets(images.map(getRandomDirection));
-  }, []);
+useEffect(() => {
+  setEntryOffsets(images.map(getRandomDirection));
+}, []);
+
+
 
   // Switch background every 9 seconds
   useEffect(() => {
@@ -41,17 +44,11 @@ export default function StarFieldNew() {
     return () => clearInterval(id);
   }, []);
 
-  // Start transition after 1s
-  useEffect(() => {
-    const timeout = setTimeout(() => setStarted(true), 1000);
-    return () => clearTimeout(timeout);
-  }, []);
-
   return (
     <div className="absolute inset-0 z-0 w-full h-full overflow-hidden bg-black">
       {/* 🖼️ Cinematic slideshow */}
-      {entryOffsets.length > 0 &&
-        images.map((src, i) => (
+      {entryOffsets &&
+       images.map((src, i) => (
           <motion.img
             key={src}
             src={src}
@@ -78,7 +75,7 @@ export default function StarFieldNew() {
                 : 'blur(10px)',
             }}
             transition={{
-              opacity: { duration: 3.5, ease: 'easeInOut' },
+              opacity: { duration: 1.2, ease: 'easeOut' },
               x: { duration: 4.5, ease: 'easeOut' },
               y: { duration: 4.5, ease: 'easeOut' },
               scale: { duration: 10, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' },
@@ -96,7 +93,7 @@ export default function StarFieldNew() {
       <motion.div
         initial={{ opacity: 1 }}
         animate={{ opacity: started ? 0 : 1 }}
-        transition={{ duration: 2.5, ease: 'easeInOut' }}
+        transition={{ duration: 1.0, ease: 'easeOut' }}
         className="absolute inset-0 bg-black z-[3] pointer-events-none"
       />
 

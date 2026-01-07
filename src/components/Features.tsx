@@ -3,6 +3,8 @@
 import { motion, Variants } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Play, UserPlus, Upload, Sparkles, Share2, Lock } from 'lucide-react';
+import { useRef, useState } from 'react';
+
 
 /* -------------------- Motion Variants -------------------- */
 const fadeParallax: Variants = {
@@ -16,6 +18,20 @@ const fadeParallax: Variants = {
 
 /* -------------------- Main Component -------------------- */
 export default function Features() {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const toggleVideo = () => {
+  if (!videoRef.current) return;
+
+  if (videoRef.current.paused) {
+    videoRef.current.play();
+    setIsPlaying(true);
+  } else {
+    videoRef.current.pause();
+    setIsPlaying(false);
+  }
+};
+
   return (
     <section className="bg-[#fff9ee] text-[#0F2040]">
       <div
@@ -94,7 +110,7 @@ export default function Features() {
             className="relative flex justify-center"
           >
             <motion.img
-              src="/sunset.jpg"
+              src="/landing page photo.jpg"
               alt="Family sunset"
               loading="lazy"
               className="rounded-2xl shadow-xl border-[2px] border-[#E5C45C] w-full max-w-2xl object-cover"
@@ -104,48 +120,62 @@ export default function Features() {
           </motion.div>
         </motion.div>
 
-        {/* STEP 3: PLATFORM DEMO VIDEO */}
-        <motion.div
-          variants={fadeParallax}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.05 }}
-          className="relative flex flex-col items-center text-center"
-        >
-          <div className="mb-8">
-            <p className="text-2xl md:text-3xl font-bold text-[#E5C45C] uppercase">
-              See It in Action
-            </p>
-            <span className="block w-[80px] h-[4px] bg-[#0F2040] mt-1 mx-auto rounded-full shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
-            <h2 className="mt-4 text-[2.6rem] md:text-[3rem] font-extrabold leading-tight">
-              Experience the future of memory preservation.
-            </h2>
-            <p className="mt-3 text-black text-lg max-w-2xl mx-auto leading-relaxed">
-              Watch how Ancestorii lets you preserve your family’s story through timelines,
-              albums, and digital capsules — all in one timeless platform.
-            </p>
-          </div>
+       {/* STEP 3: PLATFORM DEMO VIDEO */}
+<motion.div
+  variants={fadeParallax}
+  initial="hidden"
+  whileInView="show"
+  viewport={{ once: true, amount: 0.05 }}
+  className="relative flex flex-col items-center text-center"
+>
+  <div className="mb-8">
+    <p className="text-2xl md:text-3xl font-bold text-[#E5C45C] uppercase">
+      See It in Action
+    </p>
+    <span className="block w-[80px] h-[4px] bg-[#0F2040] mt-1 mx-auto rounded-full shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
+    <h2 className="mt-4 text-[2.6rem] md:text-[3rem] font-extrabold leading-tight">
+      Experience the future of memory preservation.
+    </h2>
+    <p className="mt-3 text-black text-lg max-w-2xl mx-auto leading-relaxed">
+      Watch how Ancestorii lets you preserve your family’s story through timelines,
+      albums, and digital capsules — all in one timeless platform.
+    </p>
+  </div>
 
-          <div className="relative w-full max-w-5xl aspect-[16/9] rounded-3xl overflow-hidden shadow-2xl">
-            <motion.img
-              src="/album.jpg"
-              alt="Platform demo"
-              loading="lazy"
-              className="object-cover w-full h-full"
-              animate={{ scale: [1, 1.03, 1] }}
-              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-6 bg-[#E5C45C]/90 rounded-full shadow-lg cursor-pointer"
-              >
-                <Play className="w-12 h-12 text-[#0F2040]" />
-              </motion.div>
-            </div>
-          </div>
-        </motion.div>
+  <div className="relative w-full max-w-5xl aspect-[16/9] rounded-3xl overflow-hidden shadow-2xl">
+    <video
+      ref={videoRef}
+      src="/demo.mp4"
+      poster="/demo-poster.png"
+      className="object-cover w-full h-full"
+      playsInline
+      preload="metadata"
+      controls
+      onPlay={() => setIsPlaying(true)}
+      onPause={() => setIsPlaying(false)}
+      onEnded={() => setIsPlaying(false)}
+    />
+
+    {/* Play overlay (visual only, no toggle logic) */}
+   <motion.div
+  initial={{ opacity: 1 }}
+  animate={{ opacity: isPlaying ? 0 : 1 }}
+  transition={{ duration: 0.35, ease: 'easeOut' }}
+  className={`absolute inset-0 items-center justify-center bg-black/30 hidden md:flex ${
+    isPlaying ? 'pointer-events-none' : 'pointer-events-auto'
+  }`}
+  onClick={() => videoRef.current?.play()}
+>
+      <motion.div
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="p-6 bg-[#E5C45C]/90 rounded-full shadow-lg cursor-pointer"
+      >
+        <Play className="w-12 h-12 text-[#0F2040]" />
+      </motion.div>
+    </motion.div>
+  </div>
+</motion.div>
 
         {/* STEP 4: HOW IT WORKS */}
         <motion.div

@@ -167,7 +167,7 @@ setVoiceNotes(signedVoices);
       ) : (
         <>
           <h3 className="text-lg font-semibold text-[#0f2040] mb-2">
-            Comments for selected media
+            Comments for this memory
           </h3>
 
           {/* Add comment */}
@@ -251,7 +251,7 @@ setVoiceNotes(signedVoices);
           {/* Voice notes */}
           <div className="mt-8">
             <h3 className="text-lg font-semibold text-[#0f2040] mt-24 mb-4">
-              Voice Notes for selected media
+              Voice notes for this memory
             </h3>
 
             <button

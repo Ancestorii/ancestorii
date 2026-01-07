@@ -42,6 +42,10 @@ export default function CapsulesPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
 
+  const TYPING_KEY = "capsules_typing_last_run";
+  const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+
   // typing effect (matches Timeline)
   const line1 = '“Preserve your thoughts, emotions, and memories — sealed for the future.”';
   const line2 = 'Your legacy sealed for tomorrow.';
@@ -58,26 +62,47 @@ const [unlockNotificationId, setUnlockNotificationId] = useState<string | null>(
 
 
   useEffect(() => {
-    let i1 = 0, i2 = 0, t1: any, t2: any;
-    const speed = 45;
-    t1 = setInterval(() => {
-      i1++;
-      setTyped1(line1.slice(0, i1));
-      if (i1 >= line1.length) {
-        clearInterval(t1);
-        setIsTyping1Done(true);
-        const start2 = setTimeout(() => {
-          t2 = setInterval(() => {
-            i2++;
-            setTyped2(line2.slice(0, i2));
-            if (i2 >= line2.length) clearInterval(t2);
-          }, speed);
-        }, 600);
-        return () => clearTimeout(start2);
-      }
-    }, speed);
-    return () => { clearInterval(t1); clearInterval(t2); };
-  }, []);
+  const lastRun = localStorage.getItem(TYPING_KEY);
+  const now = Date.now();
+
+  if (lastRun && now - Number(lastRun) < TYPING_RESET_MS) {
+    setTyped1(line1);
+    setTyped2(line2);
+    setIsTyping1Done(true);
+    return;
+  }
+
+  localStorage.setItem(TYPING_KEY, String(now));
+
+  let i1 = 0,
+    i2 = 0,
+    t1: any,
+    t2: any;
+
+  const speed = 45;
+
+  t1 = setInterval(() => {
+    i1++;
+    setTyped1(line1.slice(0, i1));
+    if (i1 >= line1.length) {
+      clearInterval(t1);
+      setIsTyping1Done(true);
+
+      const start2 = setTimeout(() => {
+        t2 = setInterval(() => {
+          i2++;
+          setTyped2(line2.slice(0, i2));
+          if (i2 >= line2.length) clearInterval(t2);
+        }, speed);
+      }, 600);
+    }
+  }, speed);
+
+  return () => {
+    clearInterval(t1);
+    clearInterval(t2);
+  };
+}, []);
 
   // signed url helper (tries 'capsule-media', falls back gracefully)
   const getSignedCoverUrl = async (url: string | null): Promise<string | null> => {

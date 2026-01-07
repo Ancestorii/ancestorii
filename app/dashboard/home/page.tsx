@@ -20,24 +20,51 @@ export default function DashboardHomePage() {
   const [typedYours, setTypedYours] = useState('');
   const finalWord = 'for you';
 
-  /* 🔑 Fetch name from Profiles (NOT metadata) */
-  useEffect(() => {
-    (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      const uid = auth?.user?.id;
-      if (!uid) return;
+  /* 🔑 Fetch name from Profiles (guaranteed) */
+useEffect(() => {
+  (async () => {
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth?.user;
+    if (!user) return;
 
-      const { data: profile } = await supabase
+    const uid = user.id;
+
+    // 1️⃣ Try fetch profile
+    let { data: profile } = await supabase
+      .from('Profiles')
+      .select('full_name')
+      .eq('id', uid)
+      .maybeSingle();
+
+    // 2️⃣ If profile row DOES NOT exist → create it
+    if (!profile) {
+      const { data: inserted } = await supabase
         .from('Profiles')
+        .insert({
+          id: uid,
+          full_name:
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            null,
+        })
         .select('full_name')
-        .eq('id', uid)
-        .maybeSingle();
+        .single();
 
-      if (profile?.full_name) {
-        setName(profile.full_name);
-      }
-    })();
-  }, [supabase]);
+      profile = inserted;
+    }
+
+    // 3️⃣ Resolve name (profile first, auth fallback)
+    const resolvedName =
+      profile?.full_name ||
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      null;
+
+    if (resolvedName) {
+      setName(resolvedName);
+    }
+  })();
+}, [supabase]);
 
 
     // 🔒 ADD THIS RIGHT AFTER ↑

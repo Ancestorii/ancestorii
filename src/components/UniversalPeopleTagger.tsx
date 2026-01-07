@@ -175,71 +175,103 @@ const { data: fam } = await supabase
               Select the people who belong inside this moment.
             </p>
 
-            {/* People Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 mb-14">
-              {members.map((m) => {
-                const active = selected.includes(m.id);
+           {/* People Grid / Empty State */}
+{members.length === 0 ? (
+  <div className="text-center py-16">
+    <p className="text-lg font-semibold text-[#1F2837] mb-2">
+      No family members yet
+    </p>
 
-                return (
-                  <motion.button
-                    key={m.id}
-                    whileHover={{ scale: 1.06 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => toggle(m.id)}
-                    className={`relative flex flex-col items-center rounded-3xl p-5 border transition duration-300 ${
-                      active
-                        ? "border-[#D4AF37] bg-[#FFF7DB] shadow-[0_0_0_6px_rgba(212,175,55,0.22)]"
-                        : "border-[#d4af37] hover:border-[#C4B5FD] hover:shadow-lg"
-                    }`}
-                  >
-                    {active && (
-                      <div className="absolute -top-2 -right-2 bg-[#D4AF37] text-white rounded-full p-1 shadow">
-                        <Check size={14} />
-                      </div>
-                    )}
+    <p className="text-sm text-gray-500 mb-8">
+      Add your first family member in <b>My Loved Ones</b> to start tagging memories.
+    </p>
 
-                    <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 mb-4">
-                      {m.avatar_signed ? (
-                        <img
-                          src={m.avatar_signed}
-                          alt={m.full_name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-500 font-semibold">
-                          {m.full_name.charAt(0)}
-                        </div>
-                      )}
-                    </div>
+    <button
+      onClick={() => {
+        onClose();
+        window.location.href = "/dashboard/loved-ones";
+      }}
+      className="
+        px-8 py-3 rounded-full
+        bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
+        text-[#1F2837] font-semibold
+        shadow-md hover:scale-105 hover:shadow-lg
+        transition
+      "
+    >
+      Go to My Loved Ones
+    </button>
+  </div>
+) : (
+  <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 mb-14">
+    {members.map((m) => {
+      const active = selected.includes(m.id);
 
-                    <p className="text-sm font-semibold text-center text-[#1F2837]">
-                      {m.full_name}
-                    </p>
-                  </motion.button>
-                );
-              })}
+      return (
+        <motion.button
+          key={m.id}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={() => toggle(m.id)}
+          className={`relative flex flex-col items-center rounded-3xl p-5 border transition duration-300 ${
+            active
+              ? "border-[#D4AF37] bg-[#FFF7DB] shadow-[0_0_0_6px_rgba(212,175,55,0.22)]"
+              : "border-[#d4af37] hover:border-[#C4B5FD] hover:shadow-lg"
+          }`}
+        >
+          {active && (
+            <div className="absolute -top-2 -right-2 bg-[#D4AF37] text-white rounded-full p-1 shadow">
+              <Check size={14} />
             </div>
+          )}
+
+          <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 mb-4">
+            {m.avatar_signed ? (
+              <img
+                src={m.avatar_signed}
+                alt={m.full_name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-500 font-semibold">
+                {m.full_name.charAt(0)}
+              </div>
+            )}
+          </div>
+
+          <p className="text-sm font-semibold text-center text-[#1F2837]">
+            {m.full_name}
+          </p>
+        </motion.button>
+      );
+    })}
+  </div>
+)}
 
             {/* Actions */}
-            <div className="flex justify-center gap-6">
-              <button
-                onClick={onClose}
-                className="px-8 py-3 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
-              >
-                Cancel
-              </button>
+{members.length > 0 && (
+  <div className="flex justify-center gap-6">
+    <button
+      onClick={onClose}
+      className="px-8 py-3 rounded-full border border-gray-300
+                 text-gray-600 hover:bg-gray-100 transition"
+    >
+      Cancel
+    </button>
 
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-10 py-3 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
-                           text-[#1F2837] font-semibold shadow-lg
-                           hover:scale-105 hover:shadow-xl transition
-                           disabled:opacity-60"
-              >
-                {saving ? "Tagging…" : "Tag People"}
-              </button>
-            </div>
+    <button
+      onClick={handleSave}
+      disabled={saving}
+      className="px-10 py-3 rounded-full font-semibold shadow-lg
+                 bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
+                 text-[#1F2837] hover:scale-105 hover:shadow-xl transition"
+    >
+      {saving ? "Tagging…" : "Tag People"}
+    </button>
+  </div>
+)}
+
+
           </motion.div>
         </motion.div>
       )}

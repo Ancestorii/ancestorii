@@ -54,6 +54,10 @@ export default function FamilyPage() {
   const searchParams = useSearchParams();
   const shouldOpenAdd = searchParams.get("add") === "true";
 
+  const TYPING_KEY = "loved_ones_typing_last_run";
+  const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+
   // ✅ PUT THIS INSIDE FamilyPage() (same place Albums has it)
 const line1 = '“The people who shaped your life — remembered forever.”';
 const line2 = 'Add your loved ones and preserve their stories, memories, and legacy.';
@@ -67,8 +71,19 @@ useEffect(() => {
   }
 }, [shouldOpenAdd]);
 
-
 useEffect(() => {
+  const lastRun = localStorage.getItem(TYPING_KEY);
+  const now = Date.now();
+
+  if (lastRun && now - Number(lastRun) < TYPING_RESET_MS) {
+    setTyped1(line1);
+    setTyped2(line2);
+    setIsTyping1Done(true);
+    return;
+  }
+
+  localStorage.setItem(TYPING_KEY, String(now));
+
   let i1 = 0,
     i2 = 0,
     t1: any,
@@ -91,8 +106,6 @@ useEffect(() => {
           if (i2 >= line2.length) clearInterval(t2);
         }, speed);
       }, 600);
-
-      return () => clearTimeout(start2);
     }
   }, speed);
 
@@ -126,16 +139,6 @@ useEffect(() => {
       setLoading(false);
     })();
   }, [fetchFamilyMeta]);
-
-  /* ===========================================================
-      24H animation gate
-  ============================================================*/
-  useEffect(() => {
-    const key = "myLovedOnesAnimationTimestamp";
-    const last = localStorage.getItem(key);
-    const now = Date.now();
-    const day = 24 * 60 * 60 * 1000;
-  }, []);
 
   /* ===========================================================
       LOAD MEMBERS + RELATIONSHIPS
