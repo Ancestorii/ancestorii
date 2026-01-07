@@ -284,7 +284,7 @@ export default function TimelineDetailPage() {
             onClick={() => setCreateOpen(true)}
             className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-sm text-emerald-700 hover:bg-emerald-100 transition"
           >
-            + Create Your Timeline
+            + Create A Memory
           </button>
 
           <button

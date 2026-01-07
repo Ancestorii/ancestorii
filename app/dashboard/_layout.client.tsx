@@ -171,26 +171,51 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 }, [userId]);
 
 
-  const fetchProfile = async () => {
-    if (!userId) return;
-    const { data: prof } = await supabase
+ const fetchProfile = async () => {
+  if (!userId) return;
+
+  const { data: auth } = await supabase.auth.getUser();
+  const user = auth?.user;
+  if (!user) return;
+
+  let { data: prof } = await supabase
     .from('Profiles')
     .select('full_name, profile_image_url')
     .eq('id', userId)
     .maybeSingle();
 
-   setFullName(prof?.full_name ?? null);
+  // 🔑 Backfill name from signup metadata
+  if (!prof?.full_name) {
+    const fullName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      null;
 
-    if (prof?.profile_image_url) {
-      const { data } = await supabase.storage
-        .from('user-media')
-        .createSignedUrl(prof.profile_image_url, 3600); // 1 hour
-      // Force change so React re-renders (cache-bust)
-setAvatarUrl(data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null);
-    } else {
-      setAvatarUrl(null);
+    if (fullName) {
+      await supabase
+        .from('Profiles')
+        .update({ full_name: fullName })
+        .eq('id', userId);
+
+      prof = { ...prof!, full_name: fullName };
     }
-  };
+  }
+
+  setFullName(prof?.full_name ?? null);
+
+  if (prof?.profile_image_url) {
+    const { data } = await supabase.storage
+      .from('user-media')
+      .createSignedUrl(prof.profile_image_url, 3600);
+
+    setAvatarUrl(
+      data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null
+    );
+  } else {
+    setAvatarUrl(null);
+  }
+};
+
 
   useEffect(() => {
     if (!hydrated) return;

@@ -9,9 +9,7 @@ import { motion } from 'framer-motion';
 import CapsuleCreatedOverlay from '@/components/CapsuleCreatedOverlay';
 import CapsuleCard from './_components/CapsuleCard';
 import CapsuleUnlock from '@/components/CapsuleUnlock';
-
-
-
+import { usePlanLimits } from '@/lib/usePlanLimits';
 
 const Particles = dynamic(
   () => import('@/components/ParticlesPlatform'),
@@ -41,6 +39,8 @@ export default function CapsulesPage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
+
+  const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
   const TYPING_KEY = "capsules_typing_last_run";
   const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -257,10 +257,18 @@ useEffect(() => {
             <button
               className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
               onClick={() => {
-                setDrawerMode('create');
-                setSelectedCapsule(null);
-                setDrawerOpen(true);
-                }}  
+  if (limitsLoading) return;
+  if (!canCreate.capsule) {
+    toast.error(
+      `Capsule limit reached (${counts?.capsules} / ${limits?.max_capsules})`
+    );
+    return;
+  }
+  setDrawerMode('create');
+  setSelectedCapsule(null);
+  setDrawerOpen(true);
+}}
+
             >
               <span className="relative z-10">+ Create New Capsule</span>
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />

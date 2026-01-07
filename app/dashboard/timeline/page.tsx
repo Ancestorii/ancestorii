@@ -9,6 +9,7 @@ import { ContextMenuDots } from '@/components/ContextMenuDots';
 import CreateTimelineDrawer from './_components/CreateTimelineDrawer';
 import { motion } from 'framer-motion';
 import LegacyCelebration from '@/components/LegacyCelebration';
+import { usePlanLimits } from '@/lib/usePlanLimits';
 
 
 const Particles = dynamic(
@@ -39,6 +40,8 @@ export default function TimelinePage() {
   const [selectedTimeline, setSelectedTimeline] = useState<Timeline | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
   const [celebrate, setCelebrate] = useState(false);
+
+  const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
   const TYPING_KEY = "timelines_typing_last_run";
   const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -189,10 +192,18 @@ setTimelines(signed);
             <button
               className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
               onClick={() => {
-                setDrawerMode('create');
-                setSelectedTimeline(null);
-                setDrawerOpen(true);
-              }}
+  if (limitsLoading) return;
+  if (!canCreate.timeline) {
+    toast.error(
+      `Timeline limit reached (${counts?.timelines} / ${limits?.max_timelines})`
+    );
+    return;
+  }
+  setDrawerMode('create');
+  setSelectedTimeline(null);
+  setDrawerOpen(true);
+}}
+
             >
               <span className="relative z-10">+ Create New Timeline</span>
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />

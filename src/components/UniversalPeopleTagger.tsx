@@ -189,7 +189,7 @@ const { data: fam } = await supabase
     <button
       onClick={() => {
         onClose();
-        window.location.href = "/dashboard/loved-ones";
+        window.location.href = "/dashboard/family";
       }}
       className="
         px-8 py-3 rounded-full

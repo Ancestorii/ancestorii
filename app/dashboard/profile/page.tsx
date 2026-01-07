@@ -42,15 +42,42 @@ export default function ProfilePage() {
       const { data: prof } = await supabase.from('Profiles').select('*').eq('id', uid).maybeSingle();
 
       if (!prof) {
-        const { data: inserted } = await supabase
-          .from('Profiles')
-          .insert({ id: uid })
-          .select('*')
-          .single();
-        setProfile(inserted);
-      } else {
-        setProfile(prof);
-      }
+  const fullName =
+    authResp?.user?.user_metadata?.full_name ||
+    authResp?.user?.user_metadata?.name ||
+    null;
+
+  const { data: inserted } = await supabase
+    .from('Profiles')
+    .insert({
+      id: uid,
+      full_name: fullName,
+    })
+    .select('*')
+    .single();
+
+  setProfile(inserted);
+} else {
+  // backfill if row exists but name is missing
+  if (!prof.full_name) {
+    const fullName =
+      authResp?.user?.user_metadata?.full_name ||
+      authResp?.user?.user_metadata?.name ||
+      null;
+
+    if (fullName) {
+      await supabase
+        .from('Profiles')
+        .update({ full_name: fullName })
+        .eq('id', uid);
+
+      prof.full_name = fullName;
+    }
+  }
+
+  setProfile(prof);
+}
+
 
       setLoading(false);
     })();

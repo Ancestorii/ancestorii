@@ -9,8 +9,6 @@ import {
   Smartphone,
   CheckCircle,
   Settings as Gear,
-  Trash2,
-  AlertTriangle,
   X,
 } from 'lucide-react';
 
@@ -28,12 +26,11 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const [deleting, setDeleting] = useState(false);
 
   const [newPass, setNewPass] = useState('');
   const [changingPass, setChangingPass] = useState(false);
+  
+  const [showCancelInfo, setShowCancelInfo] = useState(false);
 
   const changePassword = async () => {
   if (newPass.length < 6) {
@@ -103,28 +100,6 @@ export default function SettingsPage() {
     if (!error) {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== 'DELETE') return;
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return;
-
-    setDeleting(true);
-
-    try {
-      // Delete user from Auth
-      await supabase.auth.admin.deleteUser(user.id);
-      await supabase.auth.signOut();
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Delete failed:', error);
-      setDeleting(false);
     }
   };
 
@@ -231,72 +206,71 @@ export default function SettingsPage() {
 </div>
 
 
-      {/* 🔴 Delete Account Section */}
-      <div className="max-w-2xl mt-16">
-        <h2 className="text-2xl font-bold text-[#0F2040] mb-4 flex items-center gap-2">
-          <Trash2 className="w-5 h-5 text-red-600" />
-          Danger Zone
-        </h2>
-        <button
-          onClick={() => setShowDeleteModal(true)}
-          className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-xl shadow-sm transition-all"
+      {/* 🔴 Manage Account Section */}
+<div className="max-w-2xl mt-16">
+  <h2 className="text-2xl font-bold text-[#0F2040] mb-4 flex items-center gap-2">
+    Manage Your Ancestorii Account
+  </h2>
+  <div className="flex flex-col sm:flex-row gap-4">
+    {/* Cancel Subscription */}
+    <button
+     onClick={() => setShowCancelInfo(true)}
+      className="border border-amber-400 text-amber-700 hover:bg-amber-50
+        font-semibold px-6 py-2 rounded-xl transition-all"
+    >
+      Cancel Subscription
+    </button>
+  </div>
+</div>
+
+{showCancelInfo && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center relative">
+      <h2 className="text-xl font-semibold text-[#0F2040] mb-3">
+        Managing your Ancestorii subscription
+      </h2>
+
+      <p className="text-gray-600 mb-6 leading-relaxed">
+        We understand that circumstances change.  
+        If you’d like to cancel your Ancestorii subscription, please visit our
+        Help page and either send us an email or complete the contact form.
+        Our team will personally take care of your request.
+      </p>
+
+      <p className="text-sm text-gray-500 mb-6">
+        Your memories and data remain safe and accessible until your
+        subscription is officially cancelled.
+      </p>
+
+      <div className="flex justify-center gap-4">
+        <a
+          href="/dashboard/help"
+          className="px-6 py-2 rounded-xl bg-[#0F2040] text-white
+            hover:bg-[#152a52] transition-all"
         >
-          Delete Account
+          Visit Help Centre
+        </a>
+
+        <button
+          onClick={() => setShowCancelInfo(false)}
+          className="px-6 py-2 rounded-xl bg-gray-200 text-gray-700
+            hover:bg-gray-300 transition-all"
+        >
+          Close
         </button>
       </div>
 
-      {/* ⚠️ Delete Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center relative">
-            <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-[#0F2040] mb-3">
-              Delete Account?
-            </h2>
-            <p className="text-gray-600 mb-6">
-              This action <strong>cannot be undone</strong>. All your data and
-              memories will be permanently deleted. To confirm, please type{' '}
-              <span className="font-bold text-red-600">DELETE</span> below.
-            </p>
-
-            <input
-              type="text"
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder="Type DELETE to confirm"
-              className="w-full border border-gray-300 rounded-xl p-2 mb-6 text-center focus:outline-none focus:ring-2 focus:ring-red-400"
-            />
-
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-6 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={deleteConfirmText !== 'DELETE' || deleting}
-                className={`px-6 py-2 rounded-xl text-white transition-all ${
-                  deleteConfirmText === 'DELETE'
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-red-300 cursor-not-allowed'
-                }`}
-              >
-                {deleting ? 'Deleting...' : 'Yes, Delete'}
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowDeleteModal(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+      <button
+        onClick={() => setShowCancelInfo(false)}
+        className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+      >
+        <X className="w-5 h-5" />
+      </button>
     </div>
+  </div>
+)}
+
+</div>
   );
 }
 

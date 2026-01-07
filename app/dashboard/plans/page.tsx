@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { getBrowserClient } from '@/lib/supabase/browser';
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 
 type PlanName = "Basic" | "Standard" | "Premium";
 
@@ -26,6 +28,7 @@ type UsageRow = {
 
 export default function PlansPage() {
   const supabase = getBrowserClient();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
@@ -92,14 +95,39 @@ export default function PlansPage() {
     })();
   }, []);
 
+  useEffect(() => {
+  if (!subscription?.user_id) return;
+
+  const interval = setInterval(async () => {
+    const { data } = await supabase
+      .from("storage_usage")
+      .select("used_bytes")
+      .eq("user_id", subscription.user_id)
+      .maybeSingle();
+
+    setUsage({ used_bytes: data?.used_bytes ?? 0 });
+  }, 15000); // every 15 seconds
+
+  return () => clearInterval(interval);
+}, [subscription?.user_id]);
+
+
   // ---- Helpers ----
   const planLadder = useMemo(
     () => plans.slice().sort((a, b) => a.max_storage - b.max_storage),
     [plans]
   );
 
-  const bytesToGB = (bytes: number | null | undefined) =>
-    bytes ? (bytes / 1024 ** 3).toFixed(0) + "GB" : "—";
+  function formatBytes(bytes?: number | null) {
+  if (!bytes || bytes <= 0) return "0 MB";
+
+  const mb = bytes / 1024 ** 2;
+  if (mb < 1024) return `${mb.toFixed(1)} MB`;
+
+  const gb = mb / 1024;
+  return `${gb.toFixed(2)} GB`;
+}
+
 
   const formatDate = (iso: string | null | undefined) =>
     iso ? new Date(iso).toLocaleDateString() : "—";
@@ -227,13 +255,13 @@ export default function PlansPage() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => window.open("https://billing.stripe.com/p/login", "_blank")}
+              onClick={() => router.push("/dashboard/settings")}
               className="px-4 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-sm font-medium"
             >
               Manage Billing
             </button>
             <Link
-              href="/help/billing"
+              href="/dashboard/help"
               className="text-sm text-slate-500 hover:text-slate-700 underline underline-offset-2"
             >
               Billing help
@@ -246,12 +274,12 @@ export default function PlansPage() {
           <div className="flex items-center justify-between text-sm text-slate-700">
             <span>Storage used</span>
             <span>
-              {usage?.used_bytes != null && currentPlan
-                ? `${bytesToGB(usage.used_bytes)} / ${bytesToGB(currentPlan.max_storage)}`
+              {usage && currentPlan
+                ? `${formatBytes(usage.used_bytes)} / ${formatBytes(currentPlan.max_storage)}`
                 : "—"}
             </span>
           </div>
-          <UsageBar used={usage?.used_bytes ?? null} max={currentPlan?.max_storage ?? null} />
+        <UsageBar used={usage?.used_bytes ?? 0} max={currentPlan?.max_storage ?? null} />
         </div>
       </section>
 
@@ -285,16 +313,20 @@ export default function PlansPage() {
 
 function UsageBar({ used, max }: { used: number | null; max: number | null }) {
   const pct =
-    used != null && max && max > 0 ? Math.min(100, Math.round((used / max) * 100)) : null;
+    used != null && max && max > 0
+      ? Math.min(100, Math.max(1, Math.round((used / max) * 100)))
+      : 0;
+
   return (
     <div className="mt-2 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
       <div
         className="h-2 bg-[#0f2040] transition-all"
-        style={{ width: pct != null ? `${pct}%` : "0%" }}
+        style={{ width: `${pct}%` }}
       />
     </div>
   );
 }
+
 
 function PlanCard({
   title,

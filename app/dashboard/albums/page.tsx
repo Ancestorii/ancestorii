@@ -9,7 +9,7 @@ import { safeToast as toast } from '@/lib/safeToast';
 import { motion } from 'framer-motion';
 import LegacyCelebration from "@/components/LegacyCelebration";
 import { ContextMenuDots } from "@/components/ContextMenuDots";
-
+import { usePlanLimits } from '@/lib/usePlanLimits';
 
 
 const Particles = dynamic(() => import('@/components/ParticlesPlatform'), { ssr: false });
@@ -37,6 +37,8 @@ export default function AlbumsPage() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
   const TYPING_KEY = "albums_typing_last_run";
   const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -204,10 +206,17 @@ export default function AlbumsPage() {
             <button
               className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
               onClick={() => {
-                setDrawerMode('create');
-                setSelectedAlbum(null);
-                setDrawerOpen(true);
-              }}
+               if (limitsLoading) return;
+               if (!canCreate.album) {
+               toast.error(
+                `Album limit reached (${counts?.albums} / ${limits?.max_albums})` );
+                return;
+                }
+  setDrawerMode('create');
+  setSelectedAlbum(null);
+  setDrawerOpen(true);
+}}
+
             >
               <span className="relative z-10">+ Create New Album</span>
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
