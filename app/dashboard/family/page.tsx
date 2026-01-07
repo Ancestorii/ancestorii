@@ -145,7 +145,6 @@ useEffect(() => {
   ============================================================*/
   useEffect(() => {
     const loadData = async () => {
-      if (memberCount === 0) return;
 
       const { data: sess } = await supabase.auth.getSession();
       const user = sess?.session?.user;
