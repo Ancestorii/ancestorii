@@ -110,7 +110,7 @@ export default function Features() {
             className="relative flex justify-center"
           >
             <motion.img
-              src="/landing page photo.jpg"
+              src="/landing-page-photo.jpg"
               alt="Family sunset"
               loading="lazy"
               className="rounded-2xl shadow-xl border-[2px] border-[#E5C45C] w-full max-w-2xl object-cover"
@@ -145,7 +145,7 @@ export default function Features() {
   <div className="relative w-full max-w-5xl aspect-[16/9] rounded-3xl overflow-hidden shadow-2xl">
     <video
       ref={videoRef}
-      src="/demo.mp4"
+      src="/promo.mp4"
       poster="/demo-poster.png"
       className="object-cover w-full h-full"
       playsInline
