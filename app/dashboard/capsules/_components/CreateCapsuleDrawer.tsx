@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { X, ImagePlus, CalendarDays } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
+import { usePlanLimits } from '@/lib/usePlanLimits';
+
 
 export type CreatedCapsule = {
   id: string;
@@ -53,6 +55,8 @@ export default function CreateCapsuleDrawer({
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const dropRef = useRef<HTMLDivElement | null>(null);
+  const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
+
 
   const getSignedCoverUrl = async (path: string | null) => {
   if (!path) return null;
@@ -142,6 +146,25 @@ const handleSubmit = async () => {
   try {
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) throw new Error('Not authenticated');
+
+    // 🔒 CAPSULE PLAN LIMIT GUARD (CREATE ONLY)
+    if (mode === 'create') {
+      if (limitsLoading) {
+        toast.error('Checking plan limits…');
+        setLoading(false);
+        isSubmittingRef.current = false;
+        return;
+      }
+
+      if (!canCreate.capsule) {
+        toast.error(
+          `Capsule limit reached (${counts?.capsules} / ${limits?.max_capsules})`
+        );
+        setLoading(false);
+        isSubmittingRef.current = false;
+        return;
+      }
+    }
 
     let coverUrl: string | null = capsule?.cover_image ?? null;
 

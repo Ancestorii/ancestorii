@@ -5,6 +5,8 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { X, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePlanLimits } from '@/lib/usePlanLimits';
+
 
 type Timeline = {
   id: string;
@@ -39,6 +41,8 @@ export default function CreateTimelineDrawer({
   const [mounted, setMounted] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
   const isSubmittingRef = useRef(false);
+
+  const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
   useEffect(() => setMounted(true), []);
 
@@ -119,6 +123,26 @@ useEffect(() => {
       const { data: sess } = await supabase.auth.getSession();
       const user = sess?.session?.user;
       if (!user) throw new Error('Not signed in');
+
+     if (mode === 'create') {
+  if (limitsLoading) {
+    toast.error('Checking plan limits…');
+    setUploading(false);
+    isSubmittingRef.current = false;
+    return;
+  }
+
+  if (!canCreate.timeline) {
+    toast.error(
+      `Timeline limit reached (${counts?.timelines} / ${limits?.max_timelines})`
+    );
+    setUploading(false);
+    isSubmittingRef.current = false;
+    return;
+  }
+}
+
+
 
       let uploadedPath: string | null = null;
       if (coverFile) {

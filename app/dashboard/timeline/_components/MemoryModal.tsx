@@ -208,10 +208,59 @@ async function uploadMedia(file: File) {
 
     setMedia(out);
     toast.success('Media added to memory.');
-    window.dispatchEvent(new Event('timeline-media-updated'));
   } catch (err) {
     console.error(err);
     toast.error('Failed to upload media.');
+  }
+}
+
+async function deleteMedia(media: MediaItem) {
+  try {
+    // 1️⃣ delete related comments
+    await supabase
+      .from('timeline_event_media_comments')
+      .delete()
+      .eq('event_id', eventId)
+      .eq('media_id', media.id);
+
+    // 2️⃣ delete related voice notes
+    const { data: voices } = await supabase
+      .from('timeline_event_media_voice_notes')
+      .select('file_path')
+      .eq('event_id', eventId)
+      .eq('media_id', media.id);
+
+    if (voices?.length) {
+      await supabase.storage
+        .from('timeline-media')
+        .remove(voices.map(v => v.file_path));
+    }
+
+    await supabase
+      .from('timeline_event_media_voice_notes')
+      .delete()
+      .eq('event_id', eventId)
+      .eq('media_id', media.id);
+
+    // 3️⃣ delete storage file (image/video)
+    const path = media.url.split('/timeline-media/')[1]?.split('?')[0];
+    if (path) {
+      await supabase.storage.from('timeline-media').remove([path]);
+    }
+
+    // 4️⃣ delete media row
+    await supabase
+      .from('timeline_event_media')
+      .delete()
+      .eq('id', media.id);
+
+    // 5️⃣ update local state
+    setMedia(prev => prev.filter(m => m.id !== media.id));
+
+    toast.success('Media deleted.');
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to delete media.');
   }
 }
 
@@ -426,7 +475,6 @@ async function uploadVoice(file: File) {
     {/* OVERLAY */}
     <div
       className="absolute inset-0 bg-black/40"
-      onClick={() => onOpenChange(false)}
     />
 
     {/* POSITIONING WRAPPER (NO CLIPPING) */}
@@ -552,7 +600,7 @@ async function uploadVoice(file: File) {
         </div>
 
         {/* BODY */}
-        <MemoryModalBody
+  <MemoryModalBody
   loading={loading}
   media={media}
   comments={comments}
@@ -565,6 +613,7 @@ async function uploadVoice(file: File) {
   onUploadVoice={uploadVoice}
   onDeleteComment={deleteComment}
   onUploadMedia={uploadMedia}
+  onDeleteMedia={deleteMedia}   // 👈 ADD
 />
 
 

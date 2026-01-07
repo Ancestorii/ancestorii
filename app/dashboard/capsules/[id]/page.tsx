@@ -57,6 +57,19 @@ const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
   }[]
   >([]);
 
+  const removePersonFromCapsule = async (familyMemberId: string) => {
+  await supabase
+    .from("capsule_tags")
+    .delete()
+    .eq("capsule_id", capsuleId)
+    .eq("family_member_id", familyMemberId);
+
+  setTaggedPeople((prev) =>
+    prev.filter((p) => p.id !== familyMemberId)
+  );
+};
+
+
   const [confirmSeal, setConfirmSeal] = useState(false);
   const [sealing, setSealing] = useState(false);
 
@@ -258,6 +271,18 @@ setTimeout(() => {
         <span className="text-sm text-[#1F2837] font-medium">
           {p.full_name}
         </span>
+        <span className="text-sm text-[#1F2837] font-medium">
+  {p.full_name}
+</span>
+
+<span
+  onClick={() => removePersonFromCapsule(p.id)}
+  className="ml-1 cursor-pointer text-gray-400 hover:text-red-600 transition"
+  title="Remove from this capsule"
+>
+  ✕
+</span>
+
       </div>
     ))}
   </div>

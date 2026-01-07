@@ -47,6 +47,7 @@ export default function MemoryModalBody({
   onUploadVoice,
   onDeleteComment,
   onUploadMedia,
+  onDeleteMedia, // 👈 ADD THIS
 }: {
   loading: boolean;
   media: MediaItem[];
@@ -60,6 +61,7 @@ export default function MemoryModalBody({
   onUploadVoice: (file: File) => Promise<void>;
   onDeleteComment: (commentId: string) => void;
   onUploadMedia: (file: File) => void;
+  onDeleteMedia: (media: MediaItem) => void; // 👈 ADD THIS
 }) {
 
 
@@ -162,7 +164,26 @@ const stopRecording = () => {
               {/* MEDIA */}
               <div className="lg:col-span-2 pr-4">
 
-                <div className="rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 bg-white">
+               <div className="relative rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 bg-white group">
+
+  {/* DELETE MEDIA BUTTON */}
+  <button
+    onClick={() => onDeleteMedia(m)}
+    className="
+      absolute top-3 right-3 z-10
+      opacity-0 group-hover:opacity-100
+      transition
+      bg-white/90 backdrop-blur
+      border border-red-200
+      text-red-600
+      text-xs font-semibold
+      px-3 py-1 rounded-full
+      hover:bg-red-50
+    "
+  >
+    Delete
+  </button>
+
 
                    {m.type === 'photo' && (
                     <img  src={m.url}  className="w-full max-h-[60vh] object-contain"/>

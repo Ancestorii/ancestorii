@@ -71,10 +71,25 @@ export default function TimelineDetailPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
 
+  const [mediaVersion, setMediaVersion] = useState(0);
+
   const [tagOpen, setTagOpen] = useState(false);
   const [taggedPeople, setTaggedPeople] = useState<
   { id: string; full_name: string; avatar_signed?: string | null }[]
   >([]);
+
+  const removePersonFromTimeline = async (familyMemberId: string) => {
+  await supabase
+    .from("timeline_tags")
+    .delete()
+    .eq("timeline_id", timelineId)
+    .eq("family_member_id", familyMemberId);
+
+  setTaggedPeople((prev) =>
+    prev.filter((p) => p.id !== familyMemberId)
+  );
+};
+
 
   const thumbnailResolver = async (
   ev: TimelineEvent
@@ -95,16 +110,17 @@ export default function TimelineDetailPage() {
     for (const row of data) {
       if (!row.file_path) continue;
 
-      const { data: signed } = await supabase.storage
-        .from('timeline-media')
-        .createSignedUrl(row.file_path, 3600);
+     const { data: signed } = await supabase.storage
+  .from('timeline-media')
+  .createSignedUrl(row.file_path, 3600);
 
-      if (signed?.signedUrl) {
-        out.push({
-          url: signed.signedUrl,
-          type: row.file_type,
-        });
-      }
+if (signed?.signedUrl) {
+  out.push({
+    url: `${signed.signedUrl}&v=${Date.now()}`, // 👈 FORCE REFRESH
+    type: row.file_type,
+  });
+}
+
     }
 
     return out;
@@ -131,8 +147,7 @@ export default function TimelineDetailPage() {
 
   const refresh = () => {
     loadEvents();
-    // optional, but safe if you want title/desc to stay synced
-    // loadTimeline();
+    setMediaVersion((v) => v + 1); // 👈 FORCE re-render
   };
 
   window.addEventListener('timeline-media-updated', refresh);
@@ -141,6 +156,7 @@ export default function TimelineDetailPage() {
     window.removeEventListener('timeline-media-updated', refresh);
   };
 }, [timelineId]);
+
 
 
   async function loadTaggedPeople() {
@@ -271,6 +287,13 @@ export default function TimelineDetailPage() {
         <span className="text-sm text-[#1F2837] font-medium">
           {p.full_name}
         </span>
+        <span
+  onClick={() => removePersonFromTimeline(p.id)}
+  className="ml-1 cursor-pointer text-gray-400 hover:text-red-600 transition"
+  title="Remove from this timeline"
+>
+  ✕
+</span>
       </div>
     ))}
   </div>
@@ -302,6 +325,7 @@ export default function TimelineDetailPage() {
        <EmptyState onCreate={() => setCreateOpen(true)} />
       ) : (
     <HorizontalTimeline
+      key={mediaVersion} // 👈 IMPORTANT
       events={events}
       thumbnailResolver={thumbnailResolver}
       onCreateMemory={() => setCreateOpen(true)}

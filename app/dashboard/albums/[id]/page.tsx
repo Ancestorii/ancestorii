@@ -51,6 +51,19 @@ export default function AlbumDetailPage() {
     { id: string; full_name: string; avatar_url?: string | null; avatar_signed?: string | null }[]
   >([]);
 
+  const removePersonFromAlbum = async (familyMemberId: string) => {
+  await supabase
+    .from("album_tags")
+    .delete()
+    .eq("album_id", albumId)
+    .eq("family_member_id", familyMemberId);
+
+  setTaggedPeople((prev) =>
+    prev.filter((p) => p.id !== familyMemberId)
+  );
+};
+
+
   useEffect(() => {
     (async () => {
       const { data: sess } = await supabase.auth.getSession();
@@ -219,6 +232,13 @@ useEffect(() => {
         <span className="text-sm text-[#1F2837] font-medium">
           {p.full_name}
         </span>
+        <span
+         onClick={() => removePersonFromAlbum(p.id)}
+         className="ml-1 cursor-pointer text-gray-400 hover:text-red-600 transition"
+         title="Remove from this album"
+>
+  ✕
+</span>
       </div>
     ))}
   </div>

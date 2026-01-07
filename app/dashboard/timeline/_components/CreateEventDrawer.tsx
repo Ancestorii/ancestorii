@@ -1,10 +1,8 @@
-// Full redesigned CreateEventDrawer with media upload, no note, minimal gold line
 'use client';
 
 import { useState, useRef } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { createTimelineEvent } from '../_actions/createEvent';
-import { getServerClient } from '@/lib/supabase/server';
 import {
   Sheet,
   SheetContent,
@@ -28,8 +26,7 @@ const isUuid = (v?: string) =>
   typeof v === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
-
-  export default function CreateEventDrawer({
+export default function CreateEventDrawer({
   open,
   onOpenChange,
   timelineId,
@@ -48,8 +45,7 @@ const isUuid = (v?: string) =>
 
   function handleFile(file: File) {
     setMediaFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    setPreviewUrl(URL.createObjectURL(file));
   }
 
   async function handleCreate() {
@@ -66,13 +62,51 @@ const isUuid = (v?: string) =>
     setErr('');
 
     try {
+      // 1️⃣ CREATE EVENT
       const evt = await createTimelineEvent({
-      timelineId,
-      title,
-      eventDateISO: date,
-});
+        timelineId,
+        title,
+        eventDateISO: date,
+      });
 
-      // media upload happens after event creation (existing flow)
+      // 2️⃣ UPLOAD MEDIA (IF PROVIDED)
+      if (mediaFile) {
+        const { data: sess } = await supabase.auth.getSession();
+        const user = sess?.session?.user;
+        if (!user) throw new Error('Not authenticated');
+
+        const ext = mediaFile.name.split('.').pop();
+        const fileId = crypto.randomUUID();
+        const path = `${user.id}/${evt.id}/media/${fileId}.${ext}`;
+
+        const { error: uploadErr } = await supabase.storage
+          .from('timeline-media')
+          .upload(path, mediaFile, { upsert: false });
+
+        if (uploadErr) throw uploadErr;
+
+        const fileType =
+          mediaFile.type.startsWith('image')
+            ? 'photo'
+            : mediaFile.type.startsWith('video')
+            ? 'video'
+            : 'file';
+
+        const { error: insertErr } = await supabase
+          .from('timeline_event_media')
+          .insert({
+            event_id: evt.id,
+            file_path: path,
+            file_type: fileType,
+          });
+
+        if (insertErr) throw insertErr;
+      }
+
+      // 3️⃣ FORCE TIMELINE REFRESH
+      window.dispatchEvent(new Event('timeline-media-updated'));
+
+      // 4️⃣ RESET + CLOSE
       setTitle('');
       setDate('');
       setMediaFile(null);
@@ -131,7 +165,6 @@ const isUuid = (v?: string) =>
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="border-[#E6C26E]/40 uppercase placeholder:uppercase"
-              placeholder="DD/MM/YYYY"
             />
           </div>
 
@@ -143,17 +176,28 @@ const isUuid = (v?: string) =>
 
             <div
               ref={dropRef}
-              onClick={() => document.getElementById('eventMediaInput')?.click()}
+              onClick={() =>
+                document.getElementById('eventMediaInput')?.click()
+              }
               onDragOver={(e) => {
                 e.preventDefault();
-                dropRef.current?.classList.add('ring-2', 'ring-[#E6C26E]');
+                dropRef.current?.classList.add(
+                  'ring-2',
+                  'ring-[#E6C26E]'
+                );
               }}
               onDragLeave={() =>
-                dropRef.current?.classList.remove('ring-2', 'ring-[#E6C26E]')
+                dropRef.current?.classList.remove(
+                  'ring-2',
+                  'ring-[#E6C26E]'
+                )
               }
               onDrop={(e) => {
                 e.preventDefault();
-                dropRef.current?.classList.remove('ring-2', 'ring-[#E6C26E]');
+                dropRef.current?.classList.remove(
+                  'ring-2',
+                  'ring-[#E6C26E]'
+                );
                 const file = e.dataTransfer.files?.[0];
                 if (file) handleFile(file);
               }}
@@ -171,6 +215,7 @@ const isUuid = (v?: string) =>
                   Drag & drop or click to upload
                 </div>
               )}
+
               <input
                 id="eventMediaInput"
                 type="file"
@@ -186,7 +231,7 @@ const isUuid = (v?: string) =>
 
           {err && <p className="text-sm text-red-600">{err}</p>}
 
-           {/* SAVE BUTTON */}
+          {/* SAVE */}
           <Button
             onClick={handleCreate}
             disabled={saving || !isUuid(timelineId)}
