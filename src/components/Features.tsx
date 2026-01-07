@@ -146,7 +146,7 @@ export default function Features() {
     <video
       ref={videoRef}
       src="/promo.mp4"
-      poster="/demo-poster.png"
+      poster="/video-photo.jpg"
       className="object-cover w-full h-full"
       playsInline
       preload="metadata"
