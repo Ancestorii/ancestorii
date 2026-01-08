@@ -58,7 +58,10 @@ export default function LovedOneCard({
       {/* Menu */}
       <div
         className="absolute top-4 right-4 z-20 opacity-60 hover:opacity-100 transition"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+         e.preventDefault();
+         e.stopPropagation();
+         }}
       >
         <LovedOneMenu onEdit={onEdit} onDeleteClick={onDelete} />
       </div>

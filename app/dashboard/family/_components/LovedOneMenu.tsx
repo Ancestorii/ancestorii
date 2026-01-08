@@ -60,6 +60,7 @@ export function LovedOneMenu({
           >
             <button
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 setOpen(false);
                 onEdit();
@@ -73,9 +74,10 @@ export function LovedOneMenu({
 
             <button
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 setOpen(false);
-                onDeleteClick(); // opens modal
+                onDeleteClick();
               }}
               className="w-full text-left px-4 py-2.5
                          text-red-600 font-medium

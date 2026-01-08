@@ -248,17 +248,20 @@ useEffect(() => {
     const { error } = await supabase
       .from("family_members")
       .delete()
-      .match({
-        id,
-        owner_id: user.id, // 🔑 THIS is the fix
-      });
+      .eq("id", id);
 
     if (error) throw error;
 
     toast.success("Loved one removed from your legacy.");
+    setMembers((prev) => prev.filter((m) => m.id !== id)); // ✅ instant UI
     reload();
   } catch (err: any) {
-  console.error("DELETE FAILED:", err);
+  console.error("DELETE FAILED:", {
+    message: err?.message,
+    details: err?.details,
+    hint: err?.hint,
+    code: err?.code,
+  });
   toast.error("Failed to delete loved one.");
 }
 };
