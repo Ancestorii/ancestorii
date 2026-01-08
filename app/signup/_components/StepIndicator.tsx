@@ -32,7 +32,7 @@ export default function StepIndicator({ step }: StepIndicatorProps) {
   const currentIndex = steps.findIndex((s) => s.key === step);
 
   return (
-    <div className="w-full max-w-screen-xl mx-auto mb-2 px-6 lg:px-16">
+    <div className="w-full max-w-screen-xl mx-auto mb-6 px-6 lg:px-20">
       {/* Headline */}
       <div className="text-center mb-6">
   <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-[#0F2040]">
@@ -48,13 +48,13 @@ export default function StepIndicator({ step }: StepIndicatorProps) {
 </div>
 
       {/* Progress */}
-      <div className="relative flex items-center justify-between">
+      <div className="relative flex justify-between">
         {/* Base line */}
-        <div className="absolute left-0 right-0 top-1/2 h-[2px] bg-[#D4AF37]/20 -translate-y-1/2" />
+        <div className="absolute left-0 right-0 top-4 h-[2px] bg-[#D4AF37]/20" />
 
         {/* Active line */}
         <div
-          className="absolute left-0 top-1/2 h-[2px] bg-[#D4AF37] -translate-y-1/2 transition-all duration-700 ease-out"
+          className="absolute left-0 top-4 h-[2px] bg-[#D4AF37] transition-all duration-700 ease-out"
           style={{
             width:
               currentIndex === 0
@@ -72,7 +72,7 @@ export default function StepIndicator({ step }: StepIndicatorProps) {
           return (
             <div
               key={s.key}
-              className="relative z-10 flex flex-col items-center text-center w-1/3 px-2"
+              className="relative z-10 flex flex-col items-center text-center w-1/3 px-3 lg:px-6"
             >
               {/* Circle */}
               <div
@@ -87,7 +87,7 @@ export default function StepIndicator({ step }: StepIndicatorProps) {
 
               {/* Label */}
               <span
-              className={`mt-2 font-semibold leading-tight whitespace-nowrap transition-colors ${
+              className={`mt-4 md:mt-5 font-semibold leading-tight whitespace-nowrap transition-colors ${
               isActive ? 'text-[#0F2040]' : 'text-gray-400'
               }`}
              >

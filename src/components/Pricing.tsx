@@ -20,7 +20,7 @@ export default function PricingSection({ onPlanSelect }: PricingSectionProps) {
       monthlyPrice: '£4.99',
       yearlyPrice: '£49.99',
       features: [
-        '25GB of secure storage',
+        '25GB of total secure storage',
         '3 timelines, 3 capsules & 3 albums',
         'Max upload 1GB per file, videos up to 5 minutes',
         'Add voice & written notes to your memories',
@@ -35,7 +35,7 @@ export default function PricingSection({ onPlanSelect }: PricingSectionProps) {
       yearlyPrice: '£99.99',
       features: [
         'Everything in Basic plan plus',
-        '250GB of secure storage',
+        '250GB of total secure storage',
         'Unlimited timelines, albums & capsules',
         'Organise timelines, albums & capsules into one private legacy',
         'Max upload 5GB per file, videos up to 15 minutes',
@@ -51,7 +51,7 @@ export default function PricingSection({ onPlanSelect }: PricingSectionProps) {
       yearlyPrice: '£149.99',
       features: [
         'Everything in Basic & Standard plans plus',
-        '500GB of secure storage',
+        '500GB of total secure storage',
         'Max upload 10GB per file, videos up to 30 minutes with 4K processing priority',
         'Appoint 2 people to inherit your digital legacy',
         '30-day vault recovery for deleted items',

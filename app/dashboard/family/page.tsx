@@ -47,6 +47,7 @@ export default function FamilyPage() {
 
   const [memberCount, setMemberCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [membersLoading, setMembersLoading] = useState(true);
 
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
@@ -142,56 +143,63 @@ useEffect(() => {
   /* ===========================================================
       LOAD MEMBERS + RELATIONSHIPS
   ============================================================*/
-  useEffect(() => {
-    const loadData = async () => {
+ useEffect(() => {
+  const loadData = async () => {
+    setMembersLoading(true);
 
-      const { data: sess } = await supabase.auth.getSession();
-      const user = sess?.session?.user;
-      if (!user) return;
+    const { data: sess } = await supabase.auth.getSession();
+    const user = sess?.session?.user;
+    if (!user) {
+      setMembersLoading(false);
+      return;
+    }
 
-      const { data: memberRows, error: memErr } = await supabase
-        .from("family_members")
-        .select("id, full_name, birth_date, death_date, biography, avatar_url, relationship_to_user")
-        .eq("owner_id", user.id)
-        .order("full_name", { ascending: true });
+    const { data: memberRows, error: memErr } = await supabase
+      .from("family_members")
+      .select("id, full_name, birth_date, death_date, biography, avatar_url, relationship_to_user")
+      .eq("owner_id", user.id)
+      .order("full_name", { ascending: true });
 
-      if (memErr) {
-        console.error(memErr);
-        return;
-      }
+    if (memErr) {
+      console.error(memErr);
+      setMembersLoading(false);
+      return;
+    }
 
-      const membersData = (memberRows || []) as FamilyMember[];
+    const membersData = (memberRows || []) as FamilyMember[];
 
-      const withSigned = await Promise.all(
-        membersData.map(async (m) => {
-          if (!m.avatar_url) return m;
-          const { data: signed, error } = await supabase.storage
-            .from("user-media")
-            .createSignedUrl(m.avatar_url, 60 * 60);
-          if (error || !signed?.signedUrl) return m;
-          return {
-            ...m,
-            avatar_signed: `${signed.signedUrl}&cb=${Date.now()}`,
-          };
-        })
-      );
+    const withSigned = await Promise.all(
+      membersData.map(async (m) => {
+        if (!m.avatar_url) return m;
+        const { data: signed, error } = await supabase.storage
+          .from("user-media")
+          .createSignedUrl(m.avatar_url, 60 * 60);
+        if (error || !signed?.signedUrl) return m;
+        return {
+          ...m,
+          avatar_signed: `${signed.signedUrl}&cb=${Date.now()}`,
+        };
+      })
+    );
 
-      setMembers(withSigned);
+    setMembers(withSigned);
 
-      const { data: relRows, error: relErr } = await supabase
-        .from("family_relationships")
-        .select("id, member_a, member_b, role")
-        .eq("owner_id", user.id);
+    const { data: relRows } = await supabase
+      .from("family_relationships")
+      .select("id, member_a, member_b, role")
+      .eq("owner_id", user.id);
 
-      const rels = (relRows || []) as Relationship[];
-      setRelationships(rels);
+    setRelationships((relRows || []) as Relationship[]);
 
-      const grouped = getLovedOneGroups(withSigned);
-      setGroups(grouped);
-    };
+    const grouped = getLovedOneGroups(withSigned);
+    setGroups(grouped);
 
-    loadData();
-  }, [memberCount, refreshKey, supabase]);
+    setMembersLoading(false); // ✅ ONLY HERE
+  };
+
+  loadData();
+}, [memberCount, refreshKey, supabase]);
+
 
   /* ===========================================================
       OPEN EDIT MEMBER
@@ -280,12 +288,12 @@ useEffect(() => {
       )}
 
       {/* ---------- EMPTY STATE ---------- */}
-      {!loading && members.length === 0 && (
+      {!loading && !membersLoading && members.length === 0 && (
          <LovedOneEmptyState onAdd={() => setAddOpen(true)} />
       )}
 
       {/* ---------- MAIN UI ---------- */}
-      {!loading && members.length > 0 && (
+      {!loading && !membersLoading && members.length > 0 && (
         <div className="relative z-10 px-6 sm:px-8 pt-16 pb-16 max-w-7xl mx-auto">
          {/* ✅ REPLACE YOUR HEADER WITH THIS (1:1 Albums header, just “Loved Ones”) */}
 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-14">

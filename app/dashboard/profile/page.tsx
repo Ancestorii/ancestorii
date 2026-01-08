@@ -267,7 +267,7 @@ useEffect(() => {
           <Field label="Full name">
             <input
               type="text"
-              placeholder="e.g. Dante Leon"
+              placeholder="e.g. Michael Brown"
               value={profile?.full_name ?? ''}
               onChange={(e) => onChange('full_name', e.target.value)}
               className="w-full rounded-md border px-3 py-2 bg-white focus:ring-2 focus:ring-[#0f2040] focus:border-[#0f2040] border-slate-300 text-sm md:text-base"
@@ -279,7 +279,7 @@ useEffect(() => {
               type="date"
               value={profile?.dob ?? ''}
               onChange={(e) => onChange('dob', e.target.value)}
-              className="w-full rounded-md border px-3 py-2 bg-white focus:ring-2 focus:ring-[#0f2040] focus:border-[#0f2040] border-slate-300 text-sm md:text-base"
+              className="w-full rounded-md border px-3 py-2 bg-white focus:ring-2 focus:ring-[#0f2040] focus:border-[#0f2040] border-slate-300 text-sm md:text-base uppercase"
             />
           </Field>
         </AccentCard>

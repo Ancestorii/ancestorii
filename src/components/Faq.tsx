@@ -16,7 +16,7 @@ const faqs = [
   {
     question: "How much storage do I get?",
     answer:
-      "That depends on your plan. Basic offers 50GB, Standard provides 250GB, and Premium unlocks 500GB — perfect for preserving a lifetime of memories.",
+      "That depends on your plan. Basic offers 25GB, Standard provides 250GB, and Premium unlocks 500GB — perfect for preserving a lifetime of memories.",
   },
   {
     question: "Can I share with my family?",
@@ -26,7 +26,7 @@ const faqs = [
   {
     question: "What happens if I stop paying?",
     answer:
-      "Your account will be safely paused, and all your data securely stored for 30 days. You can reactivate anytime to regain full access to your memories.",
+      "Your account will be safely paused, and all your data securely stored until your plan ends. You can reactivate anytime to regain full access to your memories.",
   },
   {
     question: "Is there a free trial?",
