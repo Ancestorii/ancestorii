@@ -183,6 +183,7 @@ export default function AddMemberModal({
             birth_date: birthISO,
             death_date: deathISO,
             avatar_url: avatarPath,
+            relationship_to_user: relationship, // ✅ ADD THIS
           })
           .select("id")
           .single();
@@ -205,6 +206,7 @@ export default function AddMemberModal({
           birth_date: birthISO,
           death_date: deathISO,
           avatar_url: avatarPath,
+          relationship_to_user: relationship, // ✅ ADD THIS
         })
         .eq("id", member?.id);
 

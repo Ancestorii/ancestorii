@@ -193,13 +193,17 @@ useEffect(() => {
     setRelationships((relRows || []) as Relationship[]);
 
     const grouped = getLovedOneGroups(withSigned);
-    setGroups(grouped);
 
     setMembersLoading(false); // ✅ ONLY HERE
   };
 
   loadData();
 }, [refreshKey, supabase]);
+
+// ✅ ADD THIS RIGHT HERE
+useEffect(() => {
+  setGroups(getLovedOneGroups(members));
+}, [members]);
 
 
   /* ===========================================================
