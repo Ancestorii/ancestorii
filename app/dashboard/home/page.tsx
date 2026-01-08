@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 
 const Particles = dynamic(() => import('@/components/ParticlesPlatform'), {
@@ -15,6 +15,8 @@ export default function DashboardHomePage() {
   const supabase = getBrowserClient();
   const [homeImages, setHomeImages] = useState<(string | null)[]>([null, null, null]);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
 
   const [name, setName] = useState<string | null>(null);
   const [typedYours, setTypedYours] = useState('');
@@ -90,6 +92,19 @@ useEffect(() => {
       }
     })();
   }, [supabase, router]);
+
+
+  // 🔵 META PIXEL — FIRE ONLY AFTER STRIPE SUCCESS
+useEffect(() => {
+  const success = searchParams.get("success");
+
+  if (success === "true") {
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "CompleteRegistration");
+    }
+  }
+}, [searchParams]);
+
 
 
   /* Typed animation for "yours" */
