@@ -20,6 +20,7 @@ const Particles = dynamic(() => import("@/components/ParticlesPlatform"), {
 type FamilyMember = {
   id: string;
   full_name: string;
+  relationship_to_user?: string | null; // 🔑 REQUIRED
   birth_date?: string | null;
   death_date?: string | null;
   biography?: string | null;
@@ -198,7 +199,7 @@ useEffect(() => {
   };
 
   loadData();
-}, [memberCount, refreshKey, supabase]);
+}, [refreshKey, supabase]);
 
 
   /* ===========================================================
@@ -252,7 +253,6 @@ useEffect(() => {
 
     toast.success("Loved one removed from your legacy.");
     reload();
-    setMemberCount((c) => Math.max(0, c - 1));
   } catch (err: any) {
   console.error("DELETE FAILED:", err);
   toast.error("Failed to delete loved one.");
