@@ -223,7 +223,6 @@ useEffect(() => {
   const handleCreateMember = async (id: string | null) => {
     setAddOpen(false);
     if (!id) return;
-    setMemberCount((c) => c + 1);
     reload();
   };
 
@@ -255,11 +254,9 @@ useEffect(() => {
     reload();
     setMemberCount((c) => Math.max(0, c - 1));
   } catch (err: any) {
-    console.error(err);
-    toast.success(
-      "Please untag this person from your memories before deleting them from My Loved Ones."
-    );
-  }
+  console.error("DELETE FAILED:", err);
+  toast.error("Failed to delete loved one.");
+}
 };
 
 
