@@ -233,18 +233,35 @@ useEffect(() => {
     setAddOpen(true);
   };
 
-  const handleDeleteMember = async (id: string) => {
-    try {
-      const { error } = await supabase.from("family_members").delete().eq("id", id);
-      if (error) throw error;
-      toast.success("Loved one removed from your legacy.");
-      reload();
-      setMemberCount((c) => Math.max(0, c - 1));
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Failed to delete loved one. Please try again.");
-    }
-  };
+ const handleDeleteMember = async (id: string) => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("Not authenticated");
+
+    const { error } = await supabase
+      .from("family_members")
+      .delete()
+      .match({
+        id,
+        owner_id: user.id, // 🔑 THIS is the fix
+      });
+
+    if (error) throw error;
+
+    toast.success("Loved one removed from your legacy.");
+    reload();
+    setMemberCount((c) => Math.max(0, c - 1));
+  } catch (err: any) {
+    console.error(err);
+    toast.success(
+      "Please untag this person from your memories before deleting them from My Loved Ones."
+    );
+  }
+};
+
 
   /* ===========================================================
       UI
