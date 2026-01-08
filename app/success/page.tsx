@@ -10,22 +10,30 @@ export default function SuccessPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const run = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  const run = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (!user) {
-        router.replace("/login");
-        return;
-      }
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
 
-      // User is authenticated, middleware will handle access
+    // 🔵 META PIXEL — COMPLETE REGISTRATION
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "CompleteRegistration");
+    }
+
+    // small delay to ensure event is sent before redirect
+    setTimeout(() => {
       router.replace("/dashboard/home");
-    };
+    }, 300);
+  };
 
-    run();
-  }, [router]);
+  run();
+}, [router]);
+
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-[#fff9ee] text-[#0F2040] px-6 text-center">
