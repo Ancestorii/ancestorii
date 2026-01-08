@@ -62,7 +62,6 @@ const { data: fam } = await supabase
   .from("family_members")
   .select("id, full_name, avatar_url")
   .eq("owner_id", user.id)
-  .is("deleted_at", null)   // 👈 THIS LINE
   .order("created_at", { ascending: true });
 
 
