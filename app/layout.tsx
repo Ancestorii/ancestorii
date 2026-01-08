@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -68,38 +69,54 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      {/* 🔵 META PIXEL */}
+      <Script id="meta-pixel" strategy="afterInteractive">
+        {`
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '2096190511177765');
+          fbq('track', 'PageView');
+        `}
+      </Script>
+
       <body
         className={`${inter.variable} antialiased text-gray-900 bg-transparent min-h-screen`}
       >
         {children}
 
         <Toaster
-  position="top-right"
-  toastOptions={{
-    duration: 7000, // 7 seconds = smoother pacing
-    style: {
-      background: "#0F2040",  // deep navy
-      color: "#FFFFFF",       // clean white text
-      border: "1px solid #D4AF37", // gold outline = premium
-      borderRadius: "12px",
-      padding: "12px 18px",
-      fontSize: "15.5px",  // slightly bigger, not childish
-      fontWeight: 500,
-    },
-    success: {
-      iconTheme: {
-        primary: "#D4AF37",
-        secondary: "#FFFFFF",
-      },
-    },
-    error: {
-      iconTheme: {
-        primary: "#D64545",
-        secondary: "#FFFFFF",
-      },
-    },
-  }}
-/>
+          position="top-right"
+          toastOptions={{
+            duration: 7000,
+            style: {
+              background: "#0F2040",
+              color: "#FFFFFF",
+              border: "1px solid #D4AF37",
+              borderRadius: "12px",
+              padding: "12px 18px",
+              fontSize: "15.5px",
+              fontWeight: 500,
+            },
+            success: {
+              iconTheme: {
+                primary: "#D4AF37",
+                secondary: "#FFFFFF",
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: "#D64545",
+                secondary: "#FFFFFF",
+              },
+            },
+          }}
+        />
       </body>
     </html>
   );
