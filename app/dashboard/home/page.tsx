@@ -105,6 +105,16 @@ useEffect(() => {
   }
 }, [searchParams]);
 
+// 🔴 REDDIT PIXEL — FIRE ONLY AFTER STRIPE SUCCESS
+useEffect(() => {
+  const success = searchParams.get("success");
+
+  if (success === "true") {
+    if (typeof window !== "undefined" && (window as any).rdt) {
+      (window as any).rdt("track", "CompleteRegistration");
+    }
+  }
+}, [searchParams]);
 
 
   /* Typed animation for "yours" */
