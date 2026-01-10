@@ -265,9 +265,9 @@ useEffect(() => {
          animate={{ opacity: 1 }}
          transition={{ delay: 1.8, duration: 1.8 }}
          className="text-base
-         md:text-lg
-         leading-[1.65]
-         md:leading-[1.85]
+         md:text-[16px]
+         leading-[1.6]
+         md:leading-[1.7]
          text-[#2a3550]
          max-w-[92%]
          md:max-w-[680px]"

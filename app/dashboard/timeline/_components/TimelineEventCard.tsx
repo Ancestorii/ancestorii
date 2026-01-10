@@ -45,6 +45,7 @@ export default function TimelineEventCard({
         y={foreignY}
         width={cardWidth}
         height={cardHeight}
+        style={{ overflow: 'hidden' }}
       >
         <div
          className="rounded-xl border border-slate-200 bg-white overflow-hidden"
