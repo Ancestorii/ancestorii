@@ -86,7 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     s.parentNode.insertBefore(t,s);
   }
 }(window,document);
-rdt('init','2_ibovuqrsg8y0');
+rdt('init','a2_ibovuqrsg8y0');
 rdt('track','PageVisit');
       `}
     </Script>
