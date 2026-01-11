@@ -116,6 +116,19 @@ useEffect(() => {
   }
 }, [searchParams]);
 
+// 🟡 GA4 / GTM — FIRE ONLY AFTER SUCCESSFUL SIGNUP
+useEffect(() => {
+  const success = searchParams.get("success");
+
+  if (success === "true") {
+    if (typeof window !== "undefined") {
+      (window as any).dataLayer = (window as any).dataLayer || [];
+      (window as any).dataLayer.push({
+        event: "signup_complete",
+      });
+    }
+  }
+}, [searchParams]);
 
   /* Typed animation for "yours" */
   useEffect(() => {
