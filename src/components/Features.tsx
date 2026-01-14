@@ -121,6 +121,7 @@ export default function Features() {
         </motion.div>
 
        {/* STEP 3: PLATFORM DEMO VIDEO */}
+{/* STEP 3: PLATFORM DEMO VIDEO */}
 <motion.div
   variants={fadeParallax}
   initial="hidden"
@@ -128,6 +129,17 @@ export default function Features() {
   viewport={{ once: true, amount: 0.05 }}
   className="relative flex flex-col items-center text-center"
 >
+  {/* Anchor that accounts for sticky header */}
+  <div
+  id="how-it-works"
+  className="
+    scroll-mt-48
+    sm:scroll-mt-32
+    md:scroll-mt-36
+    lg:scroll-mt-40
+  "
+/>
+
   <div className="mb-8">
     <p className="text-2xl md:text-3xl font-bold text-[#E5C45C] uppercase">
       See It in Action
