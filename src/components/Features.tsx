@@ -57,31 +57,18 @@ export default function Features() {
               <span className="block w-[80px] h-[4px] bg-[#0F2040] mt-1 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
             </div>
 
-            <h2 className="text-[2.6rem] md:text-[3rem] font-extrabold leading-snug">
-              We built{' '}
-              <motion.span
-                className="inline-block text-[#E5C45C]"
-                animate={{ opacity: [1, 0.6, 1] }}
-                transition={{
-                  duration: 2.4,
-                  ease: 'easeInOut',
-                  repeat: Infinity,
-                }}
-              >
-                Ancestorii
-              </motion.span>{' '}
-              to keep your family’s story alive — not just stored, but remembered.
-            </h2>
+           <h2 className="text-[2.6rem] md:text-[3rem] font-extrabold leading-snug">
+  A private place for the moments your family will one day wish they could remember.
+</h2>
+
+
 
             <p className="text-black text-lg leading-relaxed max-w-2xl">
-              Created for the stories time shouldn’t erase. Every laugh, every milestone,
-              every voice that once filled a room — preserved forever in one place. This
-              isn’t just storage; it’s your legacy, beautifully remembered.
-            </p>
+  Ancestorii helps you preserve memories that photos can’t hold.
+  Voices. Stories. Moments in your own words.
+  Kept private, personal, and safe — for the people who matter.
+</p>
 
-            <p className="text-[#0F2040]/70 text-base">
-              Loved ones change, but your memories don’t have to.
-            </p>
 
             {/* HERO-STYLE BUTTON (identical to Hero "Get Started") */}
             <motion.div

@@ -48,11 +48,12 @@ export default function HeroContent() {
   "
 >
   <span className="block">
-    Voices. Stories. Moments that photos alone can’t hold.
+    Voices fade. Stories blur.  
+    And one day, someone will wish they could remember more.
   </span>
 
   <span className="block mt-2 sm:mt-3">
-    A private place to preserve them — in your words, in your time.
+    A private place to keep what matters — in your words, in your time.
   </span>
 </motion.p>
 
@@ -82,7 +83,7 @@ export default function HeroContent() {
           "
           onClick={() => (window.location.href = '/signup')}
         >
-          <span className="relative z-10">Preserve a Memory</span>
+          <span className="relative z-10">Explore Privately</span>
           <span className="absolute inset-0 bg-gradient-to-r
                            from-transparent via-white/40 to-transparent
                            animate-[shine_3s_linear_infinite]" />

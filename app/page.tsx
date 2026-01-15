@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ancestorii – Preserve Your Family's Legacy Forever",
+    title: "Ancestorii – A Private Digital Legacy for Your Family",
     description:
       "Capture, organize, and pass down your family's memories securely with Ancestorii.",
     images: ["/og-image.jpg"],
