@@ -5,7 +5,10 @@ import HeroContent from './HeroContent';
 
 export default function Hero() {
   return (
-    <section className="relative flex items-center justify-center w-full min-h-[100vh] bg-black overflow-visible isolate">
+    <section
+  id="hero"
+  className="relative flex items-center justify-center w-full min-h-[100vh] bg-black overflow-visible isolate"
+>
       {/* Background */}
       <StarFieldNew />
 
