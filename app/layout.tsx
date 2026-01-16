@@ -7,11 +7,17 @@ import Script from "next/script";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.ancestorii.com"), // your domain
+  metadataBase: new URL("https://www.ancestorii.com"),
+
+  other: {
+    "facebook-domain-verification": "cpoupazob2etm1uodfyrzd1a52sf5",
+  },
+
   title: {
     default: "Ancestorii – Preserve Your Family's Legacy Forever",
     template: "%s | Ancestorii",
   },
+
   description:
     "Capture, protect, and pass down your family's memories through digital timelines, albums, and legacy capsules. Ancestorii keeps your story alive for generations.",
   keywords: [
