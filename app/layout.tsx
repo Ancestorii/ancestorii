@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   },
 
   title: {
-    default: "Ancestorii – Preserve Your Family's Legacy Forever",
+    default: "Ancestorii Preserve Your Family Legacy Forever",
     template: "%s | Ancestorii",
   },
 
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     locale: "en_GB",
     url: "https://www.ancestorii.com",
     siteName: "Ancestorii",
-    title: "Ancestorii – Preserve Your Family's Legacy Forever",
+    title: "Ancestorii Preserve Your Family Legacy Forever",
     description:
       "Your family's story, preserved through timelines, albums, and legacy capsules — secure, private, and beautifully designed.",
     images: [
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ancestorii – Preserve Your Family's Legacy Forever",
+    title: "Ancestorii Preserve Your Family Legacy Forever",
     description:
       "Capture, organize, and protect your family's most meaningful moments with Ancestorii.",
     images: ["/og-image.jpg"],

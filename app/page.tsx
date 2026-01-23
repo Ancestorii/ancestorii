@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     "digital legacy platform",
   ],
   openGraph: {
-    title: "Ancestorii – Preserve Your Family's Legacy Forever",
+    title: "Ancestorii Preserve Your Family Legacy Forever",
     description:
       "Create and protect your family's digital story through timelines, albums, and legacy capsules. Secure, private, and beautifully designed.",
     url: "https://www.ancestorii.com",
