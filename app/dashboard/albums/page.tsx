@@ -209,7 +209,7 @@ export default function AlbumsPage() {
                if (limitsLoading) return;
                if (!canCreate.album) {
                toast.error(
-                `Album limit reached (${counts?.albums} / ${limits?.max_albums})` );
+                 `You’ve reached your current plan limit for albums (${counts?.albums} / ${limits?.max_albums}). Upgrade your plan to create more.`);
                 return;
                 }
   setDrawerMode('create');

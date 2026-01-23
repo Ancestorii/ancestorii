@@ -195,7 +195,7 @@ setTimelines(signed);
   if (limitsLoading) return;
   if (!canCreate.timeline) {
     toast.error(
-      `Timeline limit reached (${counts?.timelines} / ${limits?.max_timelines})`
+      `You’ve reached your current plan limit for timelines (${counts?.timelines} / ${limits?.max_timelines}). Upgrade your plan to create more.`
     );
     return;
   }

@@ -34,6 +34,7 @@ export default function PlansPage() {
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
   const [usage, setUsage] = useState<UsageRow | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
+  const [showPlanChangeInfo, setShowPlanChangeInfo] = useState(false);
 
   // 🔄 If we returned from Stripe with success/canceled, refresh data once
   useEffect(() => {
@@ -285,26 +286,77 @@ export default function PlansPage() {
 
       {/* Plan Cards */}
       <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-[#0f2040] mb-4">
-          Choose the plan that fits your legacy
-        </h2>
+        <h2 className="text-xl font-semibold text-[#0f2040] mb-1">
+  Choose the plan that fits your legacy
+</h2>
+<p className="text-sm text-slate-500 mb-5">
+  You can upgrade or downgrade at any time.
+</p>
+
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["Basic", "Standard", "Premium"] as PlanName[]).map((name) => {
             const isCurrent = name === currentPlan?.name;
             return (
               <PlanCard
-                key={name}
-                title={name}
-                price={PRICE[name]}
-                features={FEATURES[name]}
-                onSelect={() => handleUpgrade(name)}
-                isCurrent={isCurrent}
-              />
+  key={name}
+  title={name}
+  price={PRICE[name]}
+  features={FEATURES[name]}
+  onSelect={() => handleUpgrade(name)}
+  isCurrent={isCurrent}
+  currentPlanName={currentPlan?.name}
+  onManagePlan={() => setShowPlanChangeInfo(true)}
+/>
             );
           })}
         </div>
       </section>
+      {showPlanChangeInfo && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center relative">
+      <h2 className="text-xl font-semibold text-[#0F2040] mb-3">
+        Managing your Ancestorii subscription
+      </h2>
+
+      <p className="text-gray-600 mb-6 leading-relaxed">
+        If you’d like to change or downgrade your Ancestorii subscription,
+        please visit our Help page and either send us an email or complete
+        the contact form. Our team will personally take care of your request.
+      </p>
+
+      <p className="text-sm text-gray-500 mb-6">
+        Your memories and data remain safe and accessible until any change
+        is confirmed.
+      </p>
+
+      <div className="flex justify-center gap-4">
+        <a
+          href="/dashboard/help"
+          className="px-6 py-2 rounded-xl bg-[#0F2040] text-white
+            hover:bg-[#152a52] transition-all"
+        >
+          Visit Help Centre
+        </a>
+
+        <button
+          onClick={() => setShowPlanChangeInfo(false)}
+          className="px-6 py-2 rounded-xl bg-gray-200 text-gray-700
+            hover:bg-gray-300 transition-all"
+        >
+          Close
+        </button>
+      </div>
+
+      <button
+        onClick={() => setShowPlanChangeInfo(false)}
+        className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }
@@ -327,6 +379,8 @@ function UsageBar({ used, max }: { used: number | null; max: number | null }) {
   );
 }
 
+const PLAN_ORDER: PlanName[] = ["Basic", "Standard", "Premium"];
+
 
 function PlanCard({
   title,
@@ -334,38 +388,99 @@ function PlanCard({
   features,
   onSelect,
   isCurrent,
+  currentPlanName,
+  onManagePlan,
 }: {
   title: PlanName;
   price: string;
   features: string[];
   onSelect: () => void;
   isCurrent?: boolean;
+  currentPlanName?: PlanName;
+  onManagePlan: () => void;
 }) {
+
+  const isRecommended = title === "Standard";
+  const currentIndex =
+  currentPlanName ? PLAN_ORDER.indexOf(currentPlanName) : -1;
+
+  const thisIndex = PLAN_ORDER.indexOf(title);
+
+  const isUpgrade = thisIndex > currentIndex;
+  const isDowngrade = thisIndex < currentIndex;
+
+
   return (
-    <div className="relative rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition">
-      <div className="h-1.5 w-full bg-gradient-to-r from-[#152a52] via-[#0f2040] to-[#0c1a33]" />
-      <div className="p-5 flex flex-col h-full">
+    <div
+      className={`relative rounded-2xl border transition-all overflow-hidden
+        ${
+          isCurrent
+            ? "border-[#D4AF37] ring-2 ring-[#D4AF37] bg-[#fffaf0]"
+            : isRecommended
+            ? "border-[#D4AF37] shadow-md hover:shadow-lg"
+            : "border-slate-200 hover:border-[#D4AF37]"
+        }`}
+    >
+      {/* Top accent bar */}
+      <div
+        className={`h-1.5 w-full ${
+          isCurrent || isRecommended
+            ? "bg-gradient-to-r from-[#D4AF37] to-[#F3D99B]"
+            : "bg-slate-200"
+        }`}
+      />
+
+      {/* Recommended badge */}
+      {isRecommended && !isCurrent && (
+        <div className="absolute top-3 right-3 text-xs font-semibold bg-[#D4AF37] text-[#0f2040] px-3 py-1 rounded-full">
+          Most Popular
+        </div>
+      )}
+
+      <div className="p-5 flex flex-col h-full bg-white">
         <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#0f2040] ring-1 ring-slate-200">
           {title}
         </div>
 
-        <div className="mt-3 text-[#0f2040] font-semibold text-lg">{price}</div>
-        <ul className="mt-3 flex-1 space-y-2 text-sm text-slate-700">
+        <div className="mt-4 text-[#0f2040] font-extrabold text-2xl">
+          {price}
+        </div>
+
+        <ul className="mt-4 flex-1 space-y-2 text-sm text-slate-700">
           {features.map((f, i) => (
-            <li key={i}>• {f}</li>
+            <li key={i} className="flex gap-2">
+              <span className="text-[#D4AF37]">•</span>
+              <span>{f}</span>
+            </li>
           ))}
         </ul>
 
         <button
-          disabled={isCurrent}
-          onClick={onSelect}
-          className={`mt-4 w-full px-4 py-2 rounded-md text-white text-sm font-medium transition bg-[#0f2040] hover:bg-[#152a52] ${
-            isCurrent ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          {isCurrent ? "Current Plan" : "Upgrade Plan"}
-        </button>
+  disabled={isCurrent}
+  onClick={() => {
+    if (isDowngrade) {
+      onManagePlan();
+    } else {
+      onSelect();
+    }
+  }}
+  className={`mt-5 w-full px-4 py-2.5 rounded-lg text-sm font-semibold transition-all
+    ${
+      isCurrent
+        ? "bg-slate-300 text-slate-600 cursor-not-allowed"
+        : isUpgrade
+        ? "bg-gradient-to-r from-[#D4AF37] to-[#F3D99B] text-[#0f2040] hover:opacity-90"
+        : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
+    }`}
+>
+  {isCurrent
+    ? "Current Plan"
+    : isUpgrade
+    ? "Upgrade Plan"
+    : "Manage Plan"}
+</button>
       </div>
     </div>
   );
 }
+

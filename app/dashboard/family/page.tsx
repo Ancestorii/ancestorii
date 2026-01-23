@@ -13,6 +13,7 @@ import { getBrowserClient } from "@/lib/supabase/browser";
 import { safeToast as toast } from "@/lib/safeToast";
 import { useSearchParams } from "next/navigation";
 
+
 const Particles = dynamic(() => import("@/components/ParticlesPlatform"), {
   ssr: false,
 });
@@ -59,13 +60,25 @@ export default function FamilyPage() {
   const TYPING_KEY = "loved_ones_typing_last_run";
   const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-
   // ✅ PUT THIS INSIDE FamilyPage() (same place Albums has it)
 const line1 = '“The people who shaped your life — remembered forever.”';
 const line2 = 'Add your loved ones and preserve their stories, memories, and legacy.';
 const [typed1, setTyped1] = useState('');
 const [typed2, setTyped2] = useState('');
 const [isTyping1Done, setIsTyping1Done] = useState(false);
+const [hasSubscription, setHasSubscription] = useState<boolean | null>(null);
+
+useEffect(() => {
+  (async () => {
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess?.session?.user?.id;
+    if (!uid) return;
+
+    const { data } = await supabase.rpc('has_active_subscription', { uid });
+    setHasSubscription(!!data);
+  })();
+}, []);
+
 
 useEffect(() => {
   if (shouldOpenAdd) {
@@ -345,7 +358,19 @@ useEffect(() => {
   <div className="flex justify-center md:justify-end flex-1">
     <button
       className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
-      onClick={() => setAddOpen(true)}
+      onClick={() => {
+  if (loading || hasSubscription === null) return;
+
+  if (!hasSubscription && memberCount >= 1) {
+    toast.error(
+      "You’ve reached your current plan limit for loved ones. Upgrade to add more."
+    );
+    return;
+  }
+
+  setAddOpen(true);
+}}
+
     >
       <span className="relative z-10">+ Add A Loved One</span>
       <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />

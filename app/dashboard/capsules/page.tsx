@@ -260,7 +260,7 @@ useEffect(() => {
   if (limitsLoading) return;
   if (!canCreate.capsule) {
     toast.error(
-      `Capsule limit reached (${counts?.capsules} / ${limits?.max_capsules})`
+      `You’ve reached your current plan limit for capsules (${counts?.capsules} / ${limits?.max_capsules}). Upgrade your plan to create more.`
     );
     return;
   }
