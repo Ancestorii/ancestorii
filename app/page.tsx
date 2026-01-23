@@ -1,13 +1,12 @@
 
 import Nav from '@/components/Nav';
 import Hero from '@/components/Hero';
-import Features from '@/components/Features';
-import Pricing from '@/components/Pricing';
 import Faq from '@/components/Faq';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
-import SmoothSection from '@/components/SmoothSection';
 import type { Metadata } from 'next';
+import FeatureRail from '@/components/landing/FeatureRail';
+
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
@@ -61,14 +60,16 @@ export const metadata: Metadata = {
 /* ---------------- Main Page ---------------- */
 export default function HomePage() {
   return (
-    <main className="bg-black text-white">
+    <main className="bg-[#fff9ee] text-[#0F2040]">
       <Nav />
       <Hero />
-      <SmoothSection><Features /></SmoothSection>
-      <SmoothSection><Pricing /></SmoothSection>
-      <SmoothSection><Faq /></SmoothSection>
-      <SmoothSection><Contact /></SmoothSection>
+      <FeatureRail />
+      
+      {/* Keep these for now */}
+        <Faq />
+        <Contact />
       <Footer />
     </main>
   );
 }
+

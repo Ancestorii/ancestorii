@@ -47,13 +47,10 @@ export default function HeroContent() {
     px-2
   "
 >
-  <span className="block">
-    Voices fade. Stories blur.  
-    And one day, someone will wish they could remember more.
-  </span>
 
   <span className="block mt-2 sm:mt-3">
-    A private place to keep what matters — in your words, in your time.
+    A private place to preserve memories, voices, and moments
+   for you and for those who come after.
   </span>
 </motion.p>
 
@@ -89,29 +86,7 @@ export default function HeroContent() {
                            animate-[shine_3s_linear_infinite]" />
         </Button>
 
-        {/* Secondary CTA */}
-        <Button
-          className="
-            bg-white/95
-            border-2 border-[#d4af37]
-            text-[#0f2040]
-            font-semibold
-            text-base sm:text-lg md:text-xl
-            px-8 sm:px-10 md:px-12
-            py-4 sm:py-5 md:py-6
-            rounded-full
-            transition-transform duration-300
-            hover:bg-white
-            hover:scale-105
-            hover:shadow-[0_0_35px_rgba(255,255,255,0.8)]
-          "
-          onClick={() => {
-  const el = document.getElementById('how-it-works');
-  el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}}
-        >
-          How it works
-        </Button>
+       
       </motion.div>
 
       {/* Trust line — BELOW CTAs */}
@@ -126,7 +101,7 @@ export default function HeroContent() {
           tracking-wide
         "
       >
-        Private • Personal • Never shared without you
+        Private • Personal • Built for generations
       </motion.div>
     </div>
   );

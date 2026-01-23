@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import Script from "next/script";
+import LenisProvider from "./providers/LenisProvider";
+
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -139,7 +141,10 @@ rdt('track','PageVisit');
   />
 </noscript>
 
+        <LenisProvider>
         {children}
+       </LenisProvider>
+
 
         <Toaster
           position="top-right"
