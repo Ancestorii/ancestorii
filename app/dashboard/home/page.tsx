@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 
 const Particles = dynamic(() => import('@/components/ParticlesPlatform'), {
@@ -15,8 +15,11 @@ export default function DashboardHomePage() {
   const supabase = getBrowserClient();
   const [homeImages, setHomeImages] = useState<(string | null)[]>([null, null, null]);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
+  const DESKTOP_TOAST_KEY = "desktop_recommend_last_seen";
+  const DESKTOP_TOAST_RESET_MS = 24 * 60 * 60 * 1000;
+
+  const [showDesktopToast, setShowDesktopToast] = useState(false);
 
   const [name, setName] = useState<string | null>(null);
   const [typedYours, setTypedYours] = useState('');
@@ -68,67 +71,16 @@ useEffect(() => {
   })();
 }, [supabase]);
 
-
-    // 🔒 ADD THIS RIGHT AFTER ↑
-  useEffect(() => {
-    (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      const user = auth?.user;
-      if (!user) return;
-
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("status")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (!sub) {
-        router.replace("/dashboard/finalizing");
-        return;
-      }
-
-      if (!["active", "trialing"].includes(sub.status)) {
-        router.replace("/pricing");
-      }
-    })();
-  }, [supabase, router]);
-
-
-  // 🔵 META PIXEL — FIRE ONLY AFTER STRIPE SUCCESS
 useEffect(() => {
-  const success = searchParams.get("success");
+  if (window.innerWidth >= 768) return; // desktop → never show
 
-  if (success === "true") {
-    if (typeof window !== "undefined" && (window as any).fbq) {
-      (window as any).fbq("track", "CompleteRegistration");
-    }
+  const lastSeen = localStorage.getItem(DESKTOP_TOAST_KEY);
+  const now = Date.now();
+
+  if (!lastSeen || now - Number(lastSeen) > DESKTOP_TOAST_RESET_MS) {
+    setShowDesktopToast(true);
   }
-}, [searchParams]);
-
-// 🔴 REDDIT PIXEL — FIRE ONLY AFTER STRIPE SUCCESS
-useEffect(() => {
-  const success = searchParams.get("success");
-
-  if (success === "true") {
-    if (typeof window !== "undefined" && (window as any).rdt) {
-      (window as any).rdt("track", "CompleteRegistration");
-    }
-  }
-}, [searchParams]);
-
-// 🟡 GA4 / GTM — FIRE ONLY AFTER SUCCESSFUL SIGNUP
-useEffect(() => {
-  const success = searchParams.get("success");
-
-  if (success === "true") {
-    if (typeof window !== "undefined") {
-      (window as any).dataLayer = (window as any).dataLayer || [];
-      (window as any).dataLayer.push({
-        event: "signup_complete",
-      });
-    }
-  }
-}, [searchParams]);
+}, []);
 
   /* Typed animation for "yours" */
   useEffect(() => {
@@ -214,9 +166,39 @@ useEffect(() => {
   })();
 }, [supabase]);
 
+const dismissDesktopToast = () => {
+  localStorage.setItem(DESKTOP_TOAST_KEY, String(Date.now()));
+  setShowDesktopToast(false);
+};
 
   return (
     <div className="relative h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
+      {/* MOBILE DESKTOP RECOMMENDATION DRAWER */}
+{showDesktopToast && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center md:hidden">
+    {/* backdrop */}
+    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+    {/* drawer */}
+    <div className="relative bg-white rounded-2xl shadow-2xl px-6 py-5 w-[90%] max-w-sm text-center">
+      <h3 className="text-lg font-semibold text-[#1F2837] mb-2">
+        Best experienced on desktop
+      </h3>
+
+      <p className="text-sm text-[#5B6473] leading-relaxed mb-5">
+        For deeper storytelling, uploads, and timelines, we recommend continuing
+        on a larger screen.
+      </p>
+
+      <button
+        onClick={dismissDesktopToast}
+        className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold shadow hover:shadow-md transition"
+      >
+        Got it
+      </button>
+    </div>
+  </div>
+)}
       <Particles />
 
       <div className="relative z-10 h-full px-10">
@@ -244,7 +226,7 @@ useEffect(() => {
          uppercase
          text-[#0f2040]/90
          mb-6
-         mt-24 md:mt-10
+         mt-36 md:mt-12
         "
         >
         Welcome
@@ -273,27 +255,42 @@ useEffect(() => {
           />
 
           {/* SUPPORTING COPY */}
-          <motion.p
-         initial={{ opacity: 0 }}
-         animate={{ opacity: 1 }}
-         transition={{ delay: 1.8, duration: 1.8 }}
-         className="text-base
-         md:text-[16px]
-         leading-[1.6]
-         md:leading-[1.7]
-         text-[#2a3550]
-         max-w-[92%]
-         md:max-w-[680px]"
-        >
-         This is a private space designed to preserve memories, stories, and voices —
-         where moments are carefully held, histories are protected, and the people who
-         matter most are never forgotten. Everything you create here becomes part of a
-         legacy that grows over time, remains deeply personal, and exists quietly and
-         intentionally&nbsp;
-        <span className="font-semibold text-[#d4af37]">
-        {typedYours}
-        </span>.
-         </motion.p>
+<motion.p
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ delay: 1.8, duration: 1.8 }}
+  className="
+    text-base
+    md:text-[18px]
+    leading-[1.7]
+    md:leading-[1.9]
+    text-[#2a3550]
+    max-w-[92%]
+    md:max-w-[720px]
+    space-y-4
+  "
+>
+  <span className="block">
+    This is your private space.
+  </span>
+
+  <span className="block">
+    A place to hold the memories that matter to you.
+  </span>
+
+  <span className="block">
+    Stories. Voices. Moments you never want to lose.
+  </span>
+
+  <span className="block">
+    Everything you create here becomes part of something lasting.
+  </span>
+
+  <span className="block font-semibold text-[#d4af37]">
+    Built quietly and intentionally {typedYours}.
+  </span>
+</motion.p>
+
 
 <motion.div
   initial={{ opacity: 0, y: 12 }}
@@ -357,6 +354,7 @@ useEffect(() => {
     </div>
   );
 }
+
 function MemoryDropCard({
   index,
   image,

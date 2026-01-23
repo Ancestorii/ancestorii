@@ -59,7 +59,7 @@ export default function SignupForm() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      // Send verification email (non-blocking UX)
+      // Send verification email (non-blocking)
       if (session?.user && !sessionStorage.getItem('verification_sent')) {
         sessionStorage.setItem('verification_sent', '1');
 
@@ -71,15 +71,26 @@ export default function SignupForm() {
         });
       }
 
-       // 🔵 META PIXEL — COMPLETE REGISTRATION (EMAIL SIGNUP)
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "CompleteRegistration");
+      // 🔵 META — COMPLETE REGISTRATION
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        (window as any).fbq('track', 'CompleteRegistration');
+      }
+
+      // 🔴 REDDIT — COMPLETE REGISTRATION
+      if (typeof window !== 'undefined' && (window as any).rdt) {
+        (window as any).rdt('track', 'CompleteRegistration');
+      }
+
+      // 🟡 GA / GTM — SIGNUP COMPLETE
+      if (typeof window !== 'undefined') {
+        (window as any).dataLayer = (window as any).dataLayer || [];
+        (window as any).dataLayer.push({ event: 'signup_complete' });
       }
 
       // ⏳ Allow auth cookies to persist
       await new Promise((res) => setTimeout(res, 200));
 
-      // ✅ ALWAYS REDIRECT TO DASHBOARD
+      // ✅ Redirect to dashboard
       router.replace('/dashboard/home');
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
@@ -125,7 +136,6 @@ export default function SignupForm() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-2.5 pr-12 rounded-lg border focus:ring-[#d4af37]"
             />
-
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}

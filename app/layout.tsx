@@ -74,10 +74,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
   <head>
     {/* 🟡 GOOGLE TAG MANAGER */}
-<Script id="gtm-head" strategy="beforeInteractive">
+<Script id="gtm-head" strategy="afterInteractive">
   {`
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
