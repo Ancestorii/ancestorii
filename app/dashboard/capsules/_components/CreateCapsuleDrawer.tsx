@@ -201,6 +201,7 @@ const handleSubmit = async () => {
       const { data, error } = await supabase
         .from('memory_capsules')
         .insert({
+          user_id: user.id, // ← THIS WAS MISSING
           title: title.trim(),
           description: description.trim() || null,
           unlock_date: unlockDate,
