@@ -10,7 +10,7 @@ import FeatureRail from '@/components/landing/FeatureRail';
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
-  title: "Ancestorii – Your Family's Legacy, Preserved Forever",
+  title: "Ancestorii Preserve Your Family Legacy Forever",
   description:
     "Ancestorii is a digital legacy platform where you can capture, protect, and pass down your family's story through timelines, albums, and future-dated capsules. Preserve your memories for generations to come.",
   keywords: [
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ancestorii – A Private Digital Legacy for Your Family",
+    title: "Ancestorii Preserve Your Family Legacy Forever",
     description:
       "Capture, organize, and pass down your family's memories securely with Ancestorii.",
     images: ["/og-image.jpg"],
