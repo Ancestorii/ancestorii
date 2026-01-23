@@ -3,51 +3,31 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle } from "lucide-react";
-import { getBrowserClient } from '@/lib/supabase/browser';
 
 export default function SuccessPage() {
-  const supabase = getBrowserClient();
   const router = useRouter();
 
   useEffect(() => {
-  const run = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
-
-    // 🔵 META PIXEL — COMPLETE REGISTRATION
-    if (typeof window !== "undefined" && (window as any).fbq) {
-      (window as any).fbq("track", "CompleteRegistration");
-    }
-
-    // small delay to ensure event is sent before redirect
-    setTimeout(() => {
+    const t = setTimeout(() => {
       router.replace("/dashboard/home");
-    }, 300);
-  };
+    }, 800); // slightly longer for the moment to land
 
-  run();
-}, [router]);
-
+    return () => clearTimeout(t);
+  }, [router]);
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-[#fff9ee] text-[#0F2040] px-6 text-center">
-      <CheckCircle className="w-20 h-20 text-[#D4AF37] mb-6 animate-pulse" />
+      <CheckCircle className="w-20 h-20 text-[#D4AF37] mb-6" />
 
       <h1 className="text-3xl md:text-4xl font-extrabold mb-4">
-        Payment Successful
+        You’re in.
       </h1>
 
       <p className="text-lg text-[#0F2040]/80 mb-2">
-        Your account is ready.
+        Your space is ready.
       </p>
 
-      <p className="text-sm text-[#0F2040]/60 mb-10">
+      <p className="text-sm text-[#0F2040]/60">
         Taking you to your dashboard…
       </p>
     </main>

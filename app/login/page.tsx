@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getBrowserClient } from '@/lib/supabase/browser';
+import { getBrowserClient } from "@/lib/supabase/browser";
 
 export default function LoginPage() {
   const supabase = getBrowserClient();
@@ -41,11 +41,11 @@ export default function LoginPage() {
         throw new Error("Login failed. Please try again.");
       }
 
-       // ⏳ Give Supabase time to persist auth cookies
+      // ⏳ Give Supabase time to persist auth cookies
       await new Promise((res) => setTimeout(res, 200));
 
-
-      router.replace('/dashboard/home');
+      // ✅ ALWAYS REDIRECT TO DASHBOARD
+      router.replace("/dashboard/home");
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong");
     } finally {
@@ -101,7 +101,6 @@ export default function LoginPage() {
         </p>
 
         <form onSubmit={onSubmit} className="space-y-4">
-          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Email
@@ -117,7 +116,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Password
@@ -134,7 +132,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Forgot password */}
           <div className="text-right">
             <button
               type="button"
@@ -146,17 +143,14 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Errors */}
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          {/* Reset confirmation */}
           {resetSent && (
             <p className="text-sm text-green-600">
               Password reset email sent. Please check your inbox.
             </p>
           )}
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={busy}
@@ -166,7 +160,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Footer links */}
         <div className="mt-6 text-sm text-slate-600 flex items-center justify-between">
           <Link
             href="/signup"
