@@ -72,7 +72,10 @@ useEffect(() => {
 }, [supabase]);
 
 useEffect(() => {
-  if (window.innerWidth >= 768) return; // desktop → never show
+  if (typeof window === 'undefined') return;
+
+  const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+  if (!isTouchDevice) return;
 
   const lastSeen = localStorage.getItem(DESKTOP_TOAST_KEY);
   const now = Date.now();
