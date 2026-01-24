@@ -30,7 +30,10 @@ export default function StarFieldNew() {
           key={images[index]}
           src={images[index]}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
+          className="
+            absolute inset-0 w-full h-full object-cover
+            brightness-[0.65] contrast-[1.05]
+          "
           initial={{ opacity: 0, scale: 1.04 }}
           animate={{ opacity: 1, scale: 1.08 }}
           exit={{ opacity: 0 }}
@@ -47,7 +50,7 @@ export default function StarFieldNew() {
       </div>
 
       {/* 🌓 Vignette */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/45 z-[1]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-black/55 z-[1]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_65%,rgba(0,0,0,0.45)_100%)] z-[1]" />
     </div>
   );

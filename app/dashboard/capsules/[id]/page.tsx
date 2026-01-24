@@ -267,14 +267,9 @@ setTimeout(() => {
             {p.full_name?.[0]?.toUpperCase()}
           </div>
         )}
-
         <span className="text-sm text-[#1F2837] font-medium">
           {p.full_name}
         </span>
-        <span className="text-sm text-[#1F2837] font-medium">
-  {p.full_name}
-</span>
-
 <span
   onClick={() => removePersonFromCapsule(p.id)}
   className="ml-1 cursor-pointer text-gray-400 hover:text-red-600 transition"
