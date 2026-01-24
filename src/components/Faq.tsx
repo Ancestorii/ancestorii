@@ -31,7 +31,7 @@ const faqs = [
   {
     question: "Is there a free trial?",
     answer:
-      "Yes — every plan includes a 14-day free trial. You can explore every feature before deciding to subscribe.",
+      "You don't need a trial. Ancestorii is free to start, so you can begin preserving your memories straight away and upgrade only if you choose.",
   },
 ];
 
