@@ -181,15 +181,18 @@ const dismissDesktopToast = () => {
 
     {/* drawer */}
     <div className="relative bg-white rounded-2xl shadow-2xl px-6 py-5 w-[90%] max-w-sm text-center">
-      <h3 className="text-lg font-semibold text-[#1F2837] mb-2">
-        Best experienced on desktop
-      </h3>
+     <h3 className="text-lg font-semibold text-[#1F2837] mb-2">
+  You're currently on the Free plan
+</h3>
 
-      <p className="text-sm text-[#5B6473] leading-relaxed mb-5">
-        For deeper storytelling, uploads, and timelines, we recommend continuing
-        on a larger screen.
-      </p>
-
+<p className="text-sm text-[#5B6473] leading-relaxed mb-5">
+  You can create <strong>1 timeline</strong>, <strong>1 capsule</strong>, and <strong>1 album</strong> on the Free plan.
+  <br /><br />
+  To create more, please upgrade your plan.
+  <br /><br />
+  For the best experience when uploading memories and using timelines,
+  we recommend continuing on desktop.
+</p>
       <button
         onClick={dismissDesktopToast}
         className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold shadow hover:shadow-md transition"
