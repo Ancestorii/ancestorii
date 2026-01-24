@@ -6,38 +6,42 @@ import { safeToast as toast } from '@/lib/safeToast';
 
 export default function ResetPasswordPage() {
   const supabase = getBrowserClient();
+
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [checked, setChecked] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [linkExpired, setLinkExpired] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      useEffect(() => {
-  (async () => {
-    const { data } = await supabase.auth.getSession();
+    const params = new URLSearchParams(window.location.search);
+    const errorCode = params.get('error_code');
 
-    if (data.session) {
-      setChecked(true);
+    if (errorCode === 'otp_expired') {
+      setLinkExpired(true);
       return;
     }
 
-    // ⏳ recovery session can hydrate slightly late
-    setTimeout(async () => {
-      const { data: retry } = await supabase.auth.getSession();
+    (async () => {
+      // first attempt
+      let { data } = await supabase.auth.getSession();
 
-      if (!retry.session) {
-        window.location.href = '/login';
-      } else {
-        setChecked(true);
+      if (data.session) {
+        setReady(true);
+        return;
       }
-    }, 300);
-  })();
-}, [supabase]);
 
+      // recovery session can hydrate slightly late
+      setTimeout(async () => {
+        const { data: retry } = await supabase.auth.getSession();
+
+        if (!retry.session) {
+          setLinkExpired(true);
+        } else {
+          setReady(true);
+        }
+      }, 300);
     })();
   }, [supabase]);
-
-  if (!checked) return null;
 
   const updatePassword = async () => {
     setLoading(true);
@@ -54,6 +58,30 @@ export default function ResetPasswordPage() {
     }
   };
 
+  /* 🔴 EXPIRED LINK UI */
+  if (linkExpired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm text-center">
+          <h1 className="text-xl font-semibold mb-3">Link expired</h1>
+          <p className="text-sm text-gray-600 mb-6">
+            This password reset link is invalid or has expired.
+            Please request a new one.
+          </p>
+          <a
+            href="/login"
+            className="block w-full bg-[#E6C26E] py-2 rounded-xl font-semibold"
+          >
+            Back to login
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ready) return null;
+
+  /* ✅ NORMAL RESET FLOW */
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
