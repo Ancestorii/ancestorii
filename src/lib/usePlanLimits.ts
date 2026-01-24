@@ -33,11 +33,23 @@ export function usePlanLimits() {
 
       // 🔑 get counts
       const [{ count: albums }, { count: timelines }, { count: capsules }] =
-        await Promise.all([
-          supabase.from('albums').select('*', { count: 'exact', head: true }),
-          supabase.from('timelines').select('*', { count: 'exact', head: true }),
-          supabase.from('capsules').select('*', { count: 'exact', head: true }),
-        ]);
+  await Promise.all([
+    supabase
+      .from('albums')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', uid),
+
+    supabase
+      .from('timelines')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', uid),
+
+    supabase
+      .from('capsules')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', uid),
+  ]);
+
 
       setLimits(limitData);
       setCounts({
