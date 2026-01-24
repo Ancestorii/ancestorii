@@ -18,8 +18,10 @@ type SubscriptionRow = {
   user_id: string;
   plan_id: string;
   status: string;
+  cancel_at_period_end: boolean;
   current_period_end: string | null;
 };
+
 
 
 type UsageRow = {
@@ -70,7 +72,7 @@ export default function PlansPage() {
       if (uid) {
         const { data: subRows, error: subErr } = await supabase
         .from("subscriptions")
-        .select("user_id, plan_id, status, current_period_end")
+        .select("user_id, plan_id, status, cancel_at_period_end, current_period_end")
         .eq("user_id", uid)
         .maybeSingle();
         if (subErr) console.warn("Subscription fetch error:", subErr.message);
@@ -86,11 +88,22 @@ export default function PlansPage() {
         setUsage((usageRow ?? null) as UsageRow | null);
       }
 
-      // Map subscription.plan (uuid) → plan object
-      if (sub && planList.length) {
-        const p = planList.find((pl) => pl.id === sub.plan_id) ?? null;
-        setCurrentPlan(p);
-      }
+      // Determine if user is truly paid
+const isPaid =
+  sub?.status === "active" &&
+  sub?.cancel_at_period_end === false &&
+  (!sub?.current_period_end ||
+    new Date(sub.current_period_end) > new Date());
+
+// Set current plan based on paid status
+if (isPaid && planList.length && sub?.plan_id) {
+  const p = planList.find((pl) => pl.id === sub.plan_id) ?? null;
+  setCurrentPlan(p);
+} else {
+  setCurrentPlan(null); // Free
+}
+
+
 
       setLoading(false);
     })();
