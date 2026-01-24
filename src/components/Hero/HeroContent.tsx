@@ -96,12 +96,17 @@ export default function HeroContent() {
     text-[#D4AF37]
     leading-snug
     drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)]
+    text-center
   "
 >
-  Begin storing your memories
-  <br className="block sm:hidden" />
-  for free.
+  <span className="whitespace-normal">
+    Begin storing your memories{" "}
+  </span>
+  <span className="block sm:inline">
+    for free.
+  </span>
 </motion.p>
+
 
 
       {/* Trust line — BELOW CTAs */}

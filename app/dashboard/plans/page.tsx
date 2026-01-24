@@ -307,7 +307,55 @@ if (isPaid && planList.length && sub?.plan_id) {
 </p>
 
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+         {/* Free Plan */}
+<div className="relative rounded-2xl border border-slate-200 bg-white overflow-hidden">
+  {/* Top bar */}
+  <div className="h-1.5 w-full bg-slate-200" />
+
+  <div className="p-5 flex flex-col h-full bg-white">
+    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#0f2040] ring-1 ring-slate-200">
+      Free
+    </div>
+
+    <div className="mt-4 text-[#0f2040] font-extrabold text-2xl">
+      £0
+    </div>
+
+    {/* Features — same style as paid plans */}
+    <ul className="mt-4 flex-1 space-y-2 text-sm text-slate-700">
+      <li className="flex gap-2">
+        <span className="text-[#D4AF37]">•</span>
+        <span>1 timeline, 1 album & 1 capsule</span>
+      </li>
+      <li className="flex gap-2">
+        <span className="text-[#D4AF37]">•</span>
+        <span>Unlimited family members</span>
+      </li>
+      <li className="flex gap-2">
+        <span className="text-[#D4AF37]">•</span>
+        <span>Limited storage & file upload size</span>
+      </li>
+      <li className="flex gap-2">
+        <span className="text-[#D4AF37]">•</span>
+        <span>Private by default</span>
+      </li>
+      <li className="flex gap-2">
+        <span className="text-[#D4AF37]">•</span>
+        <span>Upgrade anytime</span>
+      </li>
+    </ul>
+
+    <button
+      disabled
+      className="mt-5 w-full px-4 py-2.5 rounded-lg text-sm font-semibold
+        bg-slate-200 text-slate-600 cursor-default"
+    >
+      Included
+    </button>
+  </div>
+</div>
+
           {(["Basic", "Standard", "Premium"] as PlanName[]).map((name) => {
             const isCurrent = name === currentPlan?.name;
             return (
