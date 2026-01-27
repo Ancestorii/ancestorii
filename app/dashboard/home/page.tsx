@@ -213,17 +213,18 @@ const dismissDesktopToast = () => {
       <div className="relative z-10 h-full px-10">
         {/* VISUAL ANCHOR */}
         <div
-          className="
-            absolute
-            left-[52%]
-            lg:left-[47%]
-            -translate-x-1/2
-            ${hasLongName ? 'top-[34%]' : 'top-[30%]'}
-            -translate-y-1/2
-            w-full
-            max-w-6xl
-          "
-        >
+  className={`
+    absolute
+    left-[52%]
+    lg:left-[47%]
+    -translate-x-1/2
+    ${hasLongName ? 'top-[34%]' : 'top-[30%]'}
+    -translate-y-1/2
+    w-full
+    max-w-6xl
+  `}
+>
+
           {/* WELCOME */}
           <motion.p
          initial={{ opacity: 0 }}
