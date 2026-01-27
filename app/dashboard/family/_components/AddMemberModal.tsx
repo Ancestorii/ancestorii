@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { safeToast as toast } from "@/lib/safeToast";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { X, ImagePlus } from "lucide-react";
+import LegacyCelebration from "@/components/LegacyCelebration";
+
 
 type Person = {
   id: string;
@@ -62,6 +64,15 @@ export default function AddMemberModal({
   member?: Person | null;
 }) {
   const supabase = getBrowserClient();
+  const CELEBRATION_LINES = [
+  "You made space for someone who matters.",
+  "You chose to remember them.",
+  "You didn’t let them fade.",
+  "You’ve honoured someone who shaped you.",
+];
+
+const [showCelebration, setShowCelebration] = useState(false);
+const [celebrationMessage, setCelebrationMessage] = useState("");
 
   const [fullName, setFullName] = useState("");
 
@@ -193,10 +204,16 @@ export default function AddMemberModal({
         const insertedId = inserted?.id;
         if (!insertedId) throw new Error("Failed to create member");
 
-        toast.success("Loved one added ✨");
-        onCreated?.(insertedId);
-        onClose();
-        return;
+        const line =
+  CELEBRATION_LINES[Math.floor(Math.random() * CELEBRATION_LINES.length)];
+
+setCelebrationMessage(line);
+setShowCelebration(true);
+
+onCreated?.(insertedId);
+onClose();
+return;
+
       }
 
       const { error } = await supabase
@@ -230,6 +247,7 @@ export default function AddMemberModal({
   );
 
   return (
+    <>
     <AnimatePresence>
       {open && (
         <motion.div
@@ -398,6 +416,15 @@ export default function AddMemberModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+       </AnimatePresence>
+      <LegacyCelebration
+        open={showCelebration}
+        message={celebrationMessage}
+        emoji="🕊️"
+        durationMs={3800}
+        onClose={() => setShowCelebration(false)}
+      />
+    </>
   );
 }
+
