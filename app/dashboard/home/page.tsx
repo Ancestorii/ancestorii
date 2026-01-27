@@ -25,6 +25,10 @@ export default function DashboardHomePage() {
   const [typedYours, setTypedYours] = useState('');
   const finalWord = 'for you';
 
+  const hasLongName =
+  !!name && name.trim().split(/\s+/).length > 2;
+
+
   /* 🔑 Fetch name from Profiles (guaranteed) */
 useEffect(() => {
   (async () => {
@@ -189,10 +193,11 @@ const dismissDesktopToast = () => {
 </h3>
 
 <p className="text-sm text-[#5B6473] leading-relaxed mb-5">
-  <strong className="text-[#1F2837] font-semibold">
-    For the best experience when creating timelines and uploading memories,
-    we recommend continuing on desktop.
-  </strong>
+  For the best experience when creating timelines and uploading memories,
+  we recommend continuing on{' '}
+  <span className="font-semibold text-[#1F2837]">desktop</span>
+  {' '}or{' '}
+  <span className="font-semibold text-[#1F2837]">laptop</span>.
 </p>
       <button
         onClick={dismissDesktopToast}
@@ -213,7 +218,7 @@ const dismissDesktopToast = () => {
             left-[52%]
             lg:left-[47%]
             -translate-x-1/2
-            top-[30%]
+            ${hasLongName ? 'top-[34%]' : 'top-[30%]'}
             -translate-y-1/2
             w-full
             max-w-6xl
