@@ -46,8 +46,7 @@ export default function HeroContent() {
         "
       >
         <span className="block mt-2 sm:mt-3">
-          A private place to preserve memories, voices, and moments
-          for you and for those who come after.
+          Create a private, chronological timeline that lasts for generations.
         </span>
       </motion.p>
 
@@ -75,7 +74,7 @@ export default function HeroContent() {
           "
           onClick={() => (window.location.href = '/signup')}
         >
-          <span className="relative z-10">Explore Privately</span>
+          <span className="relative z-10">Start Your Legacy Timeline</span>
           <span
             className="absolute inset-0 bg-gradient-to-r
                        from-transparent via-white/40 to-transparent
