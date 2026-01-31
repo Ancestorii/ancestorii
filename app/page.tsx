@@ -6,7 +6,8 @@ import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import type { Metadata } from 'next';
 import HowItWorks from '@/components/HowItWorks';
-
+import Founder from '@/components/Founder';
+import WhatsIncluded from '@/components/WhatsIncluded';
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
@@ -60,16 +61,18 @@ export const metadata: Metadata = {
 /* ---------------- Main Page ---------------- */
 export default function HomePage() {
   return (
-    <main className="bg-[#fff9ee] text-[#0F2040]">
-      <Nav />
-      <Hero />
-      <HowItWorks />
-      
-      {/* Keep these for now */}
+    <>
+      <main className="bg-[#fff9ee] text-[#0F2040]">
+        <Nav />
+        <Hero />
+        <HowItWorks />
+        <Founder />
+        <WhatsIncluded/>
         <Faq />
         <Contact />
-      <Footer />
-    </main>
+        <Footer />
+      </main>
+    </>
   );
 }
 

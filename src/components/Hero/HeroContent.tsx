@@ -46,7 +46,7 @@ export default function HeroContent() {
       </p>
 
       {/* CTA */}
-      <div className="mt-10 w-full flex justify-center lg:justify-start">
+<div className="mt-10 w-full flex flex-col items-center lg:items-start">
   <Button
     onClick={() => (window.location.href = '/signup')}
     className="
@@ -62,7 +62,12 @@ export default function HeroContent() {
   >
     Start with one memory
   </Button>
+
+  <p className="mt-3 text-sm text-white/70 text-center lg:text-left">
+    There’s no cost to start.
+  </p>
 </div>
+
     </div>
   );
 }

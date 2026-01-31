@@ -140,9 +140,18 @@ export default function HowItWorks() {
           viewport={{ once: true, amount: 0.5 }}
           className="text-center max-w-2xl mx-auto space-y-8"
         >
-          <p className="text-lg text-[#0F2040]/55">
-            One day, someone will look for you in the past.
-          </p>
+          <p
+  className="
+    text-[1.25rem] sm:text-lg
+    leading-snug
+    text-[#0F2040]/55
+    max-w-[22ch] sm:max-w-none
+    mx-auto
+  "
+>
+  One day, someone will look for you in the past.
+</p>
+
 
           <h3 className="text-[2.3rem] sm:text-[2.9rem] font-semibold text-[#0F2040]">
             Leave them something <span className="italic text-[#E5C45C]">real</span>.

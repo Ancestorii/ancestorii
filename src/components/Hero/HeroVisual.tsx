@@ -27,18 +27,21 @@ export default function HeroVisual() {
 
       {/* Images */}
       {images.map((src, i) => (
-        <img
-          key={src}
-          src={src}
-          alt=""
-          className={`
-            absolute inset-0 w-full h-full object-cover
-            brightness-[0.9] sm:brightness-[0.75]
-            transition-opacity duration-[1600ms] ease-in-out
-            ${i === index ? 'opacity-100' : 'opacity-0'}
-          `}
-        />
-      ))}
+  <img
+    key={src}
+    src={src}
+    alt=""
+    loading={i === 0 ? 'eager' : 'lazy'}
+    decoding="async"
+    className={`
+      absolute inset-0 w-full h-full object-cover
+      brightness-[0.9] sm:brightness-[0.75]
+      transition-opacity duration-[1600ms] ease-in-out
+      ${i === index ? 'opacity-100' : 'opacity-0'}
+    `}
+  />
+))}
+
 
       {/* soft containment */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/25 z-[1] hidden sm:block" />
