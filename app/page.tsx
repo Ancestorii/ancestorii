@@ -5,7 +5,7 @@ import Faq from '@/components/Faq';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import type { Metadata } from 'next';
-import FeatureRail from '@/components/landing/FeatureRail';
+import HowItWorks from '@/components/HowItWorks';
 
 
 /* ---------------- SEO Metadata ---------------- */
@@ -63,7 +63,7 @@ export default function HomePage() {
     <main className="bg-[#fff9ee] text-[#0F2040]">
       <Nav />
       <Hero />
-      <FeatureRail />
+      <HowItWorks />
       
       {/* Keep these for now */}
         <Faq />
