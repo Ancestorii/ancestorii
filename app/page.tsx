@@ -50,8 +50,9 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"],
   },
   alternates: {
-    canonical: "https://www.ancestorii.com",
-  },
+  canonical: "https://www.ancestorii.com/",
+},
+
   robots: {
     index: true,
     follow: true,

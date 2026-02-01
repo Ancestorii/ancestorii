@@ -1,5 +1,22 @@
+
+import type { Metadata } from "next";
+import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
+
+
+export const metadata: Metadata = {
+  title: "Terms & Conditions – Ancestorii",
+  description: "Terms and conditions governing use of the Ancestorii platform.",
+  alternates: {
+    canonical: "https://www.ancestorii.com/terms",
+  },
+};
+
+
 export default function TermsPage() {
   return (
+  <>
+    <Nav />
     <main className="max-w-5xl mx-auto px-6 py-20 text-[#0F2040]">
       <h1 className="text-4xl font-bold mb-6">Terms & Conditions</h1>
 
@@ -211,5 +228,7 @@ export default function TermsPage() {
         </div>
       </section>
     </main>
-  );
+    <Footer />
+  </>
+);
 }

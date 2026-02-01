@@ -1,6 +1,22 @@
+
+import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
+import type { Metadata } from "next";
+
+
+export const metadata: Metadata = {
+  title: "Privacy Policy – Ancestorii",
+  description: "How Ancestorii collects, uses, and protects your personal data.",
+  alternates: {
+    canonical: "https://www.ancestorii.com/privacy-policy",
+  },
+};
+
 export default function PrivacyPolicyPage() {
-  return (
-    <main className="max-w-5xl mx-auto px-6 py-20 text-[#0F2040]">
+ return (
+   <>
+     <Nav />
+     <main className="max-w-5xl mx-auto px-6 py-20 text-[#0F2040]">
       <h1 className="text-4xl font-bold mb-6">Privacy Policy</h1>
 
       <p className="text-gray-600 mb-10">
@@ -203,5 +219,7 @@ export default function PrivacyPolicyPage() {
         </div>
       </section>
     </main>
-  );
+    <Footer />
+  </>
+);
 }

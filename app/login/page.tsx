@@ -4,6 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getBrowserClient } from "@/lib/supabase/browser";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Login – Ancestorii",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function LoginPage() {
   const supabase = getBrowserClient();

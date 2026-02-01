@@ -65,9 +65,6 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
-  alternates: {
-    canonical: "https://www.ancestorii.com",
-  },
   robots: {
     index: true,
     follow: true,
