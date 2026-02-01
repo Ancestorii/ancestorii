@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
+import DashboardStoryBanner from './_components/DashboardStoryBanner';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -25,7 +26,6 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import NotificationBell from './_components/NotificationBell';
 
 const supabase = getBrowserClient();
-
 
 /* ---------- Sidebar Nav Item ---------- */
 function NavItem({
@@ -84,6 +84,10 @@ function NavItem({
 
 /* ---------- Layout ---------- */
 export default function DashboardClientLayout({ children }: { children: ReactNode }) {
+  const [lovedOnesCount, setLovedOnesCount] = useState(0);
+  const [capsulesCount, setCapsulesCount] = useState(0);
+  const [albumsCount, setAlbumsCount] = useState(0);
+  const [timelinesCount, setTimelinesCount] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -93,6 +97,29 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const router = useRouter();
+    const loadDashboardCounts = async () => {
+    const { data: sess } = await supabase.auth.getSession();
+    const user = sess?.session?.user;
+    if (!user) return;
+
+    const [
+      { count: loved },
+      { count: caps },
+      { count: albums },
+      { count: timelines },
+    ] = await Promise.all([
+      supabase.from('family_members').select('id', { head: true, count: 'exact' }),
+      supabase.from('capsules').select('id', { head: true, count: 'exact' }),
+      supabase.from('albums').select('id', { head: true, count: 'exact' }),
+      supabase.from('timelines').select('id', { head: true, count: 'exact' }),
+    ]);
+
+    setLovedOnesCount(loved || 0);
+    setCapsulesCount(caps || 0);
+    setAlbumsCount(albums || 0);
+    setTimelinesCount(timelines || 0);
+  };
+
 
   useEffect(() => {
   if (!hydrated) return;
@@ -114,6 +141,17 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   useEffect(() => {
     setHydrated(true);
   }, []);
+  
+  useEffect(() => {
+  if (!hydrated) return;
+  loadDashboardCounts();
+}, [hydrated]);
+
+useEffect(() => {
+  const handler = () => loadDashboardCounts();
+  window.addEventListener('dashboard-data-changed', handler);
+  return () => window.removeEventListener('dashboard-data-changed', handler);
+}, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -121,8 +159,6 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [hydrated]);
-
-
 
 
   useEffect(() => {
@@ -433,8 +469,16 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
       </aside>
 
       <main className="pt-20 md:pt-28 px-4 md:px-8 md:ml-64 transition-all duration-300">
-        {children}
-      </main>
+  <DashboardStoryBanner
+    lovedOnesCount={lovedOnesCount}
+    capsulesCount={capsulesCount}
+    albumsCount={albumsCount}
+    timelinesCount={timelinesCount}
+  />
+
+  {children}
+</main>
+
 
       <style jsx global>{`
         @keyframes shimmer {

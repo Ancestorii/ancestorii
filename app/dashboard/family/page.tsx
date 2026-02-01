@@ -244,13 +244,12 @@ useEffect(() => {
   setAddOpen(false);
   if (!id) return;
 
-  // 🔑 Force server re-fetch so dashboard/banner updates
-  router.refresh();
+  // 🔑 Notify dashboard layout to refresh banner counts
+  window.dispatchEvent(new Event('dashboard-data-changed'));
 
-  // Keep your existing client reload
+  // 🔑 Refresh family page UI only
   reload();
 };
-
 
   const handleEditMember = (id: string) => {
     const found = members.find((m) => m.id === id) || null;
