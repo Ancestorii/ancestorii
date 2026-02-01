@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-
+import { useRouter } from 'next/navigation';
 import AddMemberModal from "./_components/AddMemberModal";
 import LovedOneSection from "./_components/LovedOneSection";
 import LovedOneEmptyState from "./_components/LovedOneEmptyState";
@@ -59,6 +59,8 @@ export default function FamilyPage() {
 
   const TYPING_KEY = "loved_ones_typing_last_run";
   const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
+  const router = useRouter();
+
 
   // ✅ PUT THIS INSIDE FamilyPage() (same place Albums has it)
 const line1 = '“The people who shaped your life — remembered forever.”';
@@ -239,10 +241,16 @@ useEffect(() => {
       MEMBER CREATED / UPDATED
   ============================================================*/
   const handleCreateMember = async (id: string | null) => {
-    setAddOpen(false);
-    if (!id) return;
-    reload();
-  };
+  setAddOpen(false);
+  if (!id) return;
+
+  // 🔑 Force server re-fetch so dashboard/banner updates
+  router.refresh();
+
+  // Keep your existing client reload
+  reload();
+};
+
 
   const handleEditMember = (id: string) => {
     const found = members.find((m) => m.id === id) || null;
