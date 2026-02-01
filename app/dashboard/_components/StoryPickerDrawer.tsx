@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   open: boolean;
@@ -8,7 +9,14 @@ type Props = {
 };
 
 export default function StoryPickerDrawer({ open, onClose }: Props) {
+  const router = useRouter();
+
   if (!open) return null;
+
+  const go = (path: string) => {
+    onClose();
+    router.push(path);
+  };
 
   return (
     <div className="fixed inset-0 z-50">
@@ -31,21 +39,21 @@ export default function StoryPickerDrawer({ open, onClose }: Props) {
         <div className="flex flex-col gap-3">
           <Button
             variant="outline"
-            onClick={() => (window.location.href = '/timeline')}
+            onClick={() => go('/dashboard/timeline')}
           >
             Timeline
           </Button>
 
           <Button
             variant="outline"
-            onClick={() => (window.location.href = '/albums')}
+            onClick={() => go('/dashboard/albums')}
           >
             Album
           </Button>
 
           <Button
             variant="outline"
-            onClick={() => (window.location.href = '/capsules')}
+            onClick={() => go('/dashboard/capsules')}
           >
             Capsule
           </Button>
