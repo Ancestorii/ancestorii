@@ -17,13 +17,12 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <div className="grid grid-cols-2 gap-8 sm:gap-10">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10">
             {/* Follow Us */}
             <div>
               <h2 className="mb-4 text-sm font-semibold text-gray-900 uppercase">
                 Follow Us
               </h2>
-
               <div className="flex space-x-6">
                 {/* Facebook */}
                 <a
@@ -75,6 +74,22 @@ export default function Footer() {
                 </a>
               </div>
             </div>
+
+            {/* Learn */}
+<div>
+  <h2 className="mb-4 text-sm font-semibold text-gray-900 uppercase">
+    Learn
+  </h2>
+  <ul className="text-gray-500">
+    <li className="mb-2">
+      <Link href="/digital-legacy" className="hover:underline">
+        What is a Digital Legacy?
+      </Link>
+    </li>
+  </ul>
+</div>
+
+
 
             {/* Legal */}
             <div>
