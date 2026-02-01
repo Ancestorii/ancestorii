@@ -123,6 +123,24 @@ rdt('track','PageVisit');
         fbq('track', 'PageView');
       `}
     </Script>
+        {/* 🟢 ORGANIZATION SCHEMA */}
+    <Script
+      id="org-schema"
+      type="application/ld+json"
+      strategy="afterInteractive"
+    >
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "Ancestorii",
+        url: "https://www.ancestorii.com",
+        logo: "https://www.ancestorii.com/favicon.ico",
+        sameAs: [
+          "https://www.instagram.com/ancestorii",
+          "https://www.facebook.com/ancestorii"
+        ],
+      })}
+    </Script>
   </head>
 
       <body

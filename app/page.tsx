@@ -8,6 +8,7 @@ import type { Metadata } from 'next';
 import HowItWorks from '@/components/HowItWorks';
 import Founder from '@/components/Founder';
 import WhatsIncluded from '@/components/WhatsIncluded';
+import Script from "next/script";
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
@@ -63,6 +64,28 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
+          {/* 🟢 SOFTWARE APPLICATION SCHEMA */}
+      <Script
+        id="software-app-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Ancestorii",
+          applicationCategory: "LifestyleApplication",
+          operatingSystem: "Web",
+          url: "https://www.ancestorii.com",
+          description:
+            "Ancestorii is a private digital legacy platform that helps families preserve stories, voices, and memories for future generations.",
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "GBP",
+          },
+        })}
+      </Script>
       <main className="bg-[#fff9ee] text-[#0F2040]">
         <Nav />
         <Hero />
