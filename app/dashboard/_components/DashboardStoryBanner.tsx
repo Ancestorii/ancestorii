@@ -17,7 +17,6 @@ export default function DashboardStoryBanner({
   albumsCount,
   timelinesCount,
 }: Props) {
-  const [sessionDismissed, setSessionDismissed] = useState(false);
   const [openPicker, setOpenPicker] = useState(false);
 
   const hasStories =
@@ -27,8 +26,7 @@ export default function DashboardStoryBanner({
 
   const shouldShow =
     lovedOnesCount > 0 &&
-    !hasStories &&
-    !sessionDismissed;
+    !hasStories;
 
   if (!shouldShow) return null;
 
@@ -52,7 +50,7 @@ export default function DashboardStoryBanner({
             </p>
           </div>
 
-          {/* Actions */}
+          {/* Action */}
           <div className="flex items-center gap-4 mt-2 sm:mt-0">
             <Button
               onClick={() => setOpenPicker(true)}
@@ -60,13 +58,6 @@ export default function DashboardStoryBanner({
             >
               Begin their story
             </Button>
-
-            <button
-              onClick={() => setSessionDismissed(true)}
-              className="text-xs text-[#2f3e34]/50 hover:text-[#2f3e34]/70 transition"
-            >
-              I’ll come back to this
-            </button>
           </div>
         </div>
       </div>
