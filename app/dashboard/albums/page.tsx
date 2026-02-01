@@ -334,14 +334,21 @@ export default function AlbumsPage() {
         album={selectedAlbum}
         onClose={() => setDrawerOpen(false)}
         onCreated={async (album) => {
-          const signed = await getSignedCoverUrl(album.cover_image);
-           setDrawerOpen(false);
+  const signed = await getSignedCoverUrl(album.cover_image);
 
-          setTimeout(() => {
-          setAlbums((prev) => [{ ...album, cover_image: signed }, ...(prev ?? [])]); }, 120);
-            // ✅ Trigger legacy celebration (NOT a toast moment)
-           setTimeout(() => {
-            setCelebrate(true);  }, 220);
+  setDrawerOpen(false);
+
+  // 🔑 Tell dashboard layout a story now exists
+  window.dispatchEvent(new Event('dashboard-data-changed'));
+
+  setTimeout(() => {
+    setAlbums((prev) => [{ ...album, cover_image: signed }, ...(prev ?? [])]);
+  }, 120);
+
+  // 🎉 Celebration stays as-is
+  setTimeout(() => {
+    setCelebrate(true);
+  }, 220);
 }}
         onUpdated={async (album) => {
           const signed = await getSignedCoverUrl(album.cover_image);

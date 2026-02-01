@@ -325,24 +325,29 @@ useEffect(() => {
     }}
 
   onCreated={async (cap) => {
-    const signed = await getSignedCoverUrl(cap.cover_image);
-    setCapsules((prev) => {
-      const safe = prev ?? [];
-      const newItem: Capsule = {
-        id: cap.id,
-        title: cap.title,
-        description: cap.description ?? null,
-        unlock_date: cap.unlock_date,
-        is_locked: cap.is_locked,
-        created_at: cap.created_at,
-        cover_image: signed,
-      };
-      return [newItem, ...safe];
-    });
-      // ✅ SHOW "CAPSULE CREATED" ANIMATION
-  setCreatedOpen(true);
+  const signed = await getSignedCoverUrl(cap.cover_image);
 
-  }}
+  // 🔑 Tell dashboard layout a story now exists
+  window.dispatchEvent(new Event('dashboard-data-changed'));
+
+  setCapsules((prev) => {
+    const safe = prev ?? [];
+    const newItem: Capsule = {
+      id: cap.id,
+      title: cap.title,
+      description: cap.description ?? null,
+      unlock_date: cap.unlock_date,
+      is_locked: cap.is_locked,
+      created_at: cap.created_at,
+      cover_image: signed,
+    };
+    return [newItem, ...safe];
+  });
+
+  // ✅ capsule created animation
+  setCreatedOpen(true);
+}}
+
   onUpdated={async (cap) => {
     const signed = await getSignedCoverUrl(cap.cover_image);
     setCapsules((prev) =>

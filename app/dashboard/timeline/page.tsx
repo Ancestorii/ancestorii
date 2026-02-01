@@ -287,24 +287,30 @@ setTimelines(signed);
         timeline={selectedTimeline}
         onClose={() => setDrawerOpen(false)}
         onCreated={async (tl: Timeline) => {
-          const signed = await getSignedCoverUrl(tl.cover_path);
-          setTimelines((prev) => {
-          const safe = prev ?? [];
-          const newItem: Timeline = {
-           id: tl.id,
-           title: tl.title,
-           description: tl.description ?? null,
-           created_at: tl.created_at ?? new Date().toISOString(),
-           cover_path: tl.cover_path ?? null,
-           cover_signed: signed,
-           };
-           return [newItem, ...safe];
-           });
-            // 🎉 Timeline celebration (same pattern as Albums)
-            setTimeout(() => {
-            setCelebrate(true);
-           }, 220);
-          }}
+  const signed = await getSignedCoverUrl(tl.cover_path);
+
+  // 🔑 Tell dashboard layout that a story now exists
+  window.dispatchEvent(new Event('dashboard-data-changed'));
+
+  setTimelines((prev) => {
+    const safe = prev ?? [];
+    const newItem: Timeline = {
+      id: tl.id,
+      title: tl.title,
+      description: tl.description ?? null,
+      created_at: tl.created_at ?? new Date().toISOString(),
+      cover_path: tl.cover_path ?? null,
+      cover_signed: signed,
+    };
+    return [newItem, ...safe];
+  });
+
+  // 🎉 Timeline celebration
+  setTimeout(() => {
+    setCelebrate(true);
+  }, 220);
+}}
+
 
         onUpdated={async (tl: Timeline) => {
           const signed = await getSignedCoverUrl(tl.cover_path);

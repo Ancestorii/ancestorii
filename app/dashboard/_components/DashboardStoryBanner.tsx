@@ -34,34 +34,38 @@ export default function DashboardStoryBanner({
 
   return (
     <>
-      <div className="w-full mb-6 rounded-xl border border-black/5 bg-[#F6F3EC] px-6 py-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="w-full mb-8 rounded-2xl border border-[#D4AF37]/30 bg-gradient-to-b from-[#F9F6EE] to-[#F3EFE5] px-6 py-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          
           {/* Text */}
-          <div>
-            <h3 className="font-serif text-lg text-[#2f3e34]">
-              You’ve mapped the people.
+          <div className="max-w-xl">
+            <h3 className="font-serif text-xl text-[#2f3e34]">
+              You’ve added the people who matter.
             </h3>
 
-            <p className="mt-1 text-sm text-[#2f3e34]/70 max-w-xl">
-              The next step is telling their story — through a timeline, album, or capsule.
+            <p className="mt-2 text-sm text-[#2f3e34]/70">
+              Now give them something lasting — a timeline, an album, or a capsule that carries their story forward.
             </p>
 
-            <p className="mt-1 text-xs text-[#2f3e34]/55">
-              For the full experience, most people do this from a desktop or laptop — with time and intention.
+            <p className="mt-3 text-xs italic text-[#2f3e34]/55">
+              Most people create these on a desktop or laptop, with a little quiet time.
             </p>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-3 mt-3 sm:mt-0">
-            <Button onClick={() => setOpenPicker(true)}>
-              Start a story
+          <div className="flex items-center gap-4 mt-2 sm:mt-0">
+            <Button
+              onClick={() => setOpenPicker(true)}
+              className="rounded-full px-6 py-3 bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-medium shadow hover:shadow-md transition"
+            >
+              Begin their story
             </Button>
 
             <button
               onClick={() => setSessionDismissed(true)}
               className="text-xs text-[#2f3e34]/50 hover:text-[#2f3e34]/70 transition"
             >
-              Dismiss for now
+              I’ll come back to this
             </button>
           </div>
         </div>
