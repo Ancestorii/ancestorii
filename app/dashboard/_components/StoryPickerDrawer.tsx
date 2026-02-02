@@ -27,7 +27,26 @@ export default function StoryPickerDrawer({ open, onClose }: Props) {
       />
 
       {/* Drawer */}
-      <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl bg-[#F6F3EC] px-6 py-6 shadow-xl">
+      <div
+  className="
+    absolute
+    bottom-0 left-0 right-0
+    md:inset-0 md:flex md:items-center md:justify-center
+  "
+>
+  <div
+    className="
+      w-full
+      rounded-t-2xl
+      bg-[#F6F3EC]
+      px-6 py-6
+      shadow-xl
+
+      md:rounded-2xl
+      md:max-w-md
+      md:mx-auto
+    "
+  >
         <h3 className="font-serif text-lg text-[#2f3e34] mb-2">
           What would you like to create?
         </h3>
@@ -65,7 +84,9 @@ export default function StoryPickerDrawer({ open, onClose }: Props) {
         >
           Cancel
         </button>
-      </div>
-    </div>
+            </div>
+  </div>
+</div>
   );
 }
+
