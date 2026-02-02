@@ -322,8 +322,10 @@ if (isPaid && planList.length && sub?.plan_id) {
 
 <div className="flex items-center justify-between mb-6">
   <p className="text-sm text-slate-500">
-    Choose your preferred currency
-  </p>
+  Billing is processed in your selected currency at checkout. Your monthly
+  subscription will continue to be billed in this currency.
+</p>
+
 
   <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
     {(["GBP", "USD", "EUR"] as Currency[]).map((cur) => (
