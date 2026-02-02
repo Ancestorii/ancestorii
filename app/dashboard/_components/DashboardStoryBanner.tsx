@@ -45,7 +45,7 @@ export default function DashboardStoryBanner({
               Now give them something lasting — a timeline, an album, or a capsule that carries their story forward.
             </p>
 
-            <p className="mt-3 text-xs italic text-[#2f3e34]/55">
+            <p className="mt-2 text-sm text-[#2f3e34]/70">
               Most people create these on a desktop or laptop, with a little quiet time.
             </p>
           </div>
