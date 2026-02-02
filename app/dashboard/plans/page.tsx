@@ -5,7 +5,6 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-
 type PlanName = "Basic" | "Standard" | "Premium";
 
 type Plan = {
@@ -22,8 +21,6 @@ type SubscriptionRow = {
   current_period_end: string | null;
 };
 
-
-
 type UsageRow = {
   used_bytes: number;
 };
@@ -37,6 +34,9 @@ export default function PlansPage() {
   const [usage, setUsage] = useState<UsageRow | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
   const [showPlanChangeInfo, setShowPlanChangeInfo] = useState(false);
+
+  type Currency = "GBP" | "USD" | "EUR";
+  const [currency, setCurrency] = useState<Currency>("GBP");
 
   // 🔄 If we returned from Stripe with success/canceled, refresh data once
   useEffect(() => {
@@ -201,11 +201,24 @@ if (isPaid && planList.length && sub?.plan_id) {
 
 
   // ---- UI Data ----
-  const PRICE: Record<PlanName, string> = {
-    Basic: "£4.99/month",
-    Standard: "£9.99/month",
-    Premium: "£14.99/month",
-  };
+  const PRICE: Record<Currency, Record<PlanName, string>> = {
+  GBP: {
+    Basic: "£4.99 / month",
+    Standard: "£9.99 / month",
+    Premium: "£14.99 / month",
+  },
+  USD: {
+    Basic: "$6.99 / month",
+    Standard: "$12.99 / month",
+    Premium: "$19.99 / month",
+  },
+  EUR: {
+    Basic: "€5.99 / month",
+    Standard: "€11.99 / month",
+    Premium: "€17.99 / month",
+  },
+};
+
 
   const FEATURES: Record<PlanName, string[]> = {
     Basic: [
@@ -253,7 +266,7 @@ if (isPaid && planList.length && sub?.plan_id) {
             <h2 className="mt-2 text-xl font-semibold text-[#0f2040]">
               {currentPlan?.name ?? "Free"}{" "}
               <span className="ml-2 text-slate-500 text-sm">
-                {currentPlan ? PRICE[currentPlan.name] : ""}
+                {currentPlan ? PRICE[currency][currentPlan.name] : ""}
               </span>
               {subscription?.status === "trialing" && (
               <span className="ml-2 text-xs font-semibold text-amber-600">
@@ -306,6 +319,30 @@ if (isPaid && planList.length && sub?.plan_id) {
   You can upgrade or downgrade at any time.
 </p>
 
+<div className="flex items-center justify-between mb-6">
+  <p className="text-sm text-slate-500">
+    Choose your preferred currency
+  </p>
+
+  <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+    {(["GBP", "USD", "EUR"] as Currency[]).map((cur) => (
+      <button
+        key={cur}
+        onClick={() => setCurrency(cur)}
+        className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all
+          ${
+            currency === cur
+              ? "bg-white text-[#0f2040] shadow-sm ring-1 ring-slate-200"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+      >
+        {cur === "GBP" && "£ GBP"}
+        {cur === "USD" && "$ USD"}
+        {cur === "EUR" && "€ EUR"}
+      </button>
+    ))}
+  </div>
+</div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
          {/* Free Plan */}
@@ -362,7 +399,7 @@ if (isPaid && planList.length && sub?.plan_id) {
               <PlanCard
   key={name}
   title={name}
-  price={PRICE[name]}
+  price={PRICE[currency][name]}
   features={FEATURES[name]}
   onSelect={() => handleUpgrade(name)}
   isCurrent={isCurrent}
