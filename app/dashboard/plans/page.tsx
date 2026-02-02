@@ -176,6 +176,7 @@ if (isPaid && planList.length && sub?.plan_id) {
         },
         body: JSON.stringify({
           plan: planName,
+          currency, // ✅ add this
           returnPath: window.location.pathname,
         }),
         cache: "no-store",
