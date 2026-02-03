@@ -41,9 +41,10 @@ export default function HeroContent() {
     max-w-none sm:max-w-lg
   "
 >
-        One day, your children will look for photos of you to see where their own{' '}
-        <em className="italic">smiles</em> began.
-      </p>
+  One day, your children will want to know where their story began.
+  You can start telling it here, <em className="italic">free to begin</em>.
+</p>
+
 
       {/* CTA */}
 <div className="mt-10 w-full flex flex-col items-center lg:items-start">
