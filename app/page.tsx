@@ -9,6 +9,7 @@ import HowItWorks from '@/components/HowItWorks';
 import Founder from '@/components/Founder';
 import WhatsIncluded from '@/components/WhatsIncluded';
 import Script from "next/script";
+import FeaturedBy from '@/components/FeaturedBy';
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
@@ -89,6 +90,7 @@ export default function HomePage() {
       <main className="bg-[#fff9ee] text-[#0F2040]">
         <Nav />
         <Hero />
+        <FeaturedBy />
         <HowItWorks />
         <Founder />
         <WhatsIncluded/>

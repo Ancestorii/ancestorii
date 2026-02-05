@@ -16,7 +16,7 @@ export default function HeroVisual() {
   useEffect(() => {
     const id = setInterval(() => {
       setIndex((i) => (i + 1) % images.length);
-    }, 9000);
+    }, 3000);
     return () => clearInterval(id);
   }, []);
 
