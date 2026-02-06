@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     creator: "@ancestorii", // optional if you make a Twitter/X account
   },
   icons: {
-    icon: "/favicon.ico",
+     icon: "/favicon1.png",
   },
   robots: {
     index: true,
