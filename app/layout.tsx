@@ -134,7 +134,7 @@ rdt('track','PageVisit');
         "@type": "Organization",
         name: "Ancestorii",
         url: "https://www.ancestorii.com",
-        logo: "https://www.ancestorii.com/favicon.ico",
+        logo: "https://www.ancestorii.com/favicon1.png",
         sameAs: [
           "https://www.instagram.com/ancestorii",
           "https://www.facebook.com/ancestorii"
