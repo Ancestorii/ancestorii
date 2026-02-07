@@ -1,4 +1,3 @@
-// app/why-this-exists/page.tsx
 import WhyThisExists from "@/components/WhyThisExists";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";

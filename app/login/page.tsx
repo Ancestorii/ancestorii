@@ -162,7 +162,7 @@ export default function LoginPage() {
 
         <div className="mt-6 text-sm text-slate-600 flex items-center justify-between">
           <Link
-            href="/signup"
+            href="/signup" prefetch
             className="text-[#0f2040] hover:text-[#d4af37] font-medium"
           >
             Need an account? Create one

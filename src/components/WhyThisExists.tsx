@@ -1,21 +1,19 @@
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
+
 import Link from "next/link";
 import Image from "next/image";
 
-export default function WhyThisExistsPage() {
+export default function WhyThisExists() {
   return (
-    <main className="relative bg-[#fffdf6] text-[#1f2937]">
+    <section className="relative isolate bg-[#fffdf6] text-[#1f2937]">
+
 {/* Parchment texture background */}
-<div
-  className="
-    absolute inset-0
-    bg-[url('/parchment.png')]
-    bg-cover
-    bg-center
-    bg-no-repeat
-    opacity-[0.25]
-  "
+<Image
+  src="/parchment.png"
+  alt=""
+  fill
+  sizes="100vw"
+  loading="lazy"
+  className="object-cover opacity-[0.25] -z-10 pointer-events-none"
 />
 
 {/* Soft paper light */}
@@ -25,10 +23,7 @@ export default function WhyThisExistsPage() {
     bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.65),transparent_10%)]
   "
 />
-
-
       <div className="relative">
-        <Nav />
 
         <section className="mx-auto max-w-[680px] px-5 pt-20 pb-24">
 
@@ -74,6 +69,7 @@ export default function WhyThisExistsPage() {
                   alt="Me posing outdoors"
                   width={900}
                   height={600}
+                  loading="lazy"
                   className="rounded-sm"
                 />
               </div>
@@ -117,6 +113,7 @@ export default function WhyThisExistsPage() {
                   alt="Me and my sister in the snow"
                   width={900}
                   height={600}
+                  loading="lazy"
                   className="rounded-sm"
                 />
               </div>
@@ -159,6 +156,7 @@ export default function WhyThisExistsPage() {
                   alt="Me and my sister in the garden"
                   width={900}
                   height={600}
+                  loading="lazy"
                   className="rounded-sm"
                 />
               </div>
@@ -178,6 +176,7 @@ export default function WhyThisExistsPage() {
                   alt="Me and my mum sitting on the floor"
                   width={900}
                   height={600}
+                  loading="lazy"
                   className="rounded-sm"
                 />
               </div>
@@ -209,7 +208,7 @@ export default function WhyThisExistsPage() {
           {/* CTA */}
           <div className="mt-16 text-center">
             <Link
-              href="/signup"
+              href="/signup" prefetch
               className="
                 inline-block rounded-full
                 bg-[#e3b341]
@@ -229,6 +228,6 @@ export default function WhyThisExistsPage() {
 
         </section>
       </div>
-    </main>
+    </section>
   );
 }

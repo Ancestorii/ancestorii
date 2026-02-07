@@ -1,4 +1,3 @@
-'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,15 +8,15 @@ export default function Founder() {
     <section className="w-full py-16 px-6 relative overflow-hidden">
 
       {/* Parchment texture background */}
-      <div
-        className="
-          absolute inset-0
-          bg-[url('/parchment.png')]
-          bg-cover
-          bg-center
-          bg-no-repeat
-        "
-      />
+      <Image
+  src="/parchment.png"
+  alt=""
+  fill
+  sizes="100vw"
+  loading="lazy"
+  className="object-cover -z-10 pointer-events-none"
+/>
+
 
       {/* Soft light wash */}
       <div className="absolute inset-0 bg-[#FFFDF6]/65" />
@@ -39,10 +38,10 @@ export default function Founder() {
           <div className="relative bg-[#faf7f0] p-3 shadow-sm">
             <Image
               src="/outdoor.jpg"
-              alt="Founder, David, with his mum"
+              alt="Me posing outdoors"
               width={900}
               height={600}
-              priority
+              loading="lazy"
               className="rounded-sm"
             />
             <div className="pointer-events-none absolute inset-3 rounded-sm
@@ -70,7 +69,7 @@ export default function Founder() {
 
        {/* TRUST CTA BLOCK */}
 <Link
-  href="/why-this-exists"
+  href="/why-this-exists" prefetch
   className="
     group relative block mx-auto mt-10 md:mt-20 max-w-xl
     rounded-2xl bg-[#2f3e34]

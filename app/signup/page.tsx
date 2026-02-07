@@ -1,7 +1,12 @@
-'use client';
-
+import dynamic from 'next/dynamic';
 import StepIndicator from './_components/StepIndicator';
-import SignupForm from './_components/SignupForm';
+
+const SignupForm = dynamic(() => import('./_components/SignupForm'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full max-w-md h-[420px] rounded-2xl bg-white border border-[#d4af37]/30 shadow-md" />
+  ),
+});
 
 export default function SignupPage() {
   return (

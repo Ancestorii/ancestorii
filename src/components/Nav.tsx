@@ -74,7 +74,7 @@ export default function Nav() {
                   Log In
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/signup" prefetch
                   className="w-32 px-5 py-2 text-sm font-medium text-white bg-[#D4AF37] rounded-lg text-center hover:bg-[#c39b2e] hover:shadow-[0_0_15px_rgba(212,175,55,0.6)] transition-all"
                 >
                   Get Started
@@ -125,7 +125,7 @@ export default function Nav() {
                       Log In
                     </Link>
                     <Link
-                      href="/signup"
+                      href="/signup" prefetch
                       className="w-full px-5 py-2 text-sm font-medium text-white bg-[#D4AF37] rounded-lg text-center hover:bg-[#c39b2e]"
                     >
                       Get Started
