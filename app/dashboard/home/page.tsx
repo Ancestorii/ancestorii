@@ -218,7 +218,7 @@ const dismissDesktopToast = () => {
     left-[52%]
     lg:left-[47%]
     -translate-x-1/2
-    ${hasLongName ? 'top-[32%]' : 'top-[28%]'}
+    ${hasLongName ? 'top-[34%]' : 'top-[30%]'}
     -translate-y-1/2
     w-full
     max-w-6xl
