@@ -8,6 +8,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: "https://www.ancestorii.com/why-this-exists",
+      lastModified: new Date(),
+      priority: 0.8,
+    },
+    {
+      url: "https://www.ancestorii.com/digital-legacy",
+      lastModified: new Date(),
+      priority: 0.7,
+    },
+    {
       url: "https://www.ancestorii.com/privacy-policy",
       lastModified: new Date(),
       priority: 0.6,
@@ -17,10 +27,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       priority: 0.6,
     },
-    {
-  url: "https://www.ancestorii.com/digital-legacy",
-  lastModified: new Date(),
-  priority: 0.7,
-},
   ];
 }

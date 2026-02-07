@@ -42,7 +42,7 @@ export default function HowItWorks() {
       {/* soft archival glow */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.10),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.06),transparent_60%)]" />
 
-      <div className="relative max-w-screen-lg mx-auto px-6 pt-16 pb-28 sm:pt-28 sm:pb-32 space-y-24 sm:space-y-28">
+     <div className="relative max-w-screen-lg mx-auto px-6 pt-16 pb-16 sm:pt-28 sm:pb-32 space-y-24 sm:space-y-28">
         {/* INTRO */}
         <div className="max-w-2xl">
           <p className="text-sm tracking-[0.25em] text-[#8F7A2A] uppercase mb-4">

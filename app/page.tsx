@@ -91,8 +91,8 @@ export default function HomePage() {
         <Nav />
         <Hero />
         <FeaturedBy />
-        <HowItWorks />
         <Founder />
+        <HowItWorks />
         <WhatsIncluded/>
         <Faq />
         <Contact />

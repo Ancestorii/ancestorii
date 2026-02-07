@@ -23,7 +23,8 @@ export default function DigitalLegacyPage() {
 
       <main className="bg-[#fff9ee] text-[#0F2040]">
         {/* HERO */}
-        <section className="max-w-6xl mx-auto px-6 pt-20 pb-16">
+        <section className="max-w-6xl mx-auto px-6 pt-44 pb-16">
+
           <h1 className="text-4xl md:text-5xl font-serif mb-6 leading-tight">
             Digital Legacy:  
             <span className="block italic text-[#D4AF37]">
