@@ -1,5 +1,5 @@
 import StepIndicator from './_components/StepIndicator';
-import SignupFormClient from './_components/SignupFormCLient';
+import SignupFormClient from './_components/SignupFormClient';
 
 export default function SignupPage() {
   return (
