@@ -218,29 +218,12 @@ const dismissDesktopToast = () => {
     left-[52%]
     lg:left-[47%]
     -translate-x-1/2
-    ${hasLongName ? 'top-[34%]' : 'top-[30%]'}
+    ${hasLongName ? 'top-[32%]' : 'top-[28%]'}
     -translate-y-1/2
     w-full
     max-w-6xl
   `}
 >
-
-          {/* WELCOME */}
-          <motion.p
-         initial={{ opacity: 0 }}
-         animate={{ opacity: 1 }}
-         transition={{ delay: 0.5, duration: 1.6 }}
-         className="
-         tracking-[0.45em]
-         text-lg
-         uppercase
-         text-[#0f2040]/90
-         mb-6
-         mt-36 md:mt-12
-        "
-        >
-        Welcome
-       </motion.p>
 
           {/* NAME */}
           <motion.h1
