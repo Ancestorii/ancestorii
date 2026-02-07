@@ -102,7 +102,7 @@ export default function EverythingYouCanDo() {
               shadow-lg
             "
           >
-            Begin preserving
+            Begin preserving your story
           </Button>
         </div>
 
