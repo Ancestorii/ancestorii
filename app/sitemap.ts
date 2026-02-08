@@ -7,10 +7,41 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       priority: 1,
     },
+
+    /* --- Guides hub --- */
+    {
+      url: "https://www.ancestorii.com/guides",
+      lastModified: new Date(),
+      priority: 0.9,
+    },
+
+    /* --- Individual guides --- */
+    {
+      url: "https://www.ancestorii.com/guides/how-to-preserve-family-memories",
+      lastModified: new Date(),
+      priority: 0.85,
+    },
+    {
+      url: "https://www.ancestorii.com/guides/how-to-save-family-voices",
+      lastModified: new Date(),
+      priority: 0.85,
+    },
+    {
+      url: "https://www.ancestorii.com/guides/how-to-record-family-stories",
+      lastModified: new Date(),
+      priority: 0.85,
+    },
+    {
+      url: "https://www.ancestorii.com/guides/what-to-do-with-old-family-photos",
+      lastModified: new Date(),
+      priority: 0.85,
+    },
+
+    /* --- Trust & legal --- */
     {
       url: "https://www.ancestorii.com/why-this-exists",
       lastModified: new Date(),
-      priority: 0.8,
+      priority: 0.7,
     },
     {
       url: "https://www.ancestorii.com/digital-legacy",
@@ -29,3 +60,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 }
+
