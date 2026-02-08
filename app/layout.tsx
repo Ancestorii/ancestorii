@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     creator: "@ancestorii", // optional if you make a Twitter/X account
   },
   icons: {
-     icon: "/favicon1.png?v=2",
+     icon: "/favicon.ico",
   },
   robots: {
     index: true,
@@ -134,7 +134,7 @@ rdt('track','PageVisit');
         "@type": "Organization",
         name: "Ancestorii",
         url: "https://www.ancestorii.com",
-        logo: "https://www.ancestorii.com/favicon1.png",
+        logo: "https://www.ancestorii.com/favicon.ico",
         sameAs: [
           "https://www.instagram.com/ancestorii",
           "https://www.facebook.com/ancestorii"
