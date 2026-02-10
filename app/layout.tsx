@@ -123,6 +123,29 @@ rdt('track','PageVisit');
         fbq('track', 'PageView');
       `}
     </Script>
+
+    {/* 🟢 SPOTIFY PIXEL */}
+<Script id="spotify-pixel" strategy="afterInteractive">
+  {`
+    (function(w, d){
+      var id='spdt-capture', n='script';
+      if (!d.getElementById(id)) {
+        w.spdt =
+          w.spdt ||
+          function() {
+            (w.spdt.q = w.spdt.q || []).push(arguments);
+          };
+        var e = d.createElement(n); e.id = id; e.async=1;
+        e.src = 'https://pixel.byspotify.com/ping.min.js';
+        var s = d.getElementsByTagName(n)[0];
+        s.parentNode.insertBefore(e, s);
+      }
+      w.spdt('conf', { key: '21575df569e94d379a6107e35a8d3553' });
+      w.spdt('view');
+    })(window, document);
+  `}
+</Script>
+
         {/* 🟢 ORGANIZATION SCHEMA */}
     <Script
       id="org-schema"
