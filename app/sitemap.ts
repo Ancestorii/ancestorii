@@ -37,6 +37,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.85,
     },
 
+    /* --- Podcast --- */
+    {
+      url: "https://www.ancestorii.com/moments-worth-keeping",
+      lastModified: new Date(),
+      priority: 0.75,
+    },
+
     /* --- Trust & legal --- */
     {
       url: "https://www.ancestorii.com/why-this-exists",
@@ -60,4 +67,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 }
-

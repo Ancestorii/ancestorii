@@ -11,6 +11,7 @@ import WhatsIncluded from '@/components/WhatsIncluded';
 import Script from "next/script";
 import FeaturedBy from '@/components/FeaturedBy';
 import GuidesPreview from '@/components/GuidesPreview';
+import PodcastPreview from '@/components/PodcastPreview';
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
@@ -93,6 +94,7 @@ export default function HomePage() {
         <Hero />
         <FeaturedBy />
         <Founder />
+        <PodcastPreview />
         <HowItWorks />
         <WhatsIncluded/>
         <GuidesPreview />
