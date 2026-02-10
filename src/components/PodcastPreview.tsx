@@ -69,7 +69,7 @@ export default function PodcastPreview() {
         {/* OUTRO */}
         <div className="text-center max-w-md mx-auto">
           <p className="font-serif text-base sm:text-lg italic text-[#0F2040]">
-  A podcast by Ancestorii, for the moments you don’t want to lose.
+  A podcast by Ancestorii.
 </p>
         </div>
       </div>
