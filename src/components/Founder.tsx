@@ -37,7 +37,7 @@ export default function Founder() {
           <div className="absolute inset-0 translate-x-[6px] translate-y-[6px] bg-[#e3dccb] shadow-sm" />
           <div className="relative bg-[#faf7f0] p-3 shadow-sm">
             <Image
-              src="/outdoor.jpg"
+              src="/Founder.png"
               alt="Me posing outdoors"
               width={900}
               height={600}
@@ -56,7 +56,7 @@ export default function Founder() {
 
         {/* Caption */}
         <p className="text-sm text-[#6b6b6b] mb-6 italic">
-          Me posing outdoors · July 2010
+          A Moment Frozen in Time, So It’s Never Forgotten
         </p>
 
         {/* Founder text */}
