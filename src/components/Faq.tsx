@@ -4,36 +4,37 @@ import { useState } from "react";
 
 const faqs = [
   {
-    question: "How secure is Ancestorii?",
+    question: "What is Ancestorii designed for?",
     answer:
-      "Every memory is protected with AES-256 encryption — the same level used by banks and governments. Your photos, videos, and voice notes are stored safely, and only you (and those you invite) can access them.",
+      "Ancestorii is a private digital space where you can capture stories, photos, voice notes, and everyday moments as they happen. It is designed to grow into a living family library over time, not just store files.",
+  },
+  {
+    question: "How do I start?",
+    answer:
+      "Start small. Add one photo and write a few sentences about why it matters. Record a short voice note. You do not need to organise everything at once. The library grows naturally, one memory at a time.",
+  },
+  {
+    question: "Is everything private?",
+    answer:
+      "Yes. Everything you add remains private by default. Only you and anyone you choose to invite can access your collection.",
+  },
+  {
+    question: "How much space do I get?",
+    answer:
+      "Basic includes 25GB, Standard offers 250GB, and Premium provides 500GB. Enough space to build and expand your family library comfortably.",
   },
   {
     question: "Can I cancel anytime?",
     answer:
-      "Yes, absolutely. You can cancel your plan anytime — your access will remain active until the end of your billing cycle. No hidden fees, no contracts.",
-  },
-  {
-    question: "How much storage do I get?",
-    answer:
-      "That depends on your plan. Basic offers 25GB, Standard provides 250GB, and Premium unlocks 500GB — perfect for preserving a lifetime of memories.",
-  },
-  {
-    question: "Can I share with my family?",
-    answer:
-      "Not yet. Ancestorii is designed as a private space where you preserve memories for the future. Sharing and collaborative access with loved ones will be introduced in a later update.",
+      "Yes. You can cancel whenever you choose. Your access remains active until the end of your billing period. There are no contracts and no hidden fees.",
   },
   {
     question: "What happens if I stop paying?",
     answer:
-      "Your account will be safely paused, and all your data securely stored until your plan ends. You can reactivate anytime to regain full access to your memories.",
-  },
-  {
-    question: "Is there a free trial?",
-    answer:
-      "You don't need a trial. Ancestorii is free to start, so you can begin preserving your memories straight away and upgrade only if you choose.",
+      "Your account is paused, and your data remains safely retained until your plan ends. You can reactivate at any time and continue building your library.",
   },
 ];
+
 
 export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);

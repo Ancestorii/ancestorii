@@ -6,31 +6,31 @@ import { Feather, Camera, Users, LockKeyhole } from 'lucide-react';
 /* ---------------- DATA ---------------- */
 const journey = [
   {
-    title: 'It always starts quietly.',
-    highlight: 'With intention.',
+    title: 'It always begins simply.',
+    highlight: 'With one memory.',
     quote: '“So you can hear your mum’s voice again.”',
-    desc: 'Not after something is lost — but while it still exists, unnoticed.',
+    desc: 'Not because something is ending, but because life is unfolding.',
     icon: Feather,
   },
   {
-    title: 'Moments happen once.',
-    highlight: 'Presence can remain.',
+    title: 'Moments pass quickly.',
+    highlight: 'Stories can stay.',
     quote: '“So you know why your dad kept that photo.”',
-    desc: 'Hold onto the feeling, the context, the atmosphere of a moment.',
+    desc: 'Add the feeling, the context, and the reason a moment mattered.',
     icon: Camera,
   },
   {
-    title: 'Memories need anchors.',
-    highlight: 'People give them meaning.',
-    quote: '“So your kids know who your grandmother was — in your words.”',
-    desc: 'Stories matter most when they’re tied to the ones who lived them.',
+    title: 'Collections grow over time.',
+    highlight: 'One addition at a time.',
+    quote: '“So your kids know who your grandmother was, in your words.”',
+    desc: 'A living family library forms slowly, shaped by the people inside it.',
     icon: Users,
   },
   {
-    title: 'Time moves forward.',
-    highlight: 'Care keeps things safe.',
+    title: 'Privacy matters.',
+    highlight: 'Care makes it lasting.',
     quote: '“So only you and your family can see it.”',
-    desc: 'Private, protected, and kept with the respect family memories deserve.',
+    desc: 'Private, intentional, and built to grow with you.',
     icon: LockKeyhole,
   },
 ];
@@ -39,26 +39,26 @@ const journey = [
 export default function HowItWorks() {
   return (
     <section className="relative bg-[#FFFDF6] text-[#0F2040] overflow-hidden">
-      {/* soft archival glow */}
+      {/* soft glow */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.10),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.06),transparent_60%)]" />
 
-     <div className="relative max-w-screen-lg mx-auto px-6 pt-16 pb-16 sm:pt-28 sm:pb-32 space-y-24 sm:space-y-28">
+      <div className="relative max-w-screen-lg mx-auto px-6 pt-16 pb-16 sm:pt-28 sm:pb-32 space-y-24 sm:space-y-28">
         {/* INTRO */}
         <div className="max-w-2xl">
           <p className="text-sm tracking-[0.25em] text-[#8F7A2A] uppercase mb-4">
-            For the moments you don’t want to lose
+            Build your family library
           </p>
 
           <h2 className="text-[2.8rem] sm:text-[3.6rem] font-semibold leading-tight text-[#0F2040]">
             This is how
             <br />
-            memories are <span className="italic text-[#E5C45C]">kept alive</span>.
+            memories <span className="italic text-[#E5C45C]">take shape</span>.
           </h2>
 
           <p className="mt-5 text-base sm:text-lg text-[#0F2040]/65">
-            Photos survive.
+            A photo is a start.
             <br />
-            Everything around them usually fades.
+            The story around it gives it depth.
           </p>
         </div>
 
@@ -118,12 +118,12 @@ export default function HowItWorks() {
         {/* OUTRO */}
         <div className="text-center max-w-2xl mx-auto space-y-8">
           <p className="text-[1.25rem] sm:text-lg leading-snug text-[#0F2040]/55 max-w-[22ch] sm:max-w-none mx-auto">
-            One day, someone will look for you in the past.
+            Over time, a collection forms.
           </p>
 
           <h3 className="text-[2.3rem] sm:text-[2.9rem] font-semibold text-[#0F2040]">
-            Leave them something{' '}
-            <span className="italic text-[#E5C45C]">real</span>.
+            Add something{' '}
+            <span className="italic text-[#E5C45C]">today</span>.
           </h3>
 
           <div className="mt-10 w-full flex justify-center">
@@ -140,7 +140,7 @@ export default function HowItWorks() {
                 shadow-lg
               "
             >
-              Hold onto what matters
+              Start with one memory
             </Button>
           </div>
         </div>

@@ -15,9 +15,9 @@ import PodcastPreview from '@/components/PodcastPreview';
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
-  title: "Ancestorii Preserve Your Family Legacy Forever",
+  title: "Ancestorii A Living Family Library",
   description:
-    "Ancestorii is a digital legacy platform where you can capture, protect, and pass down your family's story through timelines, albums, and future-dated capsules. Preserve your memories for generations to come.",
+    "Ancestorii is a private digital space where families capture stories, voices, and everyday moments as they happen. Build a living family library through timelines, albums, and memory capsules that grow over time.",
   keywords: [
     "Ancestorii",
     "family legacy",
@@ -25,22 +25,22 @@ export const metadata: Metadata = {
     "timeline builder",
     "photo albums",
     "digital time capsule",
-    "memory preservation",
-    "secure family storage",
-    "digital legacy platform",
+    "family library",
+    "memory collection",
+    "private family platform",
   ],
   openGraph: {
-    title: "Ancestorii Preserve Your Family Legacy Forever",
+    title: "Ancestorii A Living Family Library",
     description:
-      "Create and protect your family's digital story through timelines, albums, and legacy capsules. Secure, private, and beautifully designed.",
+      "Capture stories, voices, and meaningful moments in a private space designed to grow with your family over time.",
     url: "https://www.ancestorii.com",
     siteName: "Ancestorii",
     images: [
       {
-        url: "/og-image.jpg", // change to your OG image
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Ancestorii – Digital Legacy Platform",
+        alt: "Ancestorii Living Family Library",
       },
     ],
     locale: "en_GB",
@@ -48,20 +48,20 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ancestorii Preserve Your Family Legacy Forever",
+    title: "Ancestorii A Living Family Library",
     description:
-      "Capture, organize, and pass down your family's memories securely with Ancestorii.",
+      "A private space to capture and grow your family story in real time.",
     images: ["/og-image.jpg"],
   },
   alternates: {
-  canonical: "https://www.ancestorii.com/",
-},
-
+    canonical: "https://www.ancestorii.com/",
+  },
   robots: {
     index: true,
     follow: true,
   },
 };
+
 
 /* ---------------- Main Page ---------------- */
 export default function HomePage() {

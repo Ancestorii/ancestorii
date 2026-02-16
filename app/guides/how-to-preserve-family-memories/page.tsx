@@ -4,14 +4,13 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'How to Preserve Family Memories | Ancestorii',
+  title: 'How to Capture and Grow Family Memories | Ancestorii',
   description:
-    'A thoughtful guide on how to preserve family memories before they fade. Learn simple ways to keep photos, voices, and stories safe for future generations.',
+    'A practical guide to capturing family memories while life is happening. Learn simple ways to record stories, voices, and moments and grow a living family library over time.',
   alternates: {
     canonical: 'https://www.ancestorii.com/guides/how-to-preserve-family-memories',
   },
 };
-
 
 export default function PreserveFamilyMemoriesPage() {
   return (
@@ -19,10 +18,10 @@ export default function PreserveFamilyMemoriesPage() {
       <Nav />
 
       <section className="relative overflow-hidden">
-        {/* soft archival glow */}
+        {/* soft glow */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
 
-        <div className="relative max-w-screen-md mx-auto px-6 pt-28 pb-24 space-y-16">
+        <div className="relative max-w-screen-md mx-auto px-6 pt-16 pb-24 space-y-16">
           {/* INTRO */}
           <header className="space-y-6">
             <p className="text-sm tracking-[0.25em] uppercase text-[#8F7A2A]">
@@ -30,15 +29,17 @@ export default function PreserveFamilyMemoriesPage() {
             </p>
 
             <h1 className="text-[2.6rem] sm:text-[3.2rem] font-semibold leading-tight">
-              How to preserve
+              How to capture and grow
               <br />
               <span className="italic text-[#E5C45C]">family memories</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl leading-relaxed">
               Most families do not lose their memories in a single moment.
-              They fade quietly, through time, distraction, and good intentions
-              that never quite become action.
+              They simply move on to the next day.
+              The next task.
+              The next season of life.
+              And small stories get left behind.
             </p>
           </header>
 
@@ -46,93 +47,100 @@ export default function PreserveFamilyMemoriesPage() {
           <article className="space-y-12 text-[1.05rem] sm:text-[1.15rem] leading-relaxed text-[#0F2040]/75">
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-[#0F2040]">
-                Why memories fade faster than we expect
+                Why small moments matter more than we think
               </h2>
 
               <p>
-                We often assume that the important things will stay with us.
+                We assume the important things will stay with us.
                 The stories we have heard a hundred times.
-                The voices we recognise instantly.
-                The moments that feel too vivid to disappear.
+                The voice we recognise instantly.
+                The moments that feel too ordinary to record.
               </p>
 
               <p>
-                But memory is fragile.
-                Details are usually the first to go.
-                Not the events themselves, but the context around them.
-                The tone of a voice.
+                But what often disappears are the details.
                 The reason a photo mattered.
-                The feeling of being there.
+                The lesson inside a story.
+                The personality behind a memory.
+              </p>
+
+              <p>
+                Capturing memories while they are fresh allows them to stay alive,
+                not just remembered.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-[#0F2040]">
-                What most people try first
+                Why storage alone is not enough
               </h2>
 
               <p>
-                When people think about preserving memories, they often start
-                with storage.
+                Many people begin with storage.
                 Photos saved to a phone.
                 Files backed up to a hard drive.
                 Videos uploaded to the cloud.
               </p>
 
               <p>
-                These things help, but they are incomplete.
-                They preserve data, not meaning.
-                Without context, a photo becomes just an image.
-                A recording becomes just a file.
+                These tools are useful, but they only hold data.
+                They do not organise meaning.
+                They do not connect stories together.
+                They do not show how one memory relates to another.
+              </p>
+
+              <p>
+                A growing family collection needs more than space.
+                It needs structure and intention.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-[#0F2040]">
-                What actually helps memories last
+                What helps memories grow over time
               </h2>
 
               <p>
-                Memories last longer when they are intentional.
-                When they are given a place.
-                When they are explained in the words of the person who lived
-                them.
+                Memories become lasting when they are given context.
+                When someone explains what was happening.
+                Why it mattered.
+                What they were thinking at the time.
               </p>
 
               <p>
-                A preserved memory usually has three parts.
+                A strong memory usually has three parts.
                 The moment itself.
                 The story behind it.
-                And the voice of someone who can say why it mattered.
+                And the voice of someone who lived it.
               </p>
 
               <p>
-                This does not require doing everything at once.
-                It only requires beginning.
+                You do not need to organise your entire history at once.
+                You only need to begin with one.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-[#0F2040]">
-                A simple place to start
+                A simple way to begin
               </h2>
 
               <p>
-                Choose one memory.
-                A photo you return to often.
-                A story you tell without thinking.
-                A voice you would miss hearing again.
+                Choose one moment from today or this week.
+                A photo you keep returning to.
+                A story you tell often.
+                A lesson you would want remembered.
               </p>
 
               <p>
                 Write a few sentences.
-                Record a short message.
-                Keep it somewhere safe and private.
+                Record a short voice note.
+                Add it somewhere intentional and private.
               </p>
 
               <p>
-                Preservation does not happen all at once.
-                It happens through small, deliberate acts of care.
+                A living family library is not built in a day.
+                It grows through small, consistent contributions.
               </p>
             </section>
           </article>
@@ -140,9 +148,9 @@ export default function PreserveFamilyMemoriesPage() {
           {/* SOFT CTA */}
           <section className="pt-12 sm:pt-20 text-center space-y-6">
             <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl mx-auto leading-relaxed">
-              If this guide feels close to something you have been thinking
-              about, you do not need to wait for the right time.
-              Most memories are preserved by people who simply decided to begin.
+              If this feels like something you have been meaning to do,
+              you do not need a perfect system.
+              You only need a place to begin.
             </p>
 
             <Link
@@ -160,7 +168,7 @@ export default function PreserveFamilyMemoriesPage() {
                 transition
               "
             >
-              Begin preserving what matters
+              Start building your living library
             </Link>
           </section>
         </div>

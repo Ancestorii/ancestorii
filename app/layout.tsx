@@ -16,55 +16,58 @@ export const metadata: Metadata = {
   },
 
   title: {
-    default: "Ancestorii Preserve Your Family Legacy Forever",
+    default: "Ancestorii A Living Family Library",
     template: "%s | Ancestorii",
   },
 
   description:
-    "Capture, protect, and pass down your family's memories through digital timelines, albums, and legacy capsules. Ancestorii keeps your story alive for generations.",
+    "Ancestorii is a private digital space where families capture stories, voices, and everyday moments as they happen. Build a living family library through timelines, albums, and memory capsules that grow over time.",
   keywords: [
     "Ancestorii",
     "digital legacy",
     "family memories",
-    "memory preservation",
+    "family library",
     "timeline builder",
     "digital time capsule",
-    "family tree",
     "photo albums",
-    "secure cloud storage",
-    "legacy platform",
+    "memory collection",
+    "private family platform",
   ],
   authors: [{ name: "Ancestorii" }],
   creator: "Ancestorii",
   publisher: "Ancestorii",
+
   openGraph: {
     type: "website",
     locale: "en_GB",
     url: "https://www.ancestorii.com",
     siteName: "Ancestorii",
-    title: "Ancestorii Preserve Your Family Legacy Forever",
+    title: "Ancestorii A Living Family Library",
     description:
-      "Your family's story, preserved through timelines, albums, and legacy capsules — secure, private, and beautifully designed.",
+      "Capture stories, voices, and meaningful moments in a private space designed to grow with your family over time.",
     images: [
       {
-        url: "/og-image.jpg", // replace with your real OG image
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Ancestorii – Digital Legacy Platform",
+        alt: "Ancestorii Living Family Library",
       },
     ],
   },
+
   twitter: {
     card: "summary_large_image",
-    title: "Ancestorii Preserve Your Family Legacy Forever",
+    title: "Ancestorii A Living Family Library",
     description:
-      "Capture, organize, and protect your family's most meaningful moments with Ancestorii.",
+      "A private space to capture and grow your family story in real time.",
     images: ["/og-image.jpg"],
-    creator: "@ancestorii", // optional if you make a Twitter/X account
+    creator: "@ancestorii",
   },
+
   icons: {
-     icon: "/favicon.ico",
+    icon: "/favicon.ico",
   },
+
   robots: {
     index: true,
     follow: true,

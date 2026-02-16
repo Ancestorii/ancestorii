@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import Image from "next/image";
 
@@ -23,6 +22,7 @@ export default function WhyThisExists() {
     bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.65),transparent_10%)]
   "
 />
+
       <div className="relative">
 
         <section className="mx-auto max-w-[680px] px-5 pt-20 pb-24">
@@ -50,11 +50,10 @@ export default function WhyThisExists() {
             </p>
 
             <p>
-              It began with a quiet fear.
+              It began with a simple realisation.
               <br />
               <em>
-                That one day the stories, voices, and moments that shape a family
-                could disappear without anyone noticing.
+                The moments that shape a family are rarely captured while they are happening.
               </em>
             </p>
           </div>
@@ -82,14 +81,14 @@ export default function WhyThisExists() {
           <div className="space-y-5 text-lg leading-relaxed">
             <div className="text-center">
               <p className="font-serif text-2xl italic text-[#0F2040]">
-                Photos survive.
+                Photos last.
                 <br />
-                Everything around them usually fades.
+                Stories need intention.
               </p>
             </div>
 
             <p>
-              I realised how much context is lost when all that remains is an image.
+              I realised how much meaning is missing when all that remains is an image.
             </p>
 
             <p className="pl-4 border-l-2 border-[#e3b341] text-[#0F2040]">
@@ -126,23 +125,22 @@ export default function WhyThisExists() {
           <div className="space-y-5 text-lg leading-relaxed">
             <p>
               <strong className="text-[#0F2040]">
-                I wanted a place where memories could live naturally.
+                I wanted a place where memories could grow naturally.
               </strong>
               <br />
               Not buried in folders.
               <br />
-              Not lost on old phones.
+              Not scattered across devices.
             </p>
 
             <p>
-              But kept together as something you could return to years from now
-              and still <em>feel close to</em>.
+              A place you could return to and see a collection forming over time.
             </p>
 
             <p className="font-serif text-xl italic text-[#0F2040]">
               This was never about storing files.
               <br />
-              It was about preserving presence.
+              It was about building something living.
             </p>
           </div>
 
@@ -189,13 +187,13 @@ export default function WhyThisExists() {
           {/* FINAL */}
           <div className="mt-20 space-y-6 text-lg leading-relaxed text-center">
             <p className="font-serif text-2xl italic text-[#0F2040]">
-              One day someone will want to know more.
+              One day someone will want to understand more.
             </p>
 
             <p>
               Not just who you were.
               <br />
-              But <strong className="text-[#0F2040]">how you lived</strong>.
+              But <strong className="text-[#0F2040]">what shaped you.</strong>
             </p>
 
             <p className="font-serif text-xl italic text-[#0F2040]">
@@ -208,7 +206,8 @@ export default function WhyThisExists() {
           {/* CTA */}
           <div className="mt-16 text-center">
             <Link
-              href="/signup" prefetch
+              href="/signup"
+              prefetch
               className="
                 inline-block rounded-full
                 bg-[#e3b341]

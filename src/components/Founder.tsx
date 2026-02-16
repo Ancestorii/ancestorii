@@ -1,7 +1,5 @@
-
 import Image from 'next/image';
 import Link from 'next/link';
-
 
 export default function Founder() {
   return (
@@ -9,14 +7,13 @@ export default function Founder() {
 
       {/* Parchment texture background */}
       <Image
-  src="/parchment.png"
-  alt=""
-  fill
-  sizes="100vw"
-  loading="lazy"
-  className="object-cover -z-10 pointer-events-none"
-/>
-
+        src="/parchment.png"
+        alt=""
+        fill
+        sizes="100vw"
+        loading="lazy"
+        className="object-cover -z-10 pointer-events-none"
+      />
 
       {/* Soft light wash */}
       <div className="absolute inset-0 bg-[#FFFDF6]/65" />
@@ -38,7 +35,7 @@ export default function Founder() {
           <div className="relative bg-[#faf7f0] p-3 shadow-sm">
             <Image
               src="/Founder.png"
-              alt="Me posing outdoors"
+              alt="Founder"
               width={900}
               height={600}
               loading="lazy"
@@ -56,77 +53,84 @@ export default function Founder() {
 
         {/* Caption */}
         <p className="text-sm text-[#6b6b6b] mb-6 italic">
-          A Moment Frozen in Time, So It’s Never Forgotten
+          A moment worth keeping
         </p>
 
         {/* Founder text */}
-       <p className="text-left text-[#1f1f1f] text-[15px] md:text-[17px] lg:text-[18px] leading-relaxed font-serif">
-          “Ancestorii did not begin as a company. It began with a quiet fear that one day the stories, voices, and moments that shape a family could disappear without anyone noticing. I wanted a place where memories could live naturally, not buried in folders or lost on old phones, but kept together as something you could return to years from now and still feel close to. This is personal, and that is why it exists.”
+        <p className="text-left text-[#1f1f1f] text-[15px] md:text-[17px] lg:text-[18px] leading-relaxed font-serif">
+          “Ancestorii did not begin as a company. It began with a simple realisation. 
+          The moments that shape a family are rarely captured while they are happening. 
+          Photos are taken, conversations unfold, stories are told, and then life moves forward. 
+          I wanted a place where those moments could be added intentionally, gathered in one private space, 
+          and allowed to grow over time. 
+          Not as files stored away, but as something living that you can return to whenever you choose. 
+          This is personal, and that is why it exists.”
           <span className="block mt-4 text-[#2f3e34]">
-            David Leon, Founder
+            Dante Leon, Founder
           </span>
         </p>
 
-       {/* TRUST CTA BLOCK */}
-<Link
-  href="/why-this-exists" prefetch
-  className="
-    group relative block mx-auto mt-10 md:mt-20 max-w-xl
-    rounded-2xl bg-[#2f3e34]
-    px-6 py-6 md:px-7 md:py-7
-    shadow-xl
-    transition hover:-translate-y-[2px] hover:shadow-2xl
-    border-l-4 border-[#f0c75e]
-    overflow-hidden
-  "
->
-  {/* Subtle parchment glow */}
-  <div
-    className="
-      pointer-events-none absolute inset-0
-      bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_55%)]
-    "
-  />
+        {/* TRUST CTA BLOCK */}
+        <Link
+          href="/why-this-exists"
+          prefetch
+          className="
+            group relative block mx-auto mt-10 md:mt-20 max-w-xl
+            rounded-2xl bg-[#2f3e34]
+            px-6 py-6 md:px-7 md:py-7
+            shadow-xl
+            transition hover:-translate-y-[2px] hover:shadow-2xl
+            border-l-4 border-[#f0c75e]
+            overflow-hidden
+          "
+        >
+          {/* Subtle glow */}
+          <div
+            className="
+              pointer-events-none absolute inset-0
+              bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_55%)]
+            "
+          />
 
-  {/* Top highlight */}
-  <div className="absolute top-0 left-0 h-[1px] w-full bg-[#f5e8c8]/40" />
+          {/* Top highlight */}
+          <div className="absolute top-0 left-0 h-[1px] w-full bg-[#f5e8c8]/40" />
 
-  <p className="mb-2 text-[11px] uppercase tracking-widest text-[#f5e8c8]">
-    A personal note
-  </p>
+          <p className="mb-2 text-[11px] uppercase tracking-widest text-[#f5e8c8]">
+            A personal note
+          </p>
 
-  <h3 className="
-    font-serif text-2xl md:text-3xl
-    leading-tight text-[#ffffff]
-    mb-4
-  ">
-    Before you trust us with your family’s memories,
-    <span className="block italic text-[#fff4d6]">
-      this is why Ancestorii exists.
-    </span>
-  </h3>
+          <h3 className="
+            font-serif text-2xl md:text-3xl
+            leading-tight text-[#ffffff]
+            mb-4
+          ">
+            Before you begin building your family library,
+            <span className="block italic text-[#fff4d6]">
+              here is why Ancestorii exists.
+            </span>
+          </h3>
 
-  <p className="
-    text-[15px] md:text-[16px]
-    leading-relaxed text-[#f1ede2]
-    max-w-[90%]
-    mb-5
-  ">
-    This was not built for attention or scale.
-    It was built to protect voices, stories, and moments
-    that cannot be replaced.
-  </p>
+          <p className="
+            text-[15px] md:text-[16px]
+            leading-relaxed text-[#f1ede2]
+            max-w-[90%]
+            mb-5
+          ">
+            This was not built for scale or noise.
+            It was built to give families a place to add meaning to their moments.
+          </p>
 
-  <div className="flex items-center font-semibold text-[#f0c75e]">
-    <span className="mr-2">
-      Read the full story
-    </span>
-    <span className="text-xl transition-transform group-hover:translate-x-1">
-      →
-    </span>
-  </div>
-</Link>
-        </div>
+          <div className="flex items-center font-semibold text-[#f0c75e]">
+            <span className="mr-2">
+              Read the full story
+            </span>
+            <span className="text-xl transition-transform group-hover:translate-x-1">
+              →
+            </span>
+          </div>
+        </Link>
+
+      </div>
     </section>
   );
 }

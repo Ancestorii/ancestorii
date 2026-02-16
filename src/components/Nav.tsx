@@ -9,7 +9,6 @@ export default function Nav() {
   const supabase = getBrowserClient();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
 
   // check logged in user
@@ -23,13 +22,6 @@ export default function Nav() {
     getUser();
   }, []);
 
-  // Scroll detection
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUserEmail(null);
@@ -38,15 +30,11 @@ export default function Nav() {
 
   return (
     <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-        scrolled
-          ? 'bg-white/90 backdrop-blur-md shadow-[0_4px_20px_rgba(15,32,64,0.08)]'
-          : 'bg-white shadow-[0_2px_12px_rgba(15,32,64,0.04)]'
-      }`}
+      className="w-full z-50 bg-white shadow-[0_2px_12px_rgba(15,32,64,0.04)] transition-all duration-500"
     >
       <nav className="relative px-6 lg:px-12 py-3">
-        {/* ✅ MAIN FLEX ROW */}
         <div className="flex items-center justify-between mx-auto max-w-screen-2xl">
+          
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <img
@@ -74,7 +62,8 @@ export default function Nav() {
                   Log In
                 </Link>
                 <Link
-                  href="/signup" prefetch
+                  href="/signup"
+                  prefetch
                   className="w-32 px-5 py-2 text-sm font-medium text-white bg-[#D4AF37] rounded-lg text-center hover:bg-[#c39b2e] hover:shadow-[0_0_15px_rgba(212,175,55,0.6)] transition-all"
                 >
                   Get Started
@@ -106,7 +95,7 @@ export default function Nav() {
             isMenuOpen ? 'max-h-96 opacity-100 mt-3' : 'max-h-0 opacity-0'
           }`}
         >
-          <div className="px-4 bg-white/95 backdrop-blur-sm rounded-lg shadow-md border border-[#f0f0f0]">
+          <div className="px-4 bg-white rounded-lg shadow-md border border-[#f0f0f0]">
             <ul className="flex flex-col space-y-3 font-medium py-4">
               <li className="pt-2 border-t border-gray-200">
                 {userEmail ? (
@@ -125,7 +114,8 @@ export default function Nav() {
                       Log In
                     </Link>
                     <Link
-                      href="/signup" prefetch
+                      href="/signup"
+                      prefetch
                       className="w-full px-5 py-2 text-sm font-medium text-white bg-[#D4AF37] rounded-lg text-center hover:bg-[#c39b2e]"
                     >
                       Get Started

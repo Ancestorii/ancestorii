@@ -4,9 +4,9 @@ import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Digital Legacy: How to Preserve Your Family History Digitally",
+  title: "Digital Legacy: Capture and Grow Your Family Story Digitally",
   description:
-    "Learn how to preserve your family history digitally — from photos and stories to voices and memories — and why digital legacy matters for future generations.",
+    "Discover how to build a living digital legacy by capturing family stories, voices, and everyday moments as they happen — and growing a library your family can return to.",
   alternates: {
     canonical: "https://www.ancestorii.com/digital-legacy",
   },
@@ -24,18 +24,17 @@ export default function DigitalLegacyPage() {
       <main className="bg-[#fff9ee] text-[#0F2040]">
         {/* HERO */}
         <section className="max-w-6xl mx-auto px-6 pt-28 pb-16">
-
           <h1 className="text-4xl md:text-5xl font-serif mb-6 leading-tight">
-            Digital Legacy:  
+            Digital Legacy:
             <span className="block italic text-[#D4AF37]">
-              Preserving Family History for the Future
+              Build a Living Family Library
             </span>
           </h1>
 
           <p className="max-w-3xl text-lg text-[#0F2040]/80">
-            Preserving your family history digitally isn’t about technology —
-            it’s about making sure the stories, voices, and moments that define
-            your family don’t disappear with time.
+            A digital legacy is not just something you leave behind. It’s
+            something you grow while life is happening — one story, one voice
+            note, one small memory at a time.
           </p>
         </section>
 
@@ -44,7 +43,7 @@ export default function DigitalLegacyPage() {
           <div className="relative w-full h-[420px] rounded-2xl overflow-hidden">
             <Image
               src="/family4.jpg"
-              alt="Family memories across generations"
+              alt="Family sharing stories across generations"
               fill
               className="object-cover"
               priority
@@ -59,15 +58,15 @@ export default function DigitalLegacyPage() {
           </h2>
 
           <p className="text-lg text-[#0F2040]/85 mb-6">
-            A digital legacy is the collection of memories, stories, photos,
-            videos, and voices that represent a person’s life — stored securely
-            so they can be accessed by future generations.
+            A digital legacy is the growing collection of stories, photos,
+            videos, reflections, and voices that shape a family’s identity.
+            It’s not just about storing files — it’s about capturing meaning.
           </p>
 
           <p className="text-lg text-[#0F2040]/85">
-            Unlike physical albums or scattered cloud folders, a digital legacy
-            brings everything together in one intentional place, preserving not
-            just what happened — but why it mattered.
+            Instead of scattered folders and forgotten albums, a digital
+            legacy brings memories together in one intentional space — organised,
+            revisited, and expanded over time.
           </p>
         </section>
 
@@ -76,32 +75,33 @@ export default function DigitalLegacyPage() {
           <div className="relative w-full h-[420px] rounded-2xl overflow-hidden">
             <Image
               src="/album.jpg"
-              alt="Old photo albums and family records"
+              alt="Family photos and handwritten stories"
               fill
               className="object-cover"
             />
           </div>
         </section>
 
-        {/* WHY PRESERVING FAMILY HISTORY MATTERS */}
+        {/* WHY FAMILY HISTORY MATTERS */}
         <section className="max-w-5xl mx-auto px-6 mb-20">
           <h2 className="text-3xl font-serif mb-6">
-            Why preserving family history matters
+            Why building your family story matters
           </h2>
 
           <p className="text-lg text-[#0F2040]/85 mb-6">
-            Over time, details fade. Names are forgotten. Voices are lost.
-            Stories become fragments passed down imperfectly.
+            Life moves quickly. Small details disappear. A phrase someone said.
+            A lesson learned. A memory that felt ordinary at the time.
           </p>
 
           <p className="text-lg text-[#0F2040]/85 mb-6">
-            Preserving your family history digitally ensures that future
-            generations can understand who their family was — in your own
-            words, not second-hand summaries.
+            Capturing your family history digitally allows you to hold onto
+            those moments while they are still fresh — in your own words, with
+            your own voice.
           </p>
 
           <p className="text-lg text-[#0F2040]/85">
-            It’s not about nostalgia. It’s about continuity.
+            It’s not about preparing for absence. It’s about strengthening
+            connection.
           </p>
         </section>
 
@@ -110,7 +110,7 @@ export default function DigitalLegacyPage() {
           <div className="relative w-full h-[420px] rounded-2xl overflow-hidden">
             <Image
               src="/family6.jpg"
-              alt="Listening to recorded family stories"
+              alt="Listening to a recorded family story together"
               fill
               className="object-cover"
             />
@@ -120,19 +120,18 @@ export default function DigitalLegacyPage() {
         {/* COMMON QUESTIONS */}
         <section className="max-w-5xl mx-auto px-6 mb-20">
           <h2 className="text-3xl font-serif mb-10">
-            Common questions about preserving family history digitally
+            Common questions about building a digital family legacy
           </h2>
 
           <div className="space-y-10">
             <div>
               <h3 className="text-xl font-semibold mb-2">
-                How can I preserve my family history digitally?
+                How can I build my family history digitally?
               </h3>
               <p className="text-[#0F2040]/85">
-                Start by collecting meaningful photos, stories, and recordings.
-                Organise them intentionally, add context in your own words, and
-                store them somewhere private, secure, and designed for long-term
-                preservation.
+                Start small. Add one meaningful photo. Record a short voice
+                note. Write a memory in a few sentences. Over time, those small
+                contributions become chapters in a growing collection.
               </p>
             </div>
 
@@ -141,20 +140,21 @@ export default function DigitalLegacyPage() {
                 Are cloud storage and social media enough?
               </h3>
               <p className="text-[#0F2040]/85">
-                Cloud drives store files, but they don’t preserve meaning.
-                Social media platforms change, compress data, or disappear.
-                Neither is designed for generational memory.
+                Cloud drives store files, but they don’t organise your story.
+                Social platforms prioritise feeds, not family history. Neither
+                is designed to grow a connected, intentional collection over
+                time.
               </p>
             </div>
 
             <div>
               <h3 className="text-xl font-semibold mb-2">
-                What types of memories should be preserved?
+                What types of memories should I capture?
               </h3>
               <p className="text-[#0F2040]/85">
-                Photos matter — but voices, stories, explanations, and personal
-                reflections often matter more. The context behind a memory is
-                what future generations value most.
+                Photos are powerful — but so are voice notes, reflections,
+                lessons, and personal stories. Often it’s the explanation behind
+                a moment that gives it lasting value.
               </p>
             </div>
           </div>
@@ -165,36 +165,36 @@ export default function DigitalLegacyPage() {
           <div className="relative w-full h-[420px] rounded-2xl overflow-hidden mb-10">
             <Image
               src="/family7.jpg"
-              alt="Preserving memories digitally for future generations"
+              alt="Family building a shared digital memory library"
               fill
               className="object-cover"
             />
           </div>
 
           <h2 className="text-3xl font-serif mb-6">
-            A private place to preserve your family’s story
+            A private living library for your family
           </h2>
 
           <p className="text-lg text-[#0F2040]/85 mb-6">
-            Ancestorii was built for families who want more than storage.
-            It’s a private, digital space designed to preserve memories with
-            intention — timelines, albums, voice recordings, and future messages.
+            Ancestorii is designed as a living family library — a private
+            digital space where stories, albums, timelines, and voice
+            recordings can be added over time.
           </p>
 
           <p className="text-lg text-[#0F2040]/85">
-            So one day, someone can understand not just what your life looked
-            like — but who you were.
+            It feels light to contribute to, easy to return to, and always
+            belongs entirely to your family.
           </p>
         </section>
 
         {/* CTA */}
         <section className="max-w-5xl mx-auto px-6 pb-28 text-center">
           <h2 className="text-3xl font-serif mb-6">
-            Start preserving your family history
+            Start building your family’s living library
           </h2>
 
           <p className="text-lg text-[#0F2040]/80 mb-8">
-            Create a digital legacy for the people who come after you.
+            Add one memory today. Let it grow naturally over time.
             Free to begin.
           </p>
 

@@ -4,9 +4,9 @@ import Footer from "@/components/Footer";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Why Ancestorii Exists | Preserving Family Memories",
+  title: "Why Ancestorii Exists | A Living Family Library",
   description:
-    "Why Ancestorii was created — a personal, private platform built to preserve family memories, voices, and stories for future generations.",
+    "Discover why Ancestorii was created. A personal and private space designed to capture family stories, voices, and memories as they happen and grow them into a living collection.",
   alternates: {
     canonical: "https://www.ancestorii.com/why-this-exists",
   },

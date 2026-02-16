@@ -8,10 +8,10 @@ export default function OldFamilyPhotosPage() {
       <Nav />
 
       <section className="relative overflow-hidden">
-        {/* soft archival glow */}
+        {/* soft glow */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
 
-        <div className="relative max-w-screen-md mx-auto px-6 pt-28 pb-24 space-y-16">
+        <div className="relative max-w-screen-md mx-auto px-6 pt-16 pb-24 space-y-16">
           {/* INTRO */}
           <header className="space-y-6">
             <p className="text-sm tracking-[0.25em] uppercase text-[#8F7A2A]">
@@ -25,9 +25,9 @@ export default function OldFamilyPhotosPage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl leading-relaxed">
-              Photos can survive for decades.
-              What often disappears is everything around them.
-              Names, places, dates, and the stories that made the moment matter.
+              Photos can last for decades.
+              What makes them meaningful is the story around them.
+              Names, places, emotions, and the reason the moment mattered.
             </p>
           </header>
 
@@ -35,65 +35,63 @@ export default function OldFamilyPhotosPage() {
           <article className="space-y-12 text-[1.05rem] sm:text-[1.15rem] leading-relaxed text-[#0F2040]/75">
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-[#0F2040]">
-                Start by keeping them safe
+                Start by bringing them together
               </h2>
 
               <p>
                 The first step is simple.
-                Keep your photos in one place, protected from loss and damage.
-                Loose prints in drawers, boxes, or lofts are easy to misplace,
-                and easy to forget.
+                Gather your photos into one intentional place.
+                Loose prints in drawers, boxes, or lofts often become
+                disconnected from the rest of the family story.
               </p>
 
               <p>
-                You do not need to organise everything perfectly on day one.
-                You only need to stop the slow drift of memories becoming
-                scattered.
+                You do not need to organise everything perfectly at once.
+                You only need to stop the slow drift of memories becoming scattered.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-[#0F2040]">
-                Do not just store them, add meaning
+                Add context while it is still close
               </h2>
 
               <p>
-                A photo without context becomes a mystery.
-                Even within one generation, names can slip.
-                Two generations later, an important face can become unknown.
+                A photo on its own shows a moment.
+                Context turns it into a chapter.
               </p>
 
               <p>
-                The most valuable thing you can do is attach meaning while it is
-                still close.
-                Who is in the photo.
+                Add who is in the image.
                 Where it was taken.
-                Why it mattered.
+                What was happening in that season of life.
+                Why you still return to it.
+              </p>
+
+              <p>
+                Even a few sentences can transform an image into part of a growing collection.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-[#0F2040]">
-                Ask the one question that changes everything
+                Ask the question that unlocks stories
               </h2>
 
               <p>
-                If you have someone who recognises the people in the photo,
-                ask one question.
-                What is happening here.
+                If someone recognises the people in the photo, ask one simple question.
+                What was happening here.
               </p>
 
               <p>
-                That question often unlocks stories you would never think to ask
-                for directly.
-                How they felt in that moment.
-                What was happening in their life.
-                Why that day is remembered.
+                That question often brings out details you would not think to ask for directly.
+                How they felt.
+                What changed around that time.
+                Why that day stands out.
               </p>
 
               <p>
-                It is the difference between owning an image and preserving a
-                memory.
+                It is the difference between owning an image and expanding your family library.
               </p>
             </section>
 
@@ -104,22 +102,20 @@ export default function OldFamilyPhotosPage() {
 
               <p>
                 Choose five photos.
-                Not the most perfect ones.
-                The ones you feel drawn to.
+                Not necessarily the most perfect ones.
                 The ones that make you pause.
               </p>
 
               <p>
                 Add a sentence or two to each.
-                Record a short note if you can.
-                Keep them together, in one private place, so they do not get
-                lost again.
+                Record a short voice note if possible.
+                Keep them together in one structured, private place.
               </p>
 
               <p>
-                You do not need to preserve everything to preserve something
-                meaningful.
-                You only need to begin.
+                A living family library grows through small additions.
+                You do not need to organise everything.
+                You only need to add one memory today.
               </p>
             </section>
           </article>
@@ -127,9 +123,9 @@ export default function OldFamilyPhotosPage() {
           {/* SOFT CTA */}
           <section className="pt-12 sm:pt-20 text-center space-y-6">
             <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl mx-auto leading-relaxed">
-              If there is a photo you would not want to lose the story behind,
-              it may be worth saving it properly now.
-              A small note today can keep a memory alive for decades.
+              If there is a photo you return to often,
+              consider adding its story this week.
+              A few sentences now can turn an image into a lasting chapter.
             </p>
 
             <Link
@@ -147,7 +143,7 @@ export default function OldFamilyPhotosPage() {
                 transition
               "
             >
-              Begin preserving what matters
+              Start building your living library
             </Link>
           </section>
         </div>

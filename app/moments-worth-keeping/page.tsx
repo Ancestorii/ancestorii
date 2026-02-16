@@ -8,9 +8,8 @@ import Footer from '@/components/Footer';
 export const metadata: Metadata = {
   title: 'Moments Worth Keeping | Ancestorii',
   description:
-    'Moments Worth Keeping is a short podcast about memories, photos, and the small details that quietly shape a life. Each episode offers a few calm minutes to slow things down and reflect on what remains.',
+    'Moments Worth Keeping is a short podcast about capturing memories while life is happening. Each episode offers a few calm minutes to notice, record, and grow the small details that shape a family story.',
 };
-
 
 export default function MomentsWorthKeepingPage() {
   return (
@@ -29,10 +28,10 @@ export default function MomentsWorthKeepingPage() {
           className="object-cover opacity-[0.25] -z-10 pointer-events-none"
         />
 
-        {/* Soft archival light */}
+        {/* Soft light */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.55),transparent_60%)]" />
 
-        <div className="relative mx-auto max-w-2xl px-6 pt-28 pb-32">
+        <div className="relative mx-auto max-w-2xl px-6 pt-16 pb-32">
 
           {/* HEADER */}
           <header className="text-center mb-20 space-y-6">
@@ -45,10 +44,14 @@ export default function MomentsWorthKeepingPage() {
             </h1>
 
             <p className="text-base sm:text-lg leading-relaxed text-[#1F2A44]/70 max-w-xl mx-auto">
-              A short podcast about memories, photos, and the small details that
-              quietly shape a life. Each episode is a few calm minutes to slow
-              things down and reflect on what remains.
-            </p>
+  A short podcast about the moments we almost overlook.
+  <br className="hidden sm:block" />
+  The voices, stories, and details that shape a life.
+  <br className="hidden sm:block" />
+  A quiet reminder to capture them while they are here.
+</p>
+
+
 
             <div className="pt-6">
               <Link

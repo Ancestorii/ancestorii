@@ -37,21 +37,19 @@ export default function Hero() {
           "
         >
           <div
-  className="
-    mx-auto max-w-5xl px-4
-    text-center
-    text-[#3E3320]
-    text-base sm:text-lg
-    font-serif italic
-    tracking-normal
-    leading-relaxed
-    whitespace-nowrap
-  "
->
-  Private • Personal • Built For Generations
-</div>
-
-
+            className="
+              mx-auto max-w-5xl px-4
+              text-center
+              text-[#3E3320]
+              text-base sm:text-lg
+              font-serif italic
+              tracking-normal
+              leading-relaxed
+              whitespace-nowrap
+            "
+          >
+            Private • Personal • A Living Library
+          </div>
         </div>
 
         {/* TEXT SECTION */}
@@ -63,7 +61,7 @@ export default function Hero() {
               from-[#20222A] via-[#1A1C24] to-[#141720]
             "
           >
-            {/* MOBILE EDGE FADE (both sides) */}
+            {/* MOBILE EDGE FADE */}
             <div
               className="
                 absolute inset-0 z-[1] pointer-events-none
@@ -77,10 +75,8 @@ export default function Hero() {
               "
             />
 
-            {/* Particles */}
             <TextStarField />
 
-            {/* Text */}
             <div className="relative z-10">
               <HeroContent />
             </div>
@@ -96,7 +92,7 @@ export default function Hero() {
       <div className="hidden lg:flex flex-col min-h-screen">
         {/* Split */}
         <div className="flex-1 grid grid-cols-2">
-          {/* LEFT: TEXT + particles */}
+          {/* LEFT: TEXT */}
           <div
             className="
               relative flex items-center overflow-visible
@@ -104,7 +100,7 @@ export default function Hero() {
               from-[#20222A] via-[#1A1C24] to-[#141720]
             "
           >
-            {/* DESKTOP EDGE FADE (right side only – seam) */}
+            {/* Right seam fade */}
             <div
               className="
                 absolute inset-y-0 right-0 w-32 z-[1] pointer-events-none
@@ -114,10 +110,8 @@ export default function Hero() {
               "
             />
 
-            {/* Particles */}
             <TextStarField />
 
-            {/* Text */}
             <div className="relative z-10 w-full px-14 lg:px-20">
               <HeroContent />
             </div>
@@ -141,19 +135,18 @@ export default function Hero() {
           "
         >
           <div
-  className="
-    mx-auto max-w-5xl px-6
-    text-center
-    text-[#3E3320]
-    text-base sm:text-lg lg:text-2xl
-    font-serif italic
-    tracking-normal
-    leading-relaxed
-  "
->
-  Private • Personal • Built For Generations
-</div>
-
+            className="
+              mx-auto max-w-5xl px-6
+              text-center
+              text-[#3E3320]
+              text-base sm:text-lg lg:text-2xl
+              font-serif italic
+              tracking-normal
+              leading-relaxed
+            "
+          >
+            Private • Personal • A Living Library
+          </div>
         </div>
       </div>
     </section>

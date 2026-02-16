@@ -4,14 +4,13 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'How to Save Family Voices | Ancestorii',
+  title: 'How to Capture and Keep Family Voices | Ancestorii',
   description:
-    'A calm, practical guide on how to save family voices and recordings. Preserve the sound, tone, and presence of loved ones before they are lost.',
+    'A practical guide to capturing family voices and recordings while life is happening. Learn simple ways to record tone, personality, and presence as part of a growing family library.',
   alternates: {
     canonical: 'https://www.ancestorii.com/guides/how-to-save-family-voices',
   },
 };
-
 
 export default function SaveFamilyVoicesPage() {
   return (
@@ -19,10 +18,10 @@ export default function SaveFamilyVoicesPage() {
       <Nav />
 
       <section className="relative overflow-hidden">
-        {/* soft archival glow */}
+        {/* soft glow */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
 
-        <div className="relative max-w-screen-md mx-auto px-6 pt-28 pb-24 space-y-16">
+        <div className="relative max-w-screen-md mx-auto px-6 pt-16 pb-24 space-y-16">
           {/* INTRO */}
           <header className="space-y-6">
             <p className="text-sm tracking-[0.25em] uppercase text-[#8F7A2A]">
@@ -30,15 +29,15 @@ export default function SaveFamilyVoicesPage() {
             </p>
 
             <h1 className="text-[2.6rem] sm:text-[3.2rem] font-semibold leading-tight">
-              How to save
+              How to capture
               <br />
               <span className="italic text-[#E5C45C]">family voices</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl leading-relaxed">
               A voice carries more than words.
-              It carries tone, warmth, humour, and presence.
-              Often, it is the first thing we realise we miss.
+              It carries tone, humour, rhythm, and personality.
+              Recording it adds depth to your family story.
             </p>
           </header>
 
@@ -52,56 +51,63 @@ export default function SaveFamilyVoicesPage() {
               <p>
                 Photos show us how someone looked.
                 Stories tell us what they did.
-                But voices remind us who they were.
+                Voices remind us how they sound when they laugh,
+                explain something,
+                or tell a story in their own way.
               </p>
 
               <p>
-                The way someone laughed.
-                The pauses they took between words.
-                The way they said your name.
-                These details live in sound, not images.
+                It is often the small vocal details that make a memory feel
+                vivid and personal.
+              </p>
+
+              <p>
+                Capturing a voice keeps personality attached to the story.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-[#0F2040]">
-                Why voices are so easily lost
+                Why we rarely record them
               </h2>
 
               <p>
-                Most families do not think to record voices.
                 Conversations happen naturally.
-                Messages are deleted.
-                Old voicemails disappear when phones are replaced.
+                Voice notes feel temporary.
+                Messages are sent and forgotten.
               </p>
 
               <p>
-                We assume there will always be another call.
-                Another message.
-                Another chance to hear that familiar tone again.
+                Because voices feel present in everyday life,
+                we assume they do not need to be captured intentionally.
+              </p>
+
+              <p>
+                But a short recording today can become part of a collection
+                your family returns to again and again.
               </p>
             </section>
 
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-[#0F2040]">
-                What makes a voice worth keeping
+                What makes a voice meaningful to keep
               </h2>
 
               <p>
-                A saved voice does not need to be formal.
+                A recording does not need to be formal.
                 It does not need a script.
-                Often, the most meaningful recordings are simple.
+                It does not need studio quality.
               </p>
 
               <p>
+                Often, the most powerful recordings are simple.
                 A short story.
-                A message to the future.
-                An explanation of why a moment mattered.
+                A reflection on a life lesson.
+                An explanation of why something mattered.
               </p>
 
               <p>
-                What matters is not perfection.
-                What matters is presence.
+                What gives a voice meaning is context and authenticity.
               </p>
             </section>
 
@@ -111,20 +117,20 @@ export default function SaveFamilyVoicesPage() {
               </h2>
 
               <p>
-                Start with one person.
-                Ask them to speak about a memory they enjoy returning to.
-                Let them speak in their own words.
+                Choose one person.
+                Ask them to speak about a memory they enjoy revisiting.
+                Let them talk naturally, without overthinking it.
               </p>
 
               <p>
-                Keep the recording private.
-                Store it somewhere intentional.
-                Label it clearly, while the context is still fresh.
+                Add a short description while the moment is fresh.
+                Place it somewhere private and structured,
+                so it becomes part of a growing family collection.
               </p>
 
               <p>
-                Saving a voice does not require a perfect setup.
-                It only requires the decision to listen and record.
+                Capturing a voice does not require perfect timing.
+                It only requires deciding that this moment is worth adding.
               </p>
             </section>
           </article>
@@ -132,9 +138,10 @@ export default function SaveFamilyVoicesPage() {
           {/* SOFT CTA */}
           <section className="pt-12 sm:pt-20 text-center space-y-6">
             <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl mx-auto leading-relaxed">
-              If this guide brings someone to mind, you do not need to wait.
-              Voices fade quietly, often without warning.
-              Preserving one now can mean hearing it again when it matters most.
+              If someone comes to mind while reading this,
+              consider recording a short voice note this week.
+              Small contributions, added consistently,
+              grow into a living family library over time.
             </p>
 
             <Link
@@ -152,7 +159,7 @@ export default function SaveFamilyVoicesPage() {
                 transition
               "
             >
-              Begin preserving what matters
+              Start building your living library
             </Link>
           </section>
         </div>
