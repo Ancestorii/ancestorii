@@ -27,6 +27,24 @@ export default function SignupForm() {
 
   const strength = getStrength(password);
 
+  // ---------------------------
+// GOOGLE SIGNUP
+// ---------------------------
+const handleGoogleSignup = async () => {
+  setError('');
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    setError(error.message);
+  }
+};
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -103,6 +121,31 @@ export default function SignupForm() {
       <h1 className="text-3xl font-extrabold text-[#0f2040] text-center">
         Create your Ancestorii account
       </h1>
+      {/* Google Signup */}
+<button
+  type="button"
+  onClick={handleGoogleSignup}
+  className="w-full mb-5 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-gray-300 bg-white hover:bg-gray-50 transition"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 48 48"
+    className="h-5 w-5"
+  >
+    <path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.1-6.1C34.6 2.4 29.7 0 24 0 14.6 0 6.4 5.8 2.6 14.2l7.5 5.8C12.1 13.2 17.6 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4H24v7.6h12.6c-.3 2-1.6 5-4.4 7l6.8 5.3c4-3.7 7.1-9.2 7.1-15.9z"/>
+    <path fill="#FBBC05" d="M10.1 28c-1-3-1-6.2 0-9.2l-7.5-5.8C.9 16.3 0 20 0 24c0 4 1 7.7 2.6 11l7.5-5.8z"/>
+    <path fill="#34A853" d="M24 48c6.5 0 12-2.1 16-5.8l-6.8-5.3c-1.9 1.3-4.5 2.2-9.2 2.2-6.4 0-11.9-3.7-13.9-8.5l-7.5 5.8C6.4 42.2 14.6 48 24 48z"/>
+  </svg>
+  Continue with Google
+</button>
+
+<div className="flex items-center my-4">
+  <div className="flex-grow h-px bg-gray-200" />
+  <span className="px-3 text-sm text-gray-400">or</span>
+  <div className="flex-grow h-px bg-gray-200" />
+</div>
+
 
       <form onSubmit={onSubmit} className="mt-6 space-y-5">
         <div>
