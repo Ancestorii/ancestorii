@@ -4,24 +4,29 @@ import { useState } from "react";
 
 const faqs = [
   {
-    question: "What is Ancestorii designed for?",
+    question: "Who was Ancestorii made for?",
     answer:
-      "Ancestorii is a private digital space where you can capture stories, photos, voice notes, and everyday moments as they happen. It is designed to grow into a living family library over time, not just store files.",
+      "Ancestorii was created for families who want to capture stories, voices, and meaningful moments while life is happening. It is for parents, grandparents, and anyone who wants their family story to remain clear and personal over time.",
   },
   {
-    question: "How do I start?",
+    question: "What makes Ancestorii different from cloud storage?",
     answer:
-      "Start small. Add one photo and write a few sentences about why it matters. Record a short voice note. You do not need to organise everything at once. The library grows naturally, one memory at a time.",
+      "Cloud storage keeps files. Ancestorii helps you build a living family library. Instead of scattered folders, you create timelines, albums, written memories, and voice notes that grow into a meaningful collection over time.",
   },
   {
-    question: "Is everything private?",
+    question: "How do I start building my family library?",
     answer:
-      "Yes. Everything you add remains private by default. Only you and anyone you choose to invite can access your collection.",
+      "Start small. Add one photo and explain why it matters. Record a short voice note. Write a memory from today. You do not need to organise everything at once. The library grows naturally, one memory at a time.",
   },
   {
-    question: "How much space do I get?",
+    question: "Is everything I add private?",
     answer:
-      "Basic includes 25GB, Standard offers 250GB, and Premium provides 500GB. Enough space to build and expand your family library comfortably.",
+      "Yes. Everything is private by default. Only you and anyone you choose to invite can access your collection. Nothing is public and nothing is sold.",
+  },
+  {
+    question: "How secure is Ancestorii?",
+    answer:
+      "Your memories are stored securely using modern encryption standards. Access is protected, and your data remains under your control. Ancestorii is built to protect family memories long term.",
   },
   {
     question: "Can I cancel anytime?",
@@ -29,12 +34,16 @@ const faqs = [
       "Yes. You can cancel whenever you choose. Your access remains active until the end of your billing period. There are no contracts and no hidden fees.",
   },
   {
+    question: "How much storage space do I get?",
+    answer:
+      "Basic includes 25GB, Standard offers 250GB, and Premium provides 500GB. This gives you room to build and expand your living family library comfortably.",
+  },
+  {
     question: "What happens if I stop paying?",
     answer:
-      "Your account is paused, and your data remains safely retained until your plan ends. You can reactivate at any time and continue building your library.",
+      "Your account is safely paused, and your data remains retained until your plan ends. You can reactivate at any time and continue building your library.",
   },
 ];
-
 
 export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);

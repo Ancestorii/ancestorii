@@ -3,13 +3,14 @@ import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 import { ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: 'Family Memory Guides | Ancestorii',
   description:
     'Practical guides on capturing stories, voices, and photos while life is happening. Learn how to begin building your family library with clarity and intention.',
   alternates: {
-    canonical: 'https://www.ancestorii.com/guides/what-to-do-with-old-family-photos',
+    canonical: 'https://www.ancestorii.com/guides',
   },
 };
 
@@ -40,105 +41,166 @@ const guides = [
 /* ---------------- PAGE ---------------- */
 export default function GuidesPage() {
   return (
-    <main className="bg-[#FFFDF6] text-[#0F2040]">
-      <Nav />
+    <>
+      {/* Collection Page Schema */}
+      <Script
+        id="collection-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "@id": "https://www.ancestorii.com/guides",
+          name: "Family Memory Guides",
+          description:
+            "A collection of practical guides for building a living family library by capturing stories, voices, and meaningful moments while life unfolds.",
+          url: "https://www.ancestorii.com/guides",
+          mainEntity: {
+            "@type": "ItemList",
+            itemListElement: guides.map((guide, index) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              name: guide.title,
+              url: `https://www.ancestorii.com${guide.href}`
+            }))
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "Ancestorii",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://www.ancestorii.com/logo1.png"
+            }
+          }
+        })}
+      </Script>
 
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_85%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
+      {/* Breadcrumb Schema */}
+      <Script
+        id="breadcrumb-schema-guides"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: "https://www.ancestorii.com/"
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Guides",
+              item: "https://www.ancestorii.com/guides"
+            }
+          ]
+        })}
+      </Script>
 
-        <div className="relative max-w-screen-lg mx-auto px-6 pt-16 pb-24 space-y-20">
+      <main className="bg-[#FFFDF6] text-[#0F2040]">
+        <Nav />
 
-          {/* INTRO */}
-          <div className="max-w-2xl">
-            <p className="text-sm tracking-[0.25em] text-[#8F7A2A] uppercase mb-4">
-              Guides
-            </p>
+        <section className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_85%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
 
-            <h1 className="text-[2.8rem] sm:text-[3.4rem] font-semibold leading-tight">
-  Practical steps for{' '}
-  <span className="italic text-[#E5C45C]">
-    building your family library
-  </span>
-</h1>
+          <div className="relative max-w-screen-lg mx-auto px-6 pt-16 pb-24 space-y-20">
 
+            {/* INTRO */}
+            <div className="max-w-2xl">
+              <p className="text-sm tracking-[0.25em] text-[#8F7A2A] uppercase mb-4">
+                Guides
+              </p>
 
-            <p className="mt-6 text-base sm:text-lg text-[#0F2040]/65 max-w-xl">
-              These guides are written for moments when you feel ready to begin.
-              Each one offers simple ways to add meaning to photos, stories, and voices.
-            </p>
-          </div>
+              <h1 className="text-[2.8rem] sm:text-[3.4rem] font-semibold leading-tight">
+                Practical steps for{' '}
+                <span className="italic text-[#E5C45C]">
+                  building your family library
+                </span>
+              </h1>
 
-          {/* GUIDES LIST */}
-          <div className="grid gap-y-6 sm:gap-y-8 max-w-3xl">
-            {guides.map((guide, i) => (
+              <p className="mt-6 text-base sm:text-lg text-[#0F2040]/65 max-w-xl">
+                These guides are written for moments when you feel ready to begin.
+                Each one offers simple ways to add meaning to photos, stories, and voices.
+              </p>
+            </div>
+            
+            {/* GUIDES LIST */}
+            <div className="grid gap-y-6 sm:gap-y-8 max-w-3xl">
+              {guides.map((guide, i) => (
+                <Link
+                  key={i}
+                  href={guide.href}
+                  className="
+                    group
+                    flex items-start gap-6
+                    rounded-xl
+                    border border-[#E5C45C]/30
+                    bg-[#FFFDF6]
+                    px-6 py-6
+                    transition
+                    hover:bg-[#FFFBEE]
+                    hover:shadow-md
+                  "
+                >
+                  <div className="flex-1">
+                    <h2 className="text-xl sm:text-2xl font-semibold">
+                      {guide.title}
+                    </h2>
+
+                    <p className="mt-2 text-base text-[#1F2A44]/60 max-w-xl leading-relaxed">
+                      {guide.desc}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 opacity-40 transition group-hover:opacity-100 group-hover:translate-x-1">
+                    <ArrowRight className="w-5 h-5 text-[#8F7A2A]" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* CLOSING */}
+            <section className="text-center pt-6">
+              <h2 className="text-[1.9rem] sm:text-[2.6rem] font-serif mb-6 text-[#0F2040]">
+                Start with one addition.
+              </h2>
+
+              <p className="text-base sm:text-xl text-[#0F2040]/65 max-w-2xl mx-auto mb-10 leading-relaxed">
+                A photo with context.
+                A short story.
+                A voice note.
+                Small entries build something lasting.
+              </p>
+
               <Link
-                key={i}
-                href={guide.href}
+                href="/signup"
                 className="
-                  group
-                  flex items-start gap-6
-                  rounded-xl
-                  border border-[#E5C45C]/30
-                  bg-[#FFFDF6]
-                  px-6 py-6
+                  inline-flex items-center
+                  rounded-full
+                  bg-[#E6C26E]
+                  hover:bg-[#F3D99B]
+                  px-8 py-4
+                  text-base sm:text-lg
+                  font-semibold
+                  text-[#1F2837]
+                  shadow-md
                   transition
-                  hover:bg-[#FFFBEE]
-                  hover:shadow-md
                 "
               >
-                <div className="flex-1">
-                  <h2 className="text-xl sm:text-2xl font-semibold">
-                    {guide.title}
-                  </h2>
-
-                  <p className="mt-2 text-base text-[#1F2A44]/60 max-w-xl leading-relaxed">
-                    {guide.desc}
-                  </p>
-                </div>
-
-                <div className="mt-3 opacity-40 transition group-hover:opacity-100 group-hover:translate-x-1">
-                  <ArrowRight className="w-5 h-5 text-[#8F7A2A]" />
-                </div>
+                Begin building your library
               </Link>
-            ))}
+            </section>
+
           </div>
+        </section>
 
-          {/* CLOSING */}
-          <section className="text-center pt-6">
-            <h2 className="text-[1.9rem] sm:text-[2.6rem] font-serif mb-6 text-[#0F2040]">
-              Start with one addition.
-            </h2>
-
-            <p className="text-base sm:text-xl text-[#0F2040]/65 max-w-2xl mx-auto mb-10 leading-relaxed">
-              A photo with context.  
-              A short story.  
-              A voice note.  
-              Small entries build something lasting.
-            </p>
-
-            <Link
-              href="/signup"
-              className="
-                inline-flex items-center
-                rounded-full
-                bg-[#E6C26E]
-                hover:bg-[#F3D99B]
-                px-8 py-4
-                text-base sm:text-lg
-                font-semibold
-                text-[#1F2837]
-                shadow-md
-                transition
-              "
-            >
-              Begin building your library
-            </Link>
-          </section>
-
-        </div>
-      </section>
-
-      <Footer />
-    </main>
+        <Footer />
+      </main>
+    </>
   );
 }

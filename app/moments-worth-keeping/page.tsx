@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import Script from "next/script";
 
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
@@ -14,6 +15,84 @@ export const metadata: Metadata = {
 export default function MomentsWorthKeepingPage() {
   return (
     <>
+        {/* Podcast Series Schema */}
+      <Script
+        id="podcast-series-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "PodcastSeries",
+          "@id": "https://www.ancestorii.com/moments-worth-keeping",
+          name: "Moments Worth Keeping",
+          description:
+            "A short podcast about capturing memories while life is happening. Each episode offers calm reflections on stories, voices, and moments that shape a family story.",
+          url: "https://www.ancestorii.com/moments-worth-keeping",
+          image: "https://www.ancestorii.com/og-image.jpg",
+          publisher: {
+            "@type": "Organization",
+            name: "Ancestorii",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://www.ancestorii.com/logo1.png"
+            }
+          }
+        })}
+      </Script>
+
+      {/* Podcast Episode Schema */}
+      <Script
+        id="podcast-episode-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "PodcastEpisode",
+          "@id": "https://www.ancestorii.com/moments-worth-keeping#episode-1",
+          name: "An Introduction",
+          description:
+            "The first episode of Moments Worth Keeping, introducing the idea of capturing small moments, voices, and stories while life is unfolding.",
+          partOfSeries: {
+            "@type": "PodcastSeries",
+            "@id": "https://www.ancestorii.com/moments-worth-keeping"
+          },
+          datePublished: "2026-02-10",
+          url: "https://open.spotify.com/show/0fR2O7fyOBB98yGlRpRsiJ",
+          publisher: {
+            "@type": "Organization",
+            name: "Ancestorii"
+          }
+        })}
+      </Script>
+
+      {/* Breadcrumb Schema */}
+      <Script
+        id="breadcrumb-schema-podcast"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: "https://www.ancestorii.com/"
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Podcast",
+              item: "https://www.ancestorii.com/moments-worth-keeping"
+            }
+          ]
+        })}
+      </Script>
+
       <Nav />
 
       <main className="relative isolate bg-[#FFFDF6] text-[#0F2040]">
@@ -44,14 +123,12 @@ export default function MomentsWorthKeepingPage() {
             </h1>
 
             <p className="text-base sm:text-lg leading-relaxed text-[#1F2A44]/70 max-w-xl mx-auto">
-  A short podcast about the moments we almost overlook.
-  <br className="hidden sm:block" />
-  The voices, stories, and details that shape a life.
-  <br className="hidden sm:block" />
-  A quiet reminder to capture them while they are here.
-</p>
-
-
+              A short podcast about the moments we almost overlook.
+              <br className="hidden sm:block" />
+              The voices, stories, and details that shape a life.
+              <br className="hidden sm:block" />
+              A quiet reminder to capture them while they are here.
+            </p>
 
             <div className="pt-6">
               <Link
@@ -88,7 +165,6 @@ export default function MomentsWorthKeepingPage() {
               </p>
             </article>
 
-            {/* Future episodes go here */}
           </section>
 
         </div>

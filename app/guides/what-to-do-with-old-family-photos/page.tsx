@@ -1,35 +1,103 @@
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import Script from "next/script";
 
 export default function OldFamilyPhotosPage() {
   return (
-    <main className="bg-[#FFFDF6] text-[#0F2040]">
-      <Nav />
+    <>
+      {/* Article Schema */}
+      <Script
+        id="article-schema-old-photos"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "@id": "https://www.ancestorii.com/guides/what-to-do-with-old-family-photos",
+          headline: "What to do with old family photos",
+          description:
+            "A practical guide on how to preserve old family photos by adding context, stories, and meaning so each image becomes part of a living family library.",
+          author: {
+            "@type": "Organization",
+            name: "Ancestorii"
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "Ancestorii",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://www.ancestorii.com/logo1.png"
+            }
+          },
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": "https://www.ancestorii.com/guides/what-to-do-with-old-family-photos"
+          },
+          datePublished: "2026-02-10",
+          dateModified: "2026-02-10"
+        })}
+      </Script>
 
-      <section className="relative overflow-hidden">
-        {/* soft glow */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
+      {/* Breadcrumb Schema */}
+      <Script
+        id="breadcrumb-schema-old-photos"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: "https://www.ancestorii.com/"
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Guides",
+              item: "https://www.ancestorii.com/guides"
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: "What to do with old family photos",
+              item: "https://www.ancestorii.com/guides/what-to-do-with-old-family-photos"
+            }
+          ]
+        })}
+      </Script>
 
-        <div className="relative max-w-screen-md mx-auto px-6 pt-16 pb-24 space-y-16">
-          {/* INTRO */}
-          <header className="space-y-6">
-            <p className="text-sm tracking-[0.25em] uppercase text-[#8F7A2A]">
-              Guide
-            </p>
+      <main className="bg-[#FFFDF6] text-[#0F2040]">
+        <Nav />
 
-            <h1 className="text-[2.6rem] sm:text-[3.2rem] font-semibold leading-tight">
-              What to do with
-              <br />
-              <span className="italic text-[#E5C45C]">old family photos</span>
-            </h1>
+        <section className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
 
-            <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl leading-relaxed">
-              Photos can last for decades.
-              What makes them meaningful is the story around them.
-              Names, places, emotions, and the reason the moment mattered.
-            </p>
-          </header>
+          <div className="relative max-w-screen-md mx-auto px-6 pt-16 pb-24 space-y-16">
+
+            {/* INTRO */}
+            <header className="space-y-6">
+              <p className="text-sm tracking-[0.25em] uppercase text-[#8F7A2A]">
+                Guide
+              </p>
+
+              <h1 className="text-[2.6rem] sm:text-[3.2rem] font-semibold leading-tight">
+                What to do with
+                <br />
+                <span className="italic text-[#E5C45C]">old family photos</span>
+              </h1>
+
+              <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl leading-relaxed">
+                Photos can last for decades.
+                What makes them meaningful is the story around them.
+                Names, places, emotions, and the reason the moment mattered.
+              </p>
+            </header>
 
           {/* CONTENT */}
           <article className="space-y-12 text-[1.05rem] sm:text-[1.15rem] leading-relaxed text-[#0F2040]/75">
@@ -120,36 +188,38 @@ export default function OldFamilyPhotosPage() {
             </section>
           </article>
 
-          {/* SOFT CTA */}
-          <section className="pt-12 sm:pt-20 text-center space-y-6">
-            <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl mx-auto leading-relaxed">
-              If there is a photo you return to often,
-              consider adding its story this week.
-              A few sentences now can turn an image into a lasting chapter.
-            </p>
+           {/* SOFT CTA */}
+            <section className="pt-12 sm:pt-20 text-center space-y-6">
+              <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl mx-auto leading-relaxed">
+                If there is a photo you return to often,
+                consider adding its story this week.
+                A few sentences now can turn an image into a lasting chapter.
+              </p>
 
-            <Link
-              href="/signup"
-              className="
-                inline-flex items-center
-                rounded-full
-                bg-[#E6C26E]
-                hover:bg-[#F3D99B]
-                px-8 py-4
-                text-base sm:text-lg
-                font-semibold
-                text-[#1F2837]
-                shadow-md
-                transition
-              "
-            >
-              Start building your living library
-            </Link>
-          </section>
-        </div>
-      </section>
+              <Link
+                href="/signup"
+                className="
+                  inline-flex items-center
+                  rounded-full
+                  bg-[#E6C26E]
+                  hover:bg-[#F3D99B]
+                  px-8 py-4
+                  text-base sm:text-lg
+                  font-semibold
+                  text-[#1F2837]
+                  shadow-md
+                  transition
+                "
+              >
+                Start building your living library
+              </Link>
+            </section>
 
-      <Footer />
-    </main>
+          </div>
+        </section>
+
+        <Footer />
+      </main>
+    </>
   );
 }

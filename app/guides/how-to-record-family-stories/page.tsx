@@ -2,6 +2,7 @@ import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: 'How to Record Family Stories and Voices | Ancestorii',
@@ -12,35 +13,100 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SaveFamilyVoicesPage() {
+export default function RecordFamilyStoriesPage() {
   return (
-    <main className="bg-[#FFFDF6] text-[#0F2040]">
-      <Nav />
+    <>
+      {/* Article Schema */}
+      <Script
+        id="article-schema-record-stories"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: "How to record family stories and voices",
+          description:
+            "A practical guide to recording family stories and voices while life is happening, helping you build a living family library over time.",
+          author: {
+            "@type": "Organization",
+            name: "Ancestorii"
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "Ancestorii",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://www.ancestorii.com/logo1.png"
+            }
+          },
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": "https://www.ancestorii.com/guides/how-to-record-family-stories"
+          },
+          datePublished: "2026-02-10",
+          dateModified: "2026-02-10"
+        })}
+      </Script>
 
-      <section className="relative overflow-hidden">
-        {/* soft glow */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
+      {/* Breadcrumb Schema */}
+      <Script
+        id="breadcrumb-schema-record-stories"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: "https://www.ancestorii.com/"
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Guides",
+              item: "https://www.ancestorii.com/guides"
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: "How to Record Family Stories and Voices",
+              item: "https://www.ancestorii.com/guides/how-to-record-family-stories"
+            }
+          ]
+        })}
+      </Script>
 
-        <div className="relative max-w-screen-md mx-auto px-6 pt-16 pb-24 space-y-16">
-          {/* INTRO */}
-          <header className="space-y-6">
-            <p className="text-sm tracking-[0.25em] uppercase text-[#8F7A2A]">
-              Guide
-            </p>
+      <main className="bg-[#FFFDF6] text-[#0F2040]">
+        <Nav />
 
-            <h1 className="text-[2.6rem] sm:text-[3.2rem] font-semibold leading-tight">
-              How to record
-              <br />
-              <span className="italic text-[#E5C45C]">family voices</span>
-            </h1>
+        <section className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
 
-            <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl leading-relaxed">
-              A voice carries more than words.
-              It carries tone, personality, humour, and presence.
-              Capturing it while life is unfolding keeps that presence alive.
-            </p>
-          </header>
+          <div className="relative max-w-screen-md mx-auto px-6 pt-16 pb-24 space-y-16">
+            {/* INTRO */}
+            <header className="space-y-6">
+              <p className="text-sm tracking-[0.25em] uppercase text-[#8F7A2A]">
+                Guide
+              </p>
 
+              <h1 className="text-[2.6rem] sm:text-[3.2rem] font-semibold leading-tight">
+                How to record
+                <br />
+                <span className="italic text-[#E5C45C]">family voices</span>
+              </h1>
+
+              <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl leading-relaxed">
+                A voice carries more than words.
+                It carries tone, personality, humour, and presence.
+                Capturing it while life is unfolding keeps that presence alive.
+              </p>
+            </header>
+            
           {/* CONTENT */}
           <article className="space-y-12 text-[1.05rem] sm:text-[1.15rem] leading-relaxed text-[#0F2040]/75">
             <section className="space-y-4">
@@ -138,37 +204,39 @@ export default function SaveFamilyVoicesPage() {
             </section>
           </article>
 
-          {/* SOFT CTA */}
-          <section className="pt-12 sm:pt-20 text-center space-y-6">
-            <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl mx-auto leading-relaxed">
-              If someone comes to mind while reading this,
-              consider capturing a short voice note this week.
-              Small recordings, added consistently, become a powerful
-              part of a living family library.
-            </p>
+           {/* SOFT CTA */}
+            <section className="pt-12 sm:pt-20 text-center space-y-6">
+              <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl mx-auto leading-relaxed">
+                If someone comes to mind while reading this,
+                consider capturing a short voice note this week.
+                Small recordings, added consistently, become a powerful
+                part of a living family library.
+              </p>
 
-            <Link
-              href="/signup"
-              className="
-                inline-flex items-center
-                rounded-full
-                bg-[#E6C26E]
-                hover:bg-[#F3D99B]
-                px-8 py-4
-                text-base sm:text-lg
-                font-semibold
-                text-[#1F2837]
-                shadow-md
-                transition
-              "
-            >
-              Start building your living library
-            </Link>
-          </section>
-        </div>
-      </section>
+              <Link
+                href="/signup"
+                className="
+                  inline-flex items-center
+                  rounded-full
+                  bg-[#E6C26E]
+                  hover:bg-[#F3D99B]
+                  px-8 py-4
+                  text-base sm:text-lg
+                  font-semibold
+                  text-[#1F2837]
+                  shadow-md
+                  transition
+                "
+              >
+                Start building your living library
+              </Link>
+            </section>
 
-      <Footer />
-    </main>
+          </div>
+        </section>
+
+        <Footer />
+      </main>
+    </>
   );
 }

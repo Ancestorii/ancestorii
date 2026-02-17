@@ -2,6 +2,7 @@ import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: 'How to Capture and Grow Family Memories | Ancestorii',
@@ -14,34 +15,99 @@ export const metadata: Metadata = {
 
 export default function PreserveFamilyMemoriesPage() {
   return (
-    <main className="bg-[#FFFDF6] text-[#0F2040]">
-      <Nav />
+    <>
+      {/* Article Schema */}
+      <Script
+        id="article-schema-preserve-memories"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: "How to capture and grow family memories",
+          description:
+            "A practical guide to capturing stories, voices, and meaningful moments while life is happening, helping you build a living family library over time.",
+          author: {
+            "@type": "Organization",
+            name: "Ancestorii"
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "Ancestorii",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://www.ancestorii.com/logo1.png"
+            }
+          },
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": "https://www.ancestorii.com/guides/how-to-preserve-family-memories"
+          },
+          datePublished: "2026-02-10",
+          dateModified: "2026-02-10"
+        })}
+      </Script>
 
-      <section className="relative overflow-hidden">
-        {/* soft glow */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
+      {/* Breadcrumb Schema */}
+      <Script
+        id="breadcrumb-schema-preserve-memories"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: "https://www.ancestorii.com/"
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Guides",
+              item: "https://www.ancestorii.com/guides"
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: "How to Capture and Grow Family Memories",
+              item: "https://www.ancestorii.com/guides/how-to-preserve-family-memories"
+            }
+          ]
+        })}
+      </Script>
 
-        <div className="relative max-w-screen-md mx-auto px-6 pt-16 pb-24 space-y-16">
-          {/* INTRO */}
-          <header className="space-y-6">
-            <p className="text-sm tracking-[0.25em] uppercase text-[#8F7A2A]">
-              Guide
-            </p>
+      <main className="bg-[#FFFDF6] text-[#0F2040]">
+        <Nav />
 
-            <h1 className="text-[2.6rem] sm:text-[3.2rem] font-semibold leading-tight">
-              How to capture and grow
-              <br />
-              <span className="italic text-[#E5C45C]">family memories</span>
-            </h1>
+        <section className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_80%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
 
-            <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl leading-relaxed">
-              Most families do not lose their memories in a single moment.
-              They simply move on to the next day.
-              The next task.
-              The next season of life.
-              And small stories get left behind.
-            </p>
-          </header>
+          <div className="relative max-w-screen-md mx-auto px-6 pt-16 pb-24 space-y-16">
+            {/* INTRO */}
+            <header className="space-y-6">
+              <p className="text-sm tracking-[0.25em] uppercase text-[#8F7A2A]">
+                Guide
+              </p>
+
+              <h1 className="text-[2.6rem] sm:text-[3.2rem] font-semibold leading-tight">
+                How to capture and grow
+                <br />
+                <span className="italic text-[#E5C45C]">family memories</span>
+              </h1>
+
+              <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl leading-relaxed">
+                Most families do not lose their memories in a single moment.
+                They simply move on to the next day.
+                The next task.
+                The next season of life.
+                And small stories get left behind.
+              </p>
+            </header>
 
           {/* CONTENT */}
           <article className="space-y-12 text-[1.05rem] sm:text-[1.15rem] leading-relaxed text-[#0F2040]/75">
@@ -146,35 +212,37 @@ export default function PreserveFamilyMemoriesPage() {
           </article>
 
           {/* SOFT CTA */}
-          <section className="pt-12 sm:pt-20 text-center space-y-6">
-            <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl mx-auto leading-relaxed">
-              If this feels like something you have been meaning to do,
-              you do not need a perfect system.
-              You only need a place to begin.
-            </p>
+            <section className="pt-12 sm:pt-20 text-center space-y-6">
+              <p className="text-lg sm:text-xl text-[#0F2040]/65 max-w-xl mx-auto leading-relaxed">
+                If this feels like something you have been meaning to do,
+                you do not need a perfect system.
+                You only need a place to begin.
+              </p>
 
-            <Link
-              href="/signup"
-              className="
-                inline-flex items-center
-                rounded-full
-                bg-[#E6C26E]
-                hover:bg-[#F3D99B]
-                px-8 py-4
-                text-base sm:text-lg
-                font-semibold
-                text-[#1F2837]
-                shadow-md
-                transition
-              "
-            >
-              Start building your living library
-            </Link>
-          </section>
-        </div>
-      </section>
+              <Link
+                href="/signup"
+                className="
+                  inline-flex items-center
+                  rounded-full
+                  bg-[#E6C26E]
+                  hover:bg-[#F3D99B]
+                  px-8 py-4
+                  text-base sm:text-lg
+                  font-semibold
+                  text-[#1F2837]
+                  shadow-md
+                  transition
+                "
+              >
+                Start building your living library
+              </Link>
+            </section>
 
-      <Footer />
-    </main>
+          </div>
+        </section>
+
+        <Footer />
+      </main>
+    </>
   );
 }

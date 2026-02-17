@@ -1,4 +1,3 @@
-
 import Nav from '@/components/Nav';
 import Hero from '@/components/Hero';
 import Faq from '@/components/Faq';
@@ -67,7 +66,58 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-          {/* 🟢 SOFTWARE APPLICATION SCHEMA */}
+      {/* WebSite Schema */}
+      <Script
+        id="website-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Ancestorii",
+          url: "https://www.ancestorii.com",
+          description:
+            "Ancestorii is a private living family library where stories, voices, and everyday moments are captured while life is happening.",
+        })}
+      </Script>
+
+      {/* WebPage Schema */}
+      <Script
+        id="webpage-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "Ancestorii A Living Family Library",
+          description:
+            "Build a living family library by capturing stories, voices, and meaningful moments in a private space designed to grow over time.",
+          url: "https://www.ancestorii.com/",
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Ancestorii",
+          },
+        })}
+      </Script>
+
+      {/* Organization Schema */}
+      <Script
+        id="organization-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Ancestorii",
+          url: "https://www.ancestorii.com",
+          logo: "https://www.ancestorii.com/logo1.png",
+        })}
+      </Script>
+
+      {/* Software Application Schema */}
       <Script
         id="software-app-schema"
         type="application/ld+json"
@@ -81,7 +131,7 @@ export default function HomePage() {
           operatingSystem: "Web",
           url: "https://www.ancestorii.com",
           description:
-            "Ancestorii is a private digital legacy platform that helps families preserve stories, voices, and memories for future generations.",
+            "A private web platform that helps families build a living library of stories, voices, and moments as life unfolds.",
           offers: {
             "@type": "Offer",
             price: "0",
@@ -89,6 +139,63 @@ export default function HomePage() {
           },
         })}
       </Script>
+
+            {/* FAQ Schema */}
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "@id": "https://www.ancestorii.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Who was Ancestorii made for?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ancestorii was created for families who want to capture stories, voices, and meaningful moments while life is happening. It is designed for parents, grandparents, and anyone who wants their family story to remain personal and clear over time."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do I start?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Start with one memory. Add a photo and write a few sentences about why it matters. Record a short voice note. The library grows naturally, one entry at a time."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is everything private?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Everything is private by default. Only you and anyone you choose to invite can access your collection."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What makes Ancestorii different from cloud storage?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Cloud storage keeps files. Ancestorii helps you build a living family library with timelines, albums, written memories, and voice notes that connect stories together over time."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I cancel anytime?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. You can cancel whenever you choose. Your access remains active until the end of your billing period. There are no contracts and no hidden fees."
+              }
+            }
+          ]
+        })}
+      </Script>
+
+
       <main className="bg-[#fff9ee] text-[#0F2040]">
         <Nav />
         <Hero />
@@ -96,7 +203,7 @@ export default function HomePage() {
         <Founder />
         <PodcastPreview />
         <HowItWorks />
-        <WhatsIncluded/>
+        <WhatsIncluded />
         <GuidesPreview />
         <Faq />
         <Contact />
@@ -105,4 +212,3 @@ export default function HomePage() {
     </>
   );
 }
-

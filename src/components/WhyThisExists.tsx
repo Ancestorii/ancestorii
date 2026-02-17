@@ -25,7 +25,7 @@ export default function WhyThisExists() {
 
       <div className="relative">
 
-        <section className="mx-auto max-w-[680px] px-5 pt-20 pb-24">
+        <section className="mx-auto max-w-[680px] px-5 pt-16 pb-24">
 
           {/* HEADER */}
           <header className="pt-8 md:pt-12 mb-16 text-center">
