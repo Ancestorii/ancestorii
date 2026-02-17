@@ -1,10 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { BookOpen, Mic, Image, ScrollText, ArrowRight } from 'lucide-react';
+import { BookOpen, Mic, Image, ScrollText, Library, ArrowRight } from 'lucide-react';
 
 /* ---------------- DATA ---------------- */
 const guides = [
+  {
+  title: 'Living library vs digital vault',
+  desc: 'Not all memory platforms are built the same. Some store files. Others help stories grow.',
+  href: '/guides/living-library-vs-digital-vault',
+  icon: Library,
+},
+
   {
     title: 'How to preserve family memories',
     desc: 'Because memories fade quietly, long before we realise they are leaving.',

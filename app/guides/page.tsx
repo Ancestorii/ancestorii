@@ -17,6 +17,12 @@ export const metadata: Metadata = {
 /* ---------------- DATA ---------------- */
 const guides = [
   {
+  title: 'Living library vs digital vault',
+  desc: 'Understand the difference between storing memories and helping them grow over time.',
+  href: '/guides/living-library-vs-digital-vault',
+},
+
+  {
     title: 'How to preserve family memories',
     desc: 'A simple place to begin when you want to start capturing life intentionally.',
     href: '/guides/how-to-preserve-family-memories',
@@ -109,7 +115,6 @@ export default function GuidesPage() {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(212,175,55,0.08),transparent_55%),radial-gradient(circle_at_85%_85%,rgba(212,175,55,0.05),transparent_60%)]" />
 
           <div className="relative max-w-screen-lg mx-auto px-6 pt-16 pb-24 space-y-20">
-
             {/* INTRO */}
             <div className="max-w-2xl">
               <p className="text-sm tracking-[0.25em] text-[#8F7A2A] uppercase mb-4">
@@ -128,7 +133,7 @@ export default function GuidesPage() {
                 Each one offers simple ways to add meaning to photos, stories, and voices.
               </p>
             </div>
-            
+
             {/* GUIDES LIST */}
             <div className="grid gap-y-6 sm:gap-y-8 max-w-3xl">
               {guides.map((guide, i) => (
@@ -163,7 +168,7 @@ export default function GuidesPage() {
                 </Link>
               ))}
             </div>
-
+        
             {/* CLOSING */}
             <section className="text-center pt-6">
               <h2 className="text-[1.9rem] sm:text-[2.6rem] font-serif mb-6 text-[#0F2040]">

@@ -112,6 +112,12 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li className="mb-2 font-semibold text-gray-900">
+  <Link href="/living-library" className="hover:underline">
+    What is a Living Library?
+  </Link>
+</li>
+
+                <li className="mb-2 font-semibold text-gray-900">
                   <Link href="/why-this-exists" className="hover:underline">
                     Why Ancestorii exists?
                   </Link>

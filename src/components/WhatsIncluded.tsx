@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Feather, Camera, Users, LockKeyhole } from 'lucide-react';
 
 export default function EverythingYouCanDo() {
   return (
@@ -30,7 +29,6 @@ export default function EverythingYouCanDo() {
 
           {/* TIMELINES */}
           <div className="bg-white rounded-2xl p-10 shadow-sm border border-[#E5C45C]/30">
-            <Feather className="w-6 h-6 text-[#C9AE4A] mb-6" />
             <h3 className="text-2xl font-semibold mb-4">
               Timelines
             </h3>
@@ -42,7 +40,6 @@ export default function EverythingYouCanDo() {
 
           {/* ALBUMS */}
           <div className="bg-white rounded-2xl p-10 shadow-sm border border-[#E5C45C]/30">
-            <Camera className="w-6 h-6 text-[#C9AE4A] mb-6" />
             <h3 className="text-2xl font-semibold mb-4">
               Albums with context
             </h3>
@@ -54,7 +51,6 @@ export default function EverythingYouCanDo() {
 
           {/* STORIES */}
           <div className="bg-white rounded-2xl p-10 shadow-sm border border-[#E5C45C]/30">
-            <Users className="w-6 h-6 text-[#C9AE4A] mb-6" />
             <h3 className="text-2xl font-semibold mb-4">
               Stories and voices
             </h3>
@@ -66,7 +62,6 @@ export default function EverythingYouCanDo() {
 
           {/* PRIVACY */}
           <div className="bg-white rounded-2xl p-10 shadow-sm border border-[#E5C45C]/30">
-            <LockKeyhole className="w-6 h-6 text-[#C9AE4A] mb-6" />
             <h3 className="text-2xl font-semibold mb-4">
               Private and secure
             </h3>
