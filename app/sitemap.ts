@@ -17,6 +17,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     /* --- Individual guides --- */
     {
+  url: "https://www.ancestorii.com/guides/living-library-vs-digital-vault",
+  lastModified: new Date(),
+  priority: 0.85,
+},
+
+    {
       url: "https://www.ancestorii.com/guides/how-to-preserve-family-memories",
       lastModified: new Date(),
       priority: 0.85,
@@ -55,6 +61,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       priority: 0.7,
     },
+    {
+  url: "https://www.ancestorii.com/living-library",
+  lastModified: new Date(),
+  priority: 0.7,
+},
+
     {
       url: "https://www.ancestorii.com/privacy-policy",
       lastModified: new Date(),
