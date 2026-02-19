@@ -8,63 +8,90 @@ export default function HeroContent() {
       className="
         flex flex-col items-start justify-center
         text-left w-full
-        px-4 sm:px-6
-        pb-6 sm:pb-8
+        px-6 sm:px-8
+        pt-10 sm:pt-0
+        pb-10
       "
     >
+      {/* Headline */}
       <h1
         className="
-          relative
           w-full
+          font-serif
           font-semibold
-          text-[3.1rem] sm:text-[4rem] md:text-[4.6rem]
-          leading-tight
+          text-[2.6rem] sm:text-[3.2rem] md:text-[3.8rem]
+          leading-[1.1]
           tracking-tight
-          mb-0 sm:mb-3 md:mb-8
-          text-[#D4AF37]
+          text-white
         "
       >
-        Capture life
+        Your Story.
         <br />
-        <span className="italic">
-          as it unfolds.
+        <span className="text-[#E6C26E]">
+          Still Unfolding.
         </span>
       </h1>
 
+      {/* Core Statement */}
       <p
         className="
-          mt-6
-          text-white
+          mt-8
           text-lg sm:text-xl
-          w-full
-          max-w-none sm:max-w-lg
+          text-white/90
+          max-w-2xl
+          font-medium
         "
       >
-        Add stories, voices, and everyday moments
-        to a private family library that grows over time.
-        <em className="italic"> Free to begin.</em>
+        A private space to capture stories, voices, photos and everyday life as it happens.
       </p>
 
-      <div className="mt-10 w-full flex flex-col items-center lg:items-start">
+      {/* Divider */}
+      <div className="mt-8 h-[1px] w-16 bg-[#E6C26E]" />
+
+      {/* What It Does */}
+      <div className="mt-8 space-y-4 max-w-2xl text-base sm:text-lg text-white/85">
+        <p>
+          <span className="text-[#E6C26E] font-semibold">Create</span> timelines for each loved one.
+        </p>
+        <p>
+          <span className="text-[#E6C26E] font-semibold">Upload</span> photos and videos into organised albums.
+        </p>
+        <p>
+          <span className="text-[#E6C26E] font-semibold">Record</span> voice memories that can be replayed anytime.
+        </p>
+        <p>
+          <span className="text-[#E6C26E] font-semibold">Keep everything private</span> in one secure place.
+        </p>
+      </div>
+
+      {/* Trust Block */}
+      <div className="mt-12 max-w-2xl">
+        <p className="text-lg sm:text-xl font-bold text-[#E6C26E] tracking-wide">
+          Free to begin. Free to create.
+        </p>
+
+        <p className="mt-4 text-sm sm:text-base text-white/70">
+          No hidden costs. No ads. No data selling. No social media presence.
+        </p>
+      </div>
+
+      {/* CTA */}
+      <div className="mt-12 w-full flex flex-col items-start">
         <Button
           onClick={() => (window.location.href = '/signup')}
           className="
             bg-[#E6C26E]
             hover:bg-[#F3D99B]
             text-[#1F2837]
-            px-12 py-6
+            px-12 py-5
             rounded-full
-            text-lg sm:text-xl
+            text-lg
             font-semibold
-            shadow-lg
+            shadow-xl
           "
         >
           Start with one memory
         </Button>
-
-        <p className="mt-3 text-sm text-white/70 text-center lg:text-left">
-          Private by default.
-        </p>
       </div>
     </div>
   );
