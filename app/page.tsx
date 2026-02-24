@@ -4,13 +4,12 @@ import Faq from '@/components/Faq';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import type { Metadata } from 'next';
-import HowItWorks from '@/components/HowItWorks';
+import CoreValueSnapshot from '@/components/CoreValueSnapshot';
 import Founder from '@/components/Founder';
-import WhatsIncluded from '@/components/WhatsIncluded';
 import Script from "next/script";
 import FeaturedBy from '@/components/FeaturedBy';
-import GuidesPreview from '@/components/GuidesPreview';
 import PodcastPreview from '@/components/PodcastPreview';
+import Security from '@/components/Security';
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
@@ -200,11 +199,10 @@ export default function HomePage() {
         <Nav />
         <Hero />
         <FeaturedBy />
+        <CoreValueSnapshot />
+        <Security />
         <Founder />
         <PodcastPreview />
-        <HowItWorks />
-        <WhatsIncluded />
-        <GuidesPreview />
         <Faq />
         <Contact />
         <Footer />

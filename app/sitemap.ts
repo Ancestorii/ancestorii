@@ -8,6 +8,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
 
+    {
+  url: "https://www.ancestorii.com/pricing",
+  lastModified: new Date(),
+  priority: 0.95,
+},
+
+{
+  url: "https://www.ancestorii.com/how-it-works",
+  lastModified: new Date(),
+  priority: 0.9,
+},
+
     /* --- Guides hub --- */
     {
       url: "https://www.ancestorii.com/guides",

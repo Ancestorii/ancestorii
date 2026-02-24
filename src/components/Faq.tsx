@@ -4,44 +4,44 @@ import { useState } from "react";
 
 const faqs = [
   {
-    question: "Who was Ancestorii made for?",
+    question: "Who is Ancestorii really for?",
     answer:
-      "Ancestorii was created for families who want to capture stories, voices, and meaningful moments while life is happening. It is for parents, grandparents, and anyone who wants their family story to remain clear and personal over time.",
+      "For families who do not want their history scattered across devices or lost over time. Parents, grandparents, and anyone who understands that stories disappear quietly if they are not preserved.",
   },
   {
-    question: "What makes Ancestorii different from cloud storage?",
+    question: "How is this different from cloud storage?",
     answer:
-      "Cloud storage keeps files. Ancestorii helps you build a living family library. Instead of scattered folders, you create timelines, albums, written memories, and voice notes that grow into a meaningful collection over time.",
+      "Cloud storage keeps files. Ancestorii gives those files structure. Timelines follow a life. Albums gather chapters. Capsules preserve voice and meaning. It is a living library, not a folder system.",
   },
   {
-    question: "How do I start building my family library?",
+    question: "How do people usually begin?",
     answer:
-      "Start small. Add one photo and explain why it matters. Record a short voice note. Write a memory from today. You do not need to organise everything at once. The library grows naturally, one memory at a time.",
+      "Most start with one person. One milestone. One memory explained properly. The library grows naturally from there. It is not about uploading everything at once. It is about protecting meaning while it still exists.",
   },
   {
-    question: "Is everything I add private?",
+    question: "Is my family archive private?",
     answer:
-      "Yes. Everything is private by default. Only you and anyone you choose to invite can access your collection. Nothing is public and nothing is sold.",
-  },
-  {
-    question: "How secure is Ancestorii?",
-    answer:
-      "Your memories are stored securely using modern encryption standards. Access is protected, and your data remains under your control. Ancestorii is built to protect family memories long term.",
-  },
-  {
-    question: "Can I cancel anytime?",
-    answer:
-      "Yes. You can cancel whenever you choose. Your access remains active until the end of your billing period. There are no contracts and no hidden fees.",
-  },
-  {
-    question: "How much storage space do I get?",
-    answer:
-      "Basic includes 25GB, Standard offers 250GB, and Premium provides 500GB. This gives you room to build and expand your living family library comfortably.",
+      "Yes. Everything is private by default. There are no public feeds. No visibility outside the people you personally invite.",
   },
   {
     question: "What happens if I stop paying?",
     answer:
-      "Your account is safely paused, and your data remains retained until your plan ends. You can reactivate at any time and continue building your library.",
+      "You keep access to what you created. If your library exceeds the free plan limits, new creation pauses — but nothing is deleted. Your archive remains intact.",
+  },
+  {
+    question: "Can other family members contribute?",
+    answer:
+      "Yes. You can invite trusted loved ones to add names, stories, and context. Different generations hold different pieces of the story. Inviting them prevents those pieces from disappearing.",
+  },
+  {
+    question: "Why include voice recordings?",
+    answer:
+      "Because voice carries presence. Tone, humour, warmth — the things photographs cannot hold. Capsules exist for the parts of a person that matter most later.",
+  },
+  {
+    question: "Is this built for long-term preservation?",
+    answer:
+      "Yes. The structure, privacy model, and continuity approach are designed so your family library can remain accessible and meaningful across generations.",
   },
 ];
 
