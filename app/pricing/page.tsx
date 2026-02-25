@@ -18,12 +18,26 @@ export default function PricingPage() {
   return (
     <>
       <Script id="pricing-schema" type="application/ld+json">
-        {JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'Product',
-          name: 'Ancestorii Subscription Plans',
-        })}
-      </Script>
+  {JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Ancestorii',
+    applicationCategory: 'WebApplication',
+    operatingSystem: 'All',
+    url: 'https://www.ancestorii.com',
+    description:
+      'Ancestorii is a private living family library where you can build timelines, albums and capsules to preserve memories for future generations.',
+    offers: {
+      '@type': 'AggregateOffer',
+      url: 'https://www.ancestorii.com/pricing',
+      priceCurrency: 'GBP',
+      lowPrice: '0',
+      highPrice: '69.99',
+      offerCount: '3',
+      availability: 'https://schema.org/InStock',
+    },
+  })}
+</Script>
 
       <main className="bg-[#FFFDF6] text-[#0F2040]">
         <Nav />
