@@ -238,8 +238,8 @@ export default function SettingsPage() {
       </p>
 
       <p className="text-sm text-gray-500 mb-6">
-        Your memories and data remain safe and accessible until your
-        subscription is officially cancelled.
+        Your memories and data remain safe and accessible forever. 
+        Even after your subscription ends.
       </p>
 
       <div className="flex justify-center gap-4">

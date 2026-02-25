@@ -26,7 +26,7 @@ type Capsule = {
 type Media = {
   id: string;
   capsule_id: string;
-  file_url: string;
+  file_path: string;
   file_type: string;
   created_at: string;
 };
@@ -76,10 +76,9 @@ const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
   const handleDeleteMedia = async (m: Media) => {
   try {
     // delete storage file
-    const path = m.file_url.split('/capsule-media/')[1];
-    if (path) {
-      await supabase.storage.from('capsule-media').remove([path]);
-    }
+    await supabase.storage
+    .from('capsule-media')
+    .remove([m.file_path]);
 
     // delete db row
     const { error } = await supabase
@@ -150,15 +149,16 @@ const loadTaggedPeople = async () => {
           .single();
         if (capsuleErr) throw capsuleErr;
 
-        const { data: mediaData, error: mediaErr } = await supabase
-          .from('capsule_media')
-          .select('id,capsule_id,file_url,file_type,created_at')
-          .eq('capsule_id', capsuleId)
-          .order('created_at', { ascending: false });
-        if (mediaErr) throw mediaErr;
+       const { data: mediaData, error: mediaErr } = await supabase
+  .from('capsule_media')
+  .select('id,capsule_id,file_path,file_type,created_at')
+  .eq('capsule_id', capsuleId)
+  .order('created_at', { ascending: false });
 
-        setCapsule(capsuleData);
-        setMedia(mediaData);
+if (mediaErr) throw mediaErr;
+
+setCapsule(capsuleData);
+setMedia(mediaData ?? []);
         await loadTaggedPeople();
       } catch (e) {
         console.error(e);
@@ -349,14 +349,14 @@ setTimeout(() => {
       )}
 
                   {m.file_type === 'video' ? (
-                    <video src={m.file_url} controls className="w-full rounded-lg" />
-                  ) : (
-                    <img
-                      src={m.file_url}
-                      alt=""
-                      className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  )}
+  <video src={m.file_path} controls className="w-full rounded-lg" />
+) : (
+  <img
+    src={m.file_path}
+    alt=""
+    className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
+  />
+)}
                 </div>
               );
             })}

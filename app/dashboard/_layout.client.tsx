@@ -5,7 +5,6 @@ import DashboardStoryBanner from './_components/DashboardStoryBanner';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Users,
   Calendar,
   Home,
   Package,
@@ -17,10 +16,9 @@ import {
   Menu,
   X,
   User as UserIcon,
-  Heart,
-  Lock,
   HandHeart,
-  User
+  User,
+  BookOpen
 } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import NotificationBell from './_components/NotificationBell';
@@ -321,6 +319,14 @@ useEffect(() => {
              if (window.innerWidth < 1024) setDrawerOpen(false);
             }}
           />
+          <NavItem
+           href="/dashboard/library"
+           label="My Library"
+           Icon={BookOpen}
+           onClick={() => {
+            if (window.innerWidth < 1024) setDrawerOpen(false);
+            }}
+           />
             <NavItem
             href="/dashboard/timeline"
             label="Timelines"

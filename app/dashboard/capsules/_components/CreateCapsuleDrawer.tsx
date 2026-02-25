@@ -170,7 +170,12 @@ const handleSubmit = async () => {
 
     if (coverFile) {
       const fileExt = coverFile.name.split('.').pop();
-      const filePath = `${user.id}/capsules/cover_${crypto.randomUUID()}.${fileExt}`;
+      const uniqueId =
+  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
 
       const { error: uploadErr } = await supabase.storage
         .from('capsule-media')
@@ -178,7 +183,7 @@ const handleSubmit = async () => {
 
       if (uploadErr) throw uploadErr;
 
-      coverUrl = `capsule-media/${filePath}`;}
+      coverUrl = filePath;}
 
     if (mode === 'edit' && capsule) {
       const { data, error } = await supabase
