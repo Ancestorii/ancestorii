@@ -10,6 +10,7 @@ import Script from "next/script";
 import FeaturedBy from '@/components/FeaturedBy';
 import PodcastPreview from '@/components/PodcastPreview';
 import Security from '@/components/Security';
+import PlatformComparison from '@/components/PlatformComparison';
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
@@ -140,66 +141,99 @@ export default function HomePage() {
       </Script>
 
             {/* FAQ Schema */}
-      <Script
-        id="faq-schema"
-        type="application/ld+json"
-        strategy="afterInteractive"
-      >
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "@id": "https://www.ancestorii.com/#faq",
-          "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "Who was Ancestorii made for?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Ancestorii was created for families who want to capture stories, voices, and meaningful moments while life is happening. It is designed for parents, grandparents, and anyone who wants their family story to remain personal and clear over time."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How do I start?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Start with one memory. Add a photo and write a few sentences about why it matters. Record a short voice note. The library grows naturally, one entry at a time."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Is everything private?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes. Everything is private by default. Only you and anyone you choose to invite can access your collection."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "What makes Ancestorii different from cloud storage?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Cloud storage keeps files. Ancestorii helps you build a living family library with timelines, albums, written memories, and voice notes that connect stories together over time."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Can I cancel anytime?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes. You can cancel whenever you choose. Your access remains active until the end of your billing period. There are no contracts and no hidden fees."
-              }
-            }
-          ]
-        })}
-      </Script>
+<Script
+  id="faq-schema"
+  type="application/ld+json"
+  strategy="afterInteractive"
+>
+  {JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": "https://www.ancestorii.com/#faq",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Who is Ancestorii really for?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For families who do not want their history scattered across phones or lost when someone upgrades a device. Parents, grandparents, and anyone who understands that stories disappear quietly if they are not preserved properly."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is this different from Google Photos or cloud storage?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Cloud storage keeps files. Ancestorii gives those files meaning. Timelines follow a life. Albums organise chapters. Voice capsules preserve tone and personality. This is a structured living library, not a storage folder."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do people usually begin?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Most start small. One person. One milestone. One memory explained properly. The library grows naturally from there. It is not about uploading everything at once. It is about protecting meaning while it still exists."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my family library private?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Everything is private by default. There are no public feeds, no searchable profiles, and nothing visible outside the people you personally invite."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Who owns the content I upload?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You do. Always. Your memories, recordings, and photographs remain yours. Ancestorii simply provides the structure and protection to preserve them."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens if I stop paying?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nothing is deleted. Your library remains accessible. If you exceed free plan limits, new creation pauses until you upgrade again. Your archive stays intact."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can other family members contribute?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Shared contributions are coming soon. For now, each library is owned and managed by one account to maintain simplicity and privacy."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why include voice recordings?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Because voice carries presence. Tone, humour, warmth. The things photographs cannot hold. Years from now, hearing someone speak matters more than seeing another picture."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is this built for long term preservation?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. The structure, privacy model, and continuity approach are designed so your family library remains accessible and meaningful across generations."
+        }
+      }
+    ]
+  })}
+</Script>
 
 
       <main className="bg-[#fff9ee] text-[#0F2040]">
         <Nav />
         <Hero />
-        <FeaturedBy />
         <CoreValueSnapshot />
+        <PlatformComparison />
+        <FeaturedBy />
         <Security />
         <Founder />
         <PodcastPreview />

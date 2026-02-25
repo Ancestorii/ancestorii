@@ -1,47 +1,51 @@
 "use client";
 
 import { useState } from "react";
-
 const faqs = [
   {
     question: "Who is Ancestorii really for?",
     answer:
-      "For families who do not want their history scattered across devices or lost over time. Parents, grandparents, and anyone who understands that stories disappear quietly if they are not preserved.",
+      "For families who do not want their history scattered across phones or lost when someone upgrades a device. Parents, grandparents, and anyone who understands that stories disappear quietly if they are not preserved properly.",
   },
   {
-    question: "How is this different from cloud storage?",
+    question: "How is this different from Google Photos or cloud storage?",
     answer:
-      "Cloud storage keeps files. Ancestorii gives those files structure. Timelines follow a life. Albums gather chapters. Capsules preserve voice and meaning. It is a living library, not a folder system.",
+      "Cloud storage keeps files. Ancestorii gives those files meaning. Timelines follow a life. Albums organise chapters. Voice capsules preserve tone and personality. This is a structured living library, not a storage folder.",
   },
   {
     question: "How do people usually begin?",
     answer:
-      "Most start with one person. One milestone. One memory explained properly. The library grows naturally from there. It is not about uploading everything at once. It is about protecting meaning while it still exists.",
+      "Most start small. One person. One milestone. One memory explained properly. The library grows naturally from there. It is not about uploading everything at once. It is about protecting meaning while it still exists.",
   },
   {
-    question: "Is my family archive private?",
+    question: "Is my family library private?",
     answer:
-      "Yes. Everything is private by default. There are no public feeds. No visibility outside the people you personally invite.",
+      "Yes. Everything is private by default. There are no public feeds, no searchable profiles, and nothing visible outside the people you personally invite.",
+  },
+  {
+    question: "Who owns the content I upload?",
+    answer:
+      "You do. Always. Your memories, recordings, and photographs remain yours. Ancestorii simply provides the structure and protection to preserve them.",
   },
   {
     question: "What happens if I stop paying?",
     answer:
-      "You keep access to what you created. If your library exceeds the free plan limits, new creation pauses — but nothing is deleted. Your archive remains intact.",
+      "Nothing is deleted. Your library remains accessible. If you exceed free plan limits, new creation pauses until you upgrade again. Your archive stays intact.",
   },
   {
     question: "Can other family members contribute?",
     answer:
-      "Yes. You can invite trusted loved ones to add names, stories, and context. Different generations hold different pieces of the story. Inviting them prevents those pieces from disappearing.",
+      "Shared contributions are coming soon. For now, each library is owned and managed by one account to maintain simplicity and privacy.",
   },
   {
     question: "Why include voice recordings?",
     answer:
-      "Because voice carries presence. Tone, humour, warmth — the things photographs cannot hold. Capsules exist for the parts of a person that matter most later.",
+      "Because voice carries presence. Tone, humour, warmth. The things photographs cannot hold. Years from now, hearing someone speak matters more than seeing another picture.",
   },
   {
-    question: "Is this built for long-term preservation?",
+    question: "Is this built for long term preservation?",
     answer:
-      "Yes. The structure, privacy model, and continuity approach are designed so your family library can remain accessible and meaningful across generations.",
+      "Yes. The structure, privacy model, and continuity approach are designed so your family library remains accessible and meaningful across generations.",
   },
 ];
 

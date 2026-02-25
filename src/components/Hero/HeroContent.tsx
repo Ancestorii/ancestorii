@@ -19,8 +19,12 @@ export default function HeroContent() {
           w-full
           font-serif
           font-semibold
-          text-[2.6rem] sm:text-[3.2rem] md:text-[3.8rem]
-          leading-[1.1]
+          text-[2.6rem]
+          sm:text-[3.2rem]
+          md:text-[4.5rem]
+          lg:text-[5.5rem]
+          xl:text-[6.5rem]
+          leading-[1.05]
           tracking-tight
           text-white
         "
@@ -35,10 +39,12 @@ export default function HeroContent() {
       {/* Core Statement */}
       <p
         className="
-          mt-8
-          text-lg sm:text-xl
+          mt-10
+          text-lg
+          sm:text-xl
+          lg:text-2xl
           text-white/90
-          max-w-2xl
+          max-w-3xl
           font-medium
         "
       >
@@ -46,46 +52,31 @@ export default function HeroContent() {
       </p>
 
       {/* Divider */}
-      <div className="mt-8 h-[1px] w-16 bg-[#E6C26E]" />
-
-      {/* What It Does */}
-      <div className="mt-8 space-y-4 max-w-2xl text-base sm:text-lg text-white/85">
-        <p>
-          <span className="text-[#E6C26E] font-semibold">Create</span> timelines for each loved one.
-        </p>
-        <p>
-          <span className="text-[#E6C26E] font-semibold">Upload</span> photos and videos into organised albums.
-        </p>
-        <p>
-          <span className="text-[#E6C26E] font-semibold">Record</span> voice memories that can be replayed anytime.
-        </p>
-        <p>
-          <span className="text-[#E6C26E] font-semibold">Keep everything private</span> in one secure place.
-        </p>
-      </div>
+      <div className="mt-6 h-[2px] w-20 bg-[#E6C26E]" />
 
       {/* Trust Block */}
-      <div className="mt-12 max-w-2xl">
-        <p className="text-lg sm:text-xl font-bold text-[#E6C26E] tracking-wide">
+      <div className="mt-10 max-w-3xl">
+        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-[#E6C26E] tracking-wide">
           Free to begin. Free to create.
         </p>
 
-        <p className="mt-4 text-sm sm:text-base text-white/70">
+        <p className="mt-5 text-sm sm:text-base lg:text-lg text-white/70">
           No hidden costs. No ads. No data selling. No social media presence.
         </p>
       </div>
 
       {/* CTA */}
-      <div className="mt-12 w-full flex flex-col items-start">
+      <div className="mt-14 w-full flex flex-col items-start">
         <Button
           onClick={() => (window.location.href = '/signup')}
           className="
             bg-[#E6C26E]
             hover:bg-[#F3D99B]
             text-[#1F2837]
-            px-12 py-5
+            px-14 lg:px-16
+            py-5 lg:py-6
             rounded-full
-            text-lg
+            text-lg lg:text-xl
             font-semibold
             shadow-xl
           "

@@ -299,7 +299,7 @@ export default function HowItWorksContent() {
         <ul className="mt-10 space-y-4 text-lg">
           <li className="flex gap-4">
             <span className="text-[#D4AF37]">●</span>
-            <span>Invite trusted family members.</span>
+            <span>Soon you will be allowed to invite trusted family members.</span>
           </li>
           <li className="flex gap-4">
             <span className="text-[#D4AF37]">●</span>
@@ -406,7 +406,7 @@ export default function HowItWorksContent() {
           />
           <FeatureCard
             title="Annual physical archive option"
-            body="We are developing an annual physical archive option — a printed record of your year’s additions — so your family can hold a tangible copy of your memories."
+            body="We are developing an annual physical archive option; a printed record of your year’s additions, so your family can hold a tangible copy of your memories."
             points={[
               'A physical record is resilient in a way digital cannot be.',
               'Printed memory becomes part of family tradition.',
