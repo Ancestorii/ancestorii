@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { ContextMenuDots } from '@/components/ContextMenuDots';
 import { safeToast as toast } from '@/lib/safeToast';
 
@@ -22,6 +23,12 @@ type Props = {
 };
 
 export default function CapsuleCard({ capsule, onEdit, onDelete }: Props) {
+    const [coverLoaded, setCoverLoaded] = useState(false);
+
+  useEffect(() => {
+    setCoverLoaded(false);
+  }, [capsule.cover_image]);
+
   // 🔐 LOCK STATE (frontend auto-unlock logic)
   const now = Date.now();
   const unlockTime = new Date(capsule.unlock_date).getTime();
@@ -81,19 +88,27 @@ const timeRemaining = useMemo(() => {
   return (
     <div className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative">
       {/* Cover */}
-      <div className="aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden">
-        {capsule.cover_image ? (
-          <img
-            src={capsule.cover_image}
-            alt={capsule.title}
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
-            No cover image
-          </div>
-        )}
-      </div>
+      <div className="aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
+  {capsule.cover_image ? (
+    <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 bg-[#E6C26E]/10">
+      <Image
+        src={capsule.cover_image}
+        alt={capsule.title || 'Capsule cover'}
+        fill
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        quality={90}
+        className={`object-cover transition-opacity duration-300 ${
+          coverLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        onLoadingComplete={() => setCoverLoaded(true)}
+      />
+    </div>
+  ) : (
+    <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
+      No cover image
+    </div>
+  )}
+</div>
 
       {/* Context menu */}
       <div className="absolute top-3 right-3 z-20">

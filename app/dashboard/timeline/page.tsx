@@ -1,6 +1,6 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+
 import { useEffect, useRef, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import Link from 'next/link';
@@ -10,12 +10,8 @@ import CreateTimelineDrawer from './_components/CreateTimelineDrawer';
 import { motion } from 'framer-motion';
 import LegacyCelebration from '@/components/LegacyCelebration';
 import { usePlanLimits } from '@/lib/usePlanLimits';
+import Image from "next/image";
 
-
-const Particles = dynamic(
-  () => import('@/components/ParticlesPlatform'),
-  { ssr: false }
-);
 
 type Timeline = {
   id: string;
@@ -96,6 +92,7 @@ export default function TimelinePage() {
   };
 }, []);
 
+
   // signed url helper
   const getSignedCoverUrl = async (path: string | null): Promise<string | null> => {
   if (!path) return null;
@@ -105,7 +102,7 @@ export default function TimelinePage() {
     .createSignedUrl(path, 60 * 60 * 24 * 7);
 
   if (error) return null;
-  return data.signedUrl;
+  return data.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null;
 };
 
   useEffect(() => {
@@ -158,7 +155,6 @@ setTimelines(signed);
 
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
-      <Particles />
 
       <div className="relative z-10 px-6 sm:px-8 pt-16 pb-24 max-w-7xl mx-auto">
         {/* header */}
@@ -231,19 +227,17 @@ setTimelines(signed);
                 key={t.id}
                 className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative"
               >
-               <div className="relative aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden">
-                  {t.cover_signed ? (
-                    <img
-                      src={t.cover_signed}
-                      alt={t.title}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
-                      No cover image
-                    </div>
-                  )}
-                </div>
+               <div className="relative aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
+  {t.cover_signed ? (
+    <div className="w-full h-full transition-transform duration-300 group-hover:scale-105">
+      <TimelineCover src={t.cover_signed} alt={t.title || "Timeline cover"} />
+    </div>
+  ) : (
+    <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
+      No cover image
+    </div>
+  )}
+</div>
                 <div className="absolute top-3 right-3 z-30">
                     <ContextMenuDots
                       editLabel="Edit Timeline"
@@ -383,6 +377,35 @@ setTimelines(signed);
   message="A new timeline begins."
 />
 
+    </div>
+  );
+}
+function TimelineCover({
+  src,
+  alt,
+}: {
+  src: string;
+  alt: string;
+}) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        quality={90}
+        className={`object-cover transition-opacity duration-300 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+        onLoadingComplete={() => setLoaded(true)}
+      />
     </div>
   );
 }

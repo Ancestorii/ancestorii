@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { getBrowserClient } from '@/lib/supabase/browser';
@@ -10,9 +9,8 @@ import { motion } from 'framer-motion';
 import LegacyCelebration from "@/components/LegacyCelebration";
 import { ContextMenuDots } from "@/components/ContextMenuDots";
 import { usePlanLimits } from '@/lib/usePlanLimits';
+import Image from "next/image";
 
-
-const Particles = dynamic(() => import('@/components/ParticlesPlatform'), { ssr: false });
 
 type Album = {
   id: string;
@@ -104,7 +102,7 @@ export default function AlbumsPage() {
       const { data: signed } = await supabase.storage
         .from('album-media')
         .createSignedUrl(path, 60 * 60 * 24 * 7);
-      return signed?.signedUrl ?? url;
+      return signed?.signedUrl ? `${signed.signedUrl}&cb=${Date.now()}` : url;
     } catch {
       return url;
     }
@@ -173,7 +171,6 @@ export default function AlbumsPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
-      <Particles />
 
       <div className="relative z-10 px-6 sm:px-8 pt-16 pb-24 max-w-7xl mx-auto">
         {/* header */}
@@ -244,19 +241,17 @@ export default function AlbumsPage() {
                 key={a.id}
                 className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative"
               >
-                <div className="aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden">
-                  {a.cover_image ? (
-                    <img
-                      src={a.cover_image}
-                      alt={a.title}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
-                      No cover image
-                    </div>
-                  )}
-                </div>
+                <div className="aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
+  {a.cover_image ? (
+    <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 bg-[#E6C26E]/10">
+      <AlbumCover src={a.cover_image} alt={a.title || "Album cover"} />
+    </div>
+  ) : (
+    <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
+      No cover image
+    </div>
+  )}
+</div>
 
                 <div className="absolute top-3 right-3 z-20">
                   <ContextMenuDots
@@ -376,6 +371,30 @@ export default function AlbumsPage() {
           }
         }
       `}</style>
+    </div>
+  );
+}
+
+function AlbumCover({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        quality={90}
+        className={`object-cover transition-opacity duration-300 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+        onLoadingComplete={() => setLoaded(true)}
+      />
     </div>
   );
 }

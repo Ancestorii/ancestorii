@@ -113,19 +113,22 @@ export default function Nav() {
             <div className="hidden lg:flex items-center gap-8">
 
               {userEmail ? (
-                <>
-                  <Link href="/app" className="font-serif text-[1.05rem]">
-                    Library
-                  </Link>
+  <>
+    <Link
+      href="/dashboard/home"
+      className="font-serif text-[1.05rem] px-3 py-2 rounded-full hover:bg-black/5 transition"
+    >
+      Home
+    </Link>
 
-                  <button
-                    onClick={handleLogout}
-                    className="font-serif text-[1.05rem]"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
+    <button
+      onClick={handleLogout}
+      className="font-serif text-[1.05rem] px-4 py-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
+    >
+      Logout
+    </button>
+  </>
+) : (
                 <>
                   <Link
                     href="/login"
@@ -185,23 +188,23 @@ export default function Nav() {
                 <div className="pt-6 border-t border-[#E3B341] space-y-5">
 
                   {userEmail ? (
-                    <>
-                      <Link
-                        href="/app"
-                        onClick={() => setIsOpen(false)}
-                        className="block w-full"
-                      >
-                        Library
-                      </Link>
+  <>
+    <Link
+      href="/dashboard/home"
+      onClick={() => setIsOpen(false)}
+      className="block w-full"
+    >
+      Home
+    </Link>
 
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left"
-                      >
-                        Logout
-                      </button>
-                    </>
-                  ) : (
+    <button
+      onClick={handleLogout}
+      className="block w-full text-left px-4 py-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
+    >
+      Logout
+    </button>
+  </>
+) : (
                     <>
                       <Link
                         href="/login"
@@ -255,7 +258,7 @@ export default function Nav() {
             <div className="relative rounded-2xl overflow-hidden">
 
   <video
-    src="/demo-video-v2.mp4"
+    src="/ancestorii_cinematic.mp4"
     controls
     autoPlay
     className="w-full max-h-[82vh]"

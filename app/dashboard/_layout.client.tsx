@@ -1,14 +1,13 @@
 'use client';
-
-import { ReactNode, useEffect, useState } from 'react';
-import DashboardStoryBanner from './_components/DashboardStoryBanner';
+import Image from 'next/image';
+import { ReactNode, useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Calendar,
   Home,
   Package,
-  Image,
+  Image as ImageIcon,
   Megaphone,
   CreditCard,
   HelpCircle,
@@ -95,28 +94,45 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const router = useRouter();
-    const loadDashboardCounts = async () => {
-    const { data: sess } = await supabase.auth.getSession();
-    const user = sess?.session?.user;
-    if (!user) return;
+  const loadDashboardCounts = useCallback(async () => {
+  const { data: sess } = await supabase.auth.getSession();
+  const user = sess?.session?.user;
+  if (!user) return;
 
-    const [
-      { count: loved },
-      { count: caps },
-      { count: albums },
-      { count: timelines },
-    ] = await Promise.all([
-      supabase.from('family_members').select('id', { head: true, count: 'exact' }),
-      supabase.from('capsules').select('id', { head: true, count: 'exact' }),
-      supabase.from('albums').select('id', { head: true, count: 'exact' }),
-      supabase.from('timelines').select('id', { head: true, count: 'exact' }),
-    ]);
+  const uid = user.id;
 
-    setLovedOnesCount(loved || 0);
-    setCapsulesCount(caps || 0);
-    setAlbumsCount(albums || 0);
-    setTimelinesCount(timelines || 0);
-  };
+  const [
+    { count: loved },
+    { count: caps },
+    { count: albums },
+    { count: timelines },
+  ] = await Promise.all([
+    supabase
+      .from('family_members')
+      .select('id', { head: true, count: 'exact' })
+      .eq('owner_id', uid),
+
+    supabase
+      .from('memory_capsules')
+      .select('id', { head: true, count: 'exact' })
+      .eq('user_id', uid),
+
+    supabase
+      .from('albums')
+      .select('id', { head: true, count: 'exact' })
+      .eq('user_id', uid),
+
+    supabase
+      .from('timelines')
+      .select('id', { head: true, count: 'exact' })
+      .eq('user_id', uid),
+  ]);
+
+  setLovedOnesCount(loved || 0);
+  setCapsulesCount(caps || 0);
+  setAlbumsCount(albums || 0);
+  setTimelinesCount(timelines || 0);
+}, []);
 
 
   useEffect(() => {
@@ -143,21 +159,42 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   useEffect(() => {
   if (!hydrated) return;
   loadDashboardCounts();
-}, [hydrated]);
+}, [hydrated, loadDashboardCounts]);
 
 useEffect(() => {
   const handler = () => loadDashboardCounts();
   window.addEventListener('dashboard-data-changed', handler);
   return () => window.removeEventListener('dashboard-data-changed', handler);
-}, []);
+}, [loadDashboardCounts]);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    const handleScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hydrated]);
+const scrolledRef = useRef(false);
+const rafRef = useRef<number | null>(null);
 
+useEffect(() => {
+  if (!hydrated) return;
+
+  const onScroll = () => {
+    if (rafRef.current) return;
+
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+
+      const next = window.scrollY > 30;
+      if (next !== scrolledRef.current) {
+        scrolledRef.current = next;
+        setScrolled(next);
+      }
+    });
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll(); // set initial once
+
+  return () => {
+    window.removeEventListener('scroll', onScroll);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+  };
+}, [hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -346,7 +383,7 @@ useEffect(() => {
           <NavItem
             href="/dashboard/albums"
             label="Albums"
-            Icon={Image}
+            Icon={ImageIcon}
             onClick={() => {
               if (window.innerWidth < 1024) setDrawerOpen(false);
             }}
@@ -404,7 +441,7 @@ useEffect(() => {
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
           scrolled
-            ? 'bg-gradient-to-r from-white/90 to-[#F7F8FA]/90 backdrop-blur-md shadow-[0_4px_20px_rgba(15,32,64,0.1)]'
+            ? 'bg-white shadow-sm'
             : 'bg-gradient-to-r from-white to-[#F7F8FA] shadow-[0_2px_12px_rgba(15,32,64,0.06)]'
         } rounded-b-2xl border-b border-[#D4AF37]/20`}
       >
@@ -433,14 +470,19 @@ useEffect(() => {
                 title="Home"
               >
                 {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <UserIcon className="h-6 w-6 text-[#0F2040]" />
-                )}
+  <div className="relative h-full w-full">
+    <Image
+      src={avatarUrl}
+      alt="Avatar"
+      fill
+      sizes="48px"
+      className="object-cover"
+      priority
+    />
+  </div>
+) : (
+  <UserIcon className="h-6 w-6 text-[#0F2040]" />
+)}
               </Link>
 
               <div className="pl-5 border-l border-gray-300">
@@ -475,13 +517,6 @@ useEffect(() => {
       </aside>
 
       <main className="pt-20 md:pt-28 px-4 md:px-8 md:ml-64 transition-all duration-300">
-  <DashboardStoryBanner
-    lovedOnesCount={lovedOnesCount}
-    capsulesCount={capsulesCount}
-    albumsCount={albumsCount}
-    timelinesCount={timelinesCount}
-  />
-
   {children}
 </main>
 

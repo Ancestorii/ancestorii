@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
@@ -11,10 +10,6 @@ import CapsuleCard from './_components/CapsuleCard';
 import CapsuleUnlock from '@/components/CapsuleUnlock';
 import { usePlanLimits } from '@/lib/usePlanLimits';
 
-const Particles = dynamic(
-  () => import('@/components/ParticlesPlatform'),
-  { ssr: false }
-);
 
 type Capsule = {
   id: string;
@@ -115,7 +110,7 @@ const [unlockNotificationId, setUnlockNotificationId] = useState<string | null>(
         .from('capsule-media')
         .createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days
       if (signErr) return url;
-      return signed?.signedUrl ?? url;
+      return signed?.signedUrl ? `${signed.signedUrl}&cb=${Date.now()}` : url;
     } catch {
       return url;
     }
@@ -224,8 +219,6 @@ useEffect(() => {
 
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
-      <Particles />
-
       <div className="relative z-10 px-6 sm:px-8 pt-16 pb-24 max-w-7xl mx-auto">
         {/* header (matches Timeline) */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">

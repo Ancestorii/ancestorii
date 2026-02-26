@@ -65,13 +65,7 @@
   50% { opacity: 0.9; transform: scale(1.1); }
 }
 
-@keyframes breathe {
-  0%,100% { filter: brightness(1.1) saturate(1.1); }
-  50% { filter: brightness(1.2) saturate(1.2); }
-}
-video {
-  animation: breathe 18s ease-in-out infinite;
-}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 0.3;
@@ -275,3 +269,32 @@ section {
   scrollbar-width: none;
 }
 
+/* ===========================
+   PERFORMANCE MODE (SAFE)
+   =========================== */
+
+/* Remove heavy GPU filters (glow, blur, brightness etc) */
+main * {
+  filter: none !important;
+}
+
+/* Remove backdrop blur (major mobile performance killer) */
+.backdrop-blur,
+[class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Remove scroll snapping (can feel glitchy on mobile) */
+main {
+  scroll-snap-type: none !important;
+}
+section {
+  scroll-snap-align: none !important;
+  scroll-snap-stop: normal !important;
+}
+
+/* Disable smooth scroll only */
+html {
+  scroll-behavior: auto !important;
+}

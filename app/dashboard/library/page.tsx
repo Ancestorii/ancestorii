@@ -1,16 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
+import Image from "next/image";
 import { getBrowserClient } from '@/lib/supabase/browser';
 import UploadLibraryDrawer from './_components/UploadLibraryDrawer';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import DeleteLibraryMediaModal from './_components/DeleteLibraryMediaModal';
-
-const Particles = dynamic(() => import('@/components/ParticlesPlatform'), {
-  ssr: false,
-});
 
 type LibraryMedia = {
   id: string;
@@ -27,22 +23,12 @@ export default function LibraryPage() {
   const [media, setMedia] = useState<LibraryMedia[]>([]);
   const [signedMap, setSignedMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     filePath: string;
   } | null>(null);
-
-  const line1 = '“Everything you upload lives here first.”';
-  const line2 =
-    'From here, you can use your media inside albums, timelines and capsules.';
-
-  const [typed1, setTyped1] = useState('');
-  const [typed2, setTyped2] = useState('');
-  const [isTyping1Done, setIsTyping1Done] = useState(false);
-
-  const TYPING_KEY = 'library_typing_last_run';
-  const TYPING_RESET_MS = 24 * 60 * 60 * 1000;
 
   useEffect(() => {
     fetchLibrary();
@@ -76,7 +62,7 @@ export default function LibraryPage() {
 
         return {
           id: item.id,
-          url: urlData?.signedUrl || null,
+          url: urlData?.signedUrl ? `${urlData.signedUrl}&cb=${Date.now()}` : null,
         };
       })
     );
@@ -87,59 +73,14 @@ export default function LibraryPage() {
     });
 
     setMedia(data);
+    setActiveVideoId(null);
     setSignedMap(signed);
-
-    requestAnimationFrame(() => {
-      setLoading(false);
-    });
+    setLoading(false);
   }
 
-  useEffect(() => {
-    const lastRun = localStorage.getItem(TYPING_KEY);
-    const now = Date.now();
-
-    if (lastRun && now - Number(lastRun) < TYPING_RESET_MS) {
-      setTyped1(line1);
-      setTyped2(line2);
-      setIsTyping1Done(true);
-      return;
-    }
-
-    localStorage.setItem(TYPING_KEY, String(now));
-
-    let i1 = 0;
-    let i2 = 0;
-    let t1: any;
-    let t2: any;
-
-    const speed = 45;
-
-    t1 = setInterval(() => {
-      i1++;
-      setTyped1(line1.slice(0, i1));
-      if (i1 >= line1.length) {
-        clearInterval(t1);
-        setIsTyping1Done(true);
-
-        setTimeout(() => {
-          t2 = setInterval(() => {
-            i2++;
-            setTyped2(line2.slice(0, i2));
-            if (i2 >= line2.length) clearInterval(t2);
-          }, speed);
-        }, 600);
-      }
-    }, speed);
-
-    return () => {
-      clearInterval(t1);
-      clearInterval(t2);
-    };
-  }, []);
 
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
-      <Particles />
 
       <div className="relative z-10 px-6 sm:px-8 pt-16 pb-24 max-w-7xl mx-auto">
         {/* HEADER */}
@@ -158,17 +99,13 @@ export default function LibraryPage() {
               <span className="text-[#C8A557]">Library</span>
             </h1>
 
-            <p className="text-[#5B6473] mt-3 text-lg italic min-h-[30px]">
-              {typed1}
+            <p className="text-[#5B6473] mt-3 text-lg italic">
+            “Everything you upload lives here first.”
             </p>
 
-            <p
-              className={`text-[#7A8596] text-sm mt-2 transition-opacity duration-500 ${
-                isTyping1Done ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              {typed2}
-            </p>
+            <p className="text-[#7A8596] text-sm mt-2">
+            From here, you can use your media inside albums, timelines and capsules.
+           </p>
           </div>
 
           <div className="flex justify-center md:justify-end flex-1">
@@ -200,7 +137,7 @@ export default function LibraryPage() {
               return (
                 <div
                   key={item.id}
-                  className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95"
+                  className="rounded-3xl border border-[#B7932F]/60 shadow-md md:hover:shadow-2xl md:transform md:hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95"
                 >
                   {/* MEDIA CONTAINER */}
                   <div className="aspect-[16/9] relative bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden">
@@ -218,22 +155,37 @@ export default function LibraryPage() {
                       <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
                     </button>
 
-                    {item.file_type === 'video' ? (
-                      <video
-                        preload="metadata"
-                        src={url}
-                        className="w-full h-full object-cover"
-                        controls
-                      />
-                    ) : (
-                      <img
-                        src={url}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                        alt=""
-                      />
-                    )}
+                   {item.file_type === 'video' ? (
+                    activeVideoId === item.id ? (
+                    <video
+                    src={url}
+                    className="w-full h-full object-cover"
+                    controls
+                    playsInline
+                    preload="metadata"
+                     />
+                     ) : (
+    <button
+      type="button"
+      onClick={() => setActiveVideoId(item.id)}
+      className="w-full h-full relative"
+    >
+      {/* lightweight “video placeholder” (no controls) */}
+      <div className="w-full h-full flex items-center justify-center text-[#5B6473] text-sm">
+        Tap to load video ▶
+      </div>
+
+      {/* subtle play badge */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="px-4 py-2 rounded-full bg-black/50 text-white text-sm">
+          ▶ Play
+        </div>
+      </div>
+    </button>
+  )
+) : (
+  <LibraryImage src={url} alt="" />
+)}
                   </div>
 
                   <div className="p-4">
@@ -276,6 +228,30 @@ export default function LibraryPage() {
           }
         }
       `}</style>
+    </div>
+  );
+}
+
+function LibraryImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        quality={90}
+        className={`object-cover transition-opacity duration-300 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+        onLoadingComplete={() => setLoaded(true)}
+      />
     </div>
   );
 }

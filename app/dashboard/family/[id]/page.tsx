@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart } from "lucide-react";
+import Image from "next/image";
 
 import { getBrowserClient } from "@/lib/supabase/browser";
 
@@ -58,6 +59,7 @@ export default function LovedOneProfilePage() {
   const [timelines, setTimelines] = useState<Timeline[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [capsules, setCapsules] = useState<Capsule[]>([]);
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
 
   // ADD THIS DIRECTLY BELOW 👇
   const MAX_VISIBLE = 5;
@@ -89,12 +91,13 @@ export default function LovedOneProfilePage() {
     }
 
     let signedAvatar: string | null = null;
-    if (data.avatar_url) {
-      const { data: signed } = await supabase.storage
-        .from("user-media")
-        .createSignedUrl(data.avatar_url, 60 * 60);
-      signedAvatar = signed?.signedUrl || null;
-    }
+if (data.avatar_url) {
+  const { data: signed } = await supabase.storage
+    .from("user-media")
+    .createSignedUrl(data.avatar_url, 60 * 60);
+
+  signedAvatar = signed?.signedUrl ? `${signed.signedUrl}&cb=${Date.now()}` : null;
+}
 
     const memberWithAvatar: FamilyMember = {
       ...data,
@@ -152,6 +155,10 @@ setCapsules(
   useEffect(() => {
     fetchAll();
   }, [id]);
+
+  useEffect(() => {
+  setAvatarLoaded(false);
+}, [member?.avatar_signed]);
 
   /* ============================
         LIFESPAN / CELEBRATION
@@ -276,11 +283,20 @@ setCapsules(
             <div className="absolute inset-0 rounded-full bg-[#E6C26E]/40 blur-xl" />
             <div className="absolute inset-0 rounded-full bg-[#E6C26E]/20 blur-2xl" />
 
-            <img
-              src={member.avatar_signed || "/default-avatar.png"}
-              alt={member.full_name}
-              className="relative z-10 w-full h-full rounded-full border-4 border-[#E6C26E] object-cover shadow-xl"
-            />
+            <div className="relative z-10 w-full h-full rounded-full overflow-hidden border-4 border-[#E6C26E] shadow-xl bg-[#E6C26E]/10">
+  <Image
+    src={member.avatar_signed || "/default-avatar.png"}
+    alt={member.full_name}
+    fill
+    sizes="(max-width: 640px) 110px, 150px"
+    quality={95}
+    priority
+    className={`object-cover transition-opacity duration-300 ${
+      avatarLoaded ? "opacity-100" : "opacity-0"
+    }`}
+    onLoadingComplete={() => setAvatarLoaded(true)}
+  />
+</div>
           </motion.div>
 
           <div className="flex flex-col">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import Image from 'next/image';
 
 type Profile = {
   id: string;
@@ -26,6 +27,7 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
 
   // Fetch profile
   useEffect(() => {
@@ -87,9 +89,10 @@ export default function ProfilePage() {
 useEffect(() => {
   (async () => {
     if (!profile?.profile_image_url) {
-      setAvatarUrl(null);
-      return;
-    }
+  setAvatarUrl(null);
+  setAvatarLoaded(false);
+  return;
+}
 
     const { data } = await supabase.storage
       .from("user-media")
@@ -98,6 +101,7 @@ useEffect(() => {
     setAvatarUrl(
       data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null
     );
+    setAvatarLoaded(false);
   })();
 }, [profile?.profile_image_url]);
 
@@ -162,6 +166,7 @@ useEffect(() => {
   setAvatarUrl(
     data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null
   );
+  setAvatarLoaded(false);
 
   // 🔔 notify rest of app
   window.dispatchEvent(new Event("profile-image-updated"));
@@ -182,12 +187,24 @@ useEffect(() => {
             {/* Avatar */}
             <div className="shrink-0 flex md:block items-center gap-4">
               <div className="h-20 w-20 md:h-24 md:w-24 rounded-full overflow-hidden border-2 border-[#d4af37] bg-white/10 flex items-center justify-center">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-xs text-white/70">No photo</span>
-                )}
-              </div>
+  {avatarUrl ? (
+    <div className="relative h-full w-full">
+      <Image
+        src={avatarUrl}
+        alt="Avatar"
+        fill
+        sizes="96px"
+        className={`object-cover transition-opacity duration-300 ${
+          avatarLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        priority
+        onLoadingComplete={() => setAvatarLoaded(true)}
+      />
+    </div>
+  ) : (
+    <span className="text-xs text-white/70">No photo</span>
+  )}
+</div>
 
               <label className="mt-0 md:mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/25 bg-white/10 text-xs font-medium cursor-pointer hover:bg-white/20">
                 Upload new photo

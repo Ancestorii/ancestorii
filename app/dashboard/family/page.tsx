@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
 import AddMemberModal from "./_components/AddMemberModal";
@@ -13,10 +12,6 @@ import { getBrowserClient } from "@/lib/supabase/browser";
 import { safeToast as toast } from "@/lib/safeToast";
 import { useSearchParams } from "next/navigation";
 
-
-const Particles = dynamic(() => import("@/components/ParticlesPlatform"), {
-  ssr: false,
-});
 
 type FamilyMember = {
   id: string;
@@ -292,7 +287,6 @@ useEffect(() => {
   ============================================================*/
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fdf7ea] to-[#faf6e3]">
-      <Particles />
 
       <DeleteLovedOneModal
   open={!!deleteTarget}
