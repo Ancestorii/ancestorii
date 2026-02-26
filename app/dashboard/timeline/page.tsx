@@ -227,7 +227,7 @@ setTimelines(signed);
                 key={t.id}
                 className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative"
               >
-               <div className="relative aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
+              <div className="relative aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
   {t.cover_signed ? (
     <div className="w-full h-full transition-transform duration-300 group-hover:scale-105">
       <TimelineCover src={t.cover_signed} alt={t.title || "Timeline cover"} />
@@ -380,13 +380,7 @@ setTimelines(signed);
     </div>
   );
 }
-function TimelineCover({
-  src,
-  alt,
-}: {
-  src: string;
-  alt: string;
-}) {
+function TimelineCover({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -394,18 +388,18 @@ function TimelineCover({
   }, [src]);
 
   return (
-    <div className="relative w-full h-full">
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        quality={90}
-        className={`object-cover transition-opacity duration-300 ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
-        onLoadingComplete={() => setLoaded(true)}
-      />
-    </div>
+    <Image
+      key={src} // forces remount when signed url changes
+      src={src}
+      alt={alt}
+      width={1600}
+      height={900}
+      quality={90}
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+      className={`w-full h-full object-cover transition-opacity duration-300 ${
+        loaded ? "opacity-100" : "opacity-0"
+      }`}
+      onLoadingComplete={() => setLoaded(true)}
+    />
   );
 }

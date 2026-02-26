@@ -249,7 +249,14 @@ async function saveNote() {
                       <img src={url} alt="memory" className="w-full h-48 object-cover" />
                     )}
                     {kind === 'video' && url && (
-                      <video src={url} controls className="w-full h-48 object-cover" />
+                      <video
+  key={url || m.file_path}
+  src={url}
+  controls
+  playsInline
+  preload="metadata"
+  className="w-full h-48 object-cover"
+/>
                     )}
                     {kind === 'audio' && url && (
                       <div className="p-3">

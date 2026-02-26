@@ -8,6 +8,7 @@ import UploadMemoryDrawer from '../_components/UploadMemoryDrawer';
 import UniversalPeopleTagger from "@/components/UniversalPeopleTagger";
 import DeleteMemoryModal from '../_components/DeleteMemoryModal';
 import MediaInteractionsPanel from '../_components/media-interactions/MediaInteractionsPanel';
+import Image from "next/image";
 
 
 type Album = {
@@ -24,7 +25,33 @@ type Media = {
   file_path: string;
   file_type: string;
   created_at: string;
+  signed_url?: string | null;
 };
+
+function AlbumMediaImage({ src }: { src: string }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full">
+      <Image
+        src={src}
+        alt=""
+        width={1600}
+        height={1200}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        quality={90}
+        className={`w-full h-auto object-cover transition-opacity duration-300 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+        onLoadingComplete={() => setLoaded(true)}
+      />
+    </div>
+  );
+}
 
 export default function AlbumDetailPage() {
   const supabase = getBrowserClient();
@@ -107,7 +134,7 @@ export default function AlbumDetailPage() {
 
             return {
               ...m,
-              signed_url: signed?.signedUrl || null
+              signed_url: signed?.signedUrl ? `${signed.signedUrl}&cb=${Date.now()}` : null
             };
           })
         );
@@ -278,14 +305,26 @@ useEffect(() => {
                 }`}
               >
 
-                {m.file_type === 'video' ? (
-                  <video src={(m as any).signed_url || m.file_path} controls className="w-full rounded-lg" />
-                ) : (
-                  <img
-                    src={(m as any).signed_url || m.file_path}
-                    className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                )}
+               {m.file_type === "video" ? (
+  <div className="overflow-hidden">
+    <div className="transition-transform duration-300 group-hover:scale-105">
+      <video
+  key={m.signed_url || m.file_path}   // ✅ forces remount so it reloads
+  src={m.signed_url || m.file_path}   // ✅ never undefined
+  controls
+  playsInline
+  preload="metadata"
+  className="w-full rounded-lg"
+/>
+    </div>
+  </div>
+) : (
+  <div className="overflow-hidden">
+    <div className="transition-transform duration-300 group-hover:scale-105">
+      <AlbumMediaImage src={m.signed_url || m.file_path} />
+    </div>
+  </div>
+)}
               </div>
             ))}
           </div>
@@ -311,9 +350,15 @@ useEffect(() => {
         albumId={album.id}
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
-        onUploaded={(newMedia: Media) => {
-          setMedia((prev) => [newMedia, ...prev]);
-        }}
+       onUploaded={(newMedia: any) => {
+  setMedia((prev) => [
+    {
+      ...newMedia,
+      signed_url: (newMedia.signed_url || newMedia.file_path) ? `${newMedia.signed_url || newMedia.file_path}&cb=${Date.now()}` : null,
+    },
+    ...prev,
+  ]);
+}}
       />
 
       {deleteTarget && (

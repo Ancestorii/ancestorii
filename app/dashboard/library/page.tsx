@@ -23,7 +23,7 @@ export default function LibraryPage() {
   const [media, setMedia] = useState<LibraryMedia[]>([]);
   const [signedMap, setSignedMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+
 
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
@@ -73,7 +73,6 @@ export default function LibraryPage() {
     });
 
     setMedia(data);
-    setActiveVideoId(null);
     setSignedMap(signed);
     setLoading(false);
   }
@@ -156,33 +155,16 @@ export default function LibraryPage() {
                     </button>
 
                    {item.file_type === 'video' ? (
-                    activeVideoId === item.id ? (
-                    <video
-                    src={url}
-                    className="w-full h-full object-cover"
-                    controls
-                    playsInline
-                    preload="metadata"
-                     />
-                     ) : (
-    <button
-      type="button"
-      onClick={() => setActiveVideoId(item.id)}
-      className="w-full h-full relative"
-    >
-      {/* lightweight “video placeholder” (no controls) */}
-      <div className="w-full h-full flex items-center justify-center text-[#5B6473] text-sm">
-        Tap to load video ▶
-      </div>
-
-      {/* subtle play badge */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="px-4 py-2 rounded-full bg-black/50 text-white text-sm">
-          ▶ Play
-        </div>
-      </div>
-    </button>
-  )
+  <div className="relative w-full h-full">
+    <video
+      key={url || item.file_path}
+      src={url}
+      className="absolute inset-0 w-full h-full object-cover"
+      controls
+      playsInline
+      preload="metadata"
+    />
+  </div>
 ) : (
   <LibraryImage src={url} alt="" />
 )}
@@ -190,7 +172,7 @@ export default function LibraryPage() {
 
                   <div className="p-4">
                     <p className="text-xs text-[#7A8596]">
-                      Added {new Date(item.created_at).toLocaleDateString()}
+                      Added on {new Date(item.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

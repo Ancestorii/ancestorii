@@ -20,6 +20,35 @@ type Props = {
   onUploaded: (newMedia: LibraryMediaRow) => void;
 };
 
+// eslint-disable-next-line no-undef
+type GlobalDragEvent = DragEvent;
+
+function LibraryPreviewImage({ file }: { file: File }) {
+  const [loaded, setLoaded] = useState(false);
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoaded(false);
+    const url = URL.createObjectURL(file);
+    setSrc(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  if (!src) return null;
+
+  return (
+    <img
+      src={src}
+      alt="preview"
+      className={`w-full h-full object-cover transition-opacity duration-300 ${
+        loaded ? 'opacity-100' : 'opacity-0'
+      }`}
+      onLoad={() => setLoaded(true)}
+    />
+  );
+}
+
 export default function UploadLibraryDrawer({
   open,
   onClose,
@@ -29,23 +58,36 @@ export default function UploadLibraryDrawer({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+useEffect(() => {
+  if (!file) {
+    setPreviewUrl(null);
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+  setPreviewUrl(url);
+
+  return () => URL.revokeObjectURL(url);
+}, [file]);
 
   // --- Drag & Drop ---
   useEffect(() => {
     const area = dropRef.current;
     if (!area) return;
 
-    const over = (e: DragEvent) => {
+    const over = (e: GlobalDragEvent) => {
       e.preventDefault();
       area.classList.add('ring-2', 'ring-[#E6C26E]');
     };
 
-    const leave = (e: DragEvent) => {
+    const leave = (e: GlobalDragEvent) => {
       e.preventDefault();
       area.classList.remove('ring-2', 'ring-[#E6C26E]');
     };
 
-    const drop = (e: DragEvent) => {
+    const drop = (e: GlobalDragEvent) => {
       e.preventDefault();
       area.classList.remove('ring-2', 'ring-[#E6C26E]');
       const f = e.dataTransfer?.files?.[0];
@@ -157,26 +199,33 @@ export default function UploadLibraryDrawer({
           transition cursor-pointer overflow-hidden mb-6"
         >
           {file ? (
-            file.type.startsWith('image') ? (
-              <img
-                src={URL.createObjectURL(file)}
-                alt="preview"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <p className="text-sm font-medium text-[#1F2837]">
-                Selected: {file.name}
-              </p>
-            )
-          ) : (
-            <>
-              <div className="flex gap-3 mb-3 text-[#C8A557]">
-                <ImagePlus className="w-6 h-6" />
-                <Video className="w-6 h-6" />
-              </div>
-              <p className="text-sm">Drag & drop or click to upload</p>
-            </>
-          )}
+  file.type.startsWith('image') ? (
+    <LibraryPreviewImage file={file} />
+  ) : file.type.startsWith('video') ? (
+    previewUrl ? (
+      <div className="relative w-full h-full overflow-hidden">
+        <video
+          src={previewUrl}
+          className="w-full h-full object-cover"
+          muted
+          playsInline
+        />
+      </div>
+    ) : null
+  ) : (
+    <p className="text-sm font-medium text-[#1F2837]">
+      Selected: {file.name}
+    </p>
+  )
+) : (
+  <>
+    <div className="flex gap-3 mb-3 text-[#C8A557]">
+      <ImagePlus className="w-6 h-6" />
+      <Video className="w-6 h-6" />
+    </div>
+    <p className="text-sm">Drag & drop or click to upload</p>
+  </>
+)}
 
           <input
             id="libraryFileInput"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Mic, UploadCloud, Square } from 'lucide-react';
 import { Trash2 } from 'lucide-react';
 
@@ -32,6 +32,57 @@ type VoiceItem = {
   profile?: { full_name: string | null }[] | null;
 };
 
+function SmoothMediaImage({
+  src,
+  alt = '',
+}: {
+  src: string;
+  alt?: string;
+}) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full bg-black">
+      {/* placeholder */}
+      <div
+        className={`absolute inset-0 bg-black transition-opacity duration-500 ease-out ${
+          ready ? 'opacity-0' : 'opacity-100'
+        }`}
+      />
+
+      <img
+        key={src}
+        src={src}
+        alt={alt}
+        draggable={false}
+        loading="lazy"
+        decoding="async"
+        onLoad={async (e) => {
+          const img = e.currentTarget;
+
+          // decode = smoother than raw onLoad
+          try {
+            if ('decode' in img) await (img as HTMLImageElement).decode();
+          } catch {}
+
+          requestAnimationFrame(() => setReady(true));
+        }}
+        className={`w-full h-full object-cover block transition-opacity duration-500 ease-out ${
+          ready ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          willChange: 'opacity',
+        }}
+      />
+    </div>
+  );
+}
 
 
 export default function MemoryModalBody({
@@ -47,6 +98,7 @@ export default function MemoryModalBody({
   onUploadVoice,
   onDeleteComment,
   onUploadMedia,
+  uploadingMedia,
   onDeleteMedia, // 👈 ADD THIS
 }: {
   loading: boolean;
@@ -61,6 +113,7 @@ export default function MemoryModalBody({
   onUploadVoice: (file: File) => Promise<void>;
   onDeleteComment: (commentId: string) => void;
   onUploadMedia: (file: File) => void;
+  uploadingMedia: boolean;
   onDeleteMedia: (media: MediaItem) => void; // 👈 ADD THIS
 }) {
 
@@ -102,6 +155,7 @@ const stopRecording = () => {
   const UploadMediaBox = ({ compact = false }: { compact?: boolean }) => (
   <label
     className={`
+      ${uploadingMedia ? 'pointer-events-none opacity-60' : ''}
       flex flex-col items-center justify-center
       w-full max-w-lg
       border-2 border-dashed border-[#E6C26E]/50
@@ -116,8 +170,12 @@ const stopRecording = () => {
   >
     <UploadCloud className="w-8 h-8 text-[#D4AF37] mb-3" />
 
-    <p className="text-sm font-semibold text-[#1F2837]">
-      {compact ? 'Add another memory' : 'Add media to this memory'}
+        <p className="text-sm font-semibold text-[#1F2837]">
+      {uploadingMedia
+        ? 'Preserving…'
+        : compact
+        ? 'Add another memory'
+        : 'Add media to this memory'}
     </p>
 
     {!compact && (
@@ -126,14 +184,16 @@ const stopRecording = () => {
       </p>
     )}
 
-    <input
+        <input
       type="file"
       accept="image/*,video/*,audio/*"
       hidden
+      disabled={uploadingMedia}
       onChange={(e) => {
         const file = e.target.files?.[0];
         if (!file) return;
         onUploadMedia(file);
+        e.currentTarget.value = ''; // allows same file re-upload
       }}
     />
   </label>
@@ -141,70 +201,88 @@ const stopRecording = () => {
 
 
   if (loading) {
-    return (
-      <div className="h-[55vh] grid place-items-center text-gray-500 italic">
-        Preserving memories…
-      </div>
-    );
-  }
+  return (
+    <div className="h-[55vh] grid place-items-center text-gray-500 italic">
+      Preserving memories…
+    </div>
+  );
+}
 
+if (uploadingMedia) {
+  return (
+    <div className="h-[55vh] grid place-items-center text-gray-600 italic">
+      Preserving memory…
+    </div>
+  );
+}
 
   return (
-    <div className="max-h-[78vh] overflow-y-auto bg-white">
-      <div>
-       {media.length === 0 && (
-  <div className="h-[55vh] flex items-center justify-center">
-    <UploadMediaBox />
-  </div>
-)}
-        {media.map((m, index) => {
+  <div className="bg-white">
+    <div>
+      {media.length === 0 && (
+        <div className="h-[55vh] flex items-center justify-center">
+          <UploadMediaBox />
+        </div>
+      )}
 
-          return (
-            <div key={m.id} className="grid lg:grid-cols-3 gap-0 px-10 py-6">
-              {/* MEDIA */}
-              <div className="lg:col-span-2 pr-4">
+      {media.map((m, index) => (
+        <div key={m.id} className="grid lg:grid-cols-3 gap-0 px-10 py-6">
+          {/* MEDIA */}
+          <div className="lg:col-span-2 pr-4">
+            <div className="relative rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 bg-white group">
+              {/* DELETE MEDIA BUTTON */}
+              <button
+                onClick={() => onDeleteMedia(m)}
+                className="
+                  absolute top-3 right-3 z-10
+                  opacity-0 group-hover:opacity-100
+                  transition
+                  bg-white/90 backdrop-blur
+                  border border-red-200
+                  text-red-600
+                  text-xs font-semibold
+                  px-3 py-1 rounded-full
+                  hover:bg-red-50
+                "
+              >
+                Delete
+              </button>
 
-               <div className="relative rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 bg-white group">
+              <div className="w-full aspect-[16/9] bg-black overflow-hidden">
+                {m.type === 'photo' && m.url && <SmoothMediaImage src={m.url} alt="" />}
 
-  {/* DELETE MEDIA BUTTON */}
-  <button
-    onClick={() => onDeleteMedia(m)}
-    className="
-      absolute top-3 right-3 z-10
-      opacity-0 group-hover:opacity-100
-      transition
-      bg-white/90 backdrop-blur
-      border border-red-200
-      text-red-600
-      text-xs font-semibold
-      px-3 py-1 rounded-full
-      hover:bg-red-50
-    "
-  >
-    Delete
-  </button>
-
-
-                   {m.type === 'photo' && (
-                    <img  src={m.url}  className="w-full max-h-[60vh] object-contain"/>
-                  )}
-                   {m.type === 'video' && (
-                    <video src={m.url} controls className="w-full max-h-[70vh] object-contain bg-black" />
-                  )}
-                   {m.type === 'audio' && (
-                    <div className="p-6">
-                      <audio controls src={m.url} className="w-full" />
-                    </div>
-                  )}
-                </div>
-                    {/* 👇 THIS IS THE KEY */}
-                    {index === media.length - 1 && (
-                   <div className="mt-10 flex justify-center">
-                   <UploadMediaBox compact />
-                   </div>
-                    )}
+                {m.type === 'video' && m.url && (
+                  <div className="relative w-full h-full bg-black">
+                    <video
+                      key={m.url}
+                      src={m.url}
+                      className="w-full h-full object-cover block"
+                      controls
+                      playsInline
+                      preload="metadata"
+                      style={{
+                        transform: 'translateZ(0)',
+                        backfaceVisibility: 'hidden',
+                      }}
+                    />
                   </div>
+                )}
 
+                {m.type === 'audio' && m.url && (
+                  <div className="p-6">
+                    <audio controls src={m.url} className="w-full" />
+                  </div>
+                )}
+              </div>
+
+              {/* 👇 THIS IS THE KEY */}
+              {index === media.length - 1 && (
+                <div className="mt-10 flex justify-center">
+                  <UploadMediaBox compact />
+                </div>
+              )}
+            </div>
+          </div>
               {/* RIGHT PANEL */}
               {index === 0 && (
               <div className="border-l border-[#E6C26E]/50 pl-10 space-y-12">
@@ -379,18 +457,17 @@ const stopRecording = () => {
                           setAudioUrl(null);
                         }}
                         className="w-full rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] py-2 text-sm font-semibold text-[#1F2837]"
-                      >
+                                            >
                         Seal voice into memory
                       </button>
                     </div>
                   )}
                 </section>
               </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+            )}
+        </div>
+      ))}
     </div>
-  );
+  </div>
+);
 }

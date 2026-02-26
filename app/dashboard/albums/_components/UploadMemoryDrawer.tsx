@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { X, Upload, ImagePlus, Video } from 'lucide-react';
+import Image from "next/image";
 
 // eslint-disable-next-line no-undef
 type GlobalDragEvent = DragEvent;
@@ -23,6 +24,32 @@ type Props = {
   onClose: () => void;
   onUploaded: (newMedia: AlbumMediaRow) => void;
 };
+
+function AlbumPreviewImage({ file }: { file: File }) {
+  const [loaded, setLoaded] = useState(false);
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoaded(false);
+    const url = URL.createObjectURL(file);
+    setSrc(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  if (!src) return null; // ✅ prevents empty src error
+
+  return (
+    <img
+      src={src}
+      alt="preview"
+      className={`w-full h-full object-cover transition-opacity duration-300 ${
+        loaded ? "opacity-100" : "opacity-0"
+      }`}
+      onLoad={() => setLoaded(true)}
+    />
+  );
+}
 
 export default function UploadMemoryDrawer({
   albumId,
@@ -123,6 +150,20 @@ export default function UploadMemoryDrawer({
     }
   };
 
+const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+useEffect(() => {
+  if (!file) {
+    setPreviewUrl(null);
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+  setPreviewUrl(url);
+
+  return () => URL.revokeObjectURL(url);
+}, [file]);
+
   // --- MODAL (IDENTICAL TO CAPSULE) ---
   return (
     <div
@@ -170,18 +211,25 @@ export default function UploadMemoryDrawer({
           transition cursor-pointer overflow-hidden mb-6"
         >
           {file ? (
-            file.type.startsWith('image') ? (
-              <img
-                src={URL.createObjectURL(file)}
-                alt="preview"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <p className="text-sm font-medium text-[#1F2837]">
-                Selected: {file.name}
-              </p>
-            )
-          ) : (
+  file.type.startsWith('image') ? (
+    <AlbumPreviewImage file={file} />
+ ) : file.type.startsWith('video') ? (
+  previewUrl ? (
+    <div className="relative w-full h-full overflow-hidden">
+      <video
+        src={previewUrl}
+        className="w-full h-full object-cover"
+        muted
+        playsInline
+      />
+    </div>
+  ) : null
+) : (
+    <p className="text-sm font-medium text-[#1F2837]">
+      Selected: {file.name}
+    </p>
+  )
+) : (
             <>
               <div className="flex gap-3 mb-3 text-[#C8A557]">
                 <ImagePlus className="w-6 h-6" />

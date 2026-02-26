@@ -40,6 +40,54 @@ type VoiceItem = {
   profile?: { full_name: string | null }[] | null;
 };
 
+function SmoothMediaImage({
+  src,
+  alt = "",
+}: {
+  src: string;
+  alt?: string;
+}) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full bg-black">
+      {/* placeholder (stays while decoding) */}
+      <div
+        className={`absolute inset-0 bg-black transition-opacity duration-500 ease-out ${
+          ready ? "opacity-0" : "opacity-100"
+        }`}
+      />
+
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        loading="lazy"
+        decoding="async"
+        onLoad={async (e) => {
+          const img = e.currentTarget;
+          try {
+            if ("decode" in img) await (img as HTMLImageElement).decode();
+          } catch {}
+          requestAnimationFrame(() => setReady(true));
+        }}
+        className={`w-full h-full object-cover block transition-opacity duration-500 ease-out ${
+          ready ? "opacity-100" : "opacity-0"
+        }`}
+        style={{
+          transform: "translateZ(0)",
+          backfaceVisibility: "hidden",
+          willChange: "opacity",
+        }}
+      />
+    </div>
+  );
+}
+
 export default function MemoryModal({
   open,
   onOpenChange,
@@ -76,6 +124,27 @@ export default function MemoryModal({
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
+  useEffect(() => {
+  if (!open) return;
+
+  const scrollEl = document.scrollingElement as HTMLElement; // usually <html>
+  const prevHtmlOverflow = document.documentElement.style.overflow;
+  const prevBodyOverflow = document.body.style.overflow;
+  const prevScrollOverflow = scrollEl?.style.overflow;
+
+  // lock whatever is actually scrolling
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  if (scrollEl) scrollEl.style.overflow = 'hidden';
+
+  return () => {
+    document.documentElement.style.overflow = prevHtmlOverflow;
+    document.body.style.overflow = prevBodyOverflow;
+    if (scrollEl) scrollEl.style.overflow = prevScrollOverflow || '';
+  };
+}, [open]);
 
   // load event title
   useEffect(() => {
@@ -150,6 +219,7 @@ export default function MemoryModal({
 
 async function uploadMedia(file: File) {
   try {
+    setUploadingMedia(true);
     const { data: sess } = await supabase.auth.getSession();
     const user = sess?.session?.user;
     if (!user) throw new Error('Not authenticated');
@@ -211,7 +281,9 @@ async function uploadMedia(file: File) {
   } catch (err) {
     console.error(err);
     toast.error('Failed to upload media.');
-  }
+  } finally {
+  setUploadingMedia(false);
+}
 }
 
 async function deleteMedia(media: MediaItem) {
@@ -471,7 +543,10 @@ async function uploadVoice(file: File) {
   if (!open) return null;
 
   return (
-  <div className="fixed inset-0 z-[1000]">
+  <div
+  className="fixed inset-0 z-[1000] flex items-center justify-center"
+  onWheel={(e) => e.stopPropagation()}
+>
     {/* OVERLAY */}
     <div
       className="absolute inset-0 bg-black/40"
@@ -480,16 +555,17 @@ async function uploadVoice(file: File) {
     {/* POSITIONING WRAPPER (NO CLIPPING) */}
     <div
       className="
-        absolute left-1/2 top-1/2
-        w-[96vw] max-w-6xl
-        -translate-x-1/2 -translate-y-1/2
-        rounded-4xl
-        shadow-4xl
+        relative
+    mx-auto
+    my-6
+    w-[96vw] max-w-6xl
+    rounded-4xl
+    shadow-4xl
       "
       onClick={(e) => e.stopPropagation()}
     >
       {/* VISUAL CONTAINER (ROUNDED + CLIPPED) */}
-      <div className="bg-white rounded-2xl overflow-hidden">
+     <div className="bg-white rounded-2xl shadow-2xl w-full h-[90vh] flex flex-col overflow-hidden">
 
         {/* HEADER — ANCESTORII STYLE */}
         <div className="px-8 py-6 border-b border-[#E6C26E]/50 bg-white">
@@ -600,23 +676,27 @@ async function uploadVoice(file: File) {
         </div>
 
         {/* BODY */}
+<div
+  className="flex-1 overflow-y-auto"
+  onWheel={(e) => e.stopPropagation()}
+>
   <MemoryModalBody
-  loading={loading}
-  media={media}
-  comments={comments}
-  voices={voices}
-  newComment={newComment}
-  addingComment={addingComment}
-  addingVoice={addingVoice}
-  onChangeComment={(value) => setNewComment(value)}
-  onAddComment={addComment}
-  onUploadVoice={uploadVoice}
-  onDeleteComment={deleteComment}
-  onUploadMedia={uploadMedia}
-  onDeleteMedia={deleteMedia}   // 👈 ADD
-/>
-
-
+    loading={loading}
+    media={media}
+    comments={comments}
+    voices={voices}
+    newComment={newComment}
+    addingComment={addingComment}
+    addingVoice={addingVoice}
+    onChangeComment={(value) => setNewComment(value)}
+    onAddComment={addComment}
+    onUploadVoice={uploadVoice}
+    onDeleteComment={deleteComment}
+    onUploadMedia={uploadMedia}
+    uploadingMedia={uploadingMedia}
+    onDeleteMedia={deleteMedia}
+  />
+</div>
       </div>
       {confirmDeleteOpen && (
   <div className="fixed inset-0 z-[1100]">

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
+import Image from "next/image";
 import {
   Lock,
 } from 'lucide-react';
@@ -29,7 +30,33 @@ type Media = {
   file_path: string;
   file_type: string;
   created_at: string;
+  signed_url?: string | null;
 };
+
+function CapsuleMediaImage({ src }: { src: string }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full">
+      <Image
+        src={src}
+        alt=""
+        width={1600}
+        height={1200}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        quality={90}
+        className={`w-full h-auto object-cover transition-opacity duration-300 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+        onLoadingComplete={() => setLoaded(true)}
+      />
+    </div>
+  );
+}
 
 export default function CapsuleDetailPage() {
   const supabase = getBrowserClient();
@@ -41,9 +68,21 @@ export default function CapsuleDetailPage() {
   const [media, setMedia] = useState<Media[]>([]);
 
   const [loading, setLoading] = useState(true);
+ const signCapsuleMedia = useCallback(async (filePath: string) => {
+  const objectPath = filePath.includes("capsule-media/")
+    ? filePath.split("capsule-media/")[1]
+    : filePath;
+
+  const { data } = await supabase.storage
+    .from("capsule-media")
+    .createSignedUrl(objectPath, 60 * 60 * 24 * 7);
+
+  return data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null;
+}, [supabase]);
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
+
 
   // 🔒 Seal animation overlay
 const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
@@ -78,7 +117,13 @@ const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
     // delete storage file
     await supabase.storage
     .from('capsule-media')
-    .remove([m.file_path]);
+    const objectPath = m.file_path.includes("capsule-media/")
+  ? m.file_path.split("capsule-media/")[1]
+  : m.file_path;
+
+await supabase.storage
+  .from("capsule-media")
+  .remove([objectPath]);
 
     // delete db row
     const { error } = await supabase
@@ -122,7 +167,7 @@ const loadTaggedPeople = async () => {
 
       const { data: signed } = await supabase.storage
         .from('user-media')
-        .createSignedUrl(p.avatar_url, 60 * 60);
+        .createSignedUrl(p.avatar_url, 60 * 60 * 24 * 7);
 
       return {
         ...p,
@@ -157,9 +202,17 @@ const loadTaggedPeople = async () => {
 
 if (mediaErr) throw mediaErr;
 
+const signedMedia: Media[] = await Promise.all(
+  (mediaData ?? []).map(async (m) => ({
+    ...m,
+    signed_url:
+      m.file_path ? await signCapsuleMedia(m.file_path) : null,
+  }))
+);
+
 setCapsule(capsuleData);
-setMedia(mediaData ?? []);
-        await loadTaggedPeople();
+setMedia(signedMedia);
+await loadTaggedPeople();
       } catch (e) {
         console.error(e);
         toast.error('Failed to load capsule.');
@@ -348,14 +401,25 @@ setTimeout(() => {
         </button>
       )}
 
-                  {m.file_type === 'video' ? (
-  <video src={m.file_path} controls className="w-full rounded-lg" />
+                  {m.file_type === "video" ? (
+  <div className="overflow-hidden">
+  <div className="transition-transform duration-300 group-hover:scale-105">
+    <video
+  key={m.signed_url || m.file_path}   // ✅ forces remount = instant refresh
+  src={m.signed_url || m.file_path}   // ✅ never ""
+  controls
+  playsInline
+  preload="metadata"
+  className="w-full rounded-lg"
+/>
+  </div>
+</div>
 ) : (
-  <img
-    src={m.file_path}
-    alt=""
-    className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300"
-  />
+  <div className="overflow-hidden">
+  <div className="transition-transform duration-300 group-hover:scale-105">
+    <CapsuleMediaImage src={m.signed_url || m.file_path} />
+  </div>
+</div>
 )}
                 </div>
               );
@@ -371,10 +435,11 @@ setTimeout(() => {
         capsuleId={capsule.id}
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
-        onUploaded={(newMedia: Media) => {
-          setMedia((prev) => [newMedia, ...prev]);
-          toast.success('Upload successful!');
-        }}
+        onUploaded={async (newMedia: Media) => {
+  const signed = await signCapsuleMedia(newMedia.file_path);
+
+  setMedia((prev) => [{ ...newMedia, signed_url: signed }, ...prev]);
+}}
       />
 
       <UniversalPeopleTagger

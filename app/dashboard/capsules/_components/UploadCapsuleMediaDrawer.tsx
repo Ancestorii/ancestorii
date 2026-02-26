@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { X, Upload, ImagePlus, Video, Mic } from 'lucide-react';
+import Image from "next/image";
 
 // ✅ Fix for native drag events typing
 // eslint-disable-next-line no-undef
@@ -16,6 +17,32 @@ type Props = {
   onUploaded: (newMedia: any) => void;
 };
 
+function CapsulePreviewImage({ file }: { file: File }) {
+  const [loaded, setLoaded] = useState(false);
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoaded(false);
+    const url = URL.createObjectURL(file);
+    setSrc(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  if (!src) return null;
+
+  return (
+    <img
+      src={src}
+      alt="preview"
+      className={`w-full h-full object-cover transition-opacity duration-300 ${
+        loaded ? "opacity-100" : "opacity-0"
+      }`}
+      onLoad={() => setLoaded(true)}
+    />
+  );
+}
+
 export default function UploadCapsuleMediaDrawer({
   capsuleId,
   open,
@@ -26,6 +53,20 @@ export default function UploadCapsuleMediaDrawer({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+useEffect(() => {
+  if (!file) {
+    setPreviewUrl(null);
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+  setPreviewUrl(url);
+
+  return () => URL.revokeObjectURL(url);
+}, [file]);
 
   // --- Drag & Drop logic ---
   useEffect(() => {
@@ -105,16 +146,17 @@ onUploaded({
   ...data,
   file_path: signedUrl,
 });
-      toast.success('Upload successful!');
+      toast.success('Memory preserved.');
       setFile(null);
       onClose();
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || 'Failed to upload media.');
+      toast.error(err.message || 'Upload failed.');
     } finally {
       setLoading(false);
     }
   };
+
 
   // ✅ Instead of returning null, just hide the modal visually
   return (
@@ -159,29 +201,36 @@ onUploaded({
           className="w-full aspect-[16/9] border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:text-[#C8A557] transition cursor-pointer overflow-hidden mb-6"
         >
           {file ? (
-            file.type.startsWith('image') ? (
-              <img
-                src={URL.createObjectURL(file)}
-                alt="preview"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="flex flex-col items-center">
-                <p className="text-sm font-medium text-[#1F2837]">
-                  Selected: {file.name}
-                </p>
-              </div>
-            )
-          ) : (
-            <>
-              <div className="flex gap-3 mb-3 text-[#C8A557]">
-                <ImagePlus className="w-6 h-6" />
-                <Video className="w-6 h-6" />
-                <Mic className="w-6 h-6" />
-              </div>
-              <p className="text-sm">Drag & drop or click to upload</p>
-            </>
-          )}
+  file.type.startsWith('image') ? (
+    <CapsulePreviewImage file={file} />
+  ) : file.type.startsWith('video') ? (
+  previewUrl ? (
+    <div className="relative w-full h-full overflow-hidden">
+      <video
+        src={previewUrl}
+        className="w-full h-full object-cover"
+        muted
+        playsInline
+      />
+    </div>
+  ) : null
+) : (
+    <div className="flex flex-col items-center">
+      <p className="text-sm font-medium text-[#1F2837]">
+        Selected: {file.name}
+      </p>
+    </div>
+  )
+) : (
+  <>
+    <div className="flex gap-3 mb-3 text-[#C8A557]">
+      <ImagePlus className="w-6 h-6" />
+      <Video className="w-6 h-6" />
+      <Mic className="w-6 h-6" />
+    </div>
+    <p className="text-sm">Drag & drop or click to upload</p>
+  </>
+)}
           <input
             id="capsuleFileInput"
             type="file"

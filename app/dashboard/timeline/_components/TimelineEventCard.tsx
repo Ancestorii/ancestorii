@@ -1,7 +1,54 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TimelineEvent } from './HorizontalTimeline';
+
+
+function EventCoverImage({
+  src,
+  onImgError,
+}: {
+  src: string;
+  onImgError: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+}) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
+  return (
+    <img
+      src={src}
+      alt=""
+      draggable={false}
+      loading="lazy"
+      decoding="async"
+      onError={onImgError}
+      onLoad={async (e) => {
+        const img = e.currentTarget;
+
+        // ✅ wait until fully decoded (this is the “albums smoothness” part)
+        try {
+          if ("decode" in img) await (img as HTMLImageElement).decode();
+        } catch {
+          // ignore decode failures
+        }
+
+        // ✅ ensure opacity-0 paints first
+        requestAnimationFrame(() => setLoaded(true));
+      }}
+      className={`h-full w-full object-cover block transition-opacity duration-500 ease-out ${
+        loaded ? "opacity-100" : "opacity-0"
+      }`}
+      style={{
+        transform: "translateZ(0)", // keeps your “split half” fix
+        backfaceVisibility: "hidden",
+        willChange: "opacity",
+      }}
+    />
+  );
+}
 
 type Props = {
   variant?: 'ui' | 'pdf';
@@ -66,28 +113,25 @@ export default function TimelineEventCard({
                     <div className="absolute inset-0 rounded-lg bg-slate-200/60 translate-x-3 translate-y-3 rotate-[1.8deg]" />
                      <div className={
                       isPdf
-                       ? 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200'
-                       : 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 transition-transform duration-200 ease-out hover:scale-[1.04] hover:shadow-md'
+                       ? 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 bg-black'
+                       : 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 bg-black transition-transform duration-200 ease-out hover:scale-[1.04] hover:shadow-md'
                        }
                        >
                       {cover.type === 'photo' ? (
-                        <img
-                        src={cover.url}
-                        alt=""
-                        className="h-full w-full object-cover"
-                        draggable={false}
-                        loading="lazy"
-                        decoding="async"
-                        onError={onImgError}
-                        />
+                        <EventCoverImage src={cover.url} onImgError={onImgError} />
                        ) : (
                        <video
-                       src={cover.url}
-                       className="h-full w-full object-cover"
-                       muted
-                       playsInline
-                       preload="metadata"
-                       />
+  key={cover.url} // ✅ remount when signed url changes
+  src={cover.url}
+  className="h-full w-full object-cover block"
+  muted
+  playsInline
+  preload="metadata"
+  style={{
+    transform: 'translateZ(0)',
+    backfaceVisibility: 'hidden',
+  }}
+/>
                       )}
                       {more > 0 && (
                         <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md text-xs font-semibold text-white bg-black/60">
@@ -129,28 +173,25 @@ export default function TimelineEventCard({
                     <div
                      className={
                       isPdf
-                      ? 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200'
-                      : 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 transition-transform duration-200 ease-out hover:scale-[1.04] hover:shadow-md'
+                      ? 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 bg-black'
+                      : 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 bg-black transition-transform duration-200 ease-out hover:scale-[1.04] hover:shadow-md'
                        }
                       >
                       {cover.type === 'photo' ? (
-                     <img
-                     src={cover.url}
-                     alt=""
-                     className="h-full w-full object-cover"
-                     draggable={false}
-                     loading="lazy"
-                     decoding="async"
-                     onError={onImgError}
-                     />
-                     ) : (
+  <EventCoverImage src={cover.url} onImgError={onImgError} />
+) : (
                     <video
-                    src={cover.url}
-                    className="h-full w-full object-cover"
-                    muted
-                    playsInline
-                    preload="metadata"
-                    />
+  key={cover.url} // ✅ remount when signed url changes
+  src={cover.url}
+  className="h-full w-full object-cover block"
+  muted
+  playsInline
+  preload="metadata"
+  style={{
+    transform: 'translateZ(0)',
+    backfaceVisibility: 'hidden',
+  }}
+/>
                     )}
 
                       {more > 0 && (

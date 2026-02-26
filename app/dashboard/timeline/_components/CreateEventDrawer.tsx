@@ -203,13 +203,24 @@ export default function CreateEventDrawer({
               }}
               className="w-full aspect-[16/9] border-2 border-dashed border-[#E6C26E]/40 rounded-xl flex items-center justify-center cursor-pointer bg-[#FFFDF8] overflow-hidden"
             >
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
+              {mediaFile ? (
+  mediaFile.type.startsWith('image') ? (
+    <img
+      src={previewUrl!}
+      alt="Preview"
+      className="w-full h-full object-cover"
+    />
+  ) : mediaFile.type.startsWith('video') ? (
+    <div className="relative w-full h-full overflow-hidden">
+      <video
+        src={previewUrl!}
+        className="w-full h-full object-cover"
+        muted
+        playsInline
+      />
+    </div>
+  ) : null
+) : (
                 <div className="flex flex-col items-center text-[#7A8596] text-sm gap-2">
                   <ImagePlus className="w-6 h-6" />
                   Drag & drop or click to upload
