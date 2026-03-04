@@ -65,25 +65,45 @@ export default function HeroContent() {
         </p>
       </div>
 
-      {/* CTA */}
-      <div className="mt-14 w-full flex flex-col items-start">
-        <Button
-          onClick={() => (window.location.href = '/signup')}
-          className="
-            bg-[#E6C26E]
-            hover:bg-[#F3D99B]
-            text-[#1F2837]
-            px-14 lg:px-16
-            py-5 lg:py-6
-            rounded-full
-            text-lg lg:text-xl
-            font-semibold
-            shadow-xl
-          "
-        >
-          Start with one memory
-        </Button>
-      </div>
+
+     {/* CTA */}
+<div className="mt-14 w-full flex flex-col items-start gap-4">
+  <Button
+    onClick={() => (window.location.href = '/signup')}
+    className="
+      bg-[#E6C26E]
+      hover:bg-[#F3D99B]
+      text-[#1F2837]
+      w-[320px]
+      px-14
+      py-5
+      rounded-full
+      text-lg
+      font-semibold
+      shadow-xl
+    "
+  >
+    Start with one memory
+  </Button>
+
+  <Button
+    onClick={() => (window.location.href = '/pricing')}
+    className="
+      bg-white
+      hover:bg-gray-100
+      text-[#1F2837]
+      w-[320px]
+      px-14
+      py-5
+      rounded-full
+      text-lg
+      font-semibold
+      shadow-xl
+    "
+  >
+    See our plans
+  </Button>
+</div>
     </div>
   );
 }
