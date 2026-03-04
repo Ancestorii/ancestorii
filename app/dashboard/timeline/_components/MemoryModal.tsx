@@ -6,13 +6,32 @@ import { getSignedMediaUrl } from '@app/dashboard/timeline/_actions/uploadMedia'
 import MemoryModalBody from './MemoryModalBody';
 import { safeToast as toast } from '@/lib/safeToast';
 import { Trash2 } from 'lucide-react';
+import { Save, BookOpen } from 'lucide-react';
+import LibraryPickerModal, { LibraryPickerItem } from '@/components/LibraryPickerModal';
 
+const signedUrlCache = new Map<string, string>();
 
 type DbMedia = {
   id: string;
   file_path: string | null;
   file_type: 'photo' | 'video' | 'audio' | 'file';
   created_at: string | null;
+
+  library_media_id?: string | null;
+  library_media?:
+    | {
+        id: string;
+        file_path: string;
+        file_type: string;
+        created_at: string | null;
+      }
+    | {
+        id: string;
+        file_path: string;
+        file_type: string;
+        created_at: string | null;
+      }[]
+    | null;
 };
 
 type MediaItem = {
@@ -54,8 +73,7 @@ function SmoothMediaImage({
   }, [src]);
 
   return (
-    <div className="relative w-full h-full bg-black">
-      {/* placeholder (stays while decoding) */}
+    <div className="relative w-full bg-black">
       <div
         className={`absolute inset-0 bg-black transition-opacity duration-500 ease-out ${
           ready ? "opacity-0" : "opacity-100"
@@ -66,7 +84,7 @@ function SmoothMediaImage({
         src={src}
         alt={alt}
         draggable={false}
-        loading="lazy"
+        loading="eager"
         decoding="async"
         onLoad={async (e) => {
           const img = e.currentTarget;
@@ -75,7 +93,7 @@ function SmoothMediaImage({
           } catch {}
           requestAnimationFrame(() => setReady(true));
         }}
-        className={`w-full h-full object-cover block transition-opacity duration-500 ease-out ${
+        className={`w-full h-auto object-cover block transition-opacity duration-500 ease-out ${
           ready ? "opacity-100" : "opacity-0"
         }`}
         style={{
@@ -87,7 +105,6 @@ function SmoothMediaImage({
     </div>
   );
 }
-
 export default function MemoryModal({
   open,
   onOpenChange,
@@ -125,6 +142,74 @@ export default function MemoryModal({
   const [deleting, setDeleting] = useState(false);
 
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [libraryPickerOpen, setLibraryPickerOpen] = useState(false);
+
+  async function loadMedia() {
+  const { data: m, error } = await supabase
+    .from('timeline_event_media')
+    .select(`
+      id,
+      file_path,
+      file_type,
+      created_at,
+      library_media_id,
+      library_media:library_media_id (
+        id,
+        file_path,
+        file_type,
+        created_at
+      )
+    `)
+    .eq('event_id', eventId)
+    .limit(50)
+    .order('created_at', { ascending: true });
+
+  if (error || !m) {
+    setMedia([]);
+    return;
+  }
+
+  const out = await Promise.all(
+    m.map(async (row: any) => {
+
+      const isLibrary = !!row.library_media_id;
+
+      const lib = Array.isArray(row.library_media)
+        ? row.library_media[0]
+        : row.library_media;
+
+      const realPath = isLibrary ? lib?.file_path : row.file_path;
+
+      if (!realPath) return null;
+
+      let signed = signedUrlCache.get(realPath);
+
+if (!signed) {
+
+  if (isLibrary) {
+    const { data } = await supabase.storage
+      .from('library-media')
+      .createSignedUrl(realPath, 3600);
+
+    signed = data?.signedUrl || '';
+  } else {
+    signed = await getSignedMediaUrl(realPath, 3600);
+  }
+
+  if (signed) signedUrlCache.set(realPath, signed);
+}
+
+      return {
+        id: row.id,
+        url: signed,
+        type: row.file_type || 'file',
+        created_at: row.created_at,
+      };
+    })
+  );
+
+  setMedia(out.filter(Boolean) as MediaItem[]);
+}
 
   useEffect(() => {
   if (!open) return;
@@ -168,53 +253,49 @@ export default function MemoryModal({
 
 
 
-  // load media for this event
-  useEffect(() => {
-    if (!open || !eventId) return;
-    (async () => {
-      setLoading(true);
-      try {
-        const { data: m, error } = await supabase
-          .from('timeline_event_media')
-          .select('id, file_path, file_type, created_at')
-          .eq('event_id', eventId)
-          .order('created_at', { ascending: true });
+ // load media for this event
+useEffect(() => {
+  if (!open || !eventId) return;
 
-        if (error || !m) {
-          setMedia([]);
-          return;
-        }
+  (async () => {
+    setLoading(true);
+    try {
+      await loadMedia();
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [open, eventId]);
 
-        const out: MediaItem[] = [];
-        for (const row of m as DbMedia[]) {
-          try {
-           if (!row.file_path) throw new Error('No media path');
-            const path = row.file_path;
-            const signed = await getSignedMediaUrl(path, 3600);
+  async function handlePickFromLibrary(item: LibraryPickerItem) {
+  try {
+    const { error } = await supabase
+      .from('timeline_event_media')
+      .insert({
+  event_id: eventId,
+  library_media_id: item.id,
+  file_path: null,
+  file_type:
+    item.file_type === "image"
+      ? "photo"
+      : item.file_type === "video"
+      ? "video"
+      : item.file_type === "audio"
+      ? "audio"
+      : "file",
+});
 
-            out.push({
-              id: row.id,
-              url: signed,
-              type: (row.file_type as any) || 'file',
-              created_at: row.created_at,
-            });
-          } catch {
-            out.push({
-              id: row.id,
-              url: '',
-              type: (row.file_type as any) || 'file',
-              created_at: row.created_at,
-            });
-          }
-        }
-        setMedia(out);
-      } finally {
-        setLoading(false);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, eventId]);
+    if (error) throw error;
 
+    // refresh media
+    await loadMedia();
+
+    toast.success('Added from your library.');
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to add from library.');
+  }
+}
 
 
 async function uploadMedia(file: File) {
@@ -252,31 +333,7 @@ async function uploadMedia(file: File) {
     if (insertErr) throw insertErr;
 
     // 🔑 RE-FETCH (same pattern as albums)
-    const { data: m, error: fetchErr } = await supabase
-      .from('timeline_event_media')
-      .select('id, file_path, file_type, created_at')
-      .eq('event_id', eventId)
-      .order('created_at', { ascending: true });
-
-    if (fetchErr || !m) throw fetchErr;
-
-    const out: MediaItem[] = [];
-    for (const row of m as DbMedia[]) {
-      if (!row.file_path) throw new Error('No media path');
-      const path = row.file_path;
-
-
-        const signed = await getSignedMediaUrl(path, 3600);
-
-      out.push({
-        id: row.id,
-        url: signed,
-        type: (row.file_type as any) || 'file',
-        created_at: row.created_at,
-      });
-    }
-
-    setMedia(out);
+    await loadMedia();
     toast.success('Media added to memory.');
   } catch (err) {
     console.error(err);
@@ -288,14 +345,23 @@ async function uploadMedia(file: File) {
 
 async function deleteMedia(media: MediaItem) {
   try {
-    // 1️⃣ delete related comments
+
+    const { data: row } = await supabase
+      .from('timeline_event_media')
+      .select('library_media_id, file_path')
+      .eq('id', media.id)
+      .single();
+
+    const isLibrary = !!row?.library_media_id;
+
+    // delete related comments
     await supabase
       .from('timeline_event_media_comments')
       .delete()
       .eq('event_id', eventId)
       .eq('media_id', media.id);
 
-    // 2️⃣ delete related voice notes
+    // delete voice notes
     const { data: voices } = await supabase
       .from('timeline_event_media_voice_notes')
       .select('file_path')
@@ -314,22 +380,27 @@ async function deleteMedia(media: MediaItem) {
       .eq('event_id', eventId)
       .eq('media_id', media.id);
 
-    // 3️⃣ delete storage file (image/video)
-    const path = media.url.split('/timeline-media/')[1]?.split('?')[0];
-    if (path) {
-      await supabase.storage.from('timeline-media').remove([path]);
+    // delete storage ONLY if direct upload
+    if (!isLibrary && row?.file_path) {
+      await supabase.storage
+        .from('timeline-media')
+        .remove([row.file_path]);
     }
 
-    // 4️⃣ delete media row
+    // delete row
     await supabase
       .from('timeline_event_media')
       .delete()
       .eq('id', media.id);
 
-    // 5️⃣ update local state
     setMedia(prev => prev.filter(m => m.id !== media.id));
 
-    toast.success('Media deleted.');
+    if (isLibrary) {
+      toast.success('Removed from timeline (still in library).');
+    } else {
+      toast.success('Media deleted.');
+    }
+
   } catch (err) {
     console.error(err);
     toast.error('Failed to delete media.');
@@ -593,60 +664,81 @@ async function uploadVoice(file: File) {
               />
 
               <p className="text-sm text-gray-600 max-w-xl">
-                This memory holds every image, word, and voice exactly as it was —
+                This memory holds every image, word, and voice
                 preserved as part of your story.
               </p>
             </div>
 
             {/* RIGHT — ACTIONS */}
-<div className="flex flex-col items-end gap-2 pt-2">
+<div className="flex flex-col items-end gap-3 pt-2">
 
-  {/* TOP ROW — SAVE + CLOSE */}
-  <div className="flex items-center gap-3">
-    {/* SAVE */}
-    <button
-      onClick={saveTop}
-      disabled={saving}
-      className={`
-        inline-flex items-center justify-center
-        px-6 h-[42px]
-        rounded-full
-        text-sm font-semibold
-        transition
-        ${
-          saving
-            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            : 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] hover:shadow-lg hover:scale-[1.02]'
-        }
-      `}
+  <div className="grid grid-cols-2 gap-3 w-full max-w-[420px]">
+
+    {/* UPLOAD MEMORY */}
+    <label
+      className="inline-flex items-center justify-center gap-2 px-5 h-[42px] rounded-full
+                 bg-emerald-50 border border-emerald-200 shadow-sm
+                 text-sm text-emerald-700 hover:bg-emerald-100
+                 transition cursor-pointer"
     >
-      {saving || saveStatus === 'saving'
-        ? 'Sealing…'
-        : saveStatus === 'saved'
-        ? 'Saved ✓'
-        : 'Save memory'}
-    </button>
+      + Upload Memory
+      <input
+        type="file"
+        accept="image/*,video/*,audio/*"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          uploadMedia(file);
+        }}
+      />
+    </label>
+
+    {/* PICK FROM LIBRARY */}
+  <button
+  onClick={() => setLibraryPickerOpen(true)}
+  className="inline-flex items-center justify-center gap-2 px-5 h-[42px] rounded-full
+             bg-amber-50 border border-amber-200 shadow-sm
+             text-sm text-amber-800 hover:bg-amber-100
+             transition"
+>
+  <BookOpen className="w-4 h-4" />
+  Pick from My Library
+</button>
+
+    {/* SAVE MEMORY */}
+    <button
+  onClick={saveTop}
+  disabled={saving}
+  className={`inline-flex items-center justify-center gap-2 px-5 h-[42px] rounded-full shadow-sm text-sm font-semibold transition ${
+    saving
+      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+      : 'bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100'
+  }`}
+>
+  <Save className="w-4 h-4" />
+
+  {saving || saveStatus === 'saving'
+    ? 'Sealing…'
+    : saveStatus === 'saved'
+    ? 'Saved ✓'
+    : 'Save Memory'}
+</button>
 
     {/* CLOSE */}
     <button
-       onClick={() => {
-      window.dispatchEvent(new Event('timeline-media-updated'));
-      onOpenChange(false);}}
-      className="
-        inline-flex items-center justify-center
-        px-12 h-[42px]
-        rounded-full
-        text-sm font-semibold
-        text-gray-700
-        border border-gray-200
-        bg-white
-        hover:bg-gray-50
-        hover:text-gray-900
-        transition
-      "
+      onClick={() => {
+        window.dispatchEvent(new Event('timeline-media-updated'));
+        onOpenChange(false);
+      }}
+      className="inline-flex items-center justify-center gap-2 px-5 h-[42px] rounded-full
+                 border border-gray-200 shadow-sm bg-white
+                 text-sm text-gray-700 hover:bg-gray-50
+                 transition"
     >
       Close
     </button>
+
   </div>
 
   {/* DELETE — LOWER, NEAR DIVIDER */}
@@ -667,11 +759,7 @@ async function uploadVoice(file: File) {
 >
   <Trash2 size={18} />
 </button>
-
-
 </div>
-
-
           </div>
         </div>
 
@@ -743,8 +831,12 @@ async function uploadVoice(file: File) {
     </div>
   </div>
 )}
-
     </div>
+    <LibraryPickerModal
+  open={libraryPickerOpen}
+  onClose={() => setLibraryPickerOpen(false)}
+  onPick={(item) => handlePickFromLibrary(item)}
+/>
   </div>
    );
 }

@@ -30,8 +30,18 @@ type Media = {
   id: string;
   album_id: string;
   user_id?: string | null;
-  file_path: string;
-  file_type: string;
+
+  file_path: string | null;          // ✅ allow null for library-linked rows
+  file_type: string | null;          // ✅ allow null for library-linked rows
+
+  library_media_id?: string | null;  // ✅ new
+  library_media?: {
+    id: string;
+    file_path: string;
+    file_type: string;
+    created_at: string | null;
+  } | null;
+
   created_at: string;
 };
 
@@ -325,7 +335,7 @@ setVoiceNotes(signedVoices);
                  text-red-600 font-semibold text-sm
                  hover:bg-red-100 transition"
                 >
-                Delete This Memory
+                Remove From Album
           </button>
           </div>
            )}

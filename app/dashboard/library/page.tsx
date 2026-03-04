@@ -30,6 +30,11 @@ export default function LibraryPage() {
     filePath: string;
   } | null>(null);
 
+  const [viewer, setViewer] = useState<{
+  url: string;
+  type: string;
+  } | null>(null);
+
   useEffect(() => {
     fetchLibrary();
   }, []);
@@ -139,7 +144,10 @@ export default function LibraryPage() {
                   className="rounded-3xl border border-[#B7932F]/60 shadow-md md:hover:shadow-2xl md:transform md:hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95"
                 >
                   {/* MEDIA CONTAINER */}
-                  <div className="aspect-[16/9] relative bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden">
+                  <div
+                  onClick={() => setViewer({ url, type: item.file_type })}
+                  className="aspect-[16/9] relative bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden cursor-zoom-in"
+                  >
 
                     {/* 🔥 Trash Icon INSIDE media */}
                     <button
@@ -199,6 +207,30 @@ export default function LibraryPage() {
           );
         }}
       />
+      {viewer && (
+  <div
+    className="fixed inset-0 z-[2000] bg-black/95 flex items-center justify-center"
+    onClick={() => setViewer(null)}
+  >
+    <div className="max-w-[95vw] max-h-[95vh]">
+
+      {viewer.type === "video" ? (
+        <video
+          src={viewer.url}
+          controls
+          autoPlay
+          className="max-w-full max-h-[95vh] rounded-lg"
+        />
+      ) : (
+        <img
+          src={viewer.url}
+          className="max-w-full max-h-[95vh] rounded-lg"
+        />
+      )}
+
+    </div>
+  </div>
+)}
 
       <style jsx global>{`
         @keyframes shine {

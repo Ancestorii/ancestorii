@@ -143,22 +143,31 @@ export default function HorizontalTimeline({
     if (!thumbnailResolver || !events.length) return;
     let cancelled = false;
     (async () => {
-      const need = events.filter((ev) => !thumbsById[ev.id]);
-      for (const ev of need) {
-        try {
-          const urls = (await thumbnailResolver(ev)) || [];
-          if (cancelled) return;
-          setThumbsById((p) => ({ ...p, [ev.id]: urls }));
-        } catch {
-          if (cancelled) return;
-          setThumbsById((p) => ({ ...p, [ev.id]: [] }));
-        }
+  const need = events.filter((ev) => !thumbsById[ev.id]);
+
+  const results = await Promise.all(
+    need.map(async (ev) => {
+      try {
+        const urls = (await thumbnailResolver(ev)) || [];
+        return { id: ev.id, urls };
+      } catch {
+        return { id: ev.id, urls: [] };
       }
-    })();
+    })
+  );
+
+  if (cancelled) return;
+
+  setThumbsById((prev) => {
+    const next = { ...prev };
+    for (const r of results) next[r.id] = r.urls;
+    return next;
+  });
+})();
     return () => {
       cancelled = true;
     };
-  }, [events, thumbnailResolver, thumbsById]);
+  }, [events, thumbnailResolver]);
 
   const onImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const el = e.currentTarget;

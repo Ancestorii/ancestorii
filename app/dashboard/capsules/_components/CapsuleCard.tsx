@@ -86,7 +86,7 @@ const timeRemaining = useMemo(() => {
 
 
   return (
-    <div className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative">
+    <div className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative flex flex-col h-full">
       {/* Cover */}
       <div className="aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
   {capsule.cover_image ? (
@@ -126,12 +126,12 @@ const timeRemaining = useMemo(() => {
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-6 flex flex-col flex-grow">
         <h3 className="text-xl font-semibold text-[#222B3A] mb-2 line-clamp-1">
           {capsule.title}
         </h3>
 
-        <p className="text-[#5B6473] text-sm mb-4 line-clamp-2">
+        <p className="text-[#5B6473] text-sm mb-4 line-clamp-2 min-h-[40px]">
           {capsule.description || 'A sealed message for your future self'}
         </p>
 
@@ -156,7 +156,7 @@ const timeRemaining = useMemo(() => {
         {!isStillLocked ? (
           <Link
             href={`/dashboard/capsules/${capsule.id}`}
-            className="block text-center font-semibold px-4 py-3 rounded-full
+            className="mt-auto block text-center font-semibold px-4 py-3 rounded-full
                        text-[#1F2837] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
                        shadow hover:shadow-md transition-transform duration-200
                        hover:scale-[1.02]"
@@ -164,7 +164,7 @@ const timeRemaining = useMemo(() => {
             View Capsule →
           </Link>
         ) : (
-          <div className="block text-center font-semibold px-4 py-3 rounded-full
+          <div className="mt-auto block text-center font-semibold px-4 py-3 rounded-full
                           bg-gray-200 text-gray-500 cursor-not-allowed">
             Capsule Locked
           </div>

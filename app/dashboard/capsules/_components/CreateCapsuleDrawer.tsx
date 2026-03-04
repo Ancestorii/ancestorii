@@ -201,7 +201,6 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
       if (error) throw error;
 
       onUpdated(data);
-      toast.success('Capsule updated');
     } else {
       const { data, error } = await supabase
         .from('memory_capsules')

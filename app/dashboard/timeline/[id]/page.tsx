@@ -8,6 +8,8 @@ import CreateEventDrawer from '@app/dashboard/timeline/_components/CreateEventDr
 import UniversalPeopleTagger from '@/components/UniversalPeopleTagger';
 import ExportTimelineDrawer from '@app/dashboard/timeline/_components/ExportTimelineDrawer';
 
+const thumbnailCache = new Map<string, TimelineThumbnail[]>();
+
 
 const isUuid = (v?: string) =>
   typeof v === 'string' &&
@@ -94,6 +96,11 @@ export default function TimelineDetailPage() {
   const thumbnailResolver = async (
   ev: TimelineEvent
 ): Promise<TimelineThumbnail[]> => {
+
+  if (thumbnailCache.has(ev.id)) {
+    return thumbnailCache.get(ev.id)!;
+  }
+
   try {
     const { data } = await supabase
       .from('timeline_event_media')
@@ -103,27 +110,38 @@ export default function TimelineDetailPage() {
       .order('created_at', { ascending: true })
       .limit(4);
 
-    if (!data) return [];
-
-    const out: TimelineThumbnail[] = [];
-
-    for (const row of data) {
-      if (!row.file_path) continue;
-
-     const { data: signed } = await supabase.storage
-  .from('timeline-media')
-  .createSignedUrl(row.file_path, 3600);
-
-if (signed?.signedUrl) {
-  out.push({
-    url: `${signed.signedUrl}&v=${Date.now()}`, // 👈 FORCE REFRESH
-    type: row.file_type,
-  });
+    if (!data || data.length === 0) {
+    thumbnailCache.set(ev.id, []);
+  return [];
 }
 
-    }
+    const paths = data
+  .map((r) => r.file_path)
+  .filter(Boolean) as string[];
 
-    return out;
+    const { data: signed } = await supabase.storage
+      .from('timeline-media')
+      .createSignedUrls(paths, 3600);
+
+    const result = signed
+      ?.map((s, i) =>
+        s?.signedUrl
+          ? {
+              url: s.signedUrl,
+              type: data[i].file_type,
+            }
+          : null
+      )
+      .filter(Boolean) as TimelineThumbnail[];
+
+    thumbnailCache.set(ev.id, result);
+    // preload images
+  result.forEach((img) => {
+  const i = new Image();
+  i.src = img.url;
+});
+
+    return result;
   } catch {
     return [];
   }
@@ -325,7 +343,7 @@ if (signed?.signedUrl) {
        <EmptyState onCreate={() => setCreateOpen(true)} />
       ) : (
     <HorizontalTimeline
-      key={mediaVersion} // 👈 IMPORTANT
+      key={timelineId} // 👈 IMPORTANT
       events={events}
       thumbnailResolver={thumbnailResolver}
       onCreateMemory={() => setCreateOpen(true)}

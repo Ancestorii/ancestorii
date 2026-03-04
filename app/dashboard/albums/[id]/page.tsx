@@ -8,7 +8,9 @@ import UploadMemoryDrawer from '../_components/UploadMemoryDrawer';
 import UniversalPeopleTagger from "@/components/UniversalPeopleTagger";
 import DeleteMemoryModal from '../_components/DeleteMemoryModal';
 import MediaInteractionsPanel from '../_components/media-interactions/MediaInteractionsPanel';
+import LibraryPickerModal, { LibraryPickerItem } from '@/components/LibraryPickerModal';
 import Image from "next/image";
+import { BookOpen } from 'lucide-react';
 
 
 type Album = {
@@ -22,8 +24,18 @@ type Media = {
   id: string;
   album_id: string;
   user_id?: string | null;
-  file_path: string;
-  file_type: string;
+
+  file_path: string | null;            // ✅ now nullable
+  file_type: string | null;            // ✅ now nullable
+
+  library_media_id?: string | null;    // ✅ new
+  library_media?: {
+    id: string;
+    file_path: string;
+    file_type: string;
+    created_at: string | null;
+  } | null;
+
   created_at: string;
   signed_url?: string | null;
 };
@@ -42,8 +54,8 @@ function AlbumMediaImage({ src }: { src: string }) {
         alt=""
         width={1600}
         height={1200}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        quality={90}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        quality={75}
         className={`w-full h-auto object-cover transition-opacity duration-300 ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
@@ -63,9 +75,27 @@ export default function AlbumDetailPage() {
   const [album, setAlbum] = useState<Album | null>(null);
   const [media, setMedia] = useState<Media[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
+function openViewer(index: number) {
+  setViewerIndex(index);
+  setViewerOpen(true);
+
+  const m = media[index];
+  if (!m) return;
+
+  // keep panel in sync (same pattern you used before)
+  setSelectedMedia({
+    ...m,
+    file_path: m.file_path ?? m.library_media?.file_path ?? null,
+    file_type: m.file_type ?? m.library_media?.file_type ?? null,
+  });
+}
   const [loading, setLoading] = useState(true);
 
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [libraryPickerOpen, setLibraryPickerOpen] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -90,6 +120,73 @@ export default function AlbumDetailPage() {
   );
 };
 
+const handlePickFromLibrary = async (item: LibraryPickerItem) => {
+  try {
+    const { data: sess } = await supabase.auth.getSession();
+    const u = sess?.session?.user;
+    if (!u) throw new Error('Not authenticated.');
+
+    const { data, error } = await supabase
+      .from('album_media')
+      .insert({
+        album_id: albumId,
+        user_id: u.id,              // remove this line if album_media has no user_id column
+        library_media_id: item.id,
+        file_path: null,
+        file_type: item.file_type,  // can be null too, but this is fine
+      })
+      .select(`
+        id,
+        album_id,
+        user_id,
+        file_path,
+        file_type,
+        created_at,
+        library_media_id,
+        library_media:library_media_id (
+          id,
+          file_path,
+          file_type,
+          created_at
+        )
+      `)
+      .single();
+
+    if (error) throw error;
+
+    const lib = Array.isArray((data as any)?.library_media) ? (data as any).library_media[0] : (data as any).library_media;
+    const realPath = lib?.file_path;
+    if (!realPath) throw new Error('Missing library file path.');
+
+    const { data: signed } = await supabase.storage
+      .from('library-media')
+      .createSignedUrl(realPath, 60 * 60 * 24 * 7);
+
+    const rowWithSigned = {
+      ...data,
+      signed_url: signed?.signedUrl ? `${signed.signedUrl}&cb=${Date.now()}` : null,
+    };
+
+    setMedia((prev) => [rowWithSigned as any, ...prev]);
+    toast.success('Added from your library.');
+  } catch (e: any) {
+    console.error(e);
+    toast.error(e?.message || 'Failed to add from library.');
+  }
+};
+
+useEffect(() => {
+  function handleKey(e: KeyboardEvent) {
+    if (!viewerOpen) return;
+
+    if (e.key === "ArrowRight") nextMedia();
+    if (e.key === "ArrowLeft") prevMedia();
+    if (e.key === "Escape") setViewerOpen(false);
+  }
+
+  window.addEventListener("keydown", handleKey);
+  return () => window.removeEventListener("keydown", handleKey);
+}, [viewerOpen, viewerIndex, media]);
 
   useEffect(() => {
     (async () => {
@@ -116,28 +213,70 @@ export default function AlbumDetailPage() {
 
         const { data: mediaDataRaw, error: mediaErr } = await supabase
           .from('album_media')
-          .select('id,album_id,user_id,file_path,file_type,created_at')
+          .select(`
+  id,
+  album_id,
+  user_id,
+  file_path,
+  file_type,
+  created_at,
+  library_media_id,
+  library_media:library_media_id (
+    id,
+    file_path,
+    file_type,
+    created_at
+  )
+`)
           .eq('album_id', albumId)
           .order('created_at', { ascending: false });
 
         if (mediaErr) throw mediaErr;
 
-        const mediaWithSigned = await Promise.all(
-          (mediaDataRaw ?? []).map(async (m) => {
-            const objectPath = m.file_path.includes('album-media/')
-              ? m.file_path.split('album-media/')[1]
-              : m.file_path;
+       const albumRows = (mediaDataRaw ?? []).filter((m: any) => !m.library_media_id);
+const libraryRows = (mediaDataRaw ?? []).filter((m: any) => m.library_media_id);
 
-            const { data: signed } = await supabase.storage
-              .from('album-media')
-              .createSignedUrl(objectPath, 60 * 60 * 24 * 7);
+const albumPaths = albumRows
+  .map((m: any) => {
+    if (!m.file_path) return null;
+    return m.file_path.includes("album-media/")
+      ? m.file_path.split("album-media/")[1]
+      : m.file_path;
+  })
+  .filter(Boolean);
 
-            return {
-              ...m,
-              signed_url: signed?.signedUrl ? `${signed.signedUrl}&cb=${Date.now()}` : null
-            };
-          })
-        );
+const libraryPaths = libraryRows
+  .map((m: any) => m.library_media?.file_path)
+  .filter(Boolean);
+
+const [albumSigned, librarySigned] = await Promise.all([
+  albumPaths.length
+    ? supabase.storage
+        .from("album-media")
+        .createSignedUrls(albumPaths, 60 * 60 * 24 * 7)
+    : { data: [] },
+
+  libraryPaths.length
+    ? supabase.storage
+        .from("library-media")
+        .createSignedUrls(libraryPaths, 60 * 60 * 24 * 7)
+    : { data: [] },
+]);
+
+const mediaWithSigned: Media[] = (mediaDataRaw ?? []).map((m: any) => {
+  const isLibrary = !!m.library_media_id;
+
+  if (isLibrary) {
+    const idx = libraryRows.findIndex((r: any) => r.id === m.id);
+    const url = librarySigned.data?.[idx]?.signedUrl ?? null;
+    return { ...m, signed_url: url ? `${url}&cb=${Date.now()}` : null };
+  }
+
+  const idx = albumRows.findIndex((r: any) => r.id === m.id);
+  const url = albumSigned.data?.[idx]?.signedUrl ?? null;
+
+  return { ...m, signed_url: url ? `${url}&cb=${Date.now()}` : null };
+});
 
         setAlbum(albumData);
         setMedia(mediaWithSigned);
@@ -201,6 +340,41 @@ useEffect(() => {
       </div>
     );
   }
+
+  const currentMedia =
+  viewerIndex !== null ? media[viewerIndex] : null;
+
+  function nextMedia() {
+  if (viewerIndex === null) return;
+
+  const next = (viewerIndex + 1) % media.length;
+  setViewerIndex(next);
+
+  const m = media[next];
+  if (!m) return;
+
+  setSelectedMedia({
+    ...m,
+    file_path: m.file_path ?? m.library_media?.file_path ?? null,
+    file_type: m.file_type ?? m.library_media?.file_type ?? null,
+  });
+}
+
+function prevMedia() {
+  if (viewerIndex === null) return;
+
+  const prev = (viewerIndex - 1 + media.length) % media.length;
+  setViewerIndex(prev);
+
+  const m = media[prev];
+  if (!m) return;
+
+  setSelectedMedia({
+    ...m,
+    file_path: m.file_path ?? m.library_media?.file_path ?? null,
+    file_type: m.file_type ?? m.library_media?.file_type ?? null,
+  });
+}
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-white">
@@ -272,13 +446,21 @@ useEffect(() => {
 )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="grid grid-cols-2 gap-3 w-full max-w-[420px]">
             <button
               onClick={() => setUploadOpen(true)}
               className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-sm text-emerald-700 hover:bg-emerald-100 transition"
             >
               + Upload Memory
             </button>
+
+            <button
+  onClick={() => setLibraryPickerOpen(true)}
+  className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-amber-50 border border-amber-200 shadow-sm text-sm text-amber-800 hover:bg-amber-100 transition"
+>
+  <BookOpen className="w-4 h-4" />
+  Pick from My Library
+</button>
 
             <button
               onClick={() => setTagOpen(true)}
@@ -295,38 +477,37 @@ useEffect(() => {
             No memories yet. Add your first photo or video.
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-            {media.map((m) => (
+          <div className="columns-1 sm:columns-2 xl:columns-3 gap-6 space-y-6">
+            {media.map((m, i) => {
+             const realType = (m.file_type ?? m.library_media?.file_type) || '';
+              return (
               <div
-                key={m.id}
-                onClick={() => setSelectedMedia(m)}
-                className={`break-inside-avoid relative group rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer ${
-                  selectedMedia?.id === m.id ? 'ring-4 ring-[#E6C26E]' : ''
-                }`}
-              >
+  key={m.id}
+  onClick={() => openViewer(i)}
+   className={`break-inside-avoid mb-6 relative group cursor-pointer ${
+    selectedMedia?.id === m.id ? 'ring-4 ring-[#E6C26E] rounded-lg' : ''
+  }`}
+>
 
-               {m.file_type === "video" ? (
-  <div className="overflow-hidden">
-    <div className="transition-transform duration-300 group-hover:scale-105">
-      <video
-  key={m.signed_url || m.file_path}   // ✅ forces remount so it reloads
-  src={m.signed_url || m.file_path}   // ✅ never undefined
-  controls
-  playsInline
-  preload="metadata"
-  className="w-full rounded-lg"
-/>
-    </div>
-  </div>
+               {realType === "video" ? (
+  <div className="transition-transform duration-300 group-hover:scale-[1.03]">
+  <video
+    key={m.signed_url || m.id}
+    src={m.signed_url || ""}
+    controls
+    playsInline
+    preload="metadata"
+    className="w-full rounded-lg"
+  />
+</div>
 ) : (
-  <div className="overflow-hidden">
-    <div className="transition-transform duration-300 group-hover:scale-105">
-      <AlbumMediaImage src={m.signed_url || m.file_path} />
-    </div>
-  </div>
+  <div className="transition-transform duration-300 group-hover:scale-[1.03]">
+  <AlbumMediaImage src={m.signed_url || ''} />
+</div>
 )}
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>
@@ -336,13 +517,34 @@ useEffect(() => {
         selectedMedia={selectedMedia}
         albumId={album.id}
         user={user}
-        onDelete={(media) => {
-          setDeleteTarget({
-            id: media.id,
-             file_path: media.file_path,
-              });
-               setDeleteOpen(true);
-                }}
+        onDelete={async (media) => {
+  // ✅ library-linked: unlink only
+  if (media.library_media_id) {
+    const { error } = await supabase
+      .from('album_media')
+      .delete()
+      .eq('id', media.id);
+
+    if (error) {
+      console.error(error);
+      toast.error('Failed to remove from album.');
+      return;
+    }
+
+    setMedia((prev) => prev.filter((x) => x.id !== media.id));
+    if (selectedMedia?.id === media.id) setSelectedMedia(null);
+
+    toast.success('Removed from album (still in your library).');
+    return;
+  }
+
+  // ✅ direct upload: use existing delete modal
+  setDeleteTarget({
+    id: media.id,
+    file_path: media.file_path || '',
+  });
+  setDeleteOpen(true);
+}}
       />
 
       {/* ✅ DRAWERS */}
@@ -374,6 +576,12 @@ useEffect(() => {
           }}
         />
       )}
+
+      <LibraryPickerModal
+  open={libraryPickerOpen}
+  onClose={() => setLibraryPickerOpen(false)}
+  onPick={(item) => handlePickFromLibrary(item)}
+/>
 
       <UniversalPeopleTagger
         parentType="album"
@@ -407,6 +615,60 @@ useEffect(() => {
   setTaggedPeople(withSigned);
 }}
       />
+      {viewerOpen && currentMedia && (
+  <div
+    className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100]"
+    onClick={() => setViewerOpen(false)}
+  >
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        prevMedia();
+      }}
+      className="absolute left-6 top-1/2 -translate-y-1/2
+                 text-6xl font-bold
+                 text-[#D4AF37]
+                 hover:scale-110
+                 transition cursor-pointer select-none"
+    >
+      ‹
+    </button>
+
+    <div
+      className="relative max-w-[90vw] max-h-[90vh]"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {(currentMedia.file_type === "video" ||
+        currentMedia.library_media?.file_type === "video") ? (
+        <video
+          src={currentMedia.signed_url ?? ""}
+          controls
+          autoPlay
+          className="max-w-full max-h-[95vh] rounded-lg"
+        />
+      ) : (
+        <img
+          src={currentMedia.signed_url ?? ""}
+          className="max-w-full max-h-[95vh] object-contain rounded-lg"
+        />
+      )}
+    </div>
+
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        nextMedia();
+      }}
+      className="absolute right-6 top-1/2 -translate-y-1/2
+                 text-6xl font-bold
+                 text-[#D4AF37]
+                 hover:scale-110
+                 transition cursor-pointer select-none"
+    >
+      ›
+    </button>
+  </div>
+)}
     </div>
   );
 }

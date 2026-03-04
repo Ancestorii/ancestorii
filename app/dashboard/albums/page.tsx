@@ -239,7 +239,7 @@ export default function AlbumsPage() {
             {(albums ?? []).map((a) => (
               <div
                 key={a.id}
-                className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative"
+                className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative flex flex-col h-full"
               >
                 <div className="aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
   {a.cover_image ? (
@@ -267,11 +267,11 @@ export default function AlbumsPage() {
                     />
                   </div>
                   
-                <div className="p-6">
+                <div className="p-6 flex flex-col flex-grow">
                   <h3 className="text-xl font-semibold text-[#222B3A] mb-2 line-clamp-1">
                     {a.title || 'Untitled Album'}
                   </h3>
-                  <p className="text-[#5B6473] text-sm mb-4 line-clamp-2">
+                  <p className="text-[#5B6473] text-sm mb-4 line-clamp-2 min-h-[40px]">
                     {a.description || 'A collection of your memories.'}
                   </p>
                   <p className="text-xs text-[#7A8596] mb-4">
@@ -280,7 +280,7 @@ export default function AlbumsPage() {
 
                   <Link
                     href={`/dashboard/albums/${a.id}`}
-                    className="block text-center font-semibold px-4 py-3 rounded-full text-[#1F2837] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] shadow hover:shadow-md transition-transform duration-200 hover:scale-[1.02]"
+                    className="mt-auto block text-center font-semibold px-4 py-3 rounded-full text-[#1F2837] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] shadow hover:shadow-md transition-transform duration-200 hover:scale-[1.02]"
                   >
                     View Album →
                   </Link>
@@ -385,16 +385,19 @@ function AlbumCover({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="relative w-full h-full">
       <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        quality={90}
-        className={`object-cover transition-opacity duration-300 ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
-        onLoadingComplete={() => setLoaded(true)}
-      />
+  src={src}
+  alt={alt}
+  fill
+  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+  quality={75}
+  priority={false}
+  loading="lazy"
+  placeholder="empty"
+  className={`object-cover transition-opacity duration-300 ${
+    loaded ? "opacity-100" : "opacity-0"
+  }`}
+  onLoadingComplete={() => setLoaded(true)}
+/>
     </div>
   );
 }

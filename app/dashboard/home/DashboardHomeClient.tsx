@@ -87,7 +87,7 @@ const dismissDesktopToast = () => {
     {/* drawer */}
     <div className="relative bg-white rounded-2xl shadow-2xl px-6 py-5 w-[90%] max-w-sm text-center">
      <h3 className="text-lg font-semibold text-[#1F2837] mb-3">
-  Best experienced on desktop
+  Best experienced on laptop
 </h3>
 
 <p className="text-sm text-[#5B6473] leading-relaxed mb-5">
@@ -151,26 +151,25 @@ const dismissDesktopToast = () => {
   "
 >
   <span className="block">
-    This is your private space.
+    This is your space.
   </span>
 
   <span className="block">
-    A place to hold the memories that matter to you.
+    A place to keep the people, moments, and memories that matter most to you.
   </span>
 
   <span className="block">
-    Stories. Voices. Moments you never want to lose.
+    Add photos. Record voices. Write the stories behind them.
   </span>
 
   <span className="block">
-    Everything you create here becomes part of something lasting.
+    Over time this becomes a record of your life and the people who shaped it.
   </span>
 
   <span className="block font-semibold text-[#d4af37]">
-   Built quietly and intentionally for you.
+    Created for you and the people you love.
   </span>
 </p>
-
 
 <div
   className="mt-12 flex justify-center md:justify-start"

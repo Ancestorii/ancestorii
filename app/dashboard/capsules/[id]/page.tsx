@@ -6,13 +6,13 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import Image from "next/image";
 import {
-  Lock,
+  Lock, BookOpen
 } from 'lucide-react';
 import UploadCapsuleMediaDrawer from '../_components/UploadCapsuleMediaDrawer';
 import CapsuleMediaInteractionsPanel from '../_components/media-interactions/CapsuleMediaInteractionsPanel';
 import UniversalPeopleTagger from '@/components/UniversalPeopleTagger';
 import CapsuleSealOverlay from '@/components/CapsuleSealOverlay';
-
+import LibraryPickerModal, { LibraryPickerItem } from '@/components/LibraryPickerModal';
 
 
 type Capsule = {
@@ -27,8 +27,18 @@ type Capsule = {
 type Media = {
   id: string;
   capsule_id: string;
-  file_path: string;
-  file_type: string;
+
+  file_path: string | null;
+  file_type: string | null;
+
+  library_media_id?: string | null;
+  library_media?: {
+    id: string;
+    file_path: string;
+    file_type: string;
+    created_at: string | null;
+  } | null;
+
   created_at: string;
   signed_url?: string | null;
 };
@@ -47,8 +57,8 @@ function CapsuleMediaImage({ src }: { src: string }) {
         alt=""
         width={1600}
         height={1200}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        quality={90}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        quality={75}
         className={`w-full h-auto object-cover transition-opacity duration-300 ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
@@ -68,7 +78,7 @@ export default function CapsuleDetailPage() {
   const [media, setMedia] = useState<Media[]>([]);
 
   const [loading, setLoading] = useState(true);
- const signCapsuleMedia = useCallback(async (filePath: string) => {
+  const signCapsuleMedia = useCallback(async (filePath: string) => {
   const objectPath = filePath.includes("capsule-media/")
     ? filePath.split("capsule-media/")[1]
     : filePath;
@@ -82,7 +92,15 @@ export default function CapsuleDetailPage() {
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
+  const [libraryPickerOpen, setLibraryPickerOpen] = useState(false);
 
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  
+  function openViewer(index: number) {
+  setViewerIndex(index);
+  setViewerOpen(true);
+}
 
   // 🔒 Seal animation overlay
 const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
@@ -114,30 +132,104 @@ const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
 
   const handleDeleteMedia = async (m: Media) => {
   try {
-    // delete storage file
-    await supabase.storage
-    .from('capsule-media')
-    const objectPath = m.file_path.includes("capsule-media/")
-  ? m.file_path.split("capsule-media/")[1]
-  : m.file_path;
 
-await supabase.storage
-  .from("capsule-media")
-  .remove([objectPath]);
+    // 🔹 If library media → unlink only
+    if (m.library_media_id) {
+      const { error } = await supabase
+        .from("capsule_media")
+        .delete()
+        .eq("id", m.id);
 
-    // delete db row
+      if (error) throw error;
+
+      setMedia((prev) => prev.filter((x) => x.id !== m.id));
+      toast.success("Removed from capsule (still in your library).");
+      return;
+    }
+
+    // 🔹 Direct upload → delete storage file
+    if (m.file_path) {
+      const objectPath = m.file_path.includes("capsule-media/")
+        ? m.file_path.split("capsule-media/")[1]
+        : m.file_path;
+
+      await supabase.storage
+        .from("capsule-media")
+        .remove([objectPath]);
+    }
+
     const { error } = await supabase
-      .from('capsule_media')
+      .from("capsule_media")
       .delete()
-      .eq('id', m.id);
+      .eq("id", m.id);
 
     if (error) throw error;
 
     setMedia((prev) => prev.filter((x) => x.id !== m.id));
-    toast.success('Memory deleted.');
+
+    toast.success("Memory deleted.");
   } catch (e) {
     console.error(e);
-    toast.error('Failed to delete memory.');
+    toast.error("Failed to delete memory.");
+  }
+};
+
+const handlePickFromLibrary = async (item: LibraryPickerItem) => {
+  try {
+    const { data: sess } = await supabase.auth.getSession();
+    const u = sess?.session?.user;
+    if (!u) throw new Error("Not authenticated.");
+
+    const { data, error } = await supabase
+      .from("capsule_media")
+      .insert({
+        capsule_id: capsuleId,
+        library_media_id: item.id,
+        file_path: null,
+        file_type: item.file_type,
+      })
+      .select(`
+        id,
+        capsule_id,
+        file_path,
+        file_type,
+        created_at,
+        library_media_id,
+        library_media:library_media_id (
+          id,
+          file_path,
+          file_type,
+          created_at
+        )
+      `)
+      .single();
+
+    if (error) throw error;
+
+    const lib = Array.isArray((data as any)?.library_media)
+      ? (data as any).library_media[0]
+      : (data as any).library_media;
+
+    const realPath = lib?.file_path;
+    if (!realPath) throw new Error("Missing library file path.");
+
+    const { data: signed } = await supabase.storage
+      .from("library-media")
+      .createSignedUrl(realPath, 60 * 60 * 24 * 7);
+
+    const rowWithSigned = {
+      ...data,
+      signed_url: signed?.signedUrl
+        ? `${signed.signedUrl}&cb=${Date.now()}`
+        : null,
+    };
+
+    setMedia((prev) => [rowWithSigned as any, ...prev]);
+
+    toast.success("Added from your library.");
+  } catch (e: any) {
+    console.error(e);
+    toast.error(e?.message || "Failed to add from library.");
   }
 };
 
@@ -179,6 +271,19 @@ const loadTaggedPeople = async () => {
   setTaggedPeople(withSigned);
 };
 
+ useEffect(() => {
+  function handleKey(e: KeyboardEvent) {
+    if (!viewerOpen) return;
+
+    if (e.key === "ArrowRight") nextMedia();
+    if (e.key === "ArrowLeft") prevMedia();
+    if (e.key === "Escape") setViewerOpen(false);
+  }
+
+  window.addEventListener("keydown", handleKey);
+  return () => window.removeEventListener("keydown", handleKey);
+}, [viewerOpen, viewerIndex, media]);
+
 
   // ------- Fetch capsule & media -------
   useEffect(() => {
@@ -196,19 +301,69 @@ const loadTaggedPeople = async () => {
 
        const { data: mediaData, error: mediaErr } = await supabase
   .from('capsule_media')
-  .select('id,capsule_id,file_path,file_type,created_at')
+  .select(`
+  id,
+  capsule_id,
+  file_path,
+  file_type,
+  created_at,
+  library_media_id,
+  library_media:library_media_id (
+    id,
+    file_path,
+    file_type,
+    created_at
+  )
+`)
   .eq('capsule_id', capsuleId)
   .order('created_at', { ascending: false });
 
 if (mediaErr) throw mediaErr;
 
-const signedMedia: Media[] = await Promise.all(
-  (mediaData ?? []).map(async (m) => ({
-    ...m,
-    signed_url:
-      m.file_path ? await signCapsuleMedia(m.file_path) : null,
-  }))
-);
+// split library vs capsule files
+const capsuleRows = (mediaData ?? []).filter((m: any) => !m.library_media_id);
+const libraryRows = (mediaData ?? []).filter((m: any) => m.library_media_id);
+
+// extract paths
+const capsulePaths = capsuleRows
+  .map((m: any) => {
+    if (!m.file_path) return null;
+    return m.file_path.includes("capsule-media/")
+      ? m.file_path.split("capsule-media/")[1]
+      : m.file_path;
+  })
+  .filter(Boolean);
+
+const libraryPaths = libraryRows
+  .map((m: any) => m.library_media?.file_path)
+  .filter(Boolean);
+
+// batch sign URLs
+const [capsuleSigned, librarySigned] = await Promise.all([
+  capsulePaths.length
+    ? supabase.storage.from("capsule-media").createSignedUrls(capsulePaths, 60 * 60 * 24 * 7)
+    : { data: [] },
+
+  libraryPaths.length
+    ? supabase.storage.from("library-media").createSignedUrls(libraryPaths, 60 * 60 * 24 * 7)
+    : { data: [] },
+]);
+
+// rebuild media list
+const signedMedia: Media[] = (mediaData ?? []).map((m: any) => {
+  const isLibrary = !!m.library_media_id;
+
+  if (isLibrary) {
+    const idx = libraryRows.findIndex((r: any) => r.id === m.id);
+    const url = librarySigned.data?.[idx]?.signedUrl ?? null;
+    return { ...m, signed_url: url ? `${url}&cb=${Date.now()}` : null };
+  }
+
+  const idx = capsuleRows.findIndex((r: any) => r.id === m.id);
+  const url = capsuleSigned.data?.[idx]?.signedUrl ?? null;
+
+  return { ...m, signed_url: url ? `${url}&cb=${Date.now()}` : null };
+});
 
 setCapsule(capsuleData);
 setMedia(signedMedia);
@@ -268,13 +423,28 @@ setTimeout(() => {
     );
   }
 
+  const currentMedia =
+  viewerIndex !== null ? media[viewerIndex] : null;
+
+function nextMedia() {
+  if (viewerIndex === null) return;
+  setViewerIndex((viewerIndex + 1) % media.length);
+}
+
+function prevMedia() {
+  if (viewerIndex === null) return;
+  setViewerIndex(
+    (viewerIndex - 1 + media.length) % media.length
+  );
+}
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-white">
       {/* -------- Left: Header + Media Grid -------- */}
       <div className="flex-1 p-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-[#E6C26E]/55 pb-6 gap-6">
-          <div className="space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-8 border-b border-[#E6C26E]/55 pb-6 gap-8">
+          <div className="space-y-2 max-w-2xl">
              <button
              onClick={() => router.push('/dashboard/capsules')}
              className="mb-6 text-sm font-medium text-[#000000] hover:text-[#C8A557] transition"
@@ -338,17 +508,25 @@ setTimeout(() => {
 </div>
 
           {/* Actions */}
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-2 gap-3 w-full max-w-[420px]">
             <button
               onClick={() => setUploadOpen(true)}
-              className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-sm text-emerald-700 hover:bg-emerald-100 transition"
+             className="inline-flex whitespace-nowrap items-center gap-2 px-4 h-[40px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-[13px] text-emerald-700 hover:bg-emerald-100 transition"
             >
               + Upload Memory
             </button>
 
             <button
+            onClick={() => setLibraryPickerOpen(true)}
+            className="inline-flex whitespace-nowrap items-center gap-2 px-4 h-[40px] rounded-full bg-amber-50 border border-amber-200 shadow-sm text-[13px] text-amber-800 hover:bg-amber-100 transition"
+            >
+            <BookOpen className="w-4 h-4" />
+             Pick from My Library
+            </button>
+
+            <button
                onClick={() => setTagOpen(true)}
-                className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-violet-50 border border-violet-200 shadow-sm text-sm text-violet-700 hover:bg-violet-100 transition"
+                className="inline-flex whitespace-nowrap items-center gap-2 px-4 h-[40px] rounded-full bg-violet-50 border border-violet-200 shadow-sm text-[13px] text-violet-700 hover:bg-violet-100 transition"
                  >
                 💜 Tag someone you love
                 </button>
@@ -357,13 +535,10 @@ setTimeout(() => {
             {!capsule.is_locked && (
               <button
                 onClick={() => setConfirmSeal(true)}
-                className="relative overflow-hidden inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-[#FFF7E0] border border-[#E6C26E] shadow-sm text-sm font-medium text-[#8A6A1F]  hover:bg-[#FFF1C2] transition"
+                className="inline-flex whitespace-nowrap items-center gap-2 px-4 h-[40px] rounded-full bg-blue-50 border border-blue-200 shadow-sm text-[13px] text-blue-800 hover:bg-blue-100 transition"
                   >
                 <Lock className="w-4 h-4 z-10" />
                  <span className="relative z-10">Seal Capsule</span>
-
-                 {/* Shine effect */}
-                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
               </button>
             )}
           </div>
@@ -375,11 +550,12 @@ setTimeout(() => {
             No memories yet. Add your first photo or video. 
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-            {media.map((m) => {
-              const sealedRibbon = capsule.is_locked;
-              return (
-                <div key={m.id} className="relative group rounded-xl overflow-hidden border-2 border-[#E6C26E]/90  shadow-[0_0_0_1px_rgba(230,194,110,0.45)] hover:shadow-[0_0_18px_3px_rgba(230,194,110,0.3)] transition-shadow duration-300">
+         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {media.map((m, i) => {
+               const realType = (m.file_type ?? m.library_media?.file_type) || "";
+
+                return (
+                <div key={m.id} className="relative group overflow-hidden rounded-xl">
 
                         {/* Delete button */}
                         {!capsule.is_locked && (
@@ -401,23 +577,29 @@ setTimeout(() => {
         </button>
       )}
 
-                  {m.file_type === "video" ? (
+{realType === "video" ? (
   <div className="overflow-hidden">
   <div className="transition-transform duration-300 group-hover:scale-105">
     <video
-  key={m.signed_url || m.file_path}   // ✅ forces remount = instant refresh
-  src={m.signed_url || m.file_path}   // ✅ never ""
+  key={m.signed_url ?? m.file_path ?? ""}
+  src={m.signed_url ?? m.file_path ?? ""}
   controls
   playsInline
   preload="metadata"
-  className="w-full rounded-lg"
+  onClick={() => openViewer(i)}
+  className="w-full rounded-lg cursor-pointer"
 />
   </div>
 </div>
 ) : (
   <div className="overflow-hidden">
   <div className="transition-transform duration-300 group-hover:scale-105">
-    <CapsuleMediaImage src={m.signed_url || m.file_path} />
+    <div
+  onClick={() => openViewer(i)}
+  className="cursor-pointer"
+>
+  <CapsuleMediaImage src={m.signed_url ?? m.file_path ?? ""} />
+</div>
   </div>
 </div>
 )}
@@ -436,7 +618,9 @@ setTimeout(() => {
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
         onUploaded={async (newMedia: Media) => {
-  const signed = await signCapsuleMedia(newMedia.file_path);
+  const signed = newMedia.file_path
+  ? await signCapsuleMedia(newMedia.file_path)
+  : null;
 
   setMedia((prev) => [{ ...newMedia, signed_url: signed }, ...prev]);
 }}
@@ -488,6 +672,11 @@ setTimeout(() => {
   onClose={() => setSealOverlayOpen(false)}
 />
 
+<LibraryPickerModal
+  open={libraryPickerOpen}
+  onClose={() => setLibraryPickerOpen(false)}
+  onPick={(item) => handlePickFromLibrary(item)}
+/>
 
       {/* -------- Confirm Seal Modal -------- */}
       {confirmSeal && (
@@ -519,6 +708,60 @@ setTimeout(() => {
           </div>
         </div>
       )}
+      {viewerOpen && currentMedia && (
+  <div
+    className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100]"
+    onClick={() => setViewerOpen(false)}
+  >
+    <button
+  onClick={(e) => {
+    e.stopPropagation();
+    prevMedia();
+  }}
+  className="absolute left-6 top-1/2 -translate-y-1/2
+             text-6xl font-bold
+             text-[#D4AF37]
+             hover:scale-110
+             transition cursor-pointer select-none"
+>
+  ‹
+</button>
+
+    <div
+      className="relative max-w-[90vw] max-h-[90vh]"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {(currentMedia.file_type === "video" ||
+        currentMedia.library_media?.file_type === "video") ? (
+        <video
+          src={currentMedia.signed_url ?? ""}
+          controls
+          autoPlay
+          className="max-w-full max-h-[95vh] rounded-lg"
+        />
+      ) : (
+        <img
+          src={currentMedia.signed_url ?? ""}
+          className="max-w-full max-h-[95vh] object-contain rounded-lg"
+        />
+      )}
+    </div>
+
+    <button
+  onClick={(e) => {
+    e.stopPropagation();
+    nextMedia();
+  }}
+  className="absolute right-6 top-1/2 -translate-y-1/2
+             text-6xl font-bold
+             text-[#D4AF37]
+             hover:scale-110
+             transition cursor-pointer select-none"
+>
+  ›
+</button>
+  </div>
+)}
     </div>
   );
 }

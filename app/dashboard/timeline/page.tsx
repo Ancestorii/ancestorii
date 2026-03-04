@@ -225,7 +225,7 @@ setTimelines(signed);
             {(timelines ?? []).map((t) => (
               <div
                 key={t.id}
-                className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative"
+                className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative flex flex-col h-full"
               >
               <div className="relative aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
   {t.cover_signed ? (
@@ -254,16 +254,16 @@ setTimelines(signed);
                            }
                             />
                     </div>
-                <div className="p-6">
+                <div className="p-6 flex flex-col flex-grow">
                   <h3 className="text-xl font-semibold text-[#222B3A] mb-2 line-clamp-1">{t.title}</h3>
-                  <p className="text-[#5B6473] text-sm mb-4 line-clamp-2">{t.description || 'Your personal life timeline'}</p>
+                 <p className="text-[#5B6473] text-sm mb-4 line-clamp-2 min-h-[40px]">{t.description || 'Your personal life timeline'}</p>
                   <p className="text-xs text-[#7A8596] mb-4">
                     Created {new Date(t.created_at).toLocaleDateString()}
                   </p>
 
                   <Link
                     href={`/dashboard/timeline/${t.id}`}
-                    className="block text-center font-semibold px-4 py-3 rounded-full text-[#1F2837] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] shadow hover:shadow-md transition-transform duration-200 hover:scale-[1.02]"
+                    className="mt-auto block text-center font-semibold px-4 py-3 rounded-full text-[#1F2837] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] shadow hover:shadow-md transition-transform duration-200 hover:scale-[1.02]"
                   >
                     View Timeline →
                   </Link>
