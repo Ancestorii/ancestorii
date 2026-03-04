@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
 
   title: {
-    default: "Ancestorii A Living Family Library",
+    default: "A Living Family Library | Ancestorii",
     template: "%s | Ancestorii",
   },
 

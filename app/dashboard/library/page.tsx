@@ -103,13 +103,10 @@ export default function LibraryPage() {
               <span className="text-[#C8A557]">Library</span>
             </h1>
 
-            <p className="text-[#5B6473] mt-3 text-lg italic">
-            “Everything you upload lives here first.”
-            </p>
+<p className="text-[#000000] text-lg mt-2">
+Upload photos or videos from your phone or computer here once and then reuse them anywhere across your family library.
+</p>
 
-            <p className="text-[#7A8596] text-sm mt-2">
-            From here, you can use your media inside albums, timelines and capsules.
-           </p>
           </div>
 
           <div className="flex justify-center md:justify-end flex-1">
