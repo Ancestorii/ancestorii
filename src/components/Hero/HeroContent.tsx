@@ -48,7 +48,7 @@ export default function HeroContent() {
           font-medium
         "
       >
-        A private space to capture stories, voices, photos and everyday life as it happens.
+        A private space to upload photos, record voice stories, and build a private family timeline for future generations.
       </p>
 
       {/* Divider */}
