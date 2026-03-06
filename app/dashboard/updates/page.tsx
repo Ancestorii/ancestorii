@@ -106,7 +106,7 @@ export default function UpdatesPage() {
       ) : updates.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 text-center">
           <p className="text-gray-600 text-base">
-            No updates found. Once you or your family post updates, they’ll appear here.
+            No updates yet. Once you start creating memories they will appear here.
           </p>
         </div>
       ) : (

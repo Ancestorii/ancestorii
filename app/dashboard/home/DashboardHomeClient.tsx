@@ -168,8 +168,8 @@ const dismissDesktopToast = () => {
   `}
 >
   {/* WELCOME */}
-<p className="tracking-[0.45em] text-lg uppercase text-[#0f2040]/90 mb-6 mt-36 md:mt-12">
-  Welcome
+<p className="tracking-[0.20em] text-lg uppercase text-[#0f2040]/90 mb-6 mt-36 md:mt-12">
+  Welcome back,
 </p>
 
 
