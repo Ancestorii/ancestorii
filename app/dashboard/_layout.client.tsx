@@ -45,38 +45,48 @@ function NavItem({
       : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className={`relative flex items-center justify-between group px-5 py-3 rounded-xl transition-colors duration-300 ease-out ${
+  <Link
+    href={href}
+    onClick={onClick}
+    className={`relative flex items-center justify-between group px-5 py-3.5 rounded-xl transition-colors duration-300 ease-out ${
+      active
+        ? 'text-white bg-white/5'
+        : 'text-white/70 hover:text-white hover:bg-white/[0.04]'
+    }`}
+  >
+    {/* Gold Accent Pillar */}
+    <span
+      className={`absolute left-2 top-1/2 -translate-y-1/2 w-[4px] rounded-full bg-[#D4AF37] transition-all duration-300 ${
         active
-          ? 'text-[#D4AF37] font-semibold bg-[#D4AF37]/15'
-          : 'text-white/85 hover:text-[#D4AF37]'
+          ? 'h-6 opacity-100'
+          : 'h-0 opacity-0 group-hover:h-4 group-hover:opacity-40'
       }`}
-    >
-      {/* ✨ Gold Accent Bar (GPU-accelerated pseudo-element) */}
-      <span
-        className={`absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-[#D4AF37] transition-transform duration-300 ease-out origin-left ${
-          active ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'
-        } group-hover:scale-y-100 group-hover:opacity-70`}
+    />
+
+    {/* Icon + Label */}
+    <div className="flex items-center gap-4">
+      <Icon
+        className={`h-6 w-6 transition-colors duration-300 ${
+          active ? 'text-[#D4AF37]' : 'group-hover:text-[#D4AF37]'
+        }`}
       />
+      <span
+        className={`text-[16px] tracking-[0.2px] ${
+          active ? 'font-semibold text-white' : 'font-medium'
+        }`}
+      >
+        {label}
+      </span>
+    </div>
 
-      <div className="flex items-center gap-4 transition-transform duration-300 group-hover:scale-[1.02]">
-        <Icon
-          className={`h-5 w-5 transition-colors duration-300 ${
-            active ? 'text-[#D4AF37]' : 'group-hover:text-[#D4AF37]'
-          }`}
-        />
-        <span className="text-[14px] font-medium">{label}</span>
-      </div>
-
-      {badge && (
-        <span className="text-[10px] font-semibold text-[#0F2040] bg-[#D4AF37]/85 px-2 py-[2px] rounded-full uppercase tracking-wider shadow-sm flex items-center justify-center leading-tight">
-          {badge}
-        </span>
-      )}
-    </Link>
-  );
+    {/* Badge */}
+    {badge && (
+      <span className="text-[10px] font-semibold text-[#0F2040] bg-[#D4AF37] px-2 py-[2px] rounded-md uppercase tracking-wider shadow-sm">
+        {badge}
+      </span>
+    )}
+  </Link>
+);
 }
 
 /* ---------- Layout ---------- */
@@ -327,119 +337,71 @@ useEffect(() => {
 
   if (!hydrated) return null;
 
-  /* ---------- Sidebar Content ---------- */
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full justify-between overflow-y-auto">
-      <div className="px-3 pt-2 sm:pt-4 md:pt-8 lg:pt-12 space-y-8">
-        <div className="space-y-2">
-          <NavItem
-           href="/dashboard/home"
-           label="Home"
-           Icon={Home}
-           onClick={() => {
-           if (window.innerWidth < 1024) setDrawerOpen(false);
-           }}
-           />
-          <NavItem
-            href="/dashboard/profile"
-            label="My Profile"
-            Icon={User}
-            onClick={() => {
-              if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-          />
-          <NavItem
-          href="/dashboard/family"
-          label="My Loved Ones"
-          Icon={HandHeart}
-          onClick={() => {
-             if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-          />
-          <NavItem
-           href="/dashboard/library"
-           label="My Library"
-           Icon={BookOpen}
-           onClick={() => {
-            if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-           />
-            <NavItem
-            href="/dashboard/timeline"
-            label="Timelines"
-            Icon={Calendar}
-            onClick={() => {
-              if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-          />
-          <NavItem
-            href="/dashboard/capsules"
-            label="Capsules"
-            Icon={Package}
-            onClick={() => {
-              if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-          />
-          <NavItem
-            href="/dashboard/albums"
-            label="Albums"
-            Icon={ImageIcon}
-            onClick={() => {
-              if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-          />
-        </div>
+const SidebarContent = () => {
+  const closeDrawer = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setDrawerOpen(false);
+    }
+  };
 
-        <div className="border-t border-white/20 my-3" />
+  return (
+    <div className="flex flex-col h-full bg-gradient-to-br from-[#0F2040] to-[#182C54] text-white/80">
 
-        <div className="space-y-2">
-          <NavItem
-            href="/dashboard/plans"
-            label="Plans"
-            Icon={CreditCard}
-            onClick={() => {
-              if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-          />
-          <NavItem
-            href="/dashboard/updates"
-            label="Updates"
-            Icon={Megaphone}
-            onClick={() => {
-              if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-          />
-        </div>
+      {/* Top spacing (desktop only) */}
+<div className="lg:pt-10 lg:pb-6" />
 
-        <div className="border-t border-white/20 my-3" />
+      <nav className="flex-1 px-3 space-y-8 overflow-y-auto">
 
-        <div className="space-y-2 mb-6">
-          <NavItem
-            href="/dashboard/help"
-            label="Help"
-            Icon={HelpCircle}
-            onClick={() => {
-              if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-          />
-          <NavItem
-            href="/dashboard/settings"
-            label="Settings"
-            Icon={Settings}
-            onClick={() => {
-              if (window.innerWidth < 1024) setDrawerOpen(false);
-            }}
-          />
-        </div>
-      </div>
+        {/* MEMORIES */}
+        <section>
+          <div className="px-4 mb-3 flex items-center gap-3">
+  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
+  <p className="text-[13px] font-semibold tracking-[0.14em] text-[#D4AF37] uppercase">
+    Memories
+  </p>
+  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
+</div>
+
+          <div className="space-y-1">
+            <NavItem href="/dashboard/home" label="Home" Icon={Home} onClick={closeDrawer} />
+            <NavItem href="/dashboard/family" label="Loved Ones" Icon={HandHeart} onClick={closeDrawer} />
+            <NavItem href="/dashboard/library" label="Library" Icon={BookOpen} onClick={closeDrawer} />
+            <NavItem href="/dashboard/timeline" label="Timelines" Icon={Calendar} onClick={closeDrawer} />
+            <NavItem href="/dashboard/capsules" label="Capsules" Icon={Package} onClick={closeDrawer} />
+            <NavItem href="/dashboard/albums" label="Albums" Icon={ImageIcon} onClick={closeDrawer} />
+          </div>
+        </section>
+
+        {/* ACCOUNT */}
+        <section>
+          <div className="px-4 mb-3 flex items-center gap-3">
+  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
+  <p className="text-[13px] font-semibold tracking-[0.14em] text-[#D4AF37] uppercase">
+    Account
+  </p>
+  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
+</div>
+
+          <div className="space-y-1">
+            <NavItem href="/dashboard/profile" label="My Profile" Icon={User} onClick={closeDrawer} />
+            <NavItem href="/dashboard/plans" label="Plans" Icon={CreditCard} onClick={closeDrawer} />
+            <NavItem href="/dashboard/updates" label="Updates" Icon={Megaphone} onClick={closeDrawer} />
+            <NavItem href="/dashboard/help" label="Support" Icon={HelpCircle} onClick={closeDrawer} />
+            <NavItem href="/dashboard/settings" label="Settings" Icon={Settings} onClick={closeDrawer} />
+          </div>
+        </section>
+
+      </nav>
+
     </div>
   );
+};
 
   return (
     <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
       {/* 🌟 Topbar */}
       <header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 w-full z-50 transform-gpu transition-all duration-500 ${
           scrolled
             ? 'bg-white shadow-sm'
             : 'bg-gradient-to-r from-white to-[#F7F8FA] shadow-[0_2px_12px_rgba(15,32,64,0.06)]'
@@ -509,13 +471,12 @@ useEffect(() => {
 
       {/* ---------- Sidebar ---------- */}
       <aside
-        className={`fixed top-0 left-0 z-40 w-64 h-screen pt-24 bg-gradient-to-br from-[#0F2040] to-[#182C54] shadow-[4px_0_25px_rgba(15,32,64,0.25)] rounded-r-3xl transform transition-transform duration-500 ease-in-out overflow-y-auto ${
-          drawerOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-      >
+  className={`fixed top-0 left-0 z-40 w-64 h-screen pt-22 bg-gradient-to-br from-[#0F2040] to-[#182C54] shadow-[4px_0_25px_rgba(15,32,64,0.25)] rounded-r-3xl overflow-y-auto ${
+    drawerOpen ? 'block' : 'hidden lg:block'
+  }`}
+>
         <SidebarContent />
       </aside>
-
       <main className="pt-20 md:pt-28 px-4 md:px-8 md:ml-64 transition-all duration-300">
   {children}
 </main>

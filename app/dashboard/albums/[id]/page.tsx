@@ -446,29 +446,31 @@ function prevMedia() {
 )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 w-full max-w-[420px]">
-            <button
-              onClick={() => setUploadOpen(true)}
-              className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-sm text-emerald-700 hover:bg-emerald-100 transition"
-            >
-              + Upload Memory
-            </button>
+          <div className="grid grid-cols-2 gap-4 w-full max-w-[440px]">
 
-            <button
-  onClick={() => setLibraryPickerOpen(true)}
-  className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-amber-50 border border-amber-200 shadow-sm text-sm text-amber-800 hover:bg-amber-100 transition"
->
-  <BookOpen className="w-4 h-4" />
-  Pick from My Library
-</button>
+  <button
+    onClick={() => setUploadOpen(true)}
+    className="inline-flex items-center justify-center gap-2 px-5 h-[44px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-[15px] font-semibold text-emerald-700 hover:bg-emerald-100 transition"
+  >
+    + Upload Memory
+  </button>
 
-            <button
-              onClick={() => setTagOpen(true)}
-              className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-violet-50 border border-violet-200 shadow-sm text-sm text-violet-700 hover:bg-violet-100 transition"
-            >
-              💜 Tag someone you love
-            </button>
-          </div>
+  <button
+    onClick={() => setLibraryPickerOpen(true)}
+    className="inline-flex items-center justify-center gap-2 px-5 h-[44px] rounded-full bg-amber-50 border border-amber-200 shadow-sm text-[15px] font-semibold text-amber-800 hover:bg-amber-100 transition"
+  >
+    <BookOpen className="w-5 h-5" />
+    My Library
+  </button>
+
+  <button
+    onClick={() => setTagOpen(true)}
+    className="inline-flex items-center justify-center gap-2 px-5 h-[44px] rounded-full bg-violet-50 border border-violet-200 shadow-sm text-[15px] font-semibold text-violet-700 hover:bg-violet-100 transition"
+  >
+    💜 Tag Someone
+  </button>
+
+</div>
 
         </div>
 

@@ -507,41 +507,77 @@ function prevMedia() {
 )}
 </div>
 
-          {/* Actions */}
-          <div className="grid grid-cols-2 gap-3 w-full max-w-[420px]">
-            <button
-              onClick={() => setUploadOpen(true)}
-             className="inline-flex whitespace-nowrap items-center gap-2 px-4 h-[40px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-[13px] text-emerald-700 hover:bg-emerald-100 transition"
-            >
-              + Upload Memory
-            </button>
+         {/* Actions */}
+<div className="grid grid-cols-2 gap-4 w-full max-w-[440px]">
 
-            <button
-            onClick={() => setLibraryPickerOpen(true)}
-            className="inline-flex whitespace-nowrap items-center gap-2 px-4 h-[40px] rounded-full bg-amber-50 border border-amber-200 shadow-sm text-[13px] text-amber-800 hover:bg-amber-100 transition"
-            >
-            <BookOpen className="w-4 h-4" />
-             Pick from My Library
-            </button>
+  <button
+    onClick={() => setUploadOpen(true)}
+    className="
+    flex items-center justify-center gap-2
+    px-5 h-[44px]
+    rounded-full
+    bg-emerald-50 border border-emerald-200
+    text-[15px] font-semibold text-emerald-700
+    hover:bg-emerald-100
+    transition
+    "
+  >
+    + Upload Memory
+  </button>
 
-            <button
-               onClick={() => setTagOpen(true)}
-                className="inline-flex whitespace-nowrap items-center gap-2 px-4 h-[40px] rounded-full bg-violet-50 border border-violet-200 shadow-sm text-[13px] text-violet-700 hover:bg-violet-100 transition"
-                 >
-                💜 Tag someone you love
-                </button>
 
-            
-            {!capsule.is_locked && (
-              <button
-                onClick={() => setConfirmSeal(true)}
-                className="inline-flex whitespace-nowrap items-center gap-2 px-4 h-[40px] rounded-full bg-blue-50 border border-blue-200 shadow-sm text-[13px] text-blue-800 hover:bg-blue-100 transition"
-                  >
-                <Lock className="w-4 h-4 z-10" />
-                 <span className="relative z-10">Seal Capsule</span>
-              </button>
-            )}
-          </div>
+  <button
+    onClick={() => setLibraryPickerOpen(true)}
+    className="
+    flex items-center justify-center gap-2
+    px-5 h-[44px]
+    rounded-full
+    bg-amber-50 border border-amber-200
+    text-[15px] font-semibold text-amber-800
+    hover:bg-amber-100
+    transition
+    "
+  >
+    <BookOpen className="w-5 h-5" />
+    My Library
+  </button>
+
+
+  <button
+    onClick={() => setTagOpen(true)}
+    className="
+    flex items-center justify-center gap-2
+    px-5 h-[44px]
+    rounded-full
+    bg-violet-50 border border-violet-200
+    text-[15px] font-semibold text-violet-700
+    hover:bg-violet-100
+    transition
+    "
+  >
+    💜 Tag Someone
+  </button>
+
+
+  {!capsule.is_locked && (
+    <button
+      onClick={() => setConfirmSeal(true)}
+      className="
+      flex items-center justify-center gap-2
+      px-5 h-[44px]
+      rounded-full
+      bg-blue-50 border border-blue-200
+      text-[15px] font-semibold text-blue-800
+      hover:bg-blue-100
+      transition
+      "
+    >
+      <Lock className="w-5 h-5" />
+      Seal Capsule
+    </button>
+  )}
+
+</div>
         </div>
 
         {/* Media Grid */}

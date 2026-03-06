@@ -43,8 +43,8 @@ export default function TimelinePage() {
   const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
 
   // typing effect (slowed)
-  const line1 = '“Every story deserves to be remembered.”';
-  const line2 = 'Your legacy lives through your timeline.';
+  const line1 = '“Every life is made of moments worth remembering.”';
+  const line2 = 'Create a timeline to tell your story in the order it happened.';
   const [typed1, setTyped1] = useState('');
   const [typed2, setTyped2] = useState('');
   const [isTyping1Done, setIsTyping1Done] = useState(false);

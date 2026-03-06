@@ -153,54 +153,6 @@ const stopRecording = () => {
   stream.getTracks().forEach((t) => t.stop());
 };
 
-  const UploadMediaBox = ({ compact = false }: { compact?: boolean }) => (
-  <label
-    className={`
-      ${uploadingMedia ? 'pointer-events-none opacity-60' : ''}
-      flex flex-col items-center justify-center
-      w-full max-w-lg
-      border-2 border-dashed border-[#E6C26E]/50
-      rounded-2xl
-      ${compact ? 'p-6' : 'p-12'}
-      text-center
-      cursor-pointer
-      bg-[#FFFDF7]
-      hover:bg-[#FFF7DF]
-      transition
-    `}
-  >
-    <UploadCloud className="w-8 h-8 text-[#D4AF37] mb-3" />
-
-        <p className="text-sm font-semibold text-[#1F2837]">
-      {uploadingMedia
-        ? 'Preserving…'
-        : compact
-        ? 'Add another memory'
-        : 'Add media to this memory'}
-    </p>
-
-    {!compact && (
-      <p className="text-sm text-gray-500 mt-1">
-        Photos, videos, or audio help bring this moment to life
-      </p>
-    )}
-
-        <input
-      type="file"
-      accept="image/*,video/*,audio/*"
-      hidden
-      disabled={uploadingMedia}
-      onChange={(e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        onUploadMedia(file);
-        e.currentTarget.value = ''; // allows same file re-upload
-      }}
-    />
-  </label>
-);
-
-
   if (loading) {
   return (
     <div className="h-[55vh] grid place-items-center text-gray-500 italic">
@@ -224,68 +176,84 @@ if (uploadingMedia) {
       {/* LEFT SIDE — MEDIA */}
 <div>
 
-  {/* MEDIA GRID */}
-  <div className="columns-1 md:columns-2 gap-x-6 space-y-6">
+  {/* EMPTY STATE */}
+  {media.length === 0 && (
+    <div className="flex items-start justify-center pt-16 text-center">
+      <div className="max-w-lg leading-relaxed border border-dashed border-[#E6C26E]/40 rounded-2xl px-10 py-8 bg-[#FFFDF7]">
 
-    {media.length === 0 && (
-      <div className="h-[55vh] flex items-center justify-center">
-        <UploadMediaBox />
+        <p className="text-xl italic text-[#4B5563] mb-3">
+          No memories have been added yet.
+        </p>
+
+        <p className="text-sm text-gray-500 leading-relaxed">
+         Use the <span className="text-[#1F2837] font-medium">Upload Memory</span>{" "} or {" "}
+          <span className="text-[#1F2837] font-medium">Pick from My Library</span>{" "}
+          buttons above to begin preserving this moment.
+        </p>
+
       </div>
-    )}
+    </div>
+  )}
 
-    {media.map((m) => (
-      <div key={m.id} className="break-inside-avoid mb-4">
+  {/* MEDIA GRID */}
+  {media.length > 0 && (
+    <div className="columns-1 md:columns-2 gap-x-6 space-y-6">
 
-        <div className="relative rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 bg-white group">
+      {media.map((m) => (
+        <div key={m.id} className="break-inside-avoid mb-4">
 
-          <button
-            onClick={() => onDeleteMedia(m)}
-            className="
-              absolute top-3 right-3 z-10
-              opacity-0 group-hover:opacity-100
-              transition
-              bg-white/90 backdrop-blur
-              border border-red-200
-              text-red-600
-              text-xs font-semibold
-              px-3 py-1 rounded-full
-              hover:bg-red-50
-            "
-          >
-            Delete
-          </button>
+          <div className="relative rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 bg-white group">
 
-          <div className="w-full bg-black overflow-hidden aspect-video">
-            {m.type === 'photo' && m.url && (
-              <SmoothMediaImage src={m.url} alt="" />
-            )}
+            <button
+              onClick={() => onDeleteMedia(m)}
+              className="
+                absolute top-3 right-3 z-10
+                opacity-0 group-hover:opacity-100
+                transition
+                bg-white/90 backdrop-blur
+                border border-red-200
+                text-red-600
+                text-xs font-semibold
+                px-3 py-1 rounded-full
+                hover:bg-red-50
+              "
+            >
+              Delete
+            </button>
 
-            {m.type === 'video' && m.url && (
-              <div className="relative w-full h-full bg-black">
-                <video
-                  key={m.url}
-                  src={m.url}
-                  className="w-full h-full object-cover block"
-                  controls
-                  playsInline
-                  preload="metadata"
-                />
-              </div>
-            )}
+            <div className="w-full bg-black overflow-hidden aspect-video">
+              {m.type === 'photo' && m.url && (
+                <SmoothMediaImage src={m.url} alt="" />
+              )}
 
-            {m.type === 'audio' && m.url && (
-              <div className="p-6">
-                <audio controls src={m.url} className="w-full" />
-              </div>
-            )}
+              {m.type === 'video' && m.url && (
+                <div className="relative w-full h-full bg-black">
+                  <video
+                    key={m.url}
+                    src={m.url}
+                    className="w-full h-full object-cover block"
+                    controls
+                    playsInline
+                    preload="metadata"
+                  />
+                </div>
+              )}
+
+              {m.type === 'audio' && m.url && (
+                <div className="p-6">
+                  <audio controls src={m.url} className="w-full" />
+                </div>
+              )}
+            </div>
+
           </div>
 
         </div>
+      ))}
 
-      </div>
-    ))}
+    </div>
+  )}
 
-  </div>
 </div>
       {/* RIGHT PANEL */}
       <div className="border-l border-[#E6C26E]/50 pl-10 space-y-12">

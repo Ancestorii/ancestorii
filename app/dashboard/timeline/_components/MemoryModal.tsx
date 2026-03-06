@@ -394,12 +394,7 @@ async function deleteMedia(media: MediaItem) {
       .eq('id', media.id);
 
     setMedia(prev => prev.filter(m => m.id !== media.id));
-
-    if (isLibrary) {
-      toast.success('Removed from timeline (still in library).');
-    } else {
-      toast.success('Media deleted.');
-    }
+    toast.success('Removed from memory.');
 
   } catch (err) {
     console.error(err);
@@ -469,7 +464,35 @@ useEffect(() => {
   if (!eventId) return;
 
   setDeleting(true);
+
   try {
+
+    const [mediaCheck, commentCheck, voiceCheck] = await Promise.all([
+      supabase
+        .from('timeline_event_media')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId),
+
+      supabase
+        .from('timeline_event_media_comments')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId),
+
+      supabase
+        .from('timeline_event_media_voice_notes')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId),
+    ]);
+
+    const mediaCount = mediaCheck.count ?? 0;
+    const commentCount = commentCheck.count ?? 0;
+    const voiceCount = voiceCheck.count ?? 0;
+
+    if (mediaCount > 0 || commentCount > 0 || voiceCount > 0) {
+      toast.error('Remove all content first.');
+      return;
+    }
+
     const { error } = await supabase
       .from('timeline_events')
       .delete()
@@ -478,9 +501,10 @@ useEffect(() => {
     if (error) throw error;
 
     toast.success('Memory deleted.');
-    window.dispatchEvent(new Event('timeline-media-updated')); // 👈 ADD
+    window.dispatchEvent(new Event('timeline-media-updated'));
     setConfirmDeleteOpen(false);
     onOpenChange(false);
+
   } catch (err) {
     console.error(err);
     toast.error('Failed to delete memory.');
@@ -635,134 +659,178 @@ async function uploadVoice(file: File) {
       "
       onClick={(e) => e.stopPropagation()}
     >
-      {/* VISUAL CONTAINER (ROUNDED + CLIPPED) */}
-     <div className="bg-white rounded-2xl shadow-2xl w-full h-[90vh] flex flex-col overflow-hidden">
+     {/* VISUAL CONTAINER */}
+<div className="bg-white rounded-2xl shadow-2xl w-full h-[90vh] flex flex-col overflow-hidden">
 
-        {/* HEADER — ANCESTORII STYLE */}
-        <div className="px-8 py-6 border-b border-[#E6C26E]/50 bg-white">
-          <div className="flex items-start justify-between gap-6">
+{/* HEADER */}
+<div className="px-12 pt-10 pb-6 border-b border-[#E6C26E]/40 bg-white">
 
-            {/* LEFT — TITLE + SUBTEXT */}
-            <div className="flex-1 max-w-[70%]">
-              <textarea
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                rows={1}
-                className="
-                  w-full
-                  resize-none
-                  overflow-visible
-                  text-5xl
-                  leading-[1.6]
-                  font-bold
-                  tracking-tight
-                  text-[#0f2040]
-                  bg-transparent
-                  outline-none
-                  placeholder:text-[#D4AF37]/40
-                "
-              />
+<button
+  onClick={() => {
+    window.dispatchEvent(new Event("timeline-media-updated"));
+    onOpenChange(false);
+  }}
+  className="
+  absolute top-6 right-8
+  flex items-center justify-center
+  w-[36px] h-[36px]
 
-              <p className="text-sm text-gray-600 max-w-xl">
-                This memory holds every image, word, and voice
-                preserved as part of your story.
-              </p>
-            </div>
+  rounded-full
+  border border-gray-200
+  bg-white
 
-            {/* RIGHT — ACTIONS */}
-<div className="flex flex-col items-end gap-3 pt-2">
-
-  <div className="grid grid-cols-2 gap-3 w-full max-w-[420px]">
-
-    {/* UPLOAD MEMORY */}
-    <label
-      className="inline-flex items-center justify-center gap-2 px-5 h-[42px] rounded-full
-                 bg-emerald-50 border border-emerald-200 shadow-sm
-                 text-sm text-emerald-700 hover:bg-emerald-100
-                 transition cursor-pointer"
-    >
-      + Upload Memory
-      <input
-        type="file"
-        accept="image/*,video/*,audio/*"
-        hidden
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
-          uploadMedia(file);
-        }}
-      />
-    </label>
-
-    {/* PICK FROM LIBRARY */}
-  <button
-  onClick={() => setLibraryPickerOpen(true)}
-  className="inline-flex items-center justify-center gap-2 px-5 h-[42px] rounded-full
-             bg-amber-50 border border-amber-200 shadow-sm
-             text-sm text-amber-800 hover:bg-amber-100
-             transition"
+  text-gray-500
+  hover:bg-gray-50 hover:text-gray-800
+  transition
+  "
 >
-  <BookOpen className="w-4 h-4" />
-  Pick from My Library
+  ✕
 </button>
 
-    {/* SAVE MEMORY */}
-    <button
-  onClick={saveTop}
-  disabled={saving}
-  className={`inline-flex items-center justify-center gap-2 px-5 h-[42px] rounded-full shadow-sm text-sm font-semibold transition ${
-    saving
-      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-      : 'bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100'
-  }`}
->
-  <Save className="w-4 h-4" />
+  <div className="flex flex-col gap-6">
 
-  {saving || saveStatus === 'saving'
-    ? 'Sealing…'
-    : saveStatus === 'saved'
-    ? 'Saved ✓'
-    : 'Save Memory'}
-</button>
+    {/* HERO TITLE */}
+    <textarea
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+      placeholder="Untitled memory"
+      rows={1}
+      className="
+        w-full
+        resize-none overflow-hidden
+        bg-transparent
+        outline-none
 
-    {/* CLOSE */}
-    <button
-      onClick={() => {
-        window.dispatchEvent(new Event('timeline-media-updated'));
-        onOpenChange(false);
+        font-semibold
+        tracking-tight
+        text-[#0f2040]
+
+        text-[clamp(30px,3.5vw,44px)]
+        leading-tight
+
+        placeholder:text-[#0f2040]/30
+      "
+      style={{ height: "auto" }}
+      onInput={(e) => {
+        e.currentTarget.style.height = "auto";
+        e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
       }}
-      className="inline-flex items-center justify-center gap-2 px-5 h-[42px] rounded-full
-                 border border-gray-200 shadow-sm bg-white
-                 text-sm text-gray-700 hover:bg-gray-50
-                 transition"
-    >
-      Close
-    </button>
+    />
+
+
+    {/* ACTION BAR */}
+    <div className="flex justify-end">
+
+      <div className="flex items-center gap-4">
+
+        {/* UPLOAD */}
+        <label
+          className="
+          inline-flex items-center gap-2
+          px-5 h-[42px]
+          rounded-full
+
+          bg-emerald-50
+          border border-emerald-200
+
+          text-sm text-emerald-700
+          hover:bg-emerald-100
+          transition cursor-pointer
+          "
+        >
+          + Upload
+
+          <input
+            type="file"
+            hidden
+            accept="image/*,video/*,audio/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              uploadMedia(file);
+            }}
+          />
+        </label>
+
+
+        {/* LIBRARY */}
+        <button
+          onClick={() => setLibraryPickerOpen(true)}
+          className="
+          inline-flex items-center gap-2
+          px-5 h-[42px]
+          rounded-full
+
+          bg-amber-50
+          border border-amber-200
+
+          text-sm text-amber-800
+          hover:bg-amber-100
+          transition
+          "
+        >
+          <BookOpen className="w-4 h-4" />
+          My Library
+        </button>
+
+
+        {/* SAVE */}
+        <button
+          onClick={saveTop}
+          disabled={saving}
+          className={`
+          inline-flex items-center gap-2
+          px-5 h-[42px]
+          rounded-full
+
+          bg-blue-50
+          border border-blue-200
+
+          text-sm text-blue-700
+          hover:bg-blue-100
+
+          transition
+          ${saving ? "opacity-50 cursor-not-allowed" : ""}
+          `}
+        >
+          <Save className="w-4 h-4" />
+
+          {saving || saveStatus === "saving"
+            ? "Saving..."
+            : saveStatus === "saved"
+            ? "Saved"
+            : "Save"}
+        </button>
+
+
+        {/* DELETE */}
+<button
+  onClick={() => {
+    setConfirmDeleteOpen(true);
+  }}
+  className="
+  inline-flex items-center justify-center
+  px-3 h-[42px]
+
+  rounded-full
+  border border-red-200
+  bg-red-50
+
+  text-sm text-red-700
+  hover:bg-red-100
+  transition
+  "
+>
+  <Trash2 className="w-4 h-4" />
+</button>
+
+      </div>
+
+    </div>
 
   </div>
 
-  {/* DELETE — LOWER, NEAR DIVIDER */}
-<button
-  onClick={() => setConfirmDeleteOpen(true)}
-  className="
-    inline-flex items-center justify-center
-    w-[32px] h-[32px]
-    rounded-full
-    border border-gray-200
-    text-gray-400
-    hover:text-red-600
-    hover:border-red-300
-    hover:bg-red-50
-    transition
-    mt-8
-  "
->
-  <Trash2 size={18} />
-</button>
 </div>
-          </div>
-        </div>
-
         {/* BODY */}
 <div
   className="flex-1 overflow-y-auto"

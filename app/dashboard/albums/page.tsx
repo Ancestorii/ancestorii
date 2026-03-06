@@ -43,7 +43,7 @@ export default function AlbumsPage() {
 
 
   // Typed quote animation (same as Timeline/Capsules)
-  const line1 = '“Preserve your favorite moments — organized, visual, timeless.”';
+  const line1 = '“Keep the moments you love together, in one place.”';
   const line2 = 'Create albums to group photos, videos, and voice notes.';
   const [typed1, setTyped1] = useState('');
   const [typed2, setTyped2] = useState('');

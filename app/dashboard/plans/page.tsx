@@ -35,6 +35,8 @@ export default function PlansPage() {
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
   const [showPlanChangeInfo, setShowPlanChangeInfo] = useState(false);
 
+  const FREE_PLAN_STORAGE = 5 * 1024 ** 3; // 5GB in bytes
+
   type Currency = "GBP" | "USD" | "EUR";
   const [currency, setCurrency] = useState<Currency>("GBP");
 
@@ -302,12 +304,17 @@ if (isPaid && planList.length && sub?.plan_id) {
           <div className="flex items-center justify-between text-sm text-slate-700">
             <span>Storage used</span>
             <span>
-              {usage && currentPlan
-                ? `${formatBytes(usage.used_bytes)} / ${formatBytes(currentPlan.max_storage)}`
-                : "—"}
+             {usage
+  ? `${formatBytes(usage.used_bytes)} / ${formatBytes(
+      currentPlan?.max_storage ?? FREE_PLAN_STORAGE
+    )}`
+  : "—"}
             </span>
           </div>
-        <UsageBar used={usage?.used_bytes ?? 0} max={currentPlan?.max_storage ?? null} />
+        <UsageBar
+  used={usage?.used_bytes ?? 0}
+  max={currentPlan?.max_storage ?? FREE_PLAN_STORAGE}
+/>
         </div>
       </section>
 
@@ -364,6 +371,10 @@ if (isPaid && planList.length && sub?.plan_id) {
 
     {/* Features — same style as paid plans */}
     <ul className="mt-4 flex-1 space-y-2 text-sm text-slate-700">
+      <li className="flex gap-2">
+        <span className="text-[#D4AF37]">•</span>
+        <span>5GB of secure storage</span>
+      </li>
       <li className="flex gap-2">
         <span className="text-[#D4AF37]">•</span>
         <span>1 timeline, 1 album & 1 capsule</span>

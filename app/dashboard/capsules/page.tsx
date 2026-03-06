@@ -42,8 +42,8 @@ export default function CapsulesPage() {
 
 
   // typing effect (matches Timeline)
-  const line1 = '“Preserve your thoughts, emotions, and memories — sealed for the future.”';
-  const line2 = 'Your legacy sealed for tomorrow.';
+  const line1 = '“Write something today that someone will read years from now.”';
+  const line2 = 'Create capsules to store words and memories for the future.';
   const [typed1, setTyped1] = useState('');
   const [typed2, setTyped2] = useState('');
   const [isTyping1Done, setIsTyping1Done] = useState(false);
