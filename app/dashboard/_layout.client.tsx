@@ -80,11 +80,11 @@ function NavItem({
     </div>
 
     {/* Badge */}
-    {badge && (
-      <span className="text-[10px] font-semibold text-[#0F2040] bg-[#D4AF37] px-2 py-[2px] rounded-md uppercase tracking-wider shadow-sm">
-        {badge}
-      </span>
-    )}
+   {badge && (
+  <span className="text-[13px] text-white/40 font-medium">
+    {badge}
+  </span>
+)}
   </Link>
 );
 }
@@ -348,29 +348,38 @@ const SidebarContent = () => {
     <div className="flex flex-col h-full bg-gradient-to-br from-[#0F2040] to-[#182C54] text-white/80">
 
       {/* Top spacing (desktop only) */}
-<div className="lg:pt-10 lg:pb-6" />
+<div className="lg:pt-8 lg:pb-2" />
 
-      <nav className="flex-1 px-3 space-y-8 overflow-y-auto">
+      <nav className="flex-1 px-3 space-y-5 overflow-y-auto">
 
-        {/* MEMORIES */}
-        <section>
-          <div className="px-4 mb-3 flex items-center gap-3">
-  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
-  <p className="text-[13px] font-semibold tracking-[0.14em] text-[#D4AF37] uppercase">
-    Memories
-  </p>
-  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
+        {/* HOME */}
+<div className="space-y-1">
+  <NavItem
+    href="/dashboard/home"
+    label="Home"
+    Icon={Home}
+    onClick={closeDrawer}
+  />
 </div>
 
-          <div className="space-y-1">
-            <NavItem href="/dashboard/home" label="Home" Icon={Home} onClick={closeDrawer} />
-            <NavItem href="/dashboard/family" label="Loved Ones" Icon={HandHeart} onClick={closeDrawer} />
-            <NavItem href="/dashboard/library" label="Library" Icon={BookOpen} onClick={closeDrawer} />
-            <NavItem href="/dashboard/timeline" label="Timelines" Icon={Calendar} onClick={closeDrawer} />
-            <NavItem href="/dashboard/capsules" label="Capsules" Icon={Package} onClick={closeDrawer} />
-            <NavItem href="/dashboard/albums" label="Albums" Icon={ImageIcon} onClick={closeDrawer} />
-          </div>
-        </section>
+{/* MEMORIES */}
+<section>
+  <div className="px-4 mb-2 flex items-center gap-3 mt-2">
+    <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
+    <p className="text-[13px] font-semibold tracking-[0.14em] text-[#D4AF37] uppercase">
+      Memories
+    </p>
+    <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
+  </div>
+
+  <div className="space-y-1">
+    <NavItem href="/dashboard/family" label="Loved Ones" Icon={HandHeart} onClick={closeDrawer} />
+    <NavItem href="/dashboard/library" label="Library" Icon={BookOpen} onClick={closeDrawer} />
+    <NavItem href="/dashboard/timeline" label="Timelines" Icon={Calendar} onClick={closeDrawer} />
+    <NavItem href="/dashboard/capsules" label="Capsules" Icon={Package} onClick={closeDrawer} />
+    <NavItem href="/dashboard/albums" label="Albums" Icon={ImageIcon} onClick={closeDrawer} />
+  </div>
+</section>
 
         {/* ACCOUNT */}
         <section>
@@ -383,7 +392,7 @@ const SidebarContent = () => {
 </div>
 
           <div className="space-y-1">
-            <NavItem href="/dashboard/profile" label="My Profile" Icon={User} onClick={closeDrawer} />
+            <NavItem href="/dashboard/profile" label="Profile" Icon={User} onClick={closeDrawer} />
             <NavItem href="/dashboard/plans" label="Plans" Icon={CreditCard} onClick={closeDrawer} />
             <NavItem href="/dashboard/updates" label="Updates" Icon={Megaphone} onClick={closeDrawer} />
             <NavItem href="/dashboard/help" label="Support" Icon={HelpCircle} onClick={closeDrawer} />
