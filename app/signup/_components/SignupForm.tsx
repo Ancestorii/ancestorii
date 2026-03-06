@@ -88,23 +88,6 @@ const handleGoogleSignup = async () => {
           },
         });
       }
-
-      // 🔵 META — COMPLETE REGISTRATION
-      if (typeof window !== 'undefined' && (window as any).fbq) {
-        (window as any).fbq('track', 'CompleteRegistration');
-      }
-
-      // 🔴 REDDIT — COMPLETE REGISTRATION
-      if (typeof window !== 'undefined' && (window as any).rdt) {
-        (window as any).rdt('track', 'CompleteRegistration');
-      }
-
-      // 🟡 GA / GTM — SIGNUP COMPLETE
-      if (typeof window !== 'undefined') {
-        (window as any).dataLayer = (window as any).dataLayer || [];
-        (window as any).dataLayer.push({ event: 'signup_complete' });
-      }
-
       // ⏳ Allow auth cookies to persist
       await new Promise((res) => setTimeout(res, 200));
 

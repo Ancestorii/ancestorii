@@ -49,8 +49,9 @@ export default async function DashboardHomePage() {
 
   return (
     <DashboardHomeClient
-      name={profile?.full_name ?? null}
+      name={profile?.full_name ?? user.user_metadata?.full_name ?? null}
       homeImages={images}
+      email={user.email ?? null}
     />
   );
 }

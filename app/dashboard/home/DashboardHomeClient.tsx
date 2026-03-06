@@ -5,15 +5,19 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
+
 export default function DashboardHomeClient({
   name,
   homeImages: initialImages,
+  email,
 }: {
   name: string | null;
   homeImages: (string | null)[];
+  email: string | null;
 }) {
   const supabase = getBrowserClient();
   const [homeImages, setHomeImages] = useState(initialImages);
+  const [displayName, setDisplayName] = useState(name);
   const router = useRouter();
 
   const DESKTOP_TOAST_KEY = "desktop_recommend_last_seen";
@@ -39,7 +43,49 @@ useEffect(() => {
   }
 }, []);
 
+useEffect(() => {
+  if (displayName) return;
 
+  const loadName = async () => {
+    const { data } = await supabase
+      .from('Profiles')
+      .select('full_name')
+      .single();
+
+    if (data?.full_name) {
+      setDisplayName(data.full_name);
+    }
+  };
+
+  loadName();
+}, [displayName]);
+
+useEffect(() => {
+  if (typeof window === 'undefined') return;
+
+  if (!sessionStorage.getItem('signup_tracked')) {
+
+    // 🔵 META
+    if ((window as any).fbq) {
+      (window as any).fbq('track', 'CompleteRegistration', {
+        em: email
+      });
+    }
+
+    // 🔴 REDDIT
+    if ((window as any).rdt) {
+      (window as any).rdt('track', 'CompleteRegistration');
+    }
+
+    // 🟡 GA / GTM
+    (window as any).dataLayer = (window as any).dataLayer || [];
+    (window as any).dataLayer.push({
+      event: 'signup_complete'
+    });
+
+    sessionStorage.setItem('signup_tracked', '1');
+  }
+}, [email]);
 
 const uploadHomeImage = async (file: File, index: number) => {
   const { data: auth } = await supabase.auth.getUser();
@@ -131,7 +177,7 @@ const dismissDesktopToast = () => {
           <h1
             className="text-4xl sm:text-5xl md:text-5xl font-extrabold text-[#0f2040] leading-tight"
           >
-            {name}
+            {displayName}
           </h1>
 
           {/* GOLD UNDERLINE (TIMELINES ENERGY) */}
