@@ -145,13 +145,33 @@ setTimelines(signed);
   }, [supabase]);
 
   const handleDeleteTimeline = async (id: string) => {
-    try {
-      const { error: delErr } = await supabase.from('timelines').delete().eq('id', id);
-      if (delErr) throw delErr;
-      setTimelines((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
-      toast.success('Timeline deleted.');
-    } catch { toast.error('Failed to delete timeline.'); }
-  };
+  try {
+
+    const { error: delErr } = await supabase
+      .from('timelines')
+      .delete()
+      .eq('id', id);
+
+    if (delErr) {
+      throw delErr;
+    }
+
+    setTimelines((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
+
+    toast.success('Timeline deleted.');
+
+  } catch (err: any) {
+
+    // Supabase FK restriction usually triggers here
+    if (err?.code === '23503') {
+      toast.error('Remove all memories from this timeline before deleting it.');
+      return;
+    }
+
+    toast.error('Unable to delete timeline.');
+
+  }
+};
 
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
@@ -344,10 +364,14 @@ setTimelines(signed);
         Delete “{confirmDelete.title}”?
       </h2>
 
-      <p className="text-[#5B6473] text-sm mb-8">
-        This action cannot be undone. All events and media inside this timeline will be permanently deleted.
+      <h2 className="text-xl font-semibold text-[#1F2837] mb-3">
+      This action cannot be undone
+      </h2>
 
-      </p>
+      <p className="text-[#5B6473] text-sm mb-8">
+      This timeline can only be deleted if it is empty.  
+      Make sure you have removed all memories inside it first.
+     </p>
 
       <div className="flex items-center justify-center gap-4">
         <button

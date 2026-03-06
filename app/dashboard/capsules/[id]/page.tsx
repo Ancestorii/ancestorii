@@ -143,7 +143,7 @@ const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
       if (error) throw error;
 
       setMedia((prev) => prev.filter((x) => x.id !== m.id));
-      toast.success("Removed from capsule (still in your library).");
+      toast.success("Removed from capsule.");
       return;
     }
 

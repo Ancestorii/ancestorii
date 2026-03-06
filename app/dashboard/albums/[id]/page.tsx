@@ -536,7 +536,7 @@ function prevMedia() {
     setMedia((prev) => prev.filter((x) => x.id !== media.id));
     if (selectedMedia?.id === media.id) setSelectedMedia(null);
 
-    toast.success('Removed from album (still in your library).');
+    toast.success('Removed from album.');
     return;
   }
 
