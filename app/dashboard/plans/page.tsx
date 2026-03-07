@@ -258,93 +258,126 @@ if (isPaid && planList.length && sub?.plan_id) {
     <div className="p-4 md:p-6 space-y-6">
       <h1 className="text-2xl font-semibold text-[#0f2040]">Plans & Subscriptions</h1>
 
-      {/* Current Plan */}
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-[#152a52] via-[#0f2040] to-[#0c1a33]" />
-        <div className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#0f2040] ring-1 ring-slate-200">
-              Your Current Plan
-            </div>
-            <h2 className="mt-2 text-xl font-semibold text-[#0f2040]">
-              {currentPlan?.name ?? "Free"}{" "}
-              <span className="ml-2 text-slate-500 text-sm">
-                {currentPlan ? PRICE[currency][currentPlan.name] : ""}
-              </span>
-              {subscription?.status === "trialing" && (
-              <span className="ml-2 text-xs font-semibold text-amber-600">
-              Trial ends in {daysUntil(subscription.current_period_end)} days
-              </span>
-             )}
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-            {subscription?.status === "trialing"
-              ? `Your trial ends on ${formatDate(subscription.current_period_end)}`
-              : `Renews on ${formatDate(subscription?.current_period_end)}`}
-             </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.push("/dashboard/settings")}
-              className="px-4 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-sm font-medium"
-            >
-              Manage Billing
-            </button>
-            <Link
-              href="/dashboard/help"
-              className="text-sm text-slate-500 hover:text-slate-700 underline underline-offset-2"
-            >
-              Billing help
-            </Link>
-          </div>
+      {/* Top Cards */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+  {/* Current Plan Card */}
+  <section className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+
+    <div className="h-1.5 bg-gradient-to-r from-[#152a52] via-[#0f2040] to-[#D4AF37]" />
+
+    <div className="p-6">
+      <div>
+        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#0f2040] ring-1 ring-slate-200">
+          Your Current Plan
         </div>
 
-        {/* Storage usage */}
-        <div className="px-6 pb-6">
-          <div className="flex items-center justify-between text-sm text-slate-700">
-            <span>Storage used</span>
-            <span>
-             {usage
-  ? `${formatBytes(usage.used_bytes)} / ${formatBytes(
-      currentPlan?.max_storage ?? FREE_PLAN_STORAGE
-    )}`
-  : "—"}
-            </span>
-          </div>
-        <UsageBar
-  used={usage?.used_bytes ?? 0}
-  max={currentPlan?.max_storage ?? FREE_PLAN_STORAGE}
-/>
-        </div>
-      </section>
+        <h2 className="mt-2 text-2xl font-bold text-[#0f2040]">
+          {currentPlan?.name ?? "Free"}{" "}
+          <span className="ml-2 text-slate-500 text-sm">
+            {currentPlan ? PRICE[currency][currentPlan.name] : ""}
+          </span>
+        </h2>
 
-      {/* Plan Cards */}
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6">
-        <h2 className="text-xl font-semibold text-[#0f2040] mb-1">
-  Choose the plan that fits your legacy
-</h2>
-<p className="text-sm text-slate-500 mb-5">
-  You can upgrade or downgrade at any time.
+        <p className="mt-1 text-sm text-slate-600">
+          Renews on {formatDate(subscription?.current_period_end)}
+        </p>
+      </div>
+    </div>
+
+    {/* Storage usage */}
+    <div className="px-6 pb-6">
+      <div className="flex items-center justify-between text-sm text-slate-700">
+        <span>Storage used</span>
+        <span>
+          {usage
+            ? `${formatBytes(usage.used_bytes)} / ${formatBytes(
+                currentPlan?.max_storage ?? FREE_PLAN_STORAGE
+              )}`
+            : "—"}
+        </span>
+      </div>
+
+      <UsageBar
+        used={usage?.used_bytes ?? 0}
+        max={currentPlan?.max_storage ?? FREE_PLAN_STORAGE}
+      />
+    </div>
+  </section>
+
+
+  {/* Manage Subscription Card */}
+  <section className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-[#fafafa] shadow-sm overflow-hidden">
+
+    <div className="h-1.5 bg-gradient-to-r from-[#D4AF37] to-[#F3D99B]" />
+
+    <div className="p-6 flex flex-col justify-between h-full">
+
+      <div>
+        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#0f2040] ring-1 ring-slate-200">
+          Manage Subscription
+        </div>
+
+        <h2 className="mt-3 text-xl font-semibold text-[#0f2040]">
+          Downgrade or cancel your subscription
+        </h2>
+
+       <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+If you would like to downgrade or cancel your subscription, please contact our support team.
 </p>
 
-<div className="flex items-center justify-between mb-6">
-  <p className="text-sm text-slate-500">
+<p className="mt-2 text-sm text-slate-600">
+Your memories stay safe forever. If you move to a smaller plan, you keep what you already created.
+</p>
+      </div>
+
+      <div className="mt-6 flex gap-3 flex-wrap">
+
+  <button
+    onClick={() => setShowPlanChangeInfo(true)}
+    className="px-4 py-2 rounded-md bg-[#0f2040] text-white text-sm font-medium hover:bg-[#152a52]"
+  >
+    Downgrade or Cancel
+  </button>
+
+  <Link
+    href="/dashboard/help"
+    className="px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium hover:bg-slate-50"
+  >
+    Billing Help
+  </Link>
+
+</div>
+
+    </div>
+  </section>
+
+</div>
+
+      {/* Plan Cards */}
+      <section className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-[#fafafa] shadow-lg p-6">
+        <h2 className="text-xl font-semibold text-[#0f2040] mb-1">
+  Choose the plan that fits your family library
+</h2>
+
+<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+  <p className="text-sm text-[#000000]">
   Billing is processed in your selected currency at checkout. Your monthly
   subscription will continue to be billed in this currency.
 </p>
 
 
-  <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+ <div className="inline-flex w-full max-w-[260px] mx-auto md:mx-0 rounded-xl border border-slate-200 bg-slate-100 shadow-inner p-1">
     {(["GBP", "USD", "EUR"] as Currency[]).map((cur) => (
       <button
         key={cur}
         onClick={() => setCurrency(cur)}
-        className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all
-          ${
-            currency === cur
-              ? "bg-white text-[#0f2040] shadow-sm ring-1 ring-slate-200"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
+        className={`flex-1 px-3 py-1.5 text-sm text-center font-semibold rounded-lg transition-all duration-200
+  ${
+    currency === cur
+      ? "bg-[#0f2040] text-white shadow-md ring-3 ring-[#D4AF37]"
+      : "text-slate-600 hover:text-[#0f2040]"
+  }`}
       >
         {cur === "GBP" && "£ GBP"}
         {cur === "USD" && "$ USD"}
@@ -366,8 +399,10 @@ if (isPaid && planList.length && sub?.plan_id) {
     </div>
 
     <div className="mt-4 text-[#0f2040] font-extrabold text-2xl">
-      £0
-    </div>
+  {currency === "GBP" && "£0"}
+  {currency === "USD" && "$0"}
+  {currency === "EUR" && "€0"}
+</div>
 
     {/* Features — same style as paid plans */}
     <ul className="mt-4 flex-1 space-y-2 text-sm text-slate-700">
@@ -438,8 +473,8 @@ if (isPaid && planList.length && sub?.plan_id) {
       </p>
 
       <p className="text-sm text-gray-500 mb-6">
-        Your memories and data remain safe and accessible until any change
-        is confirmed.
+        Your memories and data remain safe and accessible forever. 
+        Even after your subscription ends.
       </p>
 
       <div className="flex justify-center gap-4">
@@ -484,7 +519,7 @@ function UsageBar({ used, max }: { used: number | null; max: number | null }) {
   return (
     <div className="mt-2 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
       <div
-        className="h-2 bg-[#0f2040] transition-all"
+        className="h-2 bg-gradient-to-r from-[#0f2040] to-[#152a52] transition-all"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -513,6 +548,7 @@ function PlanCard({
 }) {
 
   const isRecommended = title === "Standard";
+  const isPremium = title === "Premium";
   const currentIndex =
   currentPlanName ? PLAN_ORDER.indexOf(currentPlanName) : -1;
 
@@ -524,14 +560,16 @@ function PlanCard({
 
   return (
     <div
-      className={`relative rounded-2xl border transition-all overflow-hidden
+      className={`relative rounded-2xl border transition-all duration-300 overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:ring-1 hover:ring-[#D4AF37]/40
         ${
-          isCurrent
-            ? "border-[#D4AF37] ring-2 ring-[#D4AF37] bg-[#fffaf0]"
-            : isRecommended
-            ? "border-[#D4AF37] shadow-md hover:shadow-lg"
-            : "border-slate-200 hover:border-[#D4AF37]"
-        }`}
+  isCurrent
+    ? "border-[#D4AF37] ring-2 ring-[#D4AF37] bg-[#fffaf0]"
+    : isRecommended
+    ? "border-[#D4AF37] shadow-lg hover:shadow-2xl"
+    : isPremium
+    ? "border-[#0f2040] shadow-lg hover:shadow-2xl"
+    : "border-slate-200 hover:border-[#D4AF37]"
+}`}
     >
       {/* Top accent bar */}
       <div

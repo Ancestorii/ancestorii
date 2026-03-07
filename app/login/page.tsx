@@ -47,8 +47,16 @@ export default function LoginPage() {
       // ✅ ALWAYS REDIRECT TO DASHBOARD
       router.replace("/dashboard/home");
     } catch (err: any) {
-      setError(err?.message ?? "Something went wrong");
-    } finally {
+  const message = err?.message ?? "";
+
+  if (message.toLowerCase().includes("invalid login credentials")) {
+    setError(
+      "We could not log you in. If you signed up with Google, please continue with Google. Otherwise you may need to reset your password."
+    );
+  } else {
+    setError(message || "Something went wrong. Please try again.");
+  }
+} finally {
       setBusy(false);
     }
   };
