@@ -50,12 +50,12 @@ export default function LoginPage() {
   const message = err?.message ?? "";
 
   if (message.toLowerCase().includes("invalid login credentials")) {
-    setError(
-      "We could not log you in. If you signed up with Google, please continue with Google. Otherwise you may need to reset your password."
-    );
-  } else {
-    setError(message || "Something went wrong. Please try again.");
-  }
+  setError(
+    "We could not log you in.\n\nIf you signed up with Google, please continue with Google.\nOtherwise you may need to reset your password."
+  );
+} else {
+  setError(message || "Something went wrong. Please try again.");
+}
 } finally {
       setBusy(false);
     }
@@ -95,7 +95,7 @@ const handleGoogleLogin = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/dashboard/home`,
+      redirectTo: `${window.location.origin}/auth/callback`,
     },
   });
 
@@ -195,8 +195,11 @@ const handleGoogleLogin = async () => {
             </button>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-
+          {error && (
+         <p className="text-sm text-red-600 whitespace-pre-line">
+         {error}
+       </p>
+          )}
           {resetSent && (
             <p className="text-sm text-green-600">
               Password reset email sent. Please check your inbox.
