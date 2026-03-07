@@ -219,7 +219,7 @@ useEffect(() => {
 
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
-      <div className="relative z-10 px-6 sm:px-8 pt-16 pb-24 max-w-7xl mx-auto">
+      <div className="relative z-10 px-6 sm:px-12 lg:px-16 pt-12 pb-24 max-w-[1700px] mx-auto">
         {/* header (matches Timeline) */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
           <div className="text-center md:text-left flex-1">
@@ -280,7 +280,7 @@ useEffect(() => {
 
  {/* cards */}
 {!loading && !error && (capsules ?? []).length > 0 && (
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 transition-opacity duration-500">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 transition-opacity duration-500">
     {capsules.map((c) => (
       <CapsuleCard
         key={c.id}

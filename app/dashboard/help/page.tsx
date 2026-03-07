@@ -87,7 +87,7 @@ export default function HelpPage() {
   // ---------------------------------------------------------
 
   return (
-    <div className="px-4 py-10 md:px-10 lg:px-16 text-[#0F2040]">
+    <div className="px-6 sm:px-12 lg:px-16 pt-12 pb-24 text-[#0F2040]">
       <div className="max-w-6xl mx-auto space-y-10">
         {/* PAGE HEADER */}
         <header className="space-y-3">

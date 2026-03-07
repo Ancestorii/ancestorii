@@ -95,7 +95,7 @@ const timeRemaining = useMemo(() => {
         src={capsule.cover_image}
         alt={capsule.title || 'Capsule cover'}
         fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 20vw"
         quality={90}
         className={`object-cover transition-opacity duration-300 ${
           coverLoaded ? 'opacity-100' : 'opacity-0'

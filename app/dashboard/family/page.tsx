@@ -58,7 +58,7 @@ export default function FamilyPage() {
 
 
   // ✅ PUT THIS INSIDE FamilyPage() (same place Albums has it)
-const line1 = '“The people who shaped your life — remembered forever.”';
+const line1 = '“The people who shaped your life, remembered and celebrated forever.”';
 const line2 = 'Add your loved ones and preserve their stories, memories, and legacy.';
 const [typed1, setTyped1] = useState('');
 const [typed2, setTyped2] = useState('');
@@ -329,7 +329,7 @@ useEffect(() => {
 
       {/* ---------- MAIN UI ---------- */}
       {!loading && !membersLoading && members.length > 0 && (
-        <div className="relative z-10 px-6 sm:px-8 pt-16 pb-16 max-w-7xl mx-auto">
+        <div className="relative z-10 px-6 sm:px-12 lg:px-16 pt-12 pb-16 max-w-[1700px] mx-auto">
          {/* ✅ REPLACE YOUR HEADER WITH THIS (1:1 Albums header, just “Loved Ones”) */}
 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-14">
   <div className="text-center md:text-left flex-1">

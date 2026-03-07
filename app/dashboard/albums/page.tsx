@@ -172,7 +172,7 @@ export default function AlbumsPage() {
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
 
-      <div className="relative z-10 px-6 sm:px-8 pt-16 pb-24 max-w-7xl mx-auto">
+      <div className="relative z-10 px-6 sm:px-12 lg:px-16 pt-12 pb-24 max-w-[1700px] mx-auto">
         {/* header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
           <div className="text-center md:text-left flex-1">
@@ -233,7 +233,7 @@ export default function AlbumsPage() {
         {/* cards */}
         {!loading && !error && (albums ?? []).length > 0 && (
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 transition-opacity duration-500"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 transition-opacity duration-500"
             key="albums"
           >
             {(albums ?? []).map((a) => (
@@ -388,7 +388,7 @@ function AlbumCover({ src, alt }: { src: string; alt: string }) {
   src={src}
   alt={alt}
   fill
-  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 20vw"
   quality={75}
   priority={false}
   loading="lazy"

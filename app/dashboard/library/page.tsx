@@ -86,7 +86,7 @@ export default function LibraryPage() {
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
 
-      <div className="relative z-10 px-6 sm:px-8 pt-16 pb-24 max-w-7xl mx-auto">
+      <div className="relative z-10 px-6 sm:px-12 lg:px-16 pt-12 pb-24 max-w-[1700px] mx-auto">
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
           <div className="text-center md:text-left flex-1">
@@ -130,7 +130,7 @@ Upload photos or videos from your phone or computer here once and then reuse the
             Your library is empty. Upload your first memory ✨
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
             {media.map((item) => {
               const url = signedMap[item.id];
               if (!url) return null;
@@ -256,7 +256,7 @@ function LibraryImage({ src, alt }: { src: string; alt: string }) {
         src={src}
         alt={alt}
         fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 20vw"
         quality={90}
         className={`object-cover transition-opacity duration-300 ${
           loaded ? "opacity-100" : "opacity-0"

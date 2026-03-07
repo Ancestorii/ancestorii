@@ -51,7 +51,7 @@ function NavItem({
     className={`relative flex items-center justify-between group px-5 py-3.5 rounded-xl transition-colors duration-300 ease-out ${
       active
         ? 'text-white bg-white/5'
-        : 'text-white/70 hover:text-white hover:bg-white/[0.04]'
+        : 'text-white/80 hover:text-white hover:bg-white/[0.04]'
     }`}
   >
     {/* Gold Accent Pillar */}
@@ -345,15 +345,15 @@ const SidebarContent = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-[#0F2040] to-[#182C54] text-white/80">
+    <div className="flex flex-col h-full bg-gradient-to-br from-[#0F2040] to-[#182C54] border-r border-[#D4AF37]/15 text-white/80">
 
       {/* Top spacing (desktop only) */}
-<div className="lg:pt-8 lg:pb-2" />
+<div className="pt-5 lg:pt-12 pb-4" />
 
       <nav className="flex-1 px-3 space-y-5 overflow-y-auto">
 
         {/* HOME */}
-<div className="space-y-1">
+<div className="space-y-1 pb-4 md:pb-6 lg:pb-4">
   <NavItem
     href="/dashboard/home"
     label="Home"
@@ -367,7 +367,7 @@ const SidebarContent = () => {
   <div className="px-4 mb-2 flex items-center gap-3 mt-2">
     <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
     <p className="text-[13px] font-semibold tracking-[0.14em] text-[#D4AF37] uppercase">
-      Memories
+      My Memories
     </p>
     <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
   </div>
@@ -410,11 +410,11 @@ const SidebarContent = () => {
     <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
       {/* 🌟 Topbar */}
       <header
-        className={`fixed top-0 left-0 w-full z-50 transform-gpu transition-all duration-500 ${
+        className={`fixed top-0 left-0 lg:left-[270px] w-full lg:w-[calc(100%-270px)] z-[100] will-change-transform transform-gpu backface-hidden transition-all duration-500 ${
           scrolled
             ? 'bg-white shadow-sm'
             : 'bg-gradient-to-r from-white to-[#F7F8FA] shadow-[0_2px_12px_rgba(15,32,64,0.06)]'
-        } rounded-b-2xl border-b border-[#D4AF37]/20`}
+        } rounded-br-2xl border-b border-[#D4AF37]/20`}
       >
         <nav className="relative px-4 sm:px-6 md:px-10 py-2 md:py-4">
           <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-2xl">
@@ -426,7 +426,7 @@ const SidebarContent = () => {
               />
             </Link>
 
-            <div className="hidden lg:flex items-center gap-6">
+            <div className="hidden lg:flex items-center gap-5 ml-auto mr-24">
               <NotificationBell />
               <span className="text-2xl font-bold text-[#0F2040] tracking-wide">
                 Hi,{' '}
@@ -480,13 +480,13 @@ const SidebarContent = () => {
 
       {/* ---------- Sidebar ---------- */}
       <aside
-  className={`fixed top-0 left-0 z-40 w-64 h-screen pt-22 bg-gradient-to-br from-[#0F2040] to-[#182C54] shadow-[4px_0_25px_rgba(15,32,64,0.25)] rounded-r-3xl overflow-y-auto ${
-    drawerOpen ? 'block' : 'hidden lg:block'
-  }`}
+className={`fixed top-0 left-0 z-[150] lg:z-40 w-[270px] h-screen bg-gradient-to-br from-[#0F2040] to-[#182C54] shadow-[4px_0_25px_rgba(15,32,64,0.25)] rounded-br-3xl overflow-y-auto overscroll-contain ${
+drawerOpen ? 'block' : 'hidden lg:block'
+}`}
 >
         <SidebarContent />
       </aside>
-      <main className="pt-20 md:pt-28 px-4 md:px-8 md:ml-64 transition-all duration-300">
+      <main className="pt-20 md:pt-28 px-4 md:px-8 lg:ml-64 transition-all duration-300">
   {children}
 </main>
 
