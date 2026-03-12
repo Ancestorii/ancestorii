@@ -112,7 +112,7 @@ const handleGoogleLogin = async () => {
         <div className="flex items-center justify-center mb-6">
           <Link href="/" className="flex items-center gap-2">
             <img
-              src="/Actual white logo.png"
+              src="/logo.png"
               alt="Ancestorii"
               className="h-10 w-auto"
             />

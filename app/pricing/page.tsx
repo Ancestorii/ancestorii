@@ -57,7 +57,7 @@ export default function PricingPage() {
                 </h1>
 
                 <p className="mt-6 text-base sm:text-lg text-[#0F2040]/70 leading-relaxed max-w-2xl">
-                  Start building without a card. Keep it private. Invite family when you’re ready.
+                  Start building without a card. Keep it private.
                   Upgrade only if you need more space.
                 </p>
 
@@ -110,6 +110,10 @@ export default function PricingPage() {
                   </div>
 
                   <ul className="mt-6 space-y-3 text-sm sm:text-base text-[#0F2040]/80">
+                  <li className="flex gap-3">
+                      <span className="text-[#D4AF37]">●</span>
+                      <span>5GB of secure storage</span>
+                    </li>
                     <li className="flex gap-3">
                       <span className="text-[#D4AF37]">●</span>
                       <span>1 timeline, 1 album and 1 capsule</span>

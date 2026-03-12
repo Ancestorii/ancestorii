@@ -95,9 +95,9 @@ function wrapText(text: string, maxChars: number) {
 }
 
 async function readLogoBytesFromPublic(): Promise<Uint8Array | null> {
-  // /public/actual white logo.png
+  // /public/logo.png
   try {
-    const p = path.join(process.cwd(), 'public', 'actual white logo.png');
+    const p = path.join(process.cwd(), 'public', 'logo.png');
     const buf = fs.readFileSync(p);
     return new Uint8Array(buf);
   } catch {

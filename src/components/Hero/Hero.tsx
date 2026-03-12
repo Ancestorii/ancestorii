@@ -23,7 +23,9 @@ export default function Hero() {
          ========================= */}
       <div className="lg:hidden">
         {/* TOP IMAGE */}
-        <HeroVisual />
+        <div className="h-[280px] sm:h-[340px] overflow-hidden">
+  <HeroVisual />
+</div>
 
         {/* Trust strip */}
         <div
@@ -43,12 +45,12 @@ export default function Hero() {
               text-[#3E3320]
               text-base sm:text-lg
               font-serif italic
-              tracking-normal
+              tracking-normal md:tracking-wide
               leading-relaxed
               whitespace-nowrap
             "
           >
-            Private • Personal • A Living Library
+            Private&nbsp;&nbsp;•&nbsp;&nbsp;Personal&nbsp;&nbsp;•&nbsp;&nbsp;A&nbsp;Living&nbsp;Library
           </div>
         </div>
 

@@ -11,8 +11,8 @@ export default function Footer() {
           <div className="mb-8 md:mb-0">
             <Link href="/" className="flex items-center">
               <img
-                src="/Actual white logo.png"
-                className="h-10"
+                src="/logo.png"
+                className="h-14 md:h-20 object-contain"
                 alt="Ancestorii Logo"
               />
             </Link>

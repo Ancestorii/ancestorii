@@ -28,7 +28,7 @@ export default function OldFamilyPhotosPage() {
             name: "Ancestorii",
             logo: {
               "@type": "ImageObject",
-              url: "https://www.ancestorii.com/logo1.png"
+              url: "https://www.ancestorii.com/logo.png"
             }
           },
           mainEntityOfPage: {

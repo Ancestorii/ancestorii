@@ -122,9 +122,7 @@ export default function HowItWorksContent() {
               </h1>
 
               <p className="mt-8 text-lg leading-relaxed max-w-3xl">
-                Ancestorii is built for families who do not want their history scattered across phones,
-                lost in old logins, or buried inside social platforms that were never designed for preservation.
-                This is a private home for memory; structured, intentional, and made to last.
+                Ancestorii is for families who don’t want their history scattered across phones or buried on social platforms. It’s a private home for memory, organised and built to last.
               </p>
 
               <div className="mt-10 flex flex-col sm:flex-row gap-4">

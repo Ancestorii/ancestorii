@@ -420,7 +420,7 @@ const SidebarContent = () => {
           <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-2xl">
             <Link href="/dashboard/home" className="flex items-center">
               <img
-                src="/logo1.png"
+                src="/logo.png"
                 className="mr-3 h-11 md:h-14 lg:h-[3.8rem]"
                 alt="Ancestorii Logo"
               />

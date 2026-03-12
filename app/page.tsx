@@ -113,7 +113,7 @@ export default function HomePage() {
           "@type": "Organization",
           name: "Ancestorii",
           url: "https://www.ancestorii.com",
-          logo: "https://www.ancestorii.com/logo1.png",
+          logo: "https://www.ancestorii.com/logo.png",
         })}
       </Script>
 

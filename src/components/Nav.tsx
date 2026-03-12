@@ -53,32 +53,32 @@ export default function Nav() {
 
         <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#E3B341]" />
 
-        <div className="max-w-[1600px] mx-auto px-6 lg:px-20 py-6">
+        <div className="w-full px-6 lg:px-28 py-6">
 
           <div className="flex items-center justify-between">
 
             {/* LOGO */}
             <Link href="/" className="flex items-center">
               <Image
-                src="/logo1.png"
-                alt="Ancestorii Logo"
-                width={260}
-                height={70}
-                className="hidden lg:block object-contain"
-                priority
-              />
-              <Image
-                src="/logo1.png"
-                alt="Ancestorii Logo"
-                width={170}
-                height={50}
-                className="block lg:hidden object-contain"
-                priority
-              />
+  src="/logo.png"
+  alt="Ancestorii Logo"
+  width={300}
+  height={85}
+  className="hidden lg:block object-contain"
+  priority
+/>
+<Image
+  src="/logo.png"
+  alt="Ancestorii Logo"
+  width={200}
+  height={60}
+  className="block lg:hidden object-contain"
+  priority
+/>
             </Link>
 
             {/* DESKTOP NAV */}
-            <nav className="hidden lg:flex items-center gap-6">
+            <nav className="hidden lg:flex flex-1 items-center justify-center gap-10 xl:gap-14">
 
               {links.map((link) => {
                 const active = pathname === link.href;
