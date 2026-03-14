@@ -601,40 +601,34 @@ const prevMemory = () => {
       <div className="mt-8 space-y-5">
 
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f4ead2] font-semibold text-[#102347]">
-            1
-          </div>
-          <div>
-            <p className="font-semibold text-[#102347]">Add loved ones</p>
-            <p className="text-sm text-[#6b7280]">
-              Create a place for the people who shaped your life.
-            </p>
-          </div>
-        </div>
+  <span className="text-sm font-semibold text-[#102347]">1.</span>
+  <div>
+    <p className="font-semibold text-[#102347]">Add loved ones</p>
+    <p className="text-sm text-[#6b7280]">
+      Create a place for the people who shaped your life.
+    </p>
+  </div>
+</div>
 
-        <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f4ead2] font-semibold text-[#102347]">
-            2
-          </div>
-          <div>
-            <p className="font-semibold text-[#102347]">Upload memories</p>
-            <p className="text-sm text-[#6b7280]">
-              Add photos, moments and important events.
-            </p>
-          </div>
-        </div>
+       <div className="flex items-start gap-3">
+  <span className="text-sm font-semibold text-[#102347]">2.</span>
+  <div>
+    <p className="font-semibold text-[#102347]">Upload memories</p>
+    <p className="text-sm text-[#6b7280]">
+      Add photos, moments and important events.
+    </p>
+  </div>
+</div>
 
-        <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f4ead2] font-semibold text-[#102347]">
-            3
-          </div>
-          <div>
-            <p className="font-semibold text-[#102347]">Create capsules</p>
-            <p className="text-sm text-[#6b7280]">
-              Capture deeper stories, reflections and voice notes.
-            </p>
-          </div>
-        </div>
+       <div className="flex items-start gap-3">
+  <span className="text-sm font-semibold text-[#102347]">3.</span>
+  <div>
+    <p className="font-semibold text-[#102347]">Create capsules</p>
+    <p className="text-sm text-[#6b7280]">
+      Capture deeper stories, reflections and voice notes.
+    </p>
+  </div>
+</div>
 
       </div>
 
