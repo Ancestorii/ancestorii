@@ -57,19 +57,24 @@ export default function NotificationBell() {
     fetchNotifications();
 
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(`notifications-${userId}`)
       .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications' },
-        (payload) => {
-          const newNotif = payload.new as Notification;
-          if (newNotif.user_id !== userId) return;
+  'postgres_changes',
+  {
+    event: 'INSERT',
+    schema: 'public',
+    table: 'notifications',
+    filter: `user_id=eq.${userId}`,
+  },
+  (payload) => {
+    const newNotif = payload.new as Notification;
 
-          setNotifications((prev) => [newNotif, ...prev]);
-          setHasUnread(true);
-          toast.success(`${newNotif.title || 'New notification'} — ${newNotif.content}`);
-        }
-      )
+    setNotifications((prev) => [newNotif, ...prev].slice(0, 5));
+    setHasUnread(true);
+
+    toast.success(`${newNotif.title || 'New notification'} — ${newNotif.content}`);
+  }
+)
       .subscribe();
 
     return () => {

@@ -1,93 +1,19 @@
 'use client';
-import Image from 'next/image';
+
 import { ReactNode, useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import {
-  Calendar,
-  Home,
-  Package,
-  Image as ImageIcon,
-  Megaphone,
-  CreditCard,
-  HelpCircle,
-  Settings,
-  Menu,
-  X,
-  User as UserIcon,
-  HandHeart,
-  User,
-  BookOpen
-} from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
-import NotificationBell from './_components/NotificationBell';
+
+import { memoriesLinks, accountLinks } from "@/lib/dashboardNavigation";
+import SidebarContent from "@/components/dashboard/SidebarContent";
+import TopNavbar from "@/components/dashboard/TopNavbar";
+import BottomNavigation from "@/components/dashboard/BottomNavigation";
+import { motion, AnimatePresence } from "framer-motion";
+
 
 const supabase = getBrowserClient();
 
-/* ---------- Sidebar Nav Item ---------- */
-function NavItem({
-  href,
-  label,
-  Icon,
-  onClick,
-  badge,
-}: {
-  href: string;
-  label: string;
-  Icon: React.ComponentType<{ className?: string }>;
-  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
-  badge?: string;
-}) {
-  const pathname = usePathname();
-  const active =
-    href === '/dashboard/home'
-      ? pathname === '/dashboard' || pathname === '/dashboard/home'
-      : pathname === href || pathname.startsWith(href + '/');
-
-  return (
-  <Link
-    href={href}
-    onClick={onClick}
-    className={`relative flex items-center justify-between group px-5 py-3.5 rounded-xl transition-colors duration-300 ease-out ${
-      active
-        ? 'text-white bg-white/5'
-        : 'text-white/80 hover:text-white hover:bg-white/[0.04]'
-    }`}
-  >
-    {/* Gold Accent Pillar */}
-    <span
-      className={`absolute left-2 top-1/2 -translate-y-1/2 w-[4px] rounded-full bg-[#D4AF37] transition-all duration-300 ${
-        active
-          ? 'h-6 opacity-100'
-          : 'h-0 opacity-0 group-hover:h-4 group-hover:opacity-40'
-      }`}
-    />
-
-    {/* Icon + Label */}
-    <div className="flex items-center gap-4">
-      <Icon
-        className={`h-6 w-6 transition-colors duration-300 ${
-          active ? 'text-[#D4AF37]' : 'group-hover:text-[#D4AF37]'
-        }`}
-      />
-      <span
-        className={`text-[16px] tracking-[0.2px] ${
-          active ? 'font-semibold text-white' : 'font-medium'
-        }`}
-      >
-        {label}
-      </span>
-    </div>
-
-    {/* Badge */}
-   {badge && (
-  <span className="text-[13px] text-white/40 font-medium">
-    {badge}
-  </span>
-)}
-  </Link>
-);
-}
 
 /* ---------- Layout ---------- */
 export default function DashboardClientLayout({ children }: { children: ReactNode }) {
@@ -102,109 +28,113 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [memoriesOpen, setMemoriesOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   const router = useRouter();
+  const pathname = usePathname();
+  useEffect(() => {
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+}, [pathname]);
+
   const loadDashboardCounts = useCallback(async () => {
-  const { data: sess } = await supabase.auth.getSession();
-  const user = sess?.session?.user;
-  if (!user) return;
+    const { data: sess } = await supabase.auth.getSession();
+    const user = sess?.session?.user;
+    if (!user) return;
 
-  const uid = user.id;
+    const uid = user.id;
 
-  const [
-    { count: loved },
-    { count: caps },
-    { count: albums },
-    { count: timelines },
-  ] = await Promise.all([
-    supabase
-      .from('family_members')
-      .select('id', { head: true, count: 'exact' })
-      .eq('owner_id', uid),
+    const [
+      { count: loved },
+      { count: caps },
+      { count: albums },
+      { count: timelines },
+    ] = await Promise.all([
+      supabase
+        .from('family_members')
+        .select('id', { head: true, count: 'exact' })
+        .eq('owner_id', uid),
 
-    supabase
-      .from('memory_capsules')
-      .select('id', { head: true, count: 'exact' })
-      .eq('user_id', uid),
+      supabase
+        .from('memory_capsules')
+        .select('id', { head: true, count: 'exact' })
+        .eq('user_id', uid),
 
-    supabase
-      .from('albums')
-      .select('id', { head: true, count: 'exact' })
-      .eq('user_id', uid),
+      supabase
+        .from('albums')
+        .select('id', { head: true, count: 'exact' })
+        .eq('user_id', uid),
 
-    supabase
-      .from('timelines')
-      .select('id', { head: true, count: 'exact' })
-      .eq('user_id', uid),
-  ]);
+      supabase
+        .from('timelines')
+        .select('id', { head: true, count: 'exact' })
+        .eq('user_id', uid),
+    ]);
 
-  setLovedOnesCount(loved || 0);
-  setCapsulesCount(caps || 0);
-  setAlbumsCount(albums || 0);
-  setTimelinesCount(timelines || 0);
-}, []);
-
+    setLovedOnesCount(loved || 0);
+    setCapsulesCount(caps || 0);
+    setAlbumsCount(albums || 0);
+    setTimelinesCount(timelines || 0);
+  }, []);
 
   useEffect(() => {
-  if (!hydrated) return;
+    if (!hydrated) return;
 
-  (async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data?.user) {
-      router.push('/login');
-      return;
-    }
+    (async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data?.user) {
+        router.push('/login');
+        return;
+      }
 
-    setUserId(data.user.id);
-    setUserEmail(data.user.email ?? null);
-  })();
-}, [hydrated, router]);
+      setUserId(data.user.id);
+      setUserEmail(data.user.email ?? null);
+    })();
+  }, [hydrated, router]);
 
-
-  /* Hydration fix */
   useEffect(() => {
     setHydrated(true);
   }, []);
-  
+
   useEffect(() => {
-  if (!hydrated) return;
-  loadDashboardCounts();
-}, [hydrated, loadDashboardCounts]);
+    if (!hydrated) return;
+    loadDashboardCounts();
+  }, [hydrated, loadDashboardCounts]);
 
-useEffect(() => {
-  const handler = () => loadDashboardCounts();
-  window.addEventListener('dashboard-data-changed', handler);
-  return () => window.removeEventListener('dashboard-data-changed', handler);
-}, [loadDashboardCounts]);
+  useEffect(() => {
+    const handler = () => loadDashboardCounts();
+    window.addEventListener('dashboard-data-changed', handler);
+    return () => window.removeEventListener('dashboard-data-changed', handler);
+  }, [loadDashboardCounts]);
 
-const scrolledRef = useRef(false);
-const rafRef = useRef<number | null>(null);
+  const scrolledRef = useRef(false);
+  const rafRef = useRef<number | null>(null);
 
-useEffect(() => {
-  if (!hydrated) return;
+  useEffect(() => {
+    if (!hydrated) return;
 
-  const onScroll = () => {
-    if (rafRef.current) return;
+    const onScroll = () => {
+      if (rafRef.current) return;
 
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = null;
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
 
-      const next = window.scrollY > 30;
-      if (next !== scrolledRef.current) {
-        scrolledRef.current = next;
-        setScrolled(next);
-      }
-    });
-  };
+        const next = window.scrollY > 30;
+        if (next !== scrolledRef.current) {
+          scrolledRef.current = next;
+          setScrolled(next);
+        }
+      });
+    };
 
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll(); // set initial once
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
 
-  return () => {
-    window.removeEventListener('scroll', onScroll);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-  };
-}, [hydrated]);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [hydrated]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -215,116 +145,113 @@ useEffect(() => {
   }, [router, hydrated]);
 
   useEffect(() => {
-  if (!userId) return;
+    if (!userId) return;
 
-  (async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
+
+      const { data: verification } = await supabase
+        .from('email_verifications')
+        .select('used_at')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (verification?.used_at) return;
+
+      const { data: existing } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('title', 'Verify your email')
+        .maybeSingle();
+
+      if (!existing) {
+        await supabase.from('notifications').insert({
+          user_id: user.id,
+          title: 'Verify your email',
+          content: 'Please confirm your email address to unlock all features.',
+          read: false,
+        });
+      }
+    })();
+  }, [userId]);
+
+  const fetchProfile = async () => {
+    if (!userId) return;
+
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth?.user;
     if (!user) return;
 
-    // 🔑 Check YOUR verification system, not Supabase
-    const { data: verification } = await supabase
-      .from('email_verifications')
-      .select('used_at')
-      .eq('user_id', user.id)
+    let { data: prof } = await supabase
+      .from('Profiles')
+      .select('full_name, profile_image_url')
+      .eq('id', userId)
       .maybeSingle();
 
-    // If verified, do nothing
-    if (verification?.used_at) return;
+    if (!prof?.full_name) {
+      const fullName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        null;
 
-    // Avoid duplicate notifications
-    const { data: existing } = await supabase
-      .from('notifications')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('title', 'Verify your email')
-      .maybeSingle();
+      if (fullName) {
+        await supabase
+          .from('Profiles')
+          .update({ full_name: fullName })
+          .eq('id', userId);
 
-    if (!existing) {
-      await supabase.from('notifications').insert({
-        user_id: user.id,
-        title: 'Verify your email',
-        content: 'Please confirm your email address to unlock all features.',
-        read: false,
-      });
+        prof = { ...prof!, full_name: fullName };
+      }
     }
-  })();
-}, [userId]);
 
+    setFullName(prof?.full_name ?? null);
 
- const fetchProfile = async () => {
-  if (!userId) return;
+    if (prof?.profile_image_url) {
+      const { data } = await supabase.storage
+        .from('user-media')
+        .createSignedUrl(prof.profile_image_url, 3600);
 
-  const { data: auth } = await supabase.auth.getUser();
-  const user = auth?.user;
-  if (!user) return;
-
-  let { data: prof } = await supabase
-    .from('Profiles')
-    .select('full_name, profile_image_url')
-    .eq('id', userId)
-    .maybeSingle();
-
-  // 🔑 Backfill name from signup metadata
-  if (!prof?.full_name) {
-    const fullName =
-      user.user_metadata?.full_name ||
-      user.user_metadata?.name ||
-      null;
-
-    if (fullName) {
-      await supabase
-        .from('Profiles')
-        .update({ full_name: fullName })
-        .eq('id', userId);
-
-      prof = { ...prof!, full_name: fullName };
+      setAvatarUrl(
+        data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null
+      );
+    } else {
+      setAvatarUrl(null);
     }
-  }
-
-  setFullName(prof?.full_name ?? null);
-
-  if (prof?.profile_image_url) {
-    const { data } = await supabase.storage
-      .from('user-media')
-      .createSignedUrl(prof.profile_image_url, 3600);
-
-    setAvatarUrl(
-      data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null
-    );
-  } else {
-    setAvatarUrl(null);
-  }
-};
-
+  };
 
   useEffect(() => {
     if (!hydrated) return;
 
-  const refresh = () => fetchProfile();
+    const refresh = () => fetchProfile();
 
-  window.addEventListener('profile-updated', refresh);
-  window.addEventListener('profile-image-updated', refresh);
+    window.addEventListener('profile-updated', refresh);
+    window.addEventListener('profile-image-updated', refresh);
 
-  return () => {
-    window.removeEventListener('profile-updated', refresh);
-    window.removeEventListener('profile-image-updated', refresh);
-  };
+    return () => {
+      window.removeEventListener('profile-updated', refresh);
+      window.removeEventListener('profile-image-updated', refresh);
+    };
   }, [hydrated, userId]);
 
   useEffect(() => {
-  if (!userId) return;
+  if (memoriesOpen || accountOpen) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "auto";
+  }
+}, [memoriesOpen, accountOpen]);
 
-  // Fetch immediately when layout loads
-  fetchProfile();
+  useEffect(() => {
+    if (!userId) return;
 
-  // Refresh avatar + username every 5 min
-  const interval = setInterval(fetchProfile, 5 * 60 * 1000);
+    fetchProfile();
+    const interval = setInterval(fetchProfile, 5 * 60 * 1000);
 
-  // Cleanup
-  return () => clearInterval(interval);
-}, [userId]);
-  
+    return () => clearInterval(interval);
+  }, [userId]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -337,159 +264,260 @@ useEffect(() => {
 
   if (!hydrated) return null;
 
-const SidebarContent = () => {
-  const closeDrawer = () => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      setDrawerOpen(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-[#0F2040] to-[#182C54] border-r border-[#D4AF37]/15 text-white/80">
-
-      {/* Top spacing (desktop only) */}
-<div className="pt-5 lg:pt-12 pb-4" />
-
-      <nav className="flex-1 px-3 space-y-5 overflow-y-auto">
-
-        {/* HOME */}
-<div className="space-y-1 pb-4 md:pb-6 lg:pb-4">
-  <NavItem
-    href="/dashboard/home"
-    label="Home"
-    Icon={Home}
-    onClick={closeDrawer}
-  />
-</div>
-
-{/* MEMORIES */}
-<section>
-  <div className="px-4 mb-2 flex items-center gap-3 mt-2">
-    <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
-    <p className="text-[13px] font-semibold tracking-[0.14em] text-[#D4AF37] uppercase">
-      My Memories
-    </p>
-    <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
-  </div>
-
-  <div className="space-y-1">
-    <NavItem href="/dashboard/family" label="Loved Ones" Icon={HandHeart} onClick={closeDrawer} />
-    <NavItem href="/dashboard/library" label="Library" Icon={BookOpen} onClick={closeDrawer} />
-    <NavItem href="/dashboard/timeline" label="Timelines" Icon={Calendar} onClick={closeDrawer} />
-    <NavItem href="/dashboard/capsules" label="Capsules" Icon={Package} onClick={closeDrawer} />
-    <NavItem href="/dashboard/albums" label="Albums" Icon={ImageIcon} onClick={closeDrawer} />
-  </div>
-</section>
-
-        {/* ACCOUNT */}
-        <section>
-          <div className="px-4 mb-3 flex items-center gap-3">
-  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
-  <p className="text-[13px] font-semibold tracking-[0.14em] text-[#D4AF37] uppercase">
-    Account
-  </p>
-  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
-</div>
-
-          <div className="space-y-1">
-            <NavItem href="/dashboard/profile" label="Profile" Icon={User} onClick={closeDrawer} />
-            <NavItem href="/dashboard/plans" label="Plans" Icon={CreditCard} onClick={closeDrawer} />
-            <NavItem href="/dashboard/updates" label="Updates" Icon={Megaphone} onClick={closeDrawer} />
-            <NavItem href="/dashboard/help" label="Support" Icon={HelpCircle} onClick={closeDrawer} />
-            <NavItem href="/dashboard/settings" label="Settings" Icon={Settings} onClick={closeDrawer} />
-          </div>
-        </section>
-
-      </nav>
-
-    </div>
-  );
-};
-
   return (
     <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
-      {/* 🌟 Topbar */}
-      <header
-        className={`fixed top-0 left-0 lg:left-[270px] w-full lg:w-[calc(100%-270px)] z-[100] will-change-transform transform-gpu backface-hidden transition-all duration-500 ${
-          scrolled
-            ? 'bg-white shadow-sm'
-            : 'bg-gradient-to-r from-white to-[#F7F8FA] shadow-[0_2px_12px_rgba(15,32,64,0.06)]'
-        } rounded-br-2xl border-b border-[#D4AF37]/20`}
-      >
-        <nav className="relative px-4 sm:px-6 md:px-10 py-2 md:py-4">
-          <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-2xl">
-            <Link href="/dashboard/home" className="flex items-center">
-              <img
-                src="/logo.png"
-                className="mr-3 h-11 md:h-14 lg:h-[3.8rem]"
-                alt="Ancestorii Logo"
-              />
-            </Link>
-
-            <div className="hidden lg:flex items-center gap-5 ml-auto mr-24">
-              <NotificationBell />
-              <span className="text-2xl font-bold text-[#0F2040] tracking-wide">
-                Hi,{' '}
-                <span className="text-[#D4AF37] font-extrabold bg-clip-text hover:animate-shimmer transition">
-                  {fullName || userEmail || 'Guest'}
-                </span>
-              </span>
-
-              <Link
-                href="/dashboard/home"
-                className="h-12 w-12 rounded-full overflow-hidden border-2 border-[#D4AF37]/40 flex items-center justify-center bg-white hover:shadow-[0_0_12px_rgba(212,175,55,0.4)] hover:scale-105 transition-all duration-300"
-                title="Home"
-              >
-                {avatarUrl ? (
-  <div className="relative h-full w-full">
-    <Image
-      src={avatarUrl}
-      alt="Avatar"
-      fill
-      sizes="48px"
-      className="object-cover"
-      priority
-    />
-  </div>
-) : (
-  <UserIcon className="h-6 w-6 text-[#0F2040]" />
-)}
-              </Link>
-
-              <div className="pl-5 border-l border-gray-300">
-                <button
-                  onClick={handleLogout}
-                  className="px-5 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 shadow-sm hover:shadow-[0_0_12px_rgba(255,0,0,0.3)] transition-all"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-
-            <button
-              className="lg:hidden p-2 text-[#0F2040] rounded-md hover:bg-[#D4AF37]/10"
-              onClick={() => setDrawerOpen(!drawerOpen)}
-              aria-label="Toggle menu"
-            >
-              {drawerOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-          <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#d4af37]/80 to-transparent" />
-        </nav>
-      </header>
+      <TopNavbar
+        scrolled={scrolled}
+        fullName={fullName}
+        userEmail={userEmail}
+        avatarUrl={avatarUrl}
+        handleLogout={handleLogout}
+      />
 
       {/* ---------- Sidebar ---------- */}
       <aside
-className={`fixed top-0 left-0 z-[150] lg:z-40 w-[270px] h-screen bg-gradient-to-br from-[#0F2040] to-[#182C54] shadow-[4px_0_25px_rgba(15,32,64,0.25)] rounded-br-3xl overflow-y-auto overscroll-contain ${
-drawerOpen ? 'block' : 'hidden lg:block'
-}`}
->
-        <SidebarContent />
+        className={`fixed top-0 left-0 z-[150] xl:z-40 w-[270px] h-screen bg-gradient-to-br from-[#0F2040] to-[#182C54] shadow-[4px_0_25px_rgba(15,32,64,0.25)] rounded-br-3xl overflow-y-auto overscroll-contain ${
+          drawerOpen ? 'block' : 'hidden xl:block'
+        }`}
+      >
+        <SidebarContent
+          closeDrawer={() => {
+            if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+              setDrawerOpen(false);
+            }
+          }}
+        />
       </aside>
-      <main className="pt-20 md:pt-28 px-4 md:px-8 lg:ml-64 transition-all duration-300">
-  {children}
-</main>
 
+      <main className="pt-20 md:pt-28 px-4 md:px-8 xl:ml-64 transition-all duration-300">
+        {children}
+      </main>
+
+   <AnimatePresence>
+  {memoriesOpen && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="xl:hidden fixed inset-0 z-[300] flex items-center justify-center px-4"
+      onClick={() => setMemoriesOpen(false)}
+    >
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 220 }}
+        className="w-full max-w-[560px] rounded-[28px] bg-[#F3F1FF] border-[2px] border-[#D4AF37]/60 shadow-[0_30px_90px_rgba(0,0,0,0.25)] px-6 pt-6 pb-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+
+        {/* HANDLE */}
+        <div className="w-12 h-[3px] bg-slate-400/60 rounded-full mx-auto mb-7" />
+
+        {/* HEADER */}
+        <div className="px-3 mb-8">
+          <div className="flex justify-between items-end border-b-[2px] border-[#D4AF37]/50 pb-4">
+
+            <h2 className="text-[30px] font-light text-[#0F1A2E] tracking-tight">
+              My <span className="font-serif italic text-[#D4AF37]">Memories</span>
+            </h2>
+
+            <button
+              onClick={() => setMemoriesOpen(false)}
+              className="text-slate-500 hover:text-black text-sm font-medium"
+            >
+              Close
+            </button>
+
+          </div>
+        </div>
+
+        {/* MEMORY LINKS */}
+        <motion.div
+          className="space-y-4"
+          initial="hidden"
+          animate="show"
+          variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+        >
+          {memoriesLinks.map((item) => {
+            const active =
+              pathname === item.href || pathname.startsWith(item.href + "/");
+
+            return (
+              <motion.div
+                key={item.href}
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  show: { opacity: 1, y: 0 },
+                }}
+              >
+                <Link
+                  href={item.href}
+                  onClick={() => setMemoriesOpen(false)}
+                  className={`flex items-center justify-between rounded-[18px] px-6 py-5 transition-all duration-300 ${
+                    active
+                      ? "bg-[#0F1A2E] text-white border-[2.5px] border-[#D4AF37] shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+                      : "bg-white border-[2px] border-[#D8DBE3] text-[#0F1A2E] shadow-[0_6px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.12)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+
+               <item.icon
+    size={18}
+    className={`transition ${
+      active ? "text-[#D4AF37]" : "text-[#0F1A2E]"
+    }`}
+  />
+
+  <span className="text-[16px] font-semibold">
+    {item.label}
+  </span>
+
+</div>
+
+                  <div className="flex items-center gap-3">
+
+                    {active && (
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37]">
+                        Viewing
+                      </span>
+                    )}
+
+                    <div
+                      className={`h-2 w-2 rounded-full transition-all duration-500 ${
+                        active
+                          ? "bg-[#D4AF37] scale-125 shadow-[0_0_8px_#D4AF37]"
+                          : "bg-[#C7C7D9]"
+                      }`}
+                    />
+                  </div>
+
+                </Link>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+
+{/* MOBILE ACCOUNT SHEET */}
+<AnimatePresence>
+  {accountOpen && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="xl:hidden fixed inset-0 z-[300] flex items-center justify-center px-4"
+      onClick={() => setAccountOpen(false)}
+    >
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 220 }}
+        className="w-full max-w-[560px] rounded-[28px] bg-[#F3F1FF] border-[2px] border-[#D4AF37]/60 shadow-[0_30px_90px_rgba(0,0,0,0.25)] px-6 pt-6 pb-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+
+        {/* HANDLE */}
+        <div className="w-12 h-[3px] bg-slate-400/60 rounded-full mx-auto mb-7" />
+
+        {/* HEADER */}
+        <div className="px-3 mb-8">
+          <div className="flex justify-between items-end border-b-[2px] border-[#0F1A2E]/40 pb-4">
+
+            <h2 className="text-[30px] font-light text-[#0F1A2E] tracking-tight">
+              My <span className="font-serif italic text-[#0F1A2E]">Account</span>
+            </h2>
+
+            <button
+              onClick={() => setAccountOpen(false)}
+              className="text-slate-500 hover:text-black text-sm font-medium"
+            >
+              Close
+            </button>
+
+          </div>
+        </div>
+
+        {/* ACCOUNT LINKS */}
+        <motion.div
+          className="space-y-4"
+          initial="hidden"
+          animate="show"
+          variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+        >
+          {accountLinks.map((item) => {
+            const active =
+              pathname === item.href || pathname.startsWith(item.href + "/");
+
+            return (
+              <motion.div
+                key={item.href}
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  show: { opacity: 1, y: 0 },
+                }}
+              >
+                <Link
+                  href={item.href}
+                  onClick={() => setAccountOpen(false)}
+                  className={`flex items-center justify-between rounded-[18px] px-6 py-5 transition-all duration-300 ${
+                    active
+                      ? "bg-[#0F1A2E] text-white border-[2.5px] border-[#D4AF37] shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+                      : "bg-white border-[2px] border-[#D8DBE3] text-[#0F1A2E] shadow-[0_6px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.12)]"
+                  }`}
+                >
+                 <div className="flex items-center gap-3">
+
+  <item.icon
+    size={18}
+    className={`transition ${
+      active ? "text-[#D4AF37]" : "text-[#0F1A2E]"
+    }`}
+  />
+
+  <span className="text-[16px] font-semibold">
+    {item.label}
+  </span>
+
+</div>
+
+                  <div className="flex items-center gap-3">
+
+                    {active && (
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37]">
+                        Viewing
+                      </span>
+                    )}
+
+                    <div
+                      className={`h-2 w-2 rounded-full transition-all duration-500 ${
+                        active
+                          ? "bg-[#D4AF37] scale-125 shadow-[0_0_8px_#D4AF37]"
+                          : "bg-[#C7C7D9]"
+                      }`}
+                    />
+                  </div>
+
+                </Link>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+      <BottomNavigation
+        setMemoriesOpen={setMemoriesOpen}
+        setAccountOpen={setAccountOpen}
+      />
 
       <style jsx global>{`
         @keyframes shimmer {

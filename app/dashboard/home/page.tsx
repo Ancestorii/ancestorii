@@ -14,7 +14,7 @@ export default async function DashboardHomePage() {
   // Fetch profile
   let { data: profile } = await supabase
     .from('Profiles')
-    .select('full_name, home_image_0, home_image_1, home_image_2')
+    .select('full_name, home_image_0, home_image_1, home_image_2, home_image_3, home_image_4')
     .eq('id', uid)
     .maybeSingle();
 
@@ -28,15 +28,21 @@ export default async function DashboardHomePage() {
           user.user_metadata?.name ||
           null,
       })
-      .select('full_name, home_image_0, home_image_1, home_image_2')
+      .select('full_name, home_image_0, home_image_1, home_image_2, home_image_3, home_image_4')
       .single();
 
     profile = inserted;
   }
 
   const images = await Promise.all(
-    [0, 1, 2].map(async (i) => {
-      const path = profile?.[`home_image_${i}` as 'home_image_0' | 'home_image_1' | 'home_image_2'];
+    [0, 1, 2, 3, 4].map(async (i) => {
+      const path = profile?.[`home_image_${i}` as
+  | 'home_image_0'
+  | 'home_image_1'
+  | 'home_image_2'
+  | 'home_image_3'
+  | 'home_image_4'
+];
       if (!path) return null;
 
       const { data } = await supabase.storage

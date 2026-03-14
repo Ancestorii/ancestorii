@@ -4,29 +4,26 @@ import { Button } from '@/components/ui/button';
 
 export default function HeroContent() {
   return (
-    <div
-      className="
-        flex flex-col items-start justify-center
-        text-left w-full
-        px-6 sm:px-8
-        pt-10 sm:pt-0
-        pb-10
-      "
-    >
+  <div
+  className="
+    flex flex-col items-start justify-start
+    text-left w-full
+    px-6
+    pt-6 lg:pt-16 xl:pt-24
+    pb-12 lg:pb-16 xl:pb-24
+  "
+>
       {/* Headline */}
       <h1
         className="
           w-full
           font-serif
           font-semibold
-          text-[2.6rem]
-          sm:text-[3.2rem]
-          md:text-[4.5rem]
-          lg:text-[5.5rem]
-          xl:text-[6.5rem]
-          leading-[1.05]
+          text-[clamp(2.8rem,5.6vw,10rem)]
+          leading-[1.02]
           tracking-tight
           text-white
+          text-balance
         "
       >
         Your Story.
@@ -39,12 +36,10 @@ export default function HeroContent() {
       {/* Core Statement */}
       <p
         className="
-          mt-10
-          text-lg
-          sm:text-xl
-          lg:text-2xl
+          mt-[clamp(1.2rem,2vw,3rem)]
+          text-[clamp(1rem,1.1vw,1.8rem)]
           text-white/90
-          max-w-3xl
+          max-w-none
           font-medium
         "
       >
@@ -52,79 +47,117 @@ export default function HeroContent() {
       </p>
 
       {/* Divider */}
-      <div className="mt-6 h-[2px] w-20 bg-[#E6C26E]" />
+      <div
+        className="
+          mt-[clamp(1rem,1.6vw,2rem)]
+          h-[2px]
+          w-[clamp(60px,5vw,120px)]
+          bg-[#E6C26E]
+        "
+      />
 
       {/* Trust Block */}
-      <div className="mt-10 max-w-3xl">
-        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-[#E6C26E] tracking-wide">
+      <div
+        className="
+          mt-[clamp(1.4rem,2.4vw,3rem)]
+          max-w-none
+        "
+      >
+        <p
+          className="
+            text-[clamp(1rem,1.2vw,1.9rem)]
+            font-bold
+            text-[#E6C26E]
+            tracking-wide
+          "
+        >
           Free to begin. Your first memory starts here.
         </p>
 
-        <p className="mt-5 text-sm sm:text-base lg:text-lg text-white/85">
-          No hidden costs. No ads. Just your family's memories, privately preserved.
+        <p
+          className="
+            mt-[clamp(0.7rem,1.1vw,1.4rem)]
+            text-[clamp(0.9rem,1vw,1.4rem)]
+            text-white/85
+          "
+        >
+          No hidden costs. No ads. Just your family's memories,
+          privately preserved.
         </p>
       </div>
 
+      {/* CTA */}
+      <div
+        className="
+          mt-[clamp(1.8rem,3.5vw,4rem)]
+          w-full
+          flex flex-col sm:flex-row
+          items-start
+          gap-[clamp(0.7rem,1.4vw,1.4rem)]
+        "
+      >
+        {/* Primary CTA */}
+        <Button
+          onClick={() => (window.location.href = '/signup')}
+          className="
+            group relative
+            w-full sm:w-auto
+            min-w-[clamp(200px,16vw,280px)]
 
-     {/* CTA */}
-<div className="mt-14 w-full flex flex-col sm:flex-row items-start gap-5">
+            px-[clamp(1.6rem,2vw,3rem)]
+            py-[clamp(0.7rem,1vw,1.3rem)]
 
-  {/* Primary CTA */}
-  <Button
-    onClick={() => (window.location.href = '/signup')}
-    className="
-      group relative
-      w-full sm:w-auto
-      min-w-[260px]
-      px-12 py-6
-      rounded-full
-      text-lg font-semibold
-      text-[#1F2837]
+            rounded-full
+            text-[1.15rem] sm:text-[clamp(0.85rem,1vw,1.2rem)]
+            font-semibold
+            text-[#1F2837]
 
-      bg-gradient-to-r from-[#E6C26E] via-[#F3D99B] to-[#E6C26E]
-      bg-[length:200%_auto]
-      hover:bg-right
+            bg-gradient-to-r from-[#E6C26E] via-[#F3D99B] to-[#E6C26E]
+            bg-[length:200%_auto]
+            hover:bg-right
 
-      shadow-[0_10px_25px_rgba(230,194,110,0.35)]
-      hover:shadow-[0_18px_40px_rgba(230,194,110,0.45)]
+            shadow-[0_10px_25px_rgba(230,194,110,0.35)]
+            hover:shadow-[0_25px_55px_rgba(230,194,110,0.45)]
 
-      hover:-translate-y-0.5
-      active:scale-[0.97]
+            hover:-translate-y-0.5
+            active:scale-[0.97]
 
-      transition-all duration-300 ease-out
-    "
-  >
-    Start with one memory
-  </Button>
+            transition-all duration-300 ease-out
+          "
+        >
+          Start with one memory
+        </Button>
 
+        {/* Secondary CTA */}
+        <Button
+          onClick={() => (window.location.href = '/pricing')}
+          className="
+            w-full sm:w-auto
+            min-w-[clamp(200px,16vw,280px)]
 
-  {/* Secondary CTA */}
-  <Button
-    onClick={() => (window.location.href = '/pricing')}
-    className="
-      w-full sm:w-auto
-      min-w-[260px]
-      px-12 py-6
-      rounded-full
-      text-lg font-semibold
+            px-[clamp(1.6rem,2vw,3rem)]
+            py-[clamp(0.7rem,1vw,1.3rem)]
 
-      text-[#1F2837]
-      bg-white
-      backdrop-blur-md
+            rounded-full
+            text-[1.15rem] sm:text-[clamp(0.85rem,1vw,1.2rem)]
+            font-semibold
 
-      border border-white/30
-      hover:bg-gray-100
+            text-[#1F2837]
+            bg-white
+            backdrop-blur-md
 
-      shadow-lg
-      hover:shadow-xl
+            border border-white/30
+            hover:bg-gray-100
 
-      transition-all duration-300
-    "
-  >
-    See our plans
-  </Button>
+            shadow-lg
+            hover:shadow-xl
 
-</div>
+            transition-all duration-300
+          "
+        >
+          See our plans
+        </Button>
+      </div>
     </div>
   );
 }

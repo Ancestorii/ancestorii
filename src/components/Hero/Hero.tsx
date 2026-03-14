@@ -91,13 +91,13 @@ export default function Hero() {
           Text | Image
           Banner bottom
          ========================= */}
-      <div className="hidden lg:flex flex-col min-h-screen">
+      <div className="hidden lg:flex flex-col">
         {/* Split */}
-        <div className="flex-1 grid grid-cols-2">
+        <div className="grid grid-cols-2">
           {/* LEFT: TEXT */}
           <div
             className="
-              relative flex items-center overflow-visible
+              relative flex items-start overflow-visible
               bg-gradient-to-b
               from-[#20222A] via-[#1A1C24] to-[#141720]
             "
@@ -114,7 +114,7 @@ export default function Hero() {
 
             <TextStarField />
 
-            <div className="relative z-10 w-full px-14 lg:px-20">
+            <div className="relative z-10 w-full px-[clamp(1rem,3vw,4rem)]">
               <HeroContent />
             </div>
           </div>

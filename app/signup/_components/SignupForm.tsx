@@ -178,7 +178,7 @@ const handleGoogleSignup = async () => {
             checked={newsletter}
             onChange={() => setNewsletter(!newsletter)}
           />
-          Keep me updated
+          Send me updates and tips about preserving family memories
         </div>
 
         <div className="flex items-center gap-2 text-xs">

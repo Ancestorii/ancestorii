@@ -22,7 +22,7 @@ export default function HeroVisual() {
   }, []);
 
   return (
-    <div className="relative w-full h-[42vh] sm:h-[50vh] md:h-full overflow-hidden">
+    <div className="relative w-full h-[42vh] sm:h-[50vh] lg:h-full overflow-hidden">
       
       {/* ambient warmth */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(230,194,110,0.12),transparent_65%)]" />
