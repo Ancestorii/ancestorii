@@ -600,7 +600,7 @@ const prevMemory = () => {
       {/* STEPS */}
       <div className="mt-8 space-y-5">
 
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f4ead2] font-semibold text-[#102347]">
             1
           </div>
@@ -612,7 +612,7 @@ const prevMemory = () => {
           </div>
         </div>
 
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f4ead2] font-semibold text-[#102347]">
             2
           </div>
@@ -624,7 +624,7 @@ const prevMemory = () => {
           </div>
         </div>
 
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f4ead2] font-semibold text-[#102347]">
             3
           </div>
