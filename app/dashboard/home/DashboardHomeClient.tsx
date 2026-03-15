@@ -6,21 +6,15 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
   BookOpen,
-  Heart,
   Image as ImageIcon,
-  Mic,
   Sparkles,
   ArrowRight,
   ArrowLeft,
   Library,
-  Clock3,
   Calendar,
   Package,
   Plus,
-  ShieldCheck,
-  ScrollText,
   HandHeart,
-  LayoutGrid,
 } from 'lucide-react';
 
 export default function DashboardHomeClient({
@@ -60,19 +54,20 @@ const prevMemory = () => {
     [homeImages]
   );
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+ useEffect(() => {
+  if (typeof window === 'undefined') return;
 
-    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
-    if (!isTouchDevice) return;
+  const isMobile = window.innerWidth < 768;
 
-    const lastSeen = localStorage.getItem(DESKTOP_TOAST_KEY);
-    const now = Date.now();
+  if (!isMobile) return;
 
-    if (!lastSeen || now - Number(lastSeen) > DESKTOP_TOAST_RESET_MS) {
-      setShowDesktopToast(true);
-    }
-  }, []);
+  const lastSeen = localStorage.getItem(DESKTOP_TOAST_KEY);
+  const now = Date.now();
+
+  if (!lastSeen || now - Number(lastSeen) > DESKTOP_TOAST_RESET_MS) {
+    setShowDesktopToast(true);
+  }
+}, []);
 
   useEffect(() => {
     if (displayName) return;
@@ -92,27 +87,43 @@ const prevMemory = () => {
   }, [displayName, supabase]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') return;
 
-    if (!sessionStorage.getItem('signup_tracked')) {
-      if ((window as any).fbq) {
-        (window as any).fbq('track', 'CompleteRegistration', {
-          em: email,
-        });
-      }
+  const trackSignup = async () => {
+    const { data } = await supabase.auth.getUser();
+    const user = data?.user;
 
-      if ((window as any).rdt) {
-        (window as any).rdt('track', 'CompleteRegistration');
-      }
+    if (!user) return;
 
-      (window as any).dataLayer = (window as any).dataLayer || [];
-      (window as any).dataLayer.push({
-        event: 'signup_complete',
+    const created = new Date(user.created_at).getTime();
+    const lastSignIn = new Date(user.last_sign_in_at || '').getTime();
+
+    const isNewUser = Math.abs(lastSignIn - created) < 10000;
+
+    if (!isNewUser) return;
+
+    if (sessionStorage.getItem('signup_tracked')) return;
+
+    if ((window as any).fbq) {
+      (window as any).fbq('track', 'CompleteRegistration', {
+        em: email,
       });
-
-      sessionStorage.setItem('signup_tracked', '1');
     }
-  }, [email]);
+
+    if ((window as any).rdt) {
+      (window as any).rdt('track', 'CompleteRegistration');
+    }
+
+    (window as any).dataLayer = (window as any).dataLayer || [];
+    (window as any).dataLayer.push({
+      event: 'signup_complete',
+    });
+
+    sessionStorage.setItem('signup_tracked', '1');
+  };
+
+  trackSignup();
+}, [email, supabase]);
 
   const uploadHomeImage = async (file: File, index: number) => {
     const { data: auth } = await supabase.auth.getUser();
@@ -165,14 +176,14 @@ const prevMemory = () => {
             </div>
 
             <h3 className="mb-3 text-lg font-semibold text-[#1F2837]">
-              Best experienced on laptop
+              Build your library on a bigger screen!
             </h3>
 
             <p className="mb-5 text-sm leading-relaxed text-[#5B6473]">
-              For the best experience when creating timelines and uploading memories,
-              we recommend continuing on{' '}
-              <span className="font-semibold text-[#1F2837]">desktop</span> or{' '}
-              <span className="font-semibold text-[#1F2837]">laptop</span>.
+             You can explore your library on mobile, but creating timelines and
+             uploading memories is best experienced on a
+             <span className="font-semibold text-[#1F2837]">desktop</span> or
+            <span className="font-semibold text-[#1F2837]"> laptop</span>.
             </p>
 
             <button
