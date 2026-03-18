@@ -180,11 +180,11 @@ const prevMemory = () => {
             </h3>
 
             <p className="mb-5 text-sm leading-relaxed text-[#5B6473]">
-             You can explore your library on mobile, but creating timelines and
-             uploading memories is best experienced on a
-             <span className="font-semibold text-[#1F2837]">desktop</span> or
-            <span className="font-semibold text-[#1F2837]"> laptop</span>.
-            </p>
+  You can explore your library on mobile, but creating timelines and
+  uploading memories is best experienced on a{" "}
+  <span className="font-semibold text-[#1F2837]">desktop</span> or{" "}
+  <span className="font-semibold text-[#1F2837]">laptop</span>.
+</p>
 
             <button
               onClick={dismissDesktopToast}
