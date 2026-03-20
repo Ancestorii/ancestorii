@@ -459,89 +459,7 @@ export default function HowItWorksContent() {
         </div>
       </section>
 
-
-      {/* FAQ (deep, not timid) */}
-      <section className="px-6 py-24">
-        <SectionTitle
-          eyebrow="Questions"
-          title="Clear answers, no evasiveness"
-          subtitle="Preservation requires trust. Here are direct answers to the questions families actually ask before they begin."
-        />
-
-        <div className="max-w-6xl mx-auto px-6 mt-16 grid gap-8 md:grid-cols-2">
-          <FAQItem
-            q="Do I need a card to start?"
-            a={
-              <p>
-                No. You can create your library and begin preserving memories without adding a card.
-                Upgrade later only if you need more space.
-              </p>
-            }
-          />
-          <FAQItem
-            q="If I cancel, do I lose my memories?"
-            a={
-              <p>
-                No. You keep access to your library. If you are above the free plan limits,
-                you won’t be able to add new content until you upgrade again — but your existing archive remains.
-              </p>
-            }
-          />
-          <FAQItem
-            q="Is this public? Can strangers see my family?"
-            a={
-              <p>
-                No. Ancestorii is private by default. There is no public feed.
-                Your library is for the people you choose.
-              </p>
-            }
-          />
-          <FAQItem
-            q="What’s the difference between a Timeline and an Album?"
-            a={
-              <div className="space-y-4">
-                <p>
-                  A Timeline follows a person through time. It’s a life story structure.
-                </p>
-                <p>
-                  An Album groups memories by theme or chapter: a home, a wedding, a period of life.
-                </p>
-                <p>
-                  Families often use both: a Timeline for the person, Albums for the chapters that shaped them.
-                </p>
-              </div>
-            }
-          />
-          <FAQItem
-            q="What is a Capsule, really?"
-            a={
-              <div className="space-y-4">
-                <p>
-                  A Capsule is a preserved message: voice or written memory.
-                  It is designed to hold the story intact, with the emotional tone preserved.
-                </p>
-                <p>
-                  Many families use Capsules for the things they never want to lose: advice, love, perspective, family truths.
-                </p>
-              </div>
-            }
-          />
-          <FAQItem
-            q="Can other family members add memories too?"
-            a={
-              <p>
-                Yes. You can invite loved ones so the archive becomes shared.
-                Different generations hold different pieces of the story — inviting them prevents those pieces from disappearing.
-              </p>
-            }
-          />
-        </div>
-      </section>
-
-      <Divider />
-
       {/* FINAL CTA */}
-      <section className="bg-[#F6F1E4] border-t border-[#E8D9A8]">
         <div className="px-6 py-24">
           <div className="max-w-5xl mx-auto">
             <div className="rounded-[2rem] border border-[#E8D9A8] bg-[#FFF9EE] p-10 sm:p-12">
@@ -573,7 +491,6 @@ export default function HowItWorksContent() {
             </div>
           </div>
         </div>
-      </section>
     </>
   );
 }

@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { getBrowserClient } from '@/lib/supabase/browser';
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-type PlanName = "Basic" | "Standard" | "Premium";
+type PlanName = "Free" | "Premium";
 
 type Plan = {
   id: string;
@@ -27,7 +26,6 @@ type UsageRow = {
 
 export default function PlansPage() {
   const supabase = getBrowserClient();
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
@@ -91,20 +89,20 @@ export default function PlansPage() {
       }
 
       // Determine if user is truly paid
-const isPaid =
-  sub?.status === "active" &&
-  sub?.cancel_at_period_end === false &&
-  (!sub?.current_period_end ||
-    new Date(sub.current_period_end) > new Date());
+const matchedPlan =
+  planList.find((pl) => pl.id === sub?.plan_id) ?? null;
 
-// Set current plan based on paid status
-if (isPaid && planList.length && sub?.plan_id) {
-  const p = planList.find((pl) => pl.id === sub.plan_id) ?? null;
-  setCurrentPlan(p);
+if (matchedPlan?.name === "Premium") {
+  const isPremiumActive =
+    sub?.status === "active" &&
+    sub?.cancel_at_period_end === false &&
+    (!sub?.current_period_end ||
+      new Date(sub.current_period_end) > new Date());
+
+  setCurrentPlan(isPremiumActive ? matchedPlan : null);
 } else {
   setCurrentPlan(null); // Free
 }
-
 
 
       setLoading(false);
@@ -129,10 +127,6 @@ if (isPaid && planList.length && sub?.plan_id) {
 
 
   // ---- Helpers ----
-  const planLadder = useMemo(
-    () => plans.slice().sort((a, b) => a.max_storage - b.max_storage),
-    [plans]
-  );
 
   function formatBytes(bytes?: number | null) {
   if (!bytes || bytes <= 0) return "0 MB";
@@ -147,15 +141,6 @@ if (isPaid && planList.length && sub?.plan_id) {
 
   const formatDate = (iso: string | null | undefined) =>
     iso ? new Date(iso).toLocaleDateString() : "—";
-
-  const daysUntil = (iso: string | null | undefined) => {
-  if (!iso) return null;
-  const end = new Date(iso).getTime();
-  const now = Date.now();
-  const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
-  return diff > 0 ? diff : 0;
-};
-
 
   // ---- Stripe Upgrade ----
  const handleUpgrade = async (planName: PlanName) => {
@@ -204,53 +189,11 @@ if (isPaid && planList.length && sub?.plan_id) {
 
 
   // ---- UI Data ----
-  const PRICE: Record<Currency, Record<PlanName, string>> = {
-  GBP: {
-    Basic: "£4.99 / month",
-    Standard: "£9.99 / month",
-    Premium: "£14.99 / month",
-  },
-  USD: {
-    Basic: "$6.99 / month",
-    Standard: "$12.99 / month",
-    Premium: "$19.99 / month",
-  },
-  EUR: {
-    Basic: "€5.99 / month",
-    Standard: "€11.99 / month",
-    Premium: "€17.99 / month",
-  },
+  const PRICE: Record<Currency, string> = {
+  GBP: "£9.99 / month",
+  USD: "$12.99 / month",
+  EUR: "€11.99 / month",
 };
-
-
-  const FEATURES: Record<PlanName, string[]> = {
-    Basic: [
-      "25GB of secure storage",
-      "3 timelines, 3 capsules & 3 albums",
-      "Max upload 1GB per file, videos up to 5 minutes",
-      "Add voice & written notes to your memories",
-      "Access anywhere, anytime",
-      "Priority email support",
-    ],
-    Standard: [
-      "Everything in Basic plan plus",
-      "250GB of secure storage",
-      "Unlimited timelines, albums & capsules",
-      "Organise timelines, albums & capsules into one private legacy",
-      "Max upload 5GB per file, videos up to 15 minutes",
-      "Appoint 1 person to inherit your digital legacy",
-      "Priority 24/7 support",
-    ],
-    Premium: [
-      "Everything in Basic & Standard plans plus",
-      "500GB of secure storage",
-      "Max upload 10GB per file, videos up to 30 minutes with 4K processing priority",
-      "Appoint 2 people to inherit your digital legacy",
-      "30-day vault recovery for deleted items",
-      "Future legal integration: Secure Digital Will & Asset Vault",
-      "Access new features early such as Memorials & Tributes",
-    ],
-  };
 
   if (loading) return <div className="p-6">Loading...</div>;
 
@@ -275,13 +218,15 @@ if (isPaid && planList.length && sub?.plan_id) {
         <h2 className="mt-2 text-2xl font-bold text-[#0f2040]">
           {currentPlan?.name ?? "Free"}{" "}
           <span className="ml-2 text-slate-500 text-sm">
-            {currentPlan ? PRICE[currency][currentPlan.name] : ""}
+            {currentPlan ? PRICE[currency] : ""}
           </span>
         </h2>
 
         <p className="mt-1 text-sm text-slate-600">
-          Renews on {formatDate(subscription?.current_period_end)}
-        </p>
+  {currentPlan?.name === "Premium"
+    ? `Renews on ${formatDate(subscription?.current_period_end)}`
+    : "You are currently on the free plan"}
+</p>
       </div>
     </div>
 
@@ -327,7 +272,7 @@ If you would like to downgrade or cancel your subscription, please contact our s
 </p>
 
 <p className="mt-2 text-sm text-slate-600">
-Your memories stay safe forever. If you move to a smaller plan, you keep what you already created.
+Your memories stay safe forever. If you cancel Premium, everything you have already created remains safe and accessible.
 </p>
       </div>
 
@@ -387,77 +332,157 @@ Your memories stay safe forever. If you move to a smaller plan, you keep what yo
   </div>
 </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-         {/* Free Plan */}
-<div className="relative rounded-2xl border border-slate-200 bg-white overflow-hidden">
-  {/* Top bar */}
-  <div className="h-1.5 w-full bg-slate-200" />
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+  {/* FREE */}
+  <div className="overflow-hidden rounded-[2rem] border border-[#E7D9AF] bg-white shadow-[0_18px_50px_-36px_rgba(15,32,64,0.14)]">
+    <div className="grid h-full md:grid-cols-[1.02fr_0.98fr]">
+      <div className="p-6 sm:p-8">
+        <div className="inline-flex items-center gap-2 rounded-full bg-[#FFF3D6] px-4 py-1.5 text-xs font-semibold text-[#8F7A2A]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
+          Free forever
+        </div>
 
-  <div className="p-5 flex flex-col h-full bg-white">
-    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#0f2040] ring-1 ring-slate-200">
-      Free
-    </div>
+        <h3 className="mt-5 font-serif text-[2rem] leading-[1.05] text-[#0F2040] sm:text-[2.5rem]">
+          Begin with the essentials.
+        </h3>
 
-    <div className="mt-4 text-[#0f2040] font-extrabold text-2xl">
-  {currency === "GBP" && "£0"}
-  {currency === "USD" && "$0"}
-  {currency === "EUR" && "€0"}
+        <div className="mt-7 h-px w-full bg-gradient-to-r from-transparent via-[#E7D8A9] to-transparent" />
+
+        <ul className="mt-7 space-y-3 text-sm text-[#0F2040]/82 sm:text-[15px]">
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>5GB of secure storage</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>Create unlimited family members</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>1 timeline, 1 album and 1 capsule</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>Private by default</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>Add stories, voices and context</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>Upgrade whenever you choose</span>
+          </li>
+        </ul>
+      </div>
+
+      <div className="border-t border-[#EEDFAE] bg-[linear-gradient(180deg,#FFF9EE_0%,#FFFDF8_100%)] p-6 md:border-l md:border-t-0 sm:p-8">
+        <div className="text-[3rem] font-extrabold leading-none tracking-tight text-[#0F2040] sm:text-[4rem]">
+  FREE
 </div>
 
-    {/* Features — same style as paid plans */}
-    <ul className="mt-4 flex-1 space-y-2 text-sm text-slate-700">
-      <li className="flex gap-2">
-        <span className="text-[#D4AF37]">•</span>
-        <span>5GB of secure storage</span>
-      </li>
-      <li className="flex gap-2">
-        <span className="text-[#D4AF37]">•</span>
-        <span>1 timeline, 1 album & 1 capsule</span>
-      </li>
-      <li className="flex gap-2">
-        <span className="text-[#D4AF37]">•</span>
-        <span>Unlimited family members</span>
-      </li>
-      <li className="flex gap-2">
-        <span className="text-[#D4AF37]">•</span>
-        <span>Limited storage & file upload size</span>
-      </li>
-      <li className="flex gap-2">
-        <span className="text-[#D4AF37]">•</span>
-        <span>Private by default</span>
-      </li>
-      <li className="flex gap-2">
-        <span className="text-[#D4AF37]">•</span>
-        <span>Upgrade anytime</span>
-      </li>
-    </ul>
+        <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/58">
+          Enough to begin building your library properly.
+        </p>
 
-    <button
-      disabled
-      className="mt-5 w-full px-4 py-2.5 rounded-lg text-sm font-semibold
-        bg-slate-200 text-slate-600 cursor-default"
-    >
-      Included
-    </button>
+        <button
+          disabled
+          className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-slate-200 px-6 py-3.5 text-sm font-semibold text-slate-600 cursor-default"
+        >
+          Included
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {/* PREMIUM */}
+  <div className="overflow-hidden rounded-[2rem] border border-[#D4AF37] bg-[linear-gradient(160deg,rgba(255,253,247,0.97)_0%,rgba(250,244,229,0.98)_100%)] shadow-[0_28px_80px_-36px_rgba(15,32,64,0.2)]">
+    <div className="h-[2px] bg-[linear-gradient(90deg,transparent,#C9A84C_20%,#F0DC9A_50%,#C9A84C_80%,transparent)]" />
+
+    <div className="grid h-full md:grid-cols-[1.04fr_0.96fr]">
+      <div className="p-6 sm:p-8">
+        <div className="inline-flex items-center gap-2 rounded-full bg-[#FFF3D6] px-4 py-1.5 text-xs font-semibold text-[#8F7A2A]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
+          Premium
+        </div>
+
+        <h3 className="mt-5 font-serif text-[2rem] leading-[1.05] text-[#0F2040] sm:text-[2.5rem]">
+          Preserve more of your family library.
+        </h3>
+
+        <div className="mt-7 h-px w-full bg-gradient-to-r from-[#D4AF37]/50 via-[#D4AF37]/20 to-transparent" />
+
+        <ul className="mt-7 space-y-3 text-sm text-[#0F2040]/82 sm:text-[15px]">
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>500GB of secure storage</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>Unlimited timelines, albums and capsules</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>Max upload 10GB per file</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>Videos up to 30 minutes</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>Priority phone support</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-[#D4AF37]">●</span>
+            <span>Early access to new features</span>
+          </li>
+        </ul>
+      </div>
+
+      <div className="border-t border-[#E9DDAF] bg-[linear-gradient(180deg,rgba(255,255,255,0.45)_0%,rgba(255,249,232,0.92)_100%)] p-6 md:border-l md:border-t-0 sm:p-8">
+        <div className="text-[3rem] font-extrabold leading-none tracking-tight text-[#0F2040] sm:text-[4rem]">
+          {currency === "GBP" && "£9.99"}
+          {currency === "USD" && "$12.99"}
+          {currency === "EUR" && "€11.99"}
+        </div>
+
+        <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/58">
+          Upgrade when you are ready to preserve more.
+        </p>
+        <div className="mt-6 rounded-[1.35rem] border border-[#D8C9F2]/60 bg-[linear-gradient(180deg,#EEE7FB_0%,#E7DDF8_100%)] px-5 py-5">
+  <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#7D5AA8]">
+    Physical memory books
+  </p>
+  <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/75 sm:text-[15px]">
+    Your first physical memory book will be free on us, then Premium members will get 25% off each physical book when they launch.
+  </p>
+</div>
+
+        <button
+          onClick={() => handleUpgrade("Premium")}
+          disabled={currentPlan?.name === "Premium"}
+          className={`mt-8 inline-flex w-full items-center justify-center rounded-full px-6 py-3.5 text-sm font-semibold transition ${
+            currentPlan?.name === "Premium"
+              ? "bg-slate-300 text-slate-600 cursor-not-allowed"
+              : "bg-[#0F2040] text-white hover:bg-[#152a52]"
+          }`}
+        >
+          {currentPlan?.name === "Premium" ? "Current Plan" : "Upgrade to Premium"}
+        </button>
+
+        {currentPlan?.name === "Premium" && (
+          <button
+            onClick={() => setShowPlanChangeInfo(true)}
+            className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Manage Plan
+          </button>
+        )}
+      </div>
+    </div>
   </div>
 </div>
-
-          {(["Basic", "Standard", "Premium"] as PlanName[]).map((name) => {
-            const isCurrent = name === currentPlan?.name;
-            return (
-              <PlanCard
-  key={name}
-  title={name}
-  price={PRICE[currency][name]}
-  features={FEATURES[name]}
-  onSelect={() => handleUpgrade(name)}
-  isCurrent={isCurrent}
-  currentPlanName={currentPlan?.name}
-  onManagePlan={() => setShowPlanChangeInfo(true)}
-/>
-            );
-          })}
-        </div>
       </section>
       {showPlanChangeInfo && (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -525,112 +550,3 @@ function UsageBar({ used, max }: { used: number | null; max: number | null }) {
     </div>
   );
 }
-
-const PLAN_ORDER: PlanName[] = ["Basic", "Standard", "Premium"];
-
-
-function PlanCard({
-  title,
-  price,
-  features,
-  onSelect,
-  isCurrent,
-  currentPlanName,
-  onManagePlan,
-}: {
-  title: PlanName;
-  price: string;
-  features: string[];
-  onSelect: () => void;
-  isCurrent?: boolean;
-  currentPlanName?: PlanName;
-  onManagePlan: () => void;
-}) {
-
-  const isRecommended = title === "Standard";
-  const isPremium = title === "Premium";
-  const currentIndex =
-  currentPlanName ? PLAN_ORDER.indexOf(currentPlanName) : -1;
-
-  const thisIndex = PLAN_ORDER.indexOf(title);
-
-  const isUpgrade = thisIndex > currentIndex;
-  const isDowngrade = thisIndex < currentIndex;
-
-
-  return (
-    <div
-      className={`relative rounded-2xl border transition-all duration-300 overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:ring-1 hover:ring-[#D4AF37]/40
-        ${
-  isCurrent
-    ? "border-[#D4AF37] ring-2 ring-[#D4AF37] bg-[#fffaf0]"
-    : isRecommended
-    ? "border-[#D4AF37] shadow-lg hover:shadow-2xl"
-    : isPremium
-    ? "border-[#0f2040] shadow-lg hover:shadow-2xl"
-    : "border-slate-200 hover:border-[#D4AF37]"
-}`}
-    >
-      {/* Top accent bar */}
-      <div
-        className={`h-1.5 w-full ${
-          isCurrent || isRecommended
-            ? "bg-gradient-to-r from-[#D4AF37] to-[#F3D99B]"
-            : "bg-slate-200"
-        }`}
-      />
-
-      {/* Recommended badge */}
-      {isRecommended && !isCurrent && (
-        <div className="absolute top-3 right-3 text-xs font-semibold bg-[#D4AF37] text-[#0f2040] px-3 py-1 rounded-full">
-          Most Popular
-        </div>
-      )}
-
-      <div className="p-5 flex flex-col h-full bg-white">
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#0f2040] ring-1 ring-slate-200">
-          {title}
-        </div>
-
-        <div className="mt-4 text-[#0f2040] font-extrabold text-2xl">
-          {price}
-        </div>
-
-        <ul className="mt-4 flex-1 space-y-2 text-sm text-slate-700">
-          {features.map((f, i) => (
-            <li key={i} className="flex gap-2">
-              <span className="text-[#D4AF37]">•</span>
-              <span>{f}</span>
-            </li>
-          ))}
-        </ul>
-
-        <button
-  disabled={isCurrent}
-  onClick={() => {
-    if (isDowngrade) {
-      onManagePlan();
-    } else {
-      onSelect();
-    }
-  }}
-  className={`mt-5 w-full px-4 py-2.5 rounded-lg text-sm font-semibold transition-all
-    ${
-      isCurrent
-        ? "bg-slate-300 text-slate-600 cursor-not-allowed"
-        : isUpgrade
-        ? "bg-gradient-to-r from-[#D4AF37] to-[#F3D99B] text-[#0f2040] hover:opacity-90"
-        : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
-    }`}
->
-  {isCurrent
-    ? "Current Plan"
-    : isUpgrade
-    ? "Upgrade Plan"
-    : "Manage Plan"}
-</button>
-      </div>
-    </div>
-  );
-}
-

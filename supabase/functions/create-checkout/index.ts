@@ -17,8 +17,10 @@ serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const plan = body?.plan;
-    const billingCycle =
-      body?.billingCycle === "yearly" ? "yearly" : "monthly";
+
+    const currencyRaw = body?.currency;
+    const currency =
+      currencyRaw === "USD" || currencyRaw === "EUR" ? currencyRaw : "GBP";
 
     if (!plan) throw new Error("No plan provided");
 
@@ -35,23 +37,16 @@ serve(async (req) => {
     }
 
     const prices = {
-      Basic: {
-        monthly: Deno.env.get("STRIPE_BASIC_MONTHLY_PRICE_ID"),
-        yearly: Deno.env.get("STRIPE_BASIC_YEARLY_PRICE_ID"),
-      },
-      Standard: {
-        monthly: Deno.env.get("STRIPE_STANDARD_MONTHLY_PRICE_ID"),
-        yearly: Deno.env.get("STRIPE_STANDARD_YEARLY_PRICE_ID"),
-      },
       Premium: {
-        monthly: Deno.env.get("STRIPE_PREMIUM_MONTHLY_PRICE_ID"),
-        yearly: Deno.env.get("STRIPE_PREMIUM_YEARLY_PRICE_ID"),
+        GBP: Deno.env.get("STRIPE_PREMIUM_MONTHLY_PRICE_GBP"),
+        USD: Deno.env.get("STRIPE_PREMIUM_MONTHLY_PRICE_USD"),
+        EUR: Deno.env.get("STRIPE_PREMIUM_MONTHLY_PRICE_EUR"),
       },
-    };
+    } as const;
 
-    const priceId = prices[plan]?.[billingCycle];
+    const priceId = prices[plan]?.[currency];
     if (!priceId) {
-      throw new Error("Invalid plan or billing cycle");
+      throw new Error("Invalid plan or currency");
     }
 
     const authHeader =
@@ -68,21 +63,9 @@ serve(async (req) => {
     const userId = userResp?.user?.id;
     if (!userId) throw new Error("Not authenticated");
 
-    // 🚫 BLOCK CHECKOUT IF USER ALREADY HAS ACTIVE SUBSCRIPTION
-    const { data: activeSub } = await supabase
-      .from("subscriptions")
-      .select("id, status")
-      .eq("user_id", userId)
-      .in("status", ["active", "trialing"])
-      .maybeSingle();
-
-    if (activeSub) {
-      throw new Error("User already has an active subscription");
-    }
-
     const { data: existingSub } = await supabase
       .from("subscriptions")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, plan_id, status, cancel_at_period_end, current_period_end")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -95,8 +78,14 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
+    const returnPathRaw = body?.returnPath || "/dashboard/plans";
+    const returnPath =
+      typeof returnPathRaw === "string" && returnPathRaw.startsWith("/")
+        ? returnPathRaw
+        : "/dashboard/plans";
+
     const successUrl = `${SITE}/dashboard/home?success=true`;
-    const cancelUrl = `${SITE}/plans?canceled=true`;
+    const cancelUrl = `${SITE}${returnPath}?canceled=true`;
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -107,6 +96,7 @@ serve(async (req) => {
       client_reference_id: userId,
       metadata: {
         plan,
+        currency,
         user_id: userId,
       },
     });

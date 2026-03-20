@@ -555,7 +555,7 @@ const prevMemory = () => {
 
       <p className="mt-5 max-w-[480px] text-[16px] leading-[1.9] text-[#4b5a73]">
         Think of a moment that shaped your family.  
-        A wedding. A tradition. A voice. A turning point.  
+        A tradition. A voice. A turning point.  
         Start your living library with the memory that still matters most.
       </p>
 

@@ -42,9 +42,7 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // ---------------------------------------------------------
     // 1️⃣ checkout.session.completed
-    // ---------------------------------------------------------
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
@@ -70,23 +68,25 @@ serve(async (req) => {
         return new Response("Unknown plan", { status: 200 });
       }
 
-      await supabase.from("subscriptions").upsert({
-        user_id: userId,
-        plan_id: planRow.id,
-        stripe_customer_id: customerId,
-        stripe_subscription_id: stripeSubId,
-        status: "active",
-        current_period_end: new Date(
-          stripeSub.current_period_end * 1000
-        ).toISOString(),
-      });
+      await supabase.from("subscriptions").upsert(
+        {
+          user_id: userId,
+          plan_id: planRow.id,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: stripeSubId,
+          status: "active",
+          cancel_at_period_end: stripeSub.cancel_at_period_end ?? false,
+          current_period_end: new Date(
+            stripeSub.current_period_end * 1000
+          ).toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
 
       return new Response("Checkout handled", { status: 200 });
     }
 
-    // ---------------------------------------------------------
     // 2️⃣ invoice.paid
-    // ---------------------------------------------------------
     if (event.type === "invoice.paid") {
       const invoice = event.data.object;
 
@@ -94,6 +94,7 @@ serve(async (req) => {
         .from("subscriptions")
         .update({
           status: "active",
+          cancel_at_period_end: false,
           current_period_end: invoice.lines?.data?.[0]?.period?.end
             ? new Date(
                 invoice.lines.data[0].period.end * 1000
@@ -105,9 +106,7 @@ serve(async (req) => {
       return new Response("Invoice handled", { status: 200 });
     }
 
-    // ---------------------------------------------------------
     // 3️⃣ invoice.payment_failed
-    // ---------------------------------------------------------
     if (event.type === "invoice.payment_failed") {
       await supabase
         .from("subscriptions")
@@ -117,9 +116,7 @@ serve(async (req) => {
       return new Response("Payment failed handled", { status: 200 });
     }
 
-    // ---------------------------------------------------------
     // 4️⃣ customer.subscription.deleted
-    // ---------------------------------------------------------
     if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object;
 
@@ -127,6 +124,7 @@ serve(async (req) => {
         .from("subscriptions")
         .update({
           status: "canceled",
+          cancel_at_period_end: true,
           current_period_end: new Date().toISOString(),
         })
         .eq("stripe_subscription_id", subscription.id);
