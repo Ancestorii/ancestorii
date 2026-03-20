@@ -332,7 +332,7 @@ export default function PricingPage() {
                 <div className="flex flex-col items-center justify-between gap-8 px-8 py-10 sm:px-12 lg:flex-row">
                   <div className="text-center lg:text-left">
                     <h3 className="font-serif text-[2rem] leading-tight text-[#0F2040] sm:text-[2.4rem]">
-                      Start free today.
+                      Start for free today.
                     </h3>
                     <p className="mt-3 max-w-xs text-base leading-relaxed text-[#0F2040]/68 sm:max-w-none">
                        Build your library now, then move to Premium when you are ready to preserve more of your family story.
@@ -342,9 +342,9 @@ export default function PricingPage() {
                   <div className="flex flex-col gap-4 sm:flex-row">
                     <Link
                       href="/signup"
-                      className="inline-flex items-center justify-center rounded-full bg-[#E6C26E] px-8 py-3.5 text-sm font-semibold text-[#0F2040] transition hover:bg-[#F3D99B]"
+                      className="inline-flex whitespace-nowrap items-center justify-center rounded-full bg-[#E6C26E] px-8 py-3.5 text-sm font-semibold text-[#0F2040] transition hover:bg-[#F3D99B]"
                     >
-                      Create your library
+                      Begin your library
                     </Link>
                   </div>
                 </div>

@@ -216,10 +216,7 @@ if (matchedPlan?.name === "Premium") {
         </div>
 
         <h2 className="mt-2 text-2xl font-bold text-[#0f2040]">
-          {currentPlan?.name ?? "Free"}{" "}
-          <span className="ml-2 text-slate-500 text-sm">
-            {currentPlan ? PRICE[currency] : ""}
-          </span>
+           {currentPlan?.name ?? "Free"}
         </h2>
 
         <p className="mt-1 text-sm text-slate-600">
