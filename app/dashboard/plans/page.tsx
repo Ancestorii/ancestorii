@@ -32,6 +32,8 @@ export default function PlansPage() {
   const [usage, setUsage] = useState<UsageRow | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
   const [showPlanChangeInfo, setShowPlanChangeInfo] = useState(false);
+  const [usageLoading, setUsageLoading] = useState(true);
+  
 
   const FREE_PLAN_STORAGE = 5 * 1024 ** 3; // 5GB in bytes
 
@@ -80,12 +82,15 @@ export default function PlansPage() {
         setSubscription(sub);
 
         const { data: usageRow, error: usageErr } = await supabase
-          .from("storage_usage")
-          .select("used_bytes")
-          .eq("user_id", uid)
-          .maybeSingle();
-        if (usageErr) console.warn("Usage error:", usageErr.message);
-        setUsage((usageRow ?? null) as UsageRow | null);
+  .from("storage_usage")
+  .select("used_bytes")
+  .eq("user_id", uid)
+  .maybeSingle();
+
+if (usageErr) console.warn("Usage error:", usageErr.message);
+
+setUsage((usageRow ?? null) as UsageRow | null);
+setUsageLoading(false);
       }
 
       // Determine if user is truly paid
@@ -120,6 +125,7 @@ if (matchedPlan?.name === "Premium") {
       .maybeSingle();
 
     setUsage({ used_bytes: data?.used_bytes ?? 0 });
+    setUsageLoading(false);
   }, 15000); // every 15 seconds
 
   return () => clearInterval(interval);
@@ -229,22 +235,24 @@ if (matchedPlan?.name === "Premium") {
 
     {/* Storage usage */}
     <div className="px-6 pb-6">
-      <div className="flex items-center justify-between text-sm text-slate-700">
-        <span>Storage used</span>
-        <span>
-          {usage
-            ? `${formatBytes(usage.used_bytes)} / ${formatBytes(
-                currentPlan?.max_storage ?? FREE_PLAN_STORAGE
-              )}`
-            : "—"}
-        </span>
-      </div>
+  <div className="flex items-center justify-between text-sm text-slate-700">
+    <span>Storage used</span>
+    <span className="flex items-center justify-end min-w-[110px]">
+      {usageLoading ? (
+        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-[#0f2040]" />
+      ) : (
+        `${formatBytes(usage?.used_bytes ?? 0)} / ${formatBytes(
+          currentPlan?.max_storage ?? FREE_PLAN_STORAGE
+        )}`
+      )}
+    </span>
+  </div>
 
-      <UsageBar
-        used={usage?.used_bytes ?? 0}
-        max={currentPlan?.max_storage ?? FREE_PLAN_STORAGE}
-      />
-    </div>
+  <UsageBar
+    used={usage?.used_bytes ?? 0}
+    max={currentPlan?.max_storage ?? FREE_PLAN_STORAGE}
+  />
+</div>
   </section>
 
 
