@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -13,34 +12,19 @@ import {
   Clock3,
   ImageIcon,
   Lock,
-  ScrollText,
   PenLine,
   ChevronRight,
-  Orbit,
   Share2,
   Printer,
-  ShieldCheck,
   History,
-  Camera,
-  Bookmark,
-  Fingerprint,
-  Globe,
   Stars,
-  Library,
-  Flower2,
-  MoonStar,
-  Quote,
-  FileText,
-  Plus,
   CheckCircle2,
+  HandHeart,
 } from "lucide-react";
 import Image from "next/image";
 
 import { getBrowserClient } from "@/lib/supabase/browser";
 
-const Particles = dynamic(() => import("@/components/ParticlesPlatform"), {
-  ssr: false,
-});
 
 type FamilyMember = {
   id: string;
@@ -51,7 +35,9 @@ type FamilyMember = {
   avatar_url?: string | null;
   notes?: string | null;
   biography?: string | null;
+  story_preview?: string | null; // ✅ ADD THIS
   avatar_signed?: string | null;
+  relationship_to_user?: string | null;
 };
 
 type Timeline = {
@@ -88,6 +74,7 @@ export default function LovedOneProfilePage() {
   const supabase = getBrowserClient();
   const router = useRouter();
   const { id } = useParams();
+  const memberId = Array.isArray(id) ? id[0] : id;
 
   const [loading, setLoading] = useState(true);
   const [member, setMember] = useState<FamilyMember | null>(null);
@@ -99,6 +86,8 @@ export default function LovedOneProfilePage() {
 
   const [isEditingStory, setIsEditingStory] = useState(false);
   const [storyDraft, setStoryDraft] = useState("");
+  const [isEditingPreview, setIsEditingPreview] = useState(false);
+  const [previewDraft, setPreviewDraft] = useState("");
 
   const MAX_VISIBLE = 5;
 
@@ -109,7 +98,7 @@ export default function LovedOneProfilePage() {
     const { data, error } = await supabase
       .from("family_members")
       .select("*")
-      .eq("id", id)
+      .eq("id", memberId)
       .single();
 
     if (!data || error) {
@@ -118,6 +107,8 @@ export default function LovedOneProfilePage() {
       setAlbums([]);
       setCapsules([]);
       setLoading(false);
+      setStoryDraft("");
+      setPreviewDraft(""); // ✅ SAFE
       return;
     }
 
@@ -125,7 +116,7 @@ export default function LovedOneProfilePage() {
     if (data.avatar_url) {
       const { data: signed } = await supabase.storage
         .from("user-media")
-        .createSignedUrl(data.avatar_url, 60 * 60);
+        .createSignedUrl(data.avatar_url, 60 * 60 * 24);
 
       signedAvatar = signed?.signedUrl
         ? `${signed.signedUrl}&cb=${Date.now()}`
@@ -139,8 +130,7 @@ export default function LovedOneProfilePage() {
 
     setMember(memberWithAvatar);
     setStoryDraft(data.biography || "");
-
-    await supabase.auth.getUser();
+    setPreviewDraft(data.story_preview || ""); // ✅ REQUIRED
 
     const [tlRes, albRes, capRes] = await Promise.all([
       supabase
@@ -234,10 +224,15 @@ export default function LovedOneProfilePage() {
 
   const heartPrintCount = timelines.length + albums.length + capsules.length;
 
-  const storyText = useMemo(() => {
-    if (!member) return "";
-    return (member.biography || member.notes || "").trim();
-  }, [member]);
+  const storyPreview = useMemo(() => {
+  if (!member) return "";
+  return (member.story_preview || "").trim();
+}, [member]);
+
+const storyText = useMemo(() => {
+  if (!member) return "";
+  return (member.biography || "").trim();
+}, [member]);
 
   const visibleTimelines = timelines.slice(0, MAX_VISIBLE);
   const remainingTimelines = Math.max(0, timelines.length - MAX_VISIBLE);
@@ -263,6 +258,12 @@ export default function LovedOneProfilePage() {
       day: "numeric",
     });
   }, [member]);
+
+  const formatRelationship = (rel: string) => {
+  return rel
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
   const formattedDeathDate = useMemo(() => {
     if (!member?.death_date) return "Living";
@@ -324,121 +325,25 @@ export default function LovedOneProfilePage() {
   });
 
   if (loading) {
-    return (
-      <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-[#fbf7ef] to-[#f5eddc] font-[Inter] text-[#1b2230]">
-        <Particles />
-
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(212,175,55,0.18),transparent_26%),radial-gradient(circle_at_top_right,rgba(141,119,255,0.14),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(50,213,178,0.12),transparent_25%)]" />
-        <div className="absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(157,140,100,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(157,140,100,0.08)_1px,transparent_1px)] [background-size:90px_90px]" />
-        <div className="absolute left-[-8%] top-[8%] h-[280px] w-[280px] rounded-full bg-[#f0d998]/40 blur-[120px]" />
-        <div className="absolute right-[-6%] top-[22%] h-[300px] w-[300px] rounded-full bg-[#dfd7ff]/55 blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[15%] h-[260px] w-[260px] rounded-full bg-[#d9fff4]/60 blur-[110px]" />
-
-        <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 16, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="w-full max-w-2xl overflow-hidden rounded-[36px] border border-white/70 bg-white/60 shadow-[0_30px_120px_rgba(44,49,66,0.12)] backdrop-blur-2xl"
-          >
-            <div className="relative overflow-hidden p-8 sm:p-10">
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.62),rgba(255,255,255,0.30)_52%,rgba(212,175,55,0.08)_100%)]" />
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d4af37]/70 to-transparent" />
-              <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-[#f6e4ae]/40 blur-3xl" />
-              <div className="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-[#e5e0ff]/45 blur-3xl" />
-
-              <div className="relative">
-                <div className="mb-7 flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-[#e8d488]/70 bg-white/70 shadow-[0_12px_35px_rgba(0,0,0,0.06)]">
-                    <Orbit className="h-6 w-6 text-[#b5912f]" />
-                  </div>
-
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#a18436]">
-                      Opening legacy profile
-                    </p>
-                    <p className="mt-1 text-xl font-semibold tracking-[-0.03em] text-[#1b2230]">
-                      Gathering memories, albums and stories
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-                  <div className="rounded-[28px] border border-white/70 bg-white/55 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.06)]">
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className="rounded-full border border-[#e9db9d]/80 bg-[#fff8dc] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.28em] text-[#a27c1f]">
-                        Live archive
-                      </span>
-                      <Sparkles className="h-4 w-4 text-[#c79f31]" />
-                    </div>
-
-                    <div className="aspect-[4/5] rounded-[22px] bg-[linear-gradient(180deg,#fffaf0,#f7f0de)]" />
-                  </div>
-
-                  <div className="flex flex-col justify-center">
-                    <div className="rounded-[28px] border border-white/70 bg-white/55 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.06)]">
-                      <p className="text-sm leading-7 text-[#5b6577]">
-                        Loading their profile page and reconnecting timelines,
-                        albums, capsules, and written legacy into one place.
-                      </p>
-
-                      <div className="mt-6 h-2.5 overflow-hidden rounded-full bg-[#efe6cf]">
-                        <motion.div
-                          initial={{ x: "-35%" }}
-                          animate={{ x: "135%" }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 1.8,
-                            ease: "easeInOut",
-                          }}
-                          className="h-full w-1/3 rounded-full bg-gradient-to-r from-[#d4af37] via-[#f6dea0] to-[#8d77ff]"
-                        />
-                      </div>
-
-                      <div className="mt-6 grid grid-cols-3 gap-3">
-                        <div className="rounded-2xl border border-white/70 bg-white/70 p-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#9a9fb0]">
-                            Story
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-[#222a38]">
-                            Syncing
-                          </p>
-                        </div>
-                        <div className="rounded-2xl border border-white/70 bg-white/70 p-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#9a9fb0]">
-                            Albums
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-[#222a38]">
-                            Linking
-                          </p>
-                        </div>
-                        <div className="rounded-2xl border border-white/70 bg-white/70 p-3">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#9a9fb0]">
-                            Capsules
-                          </p>
-                          <p className="mt-2 text-sm font-semibold text-[#222a38]">
-                            Loading
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="mt-7 text-sm leading-7 text-[#667085]">
-                  Restoring a brighter, living memory space...
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#fffdf6] px-6">
+      <motion.h1
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.04em] text-[#1b2230] text-center"
+      >
+        <span className="bg-gradient-to-r from-[#bfa046] via-[#d4af37] to-[#8d77ff] bg-clip-text text-transparent">
+          Loading their space...
+        </span>
+      </motion.h1>
+    </div>
+  );
+}
 
   if (!member) {
     return (
       <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-[#fbf7ef] to-[#f5eddc] font-[Inter] text-[#1b2230]">
-        <Particles />
 
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(212,175,55,0.18),transparent_26%),radial-gradient(circle_at_top_right,rgba(141,119,255,0.14),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(50,213,178,0.10),transparent_28%)]" />
 
@@ -475,27 +380,26 @@ export default function LovedOneProfilePage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#fffdf8] via-[#fbf7ef] to-[#f6efdf] font-[Inter] text-[#1b2230]">
-      <Particles />
+  <div className="relative isolate min-h-screen bg-[#fffdf6] font-[Inter] text-[#1b2230]">
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(212,175,55,0.17),transparent_22%),radial-gradient(circle_at_top_right,rgba(141,119,255,0.14),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(50,213,178,0.12),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.75),rgba(249,244,231,0.78))]" />
-      <div className="absolute inset-0 opacity-[0.14] [background-image:linear-gradient(rgba(160,145,108,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(160,145,108,0.08)_1px,transparent_1px)] [background-size:84px_84px]" />
-      <div className="absolute left-[-6%] top-[8%] h-[280px] w-[280px] rounded-full bg-[#f2db97]/50 blur-[120px]" />
-      <div className="absolute right-[-5%] top-[15%] h-[320px] w-[320px] rounded-full bg-[#e2ddff]/60 blur-[130px]" />
-      <div className="absolute left-[20%] top-[34%] h-[180px] w-[180px] rounded-full bg-[#e8fff7]/70 blur-[90px]" />
-      <div className="absolute bottom-[-8%] right-[18%] h-[260px] w-[260px] rounded-full bg-[#fff1d5]/70 blur-[110px]" />
+    {/* SAME PARCHMENT AS WHY PAGE */}
+    <Image
+      src="/parchment.png"
+      alt=""
+      fill
+      sizes="100vw"
+      className="object-cover opacity-[0.10] -z-10 pointer-events-none"
+      priority
+    />
 
-      <div className="relative z-20 mx-auto max-w-[1650px] px-4 pb-20 pt-5 sm:px-6 lg:px-8 lg:pb-28">
+    {/* SAME SOFT LIGHT */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.65),transparent_10%)] pointer-events-none" />
+
+      <div className="relative z-10 w-full px-4 sm:px-6 lg:px-10 xl:px-16 pb-20 pt-5 lg:pb-28">
         <TopActions router={router} />
 
-        <section className="relative mb-8 overflow-hidden rounded-[38px] border border-white/70 bg-white/45 shadow-[0_30px_120px_rgba(42,48,66,0.10)] backdrop-blur-2xl">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.70),rgba(255,255,255,0.35)_44%,rgba(212,175,55,0.07)_100%)]" />
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d4af37]/70 to-transparent" />
-          <div className="absolute left-0 top-0 h-[280px] w-[280px] rounded-full bg-[#f8e8af]/45 blur-[100px]" />
-          <div className="absolute right-0 top-0 h-[320px] w-[320px] rounded-full bg-[#e7e2ff]/55 blur-[120px]" />
-          <div className="absolute bottom-[-25%] left-[22%] h-[240px] w-[240px] rounded-full bg-[#dffff4]/60 blur-[110px]" />
-
-          <div className="relative p-5 sm:p-6 lg:p-8 xl:p-10">
+       <section className="mb-10">
+          <div className="px-1 sm:px-2 lg:px-4">
             <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_auto]">
               <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
                 <Pill icon={<Heart className="h-3.5 w-3.5 fill-current" />}>
@@ -524,28 +428,24 @@ export default function LovedOneProfilePage() {
               <div className="hidden items-center gap-3 lg:flex">
                 <MiniAction icon={Share2} />
                 <MiniAction icon={Printer} />
-                <MiniAction icon={Bookmark} />
               </div>
             </div>
 
-            <div className="grid gap-8 grid-cols-1 max-w-[1500px] mx-auto">
+            <div className="grid gap-10 grid-cols-1">
               <motion.div
                 initial={{ opacity: 0, y: 28 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease: "easeOut" }}
-                className="relative overflow-hidden rounded-[34px] border border-white/70 bg-white/40 shadow-[0_22px_80px_rgba(38,44,62,0.08)]"
+                className="relative"
               >
-                <div className="absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.62),rgba(255,255,255,0.26)_55%,rgba(212,175,55,0.05))]" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
+      
 
-                <div className="relative p-5 sm:p-6 lg:p-8">
-                  <div className="grid gap-8 lg:grid-cols-[340px_1fr] xl:grid-cols-[460px_1fr]">
+                <div className="relative px-1 sm:px-2 lg:px-4">
+                 <div className="grid gap-8 grid-cols-1 lg:grid-cols-[340px_1fr] xl:grid-cols-[460px_1fr]">
                     <div className="relative">
                       <div className="relative mx-auto w-full max-w-[260px] sm:max-w-[320px] lg:max-w-[420px] xl:max-w-[480px]">
                         <div className="absolute inset-[-16px] rounded-[36px] bg-gradient-to-br from-[#d4af37]/20 via-transparent to-[#8d77ff]/14 blur-2xl" />
-                        <div className="relative overflow-hidden rounded-[32px] border border-white/70 bg-white/55 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.08)]">
-                          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ffffff] to-transparent" />
-
+                       <div className="relative p-0">
                           <div className="relative aspect-[4/5] overflow-hidden rounded-[32px] border border-white/70 bg-[linear-gradient(180deg,#fffdf7,#f4ecda)] shadow-[0_25px_80px_rgba(0,0,0,0.10)]">
 
   {/* glow layer */}
@@ -564,25 +464,16 @@ export default function LovedOneProfilePage() {
     }`}
     onLoadingComplete={() => setAvatarLoaded(true)}
   />
-
-  {/* bottom fade */}
-  <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-white/80 via-white/20 to-transparent" />
-
-  {/* tag */}
-  <div className="hidden sm:inline-flex absolute left-4 top-4 items-center gap-2 rounded-full border border-white/80 bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-[#7e671f] shadow-sm backdrop-blur-md">
-    <Sparkles className="h-3.5 w-3.5 text-[#c89d2f]" />
-    Loved one
-  </div>
 </div>
 
-                          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 px-1">
                             <InfoMiniCard
-                              label="Lifespan"
+                              label="Life timeline"
                               value={lifespan}
                               tone="gold"
                             />
                             <InfoMiniCard
-                              label="Memories"
+                              label="Connected Memories"
                               value={`${heartPrintCount}`}
                               tone="violet"
                             />
@@ -591,22 +482,13 @@ export default function LovedOneProfilePage() {
                       </div>
                     </div>
 
-                    <div className="min-w-0">
+                    <div className="min-w-0 order-1 lg:order-2">
                       <div className="mb-7">
-                        <div className="mb-4 flex items-center gap-3">
-                          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#ead99b] bg-[#fff7d8] text-[#b08b29] shadow-sm">
-                            <Fingerprint className="h-4.5 w-4.5" />
-                          </span>
-                          <span className="text-[11px] font-bold uppercase tracking-[0.34em] text-[#aa8930]">
-                            Ancestorii archive
-                          </span>
-                        </div>
-
                        <h1 className="max-w-4xl text-2xl font-semibold leading-[1.05] tracking-[-0.03em] text-[#18202d] sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl break-words hyphens-auto">
                           {member.full_name}
                         </h1>
 
-                        <p className="mt-5 max-w-3xl text-base leading-8 text-[#5d6779] sm:text-lg">
+                        <p className="mt-5 text-base leading-8 text-[#5d6779] sm:text-lg max-w-[900px]">
                           {introLine}
                         </p>
                       </div>
@@ -620,61 +502,125 @@ export default function LovedOneProfilePage() {
                         />
                         <FeatureLine
                           icon={History}
-                          title="Status"
-                          value={member.death_date ? "Remembered" : "Living"}
+                          title="Life status"
+                          value={member.death_date ? "Forever Remembered" : "Living"}
                           accent="violet"
                         />
                         <FeatureLine
-                          icon={ShieldCheck}
-                          title="Profile type"
-                          value="Private family archive"
-                          accent="mint"
+                         icon={HandHeart}
+                         title="Relationship"
+                         value={
+                         member.relationship_to_user
+                         ? formatRelationship(member.relationship_to_user)
+                         : "Family"
+                          }
+                         accent="mint"
                         />
                       </div>
 
-                      <div className="grid gap-4">
-                        <div className="rounded-[28px] border border-white/70 bg-white/60 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.05)]">
-                          <div className="mb-4 flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#e7d48f] bg-[#fff8dc] text-[#b18824]">
-                              <Quote className="h-4.5 w-4.5" />
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-[#9ca4b5]">
-                                Story preview
-                              </p>
-                              <p className="mt-1 text-base font-semibold tracking-[-0.02em] text-[#202938]">
-                                Written legacy
-                              </p>
-                            </div>
-                          </div>
+                      <div className="mt-10 relative">
 
-                          <p className="line-clamp-5 text-sm leading-7 text-[#606a7d]">
-                            {storyText
-                              ? storyText
-                              : `A beautiful page ready to capture ${firstName}'s memories, voice, character, and everything that deserves to live on.`}
-                          </p>
+  {/* BACKGROUND FIELD */}
+  <div className="relative overflow-hidden rounded-[32px] border border-[#f4d97a] bg-white px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
 
-                          <button
-                            onClick={() => {
-                              setIsEditingStory(true);
-                              setStoryDraft(storyText || "");
-                              const el = document.getElementById(
-                                "written-legacy-section"
-                              );
-                              if (el) {
-                                el.scrollIntoView({
-                                  behavior: "smooth",
-                                  block: "start",
-                                });
-                              }
-                            }}
-                            className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#ead99b] bg-[#fff8df] px-4 py-2.5 text-sm font-semibold text-[#a37d20] transition hover:bg-[#fff2c8]"
-                          >
-                            <PenLine className="h-4 w-4" />
-                            Open story section
-                          </button>
-                        </div>
-                      </div>
+    {/* layered atmosphere */}
+    <div className="absolute inset-0 -z-10 bg-white" />
+
+    <div className="hidden sm:block absolute -left-10 top-10 h-[220px] w-[220px] rounded-full bg-[#d4af37]/20 blur-3xl" />
+    <div className="absolute right-[-40px] top-20 h-[200px] w-[200px] rounded-full bg-[#8d77ff]/20 blur-3xl" />
+    <div className="hidden sm:block absolute bottom-[-60px] left-1/3 h-[180px] w-[180px] rounded-full bg-[#32d5b2]/10 blur-3xl" />
+
+    {/* FADED GIANT QUOTE */}
+    <div className="pointer-events-none absolute -top-12 left-4 text-[180px] leading-none text-[#d4af37]/40 select-none">
+  “
+</div>
+
+    {/* CONTENT */}
+    <div className="relative z-10 max-w-3xl">
+
+     <h2 className="mb-5 text-[22px] sm:text-[26px] lg:text-[30px] leading-[1.2] tracking-[0.08em] font-semibold text-[#bfa046] uppercase text-center">
+  ABOUT THEM
+</h2>
+      {!isEditingPreview ? (
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="group cursor-text relative"
+          onClick={() => {
+            setIsEditingPreview(true);
+            setPreviewDraft(member?.story_preview || "");
+          }}
+        >
+
+         <p className="text-[18px] sm:text-[20px] lg:text-[22px] leading-[1.6] text-[#4b5563] max-w-[600px]">
+  Write a few words that describe who they are...
+</p>
+          
+
+          {/* accent line */}
+          <div className="mt-5 h-[2px] w-16 bg-gradient-to-r from-[#d4af37] via-[#8d77ff] to-transparent transition-all duration-500 group-hover:w-28" />
+
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-4"
+        >
+
+          <textarea
+            value={previewDraft}
+            onChange={(e) => setPreviewDraft(e.target.value.slice(0, 120))}
+            className="w-full resize-none bg-transparent text-[24px] sm:text-[26px] leading-[1.5] text-[#1b2230] outline-none border-b border-[#e5e7eb] pb-3"
+            placeholder={`${firstName} is...`}
+            autoFocus
+          />
+
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-[#9aa3b2]">
+              {previewDraft.length}/120
+            </span>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setIsEditingPreview(false);
+                  setPreviewDraft(member?.story_preview || "");
+                }}
+                className="text-sm text-[#6b7280]"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  const { error } = await supabase
+                    .from("family_members")
+                    .update({ story_preview: previewDraft || null })
+                    .eq("id", member.id);
+
+                  if (!error) {
+                    setMember((prev) =>
+                      prev
+                        ? { ...prev, story_preview: previewDraft }
+                        : prev
+                    );
+                    setIsEditingPreview(false);
+                  }
+                }}
+                className="text-sm font-semibold text-[#1b2230] transition-all duration-200 hover:font-bold hover:text-black"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+    </div>
+  </div>
+</div>
                     </div>
                   </div>
                 </div>
@@ -690,7 +636,7 @@ export default function LovedOneProfilePage() {
               initial={{ opacity: 0, y: 22 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease: "easeOut" }}
-              className="relative overflow-hidden rounded-[36px] border border-white/70 bg-white/50 shadow-[0_28px_95px_rgba(0,0,0,0.08)] backdrop-blur-2xl"
+              className="relative"
               onClick={() => {
                 if (!isEditingStory) {
                   setIsEditingStory(true);
@@ -698,8 +644,6 @@ export default function LovedOneProfilePage() {
                 }
               }}
             >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.13),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(141,119,255,0.10),transparent_32%),linear-gradient(145deg,rgba(255,255,255,0.68),rgba(255,255,255,0.32))]" />
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d4af37]/70 to-transparent" />
 
               <div className="relative p-5 sm:p-6 lg:p-8 xl:p-9">
                 <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
@@ -865,13 +809,11 @@ export default function LovedOneProfilePage() {
 >
 
 {/* ARCHIVE SURFACE */}
-<div className="relative rounded-[38px] border border-[#e6e1d6] bg-gradient-to-b from-white to-[#f7f4ec] shadow-[0_40px_120px_rgba(0,0,0,0.08)] overflow-hidden">
+<div className="relative">
 
-{/* subtle archival grain */}
-<div className="absolute inset-0 opacity-[0.35] pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(212,175,55,0.12),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(90,110,160,0.10),transparent_50%)]" />
 
 {/* HEADER */}
-<div className="relative px-10 pt-10 pb-8 border-b border-[#ece6da]">
+<div className="px-2 sm:px-4 lg:px-8 pb-8">
 
 <h3 className="text-[34px] font-semibold tracking-[-0.03em] text-[#111827]">
 Everything linked to {firstName}
@@ -914,7 +856,7 @@ Create capsule
 </div>
 
 {/* ARTIFACT GRID */}
-<div className="relative p-10 grid md:grid-cols-3 gap-8">
+<div className="grid md:grid-cols-3 gap-8 px-2 sm:px-4 lg:px-8">
 
 {/* TIMELINE CARD */}
 <div
@@ -1013,30 +955,25 @@ Capsule
 </motion.section>
         </div>
 
-        <footer className="pt-14">
-          <div className="relative overflow-hidden rounded-[36px] border border-white/70 bg-white/50 px-6 py-10 text-center shadow-[0_25px_90px_rgba(0,0,0,0.07)] backdrop-blur-2xl sm:px-8 sm:py-12">
-            <div className="absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.72),rgba(255,255,255,0.34))]" />
-            <div className="relative">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[22px] border border-[#ead99b] bg-[#fff7d8] text-[#b08a29] shadow-sm">
-                <Orbit className="h-6 w-6" />
-              </div>
+        <footer className="mt-16 mb-6 flex justify-center px-6 pt-12">
+  <div className="text-center max-w-[520px]">
 
-              <p className="text-[11px] font-bold uppercase tracking-[0.36em] text-[#ab8a31]">
-                Ancestorii permanent record
-              </p>
+    <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#ab8a31]">
+      Ancestorii permanent record
+    </p>
 
-              <p className="mx-auto mt-4 max-w-3xl text-sm leading-8 text-[#5e687b] sm:text-base">
-                This page gathers every visible piece of {member.full_name}
-                &apos;s legacy across Ancestorii into one clean, living memory
-                space.
-              </p>
+    <p className="mt-3 text-sm leading-6 text-[#5e687b]">
+      This page gathers every visible piece of {member.full_name}
+      &apos;s legacy across Ancestorii into one clean, living memory
+      space.
+    </p>
 
-              <p className="mt-6 text-xs italic tracking-[0.14em] text-[#8d95a4]">
-                Preserving stories, albums, milestones and messages with care.
-              </p>
-            </div>
-          </div>
-        </footer>
+    <p className="mt-4 text-[11px] italic tracking-[0.12em] text-[#8d95a4]">
+      Preserving stories, albums, milestones and messages with care.
+    </p>
+
+  </div>
+</footer>
       </div>
     </div>
   );
@@ -1047,15 +984,11 @@ function TopActions({ router }: { router: ReturnType<typeof useRouter> }) {
     <div className="mb-5 flex items-center justify-between gap-4">
       <button
         onClick={() => router.push("/dashboard/family")}
-        className="group inline-flex items-center gap-2 rounded-full border border-white/75 bg-white/60 px-4 py-2.5 text-sm font-semibold text-[#2c3443] shadow-[0_8px_25px_rgba(0,0,0,0.05)] backdrop-blur-xl transition hover:bg-white"
+       className="group inline-flex items-center gap-2 text-sm font-semibold text-[#2c3443] hover:text-[#000] transition"
       >
         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
         Back to your loved ones
       </button>
-
-      <div className="hidden rounded-full border border-white/75 bg-white/60 px-3 py-1.5 text-xs sm:px-4 sm:py-2 font-semibold uppercase tracking-[0.24em] text-[#8f96a6] shadow-[0_8px_25px_rgba(0,0,0,0.05)] backdrop-blur-xl md:block">
-        Legacy profile
-      </div>
     </div>
   );
 }
@@ -1151,7 +1084,7 @@ function FeatureLine({
   };
 
   return (
-    <div className="rounded-[24px] border border-white/75 bg-white/65 p-4 shadow-[0_14px_35px_rgba(0,0,0,0.04)]">
+<div className="rounded-[24px] border border-[#f4d97a] bg-white p-4">
       <div className="flex items-center gap-3">
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${accentMap[accent].iconWrap}`}
@@ -1160,7 +1093,7 @@ function FeatureLine({
         </div>
 
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#9ca4b5]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#4b5563]">
             {title}
           </p>
           <p className="mt-1 truncate text-sm font-semibold text-[#1f2735]">
