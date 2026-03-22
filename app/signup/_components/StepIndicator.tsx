@@ -4,12 +4,13 @@ export default function StepIndicator() {
     <div className="w-full max-w-screen-xl mx-auto mb-10 px-6 lg:px-20">
       {/* Headline */}
       <div className="text-center mb-4">
-        <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-[#0F2040]">
-          Your{' '}
-          <span className="bg-gradient-to-r from-[#D4AF37] via-[#F3D99B] to-[#D4AF37] bg-clip-text text-transparent animate-shimmer">
-            Legacy
-          </span>
-        </h2>
+        <h2 className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-[#0F2040]">
+        Your story,
+        <br className="sm:hidden" />{' '}
+        <span className="text-[#D4AF37]">
+        still being written
+  </span>
+</h2>
       </div>
 
       {/* Sub-heading (intimate) */}
