@@ -7,10 +7,11 @@ import {
   Sparkles,
   CalendarDays,
   History,
+  Plus,
   HandHeart,
 } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/browser";
-import React from "react";
+import React, { useEffect } from "react";
 
 type FamilyMember = {
   id: string;
@@ -120,21 +121,58 @@ export default function ProfileSection({
   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.20),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(141,119,255,0.12),transparent_40%)]" />
 
   {/* portrait */}
-  <Image
-    src={member.avatar_signed || "/default-avatar.png"}
-    alt={member.full_name}
-    fill
-    sizes="(max-width: 1280px) 420px, 520px"
-    quality={95}
-    priority
-    className={`object-cover transition-all duration-700 ${
-      avatarLoaded ? "scale-100 opacity-100" : "scale-[1.04] opacity-0"
-    }`}
-    onLoadingComplete={() => setAvatarLoaded(true)}
-  />
-</div>
+<div
+  onClick={() =>
+    router.push(`/dashboard/family?edit=${member.id}`)
+  }
+  className="relative w-full h-full cursor-pointer group"
+>
 
-                          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 px-1">
+  {member.avatar_signed ? (
+    <>
+      <Image
+        src={member.avatar_signed}
+        alt={member.full_name}
+        fill
+        sizes="(max-width: 1280px) 420px, 520px"
+        quality={95}
+        priority
+        className={`object-cover transition-all duration-700 ${
+          avatarLoaded ? "scale-100 opacity-100" : "scale-[1.04] opacity-0"
+        } group-hover:scale-[1.02]`}
+        onLoadingComplete={() => setAvatarLoaded(true)}
+      />
+
+      {/* subtle hover overlay */}
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition duration-300" />
+
+      {/* edit hint */}
+      <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition duration-300">
+        <div className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#102347] shadow">
+          Change photo
+        </div>
+      </div>
+    </>
+  ) : (
+    <div className="flex h-full w-full flex-col items-center justify-center text-center px-6">
+
+      {/* icon */}
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-md border border-[#102347]/10 group-hover:scale-105 transition">
+        <Plus size={22} className="text-[#102347]" />
+      </div>
+
+      {/* main */}
+      <p className="text-[16px] font-semibold text-[#102347]">
+        Add a picture
+      </p>
+
+      {/* sub */}
+      <p className="mt-2 text-sm text-[#6b7280] max-w-[240px]">
+        Click here to upload a photo of {firstName}.
+      </p>
+    </div>
+  )}
+</div>
                             <InfoMiniCard
                               label="Life timeline"
                               value={lifespan}

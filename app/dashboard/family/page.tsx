@@ -50,6 +50,7 @@ export default function FamilyPage() {
   const [relationships, setRelationships] = useState<Relationship[]>([]);
   const [groups, setGroups] = useState<Record<string, FamilyMember[]> | null>(null);
   const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
   const shouldOpenAdd = searchParams.get("add") === "true";
 
   const TYPING_KEY = "loved_ones_typing_last_run";
@@ -82,6 +83,16 @@ useEffect(() => {
     setAddOpen(true);
   }
 }, [shouldOpenAdd]);
+
+useEffect(() => {
+  if (!editId || members.length === 0) return;
+
+  const found = members.find((m) => m.id === editId);
+  if (!found) return;
+
+  setEditMember(found);
+  setAddOpen(true);
+}, [editId, members]);
 
 useEffect(() => {
   const lastRun = localStorage.getItem(TYPING_KEY);

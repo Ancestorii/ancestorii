@@ -22,7 +22,6 @@ export const memoriesLinks = [
 export const accountLinks = [
   { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/plans", label: "Plans", icon: CreditCard },
-  { href: "/dashboard/updates", label: "Updates", icon: Megaphone },
   { href: "/dashboard/help", label: "Support", icon: HelpCircle },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
