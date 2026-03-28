@@ -236,7 +236,6 @@ export default function HomePage() {
         <FeaturedBy />
         <Security />
         <Founder />
-        <PodcastPreview />
         <Faq />
         <Contact />
         <Footer />
