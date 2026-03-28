@@ -65,7 +65,7 @@ export default function Footer() {
                 <li><Link href="/digital-legacy">What is a Digital Legacy?</Link></li>
                 <li><Link href="/living-library">What is a Living Library?</Link></li>
                 <li><Link href="/why-this-exists">Why Ancestorii Exists</Link></li>
-                <li><Link href="#">Moments Worth Keeping</Link></li>
+                <li><Link href="/moments-worth-keeping">Moments Worth Keeping</Link></li>
               </ul>
             </div>
 

@@ -130,7 +130,7 @@ export default function JourneyExperience() {
         }
         .jx-header-h2 {
           font-family: 'Cormorant Garamond', Georgia, serif;
-          font-weight: 300;
+          font-weight: 600;
           line-height: 0.97;
           letter-spacing: -0.02em;
           color: #1a1410;
@@ -193,11 +193,11 @@ export default function JourneyExperience() {
         .jx-accent {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
-  font-weight: 600;
-  color: #b8924a;
-  line-height: 1.5;
+  font-weight: 700; /* stronger for mobile */
+  color: #a67c2e;
+  line-height: 1.55;
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.18rem;
   letter-spacing: 0.02em;
   word-spacing: 0.12em;
 }
@@ -386,7 +386,7 @@ export default function JourneyExperience() {
         <div className="jx-header">
           {/* Headline — full width */}
           <div ref={fH.ref} style={fH.style} className="jx-header-top">
-            <span className="jx-eyebrow" style={{ marginBottom: '20px' }}>How it works</span>
+            <span className="jx-eyebrow" style={{ marginBottom: '20px' }}>Building Your Library</span>
             <h2 className="jx-header-h2">
               Your family's story,
               <br />

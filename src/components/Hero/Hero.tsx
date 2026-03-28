@@ -4,11 +4,10 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
 const bulletItems = [
-  'Write the story behind every photo',
-  'Add voices, videos, and things only you remember',
-  'Private, ad-free, and yours forever',
+  'Write the story that the photo cannot show',
+  'Keep voices, moments, and things only you remember',
+  'Private, personal, and yours forever',
 ];
-
 /* ─── VISUAL PANE ──────────────────────────────────── */
 function HeroVisual() {
   return (
@@ -34,9 +33,9 @@ function HeroVisual() {
 
       {/* REMOVE heavy blur + shadow = faster */}
       <div className="absolute right-[7%] top-[10%] hidden xl:block w-[200px] rotate-[4deg] pointer-events-none">
-        <div className="border border-black/10 bg-white/80 px-4 py-3">
+        <div className="border border-black/10 bg-white/90 px-4 py-3">
           <p className="font-serif text-[0.85rem] text-[#3C3326]">
-            Keep the meaning beside the memory.
+            Before it’s forgotten.
           </p>
         </div>
       </div>
@@ -72,6 +71,7 @@ function HeroContentDesktop() {
 
       <div className="hc-inner relative z-10 w-full">
         <div className="hc-overline flex items-center gap-3 mb-6">
+          
           <div className="h-px w-5 flex-shrink-0 bg-[#B8932A]" />
           <p className="hc-overline-text font-serif uppercase text-[#B8932A]" style={{ letterSpacing: '0.26em', fontWeight: 700 }}>
             Your Family Library
@@ -86,10 +86,11 @@ function HeroContentDesktop() {
 
         <div className="hc-rule" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.85), transparent)' }} />
 
+        
         <p className="hc-sub font-serif text-[#3D3526]" style={{ lineHeight: 1.7 }}>
-          The place where your family keeps the stories, voices, and memories that matter.{' '}
-          <span style={{ color: '#B8932A' }}>Not everything belongs in a camera roll.</span>
-        </p>
+  Because one day, you won’t be able to ask again.{' '}
+  <span style={{ color: '#B8932A' }}>Not everything belongs in a camera roll.</span>
+</p>
 
         <ul className="mt-7 space-y-0">
           {bulletItems.map((item, index) => (
@@ -140,14 +141,14 @@ function MobileHero() {
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 52%, rgba(250,245,235,0.94) 100%)' }} />
         <div className="absolute right-4 top-4 max-w-[220px]">
           <div className="border border-[rgba(95,78,43,0.10)] bg-[rgba(255,251,244,0.76)] backdrop-blur-[8px] px-4 py-3 shadow-[0_14px_36px_rgba(62,43,18,0.08)]">
-            <p className="font-serif text-[0.86rem] leading-relaxed text-[#3E3427]">This still matters.</p>
+            <p className="font-serif text-[0.86rem] leading-relaxed text-[#3E3427]">Before it’s forgotten.</p>
           </div>
         </div>
       </div>
 
       <div className="relative overflow-hidden bg-[rgb(250,245,235)]">
-        <div className="absolute inset-0 bg-[url('/parchment.png')] bg-cover bg-center opacity-28 pointer-events-none" />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 12% 10%, rgba(243,217,155,0.22), transparent 26%)' }} />
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(243,217,155,0.15),transparent_40%)]" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(255,255,255,0.25)' }} />
 
         <div className="relative z-10 px-6 pt-7 pb-10">
           <div className="flex items-center gap-2.5 mb-5">
@@ -165,8 +166,9 @@ function MobileHero() {
           <div className="mt-6 mb-6" style={{ height: '1px', width: '12rem', background: 'linear-gradient(to right, rgba(184,147,42,0.85), transparent)' }} />
 
           <p className="font-serif text-[#3D3526] mb-6" style={{ fontSize: '1rem', lineHeight: 1.7 }}>
-            The place where your family keeps the stories, voices, and memories that matter.
-          </p>
+  Because one day, you won’t be able to ask again.{' '}
+  <span style={{ color: '#B8932A' }}>Not everything belongs in a camera roll.</span>
+</p>
 
           <ul className="space-y-0 mb-8">
             {bulletItems.map((item, index) => (
