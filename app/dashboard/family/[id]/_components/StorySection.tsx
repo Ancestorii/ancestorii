@@ -561,7 +561,7 @@ const styles = accentStyles[section.accent];
 </div>
                 </div>
 
-                <div className="rounded-[24px] border border-[#e6dcc8] bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+                <div className="border border-[#e6dcc8] bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                   <div className="border-b border-[#efe5d1] px-4 py-4 sm:px-5">
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#ead99b] bg-[#fff8df] text-[#a57d22]">
@@ -832,19 +832,6 @@ function ScrapbookImageCard({
               }}
             />
           </label>
-
-          <div className="mt-4 rounded-[18px] border border-[#e9dfcb] bg-white/70 px-4 py-3">
-            <div className="flex items-start gap-3">
-              <div>
-                <p className="text-sm font-semibold text-[#1f2735]">
-                  This photo matters
-                </p>
-                <p className="mt-1 text-[13px] leading-6 text-[#6a7384]">
-                 Pick a moment that means something to you. The kind you would want to look back on years from now.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
