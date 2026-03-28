@@ -129,7 +129,7 @@ function MobileHero() {
     <div className="lg:hidden flex flex-col">
       <div className="relative w-full overflow-hidden" style={{ height: '56vw', minHeight: '240px', maxHeight: '340px' }}>
         <Image
-          src="/hero.jpg"
+          src="/hero.png"
           alt="Family memory"
           fill
           priority
