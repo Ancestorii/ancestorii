@@ -13,47 +13,42 @@ const bulletItems = [
 function HeroVisual() {
   return (
     <div className="relative w-full h-full overflow-hidden">
+
       <Image
-        src="/hero.jpg"
+        src="/hero.png" // 🔥 use AVIF or WebP (NOT jpg)
         alt="Family memory"
         fill
         priority
-        sizes="50vw"
-        className="object-cover scale-[1.02]"
+        quality={60}
+        sizes="(max-width: 1024px) 100vw, 50vw"
+        placeholder="blur"
+        blurDataURL="/hero-blur.jpg"
+        className="object-cover"
         style={{ objectPosition: '60% 20%' }}
       />
 
-      <div
-        className="absolute inset-y-0 left-0 w-40 pointer-events-none hidden lg:block"
-        style={{
-          background:
-            'linear-gradient(to right, rgba(247,242,233,0.96) 0%, rgba(247,242,233,0.72) 45%, transparent 100%)',
-        }}
-      />
+      {/* LIGHT overlay only (cheap to render) */}
+      <div className="absolute inset-y-0 left-0 w-32 hidden lg:block pointer-events-none bg-gradient-to-r from-[#f7f2e9]/95 to-transparent" />
 
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'linear-gradient(to bottom, transparent 70%, rgba(240,234,220,0.2) 100%)',
-        }}
-      />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-[#f0eadc]/20" />
 
-      <div className="absolute right-[7%] top-[10%] hidden xl:block w-[210px] rotate-[4deg] pointer-events-none">
-        <div className="border border-[rgba(95,78,43,0.12)] bg-[rgba(255,251,244,0.80)] backdrop-blur-[8px] px-5 py-4 shadow-[0_20px_50px_rgba(62,43,18,0.10)]">
-          <p className="font-serif text-[0.9rem] leading-relaxed text-[#3C3326]">
+      {/* REMOVE heavy blur + shadow = faster */}
+      <div className="absolute right-[7%] top-[10%] hidden xl:block w-[200px] rotate-[4deg] pointer-events-none">
+        <div className="border border-black/10 bg-white/80 px-4 py-3">
+          <p className="font-serif text-[0.85rem] text-[#3C3326]">
             Keep the meaning beside the memory.
           </p>
         </div>
       </div>
 
-      <div className="absolute left-[7%] bottom-[9%] hidden 2xl:block w-[230px] -rotate-[3deg] pointer-events-none">
-        <div className="border border-[rgba(95,78,43,0.11)] bg-[rgba(255,255,255,0.72)] backdrop-blur-[8px] px-5 py-4 shadow-[0_20px_50px_rgba(62,43,18,0.09)]">
-          <p className="font-serif italic text-[0.95rem] leading-relaxed text-[#403629]">
+      <div className="absolute left-[7%] bottom-[9%] hidden 2xl:block w-[210px] -rotate-[3deg] pointer-events-none">
+        <div className="border border-black/10 bg-white/70 px-4 py-3">
+          <p className="font-serif italic text-[0.9rem] text-[#403629]">
             "This was never just about storage."
           </p>
-          <div className="absolute bottom-0 left-0 w-full h-[4px]" />
         </div>
       </div>
+
     </div>
   );
 }
@@ -62,7 +57,7 @@ function HeroVisual() {
 function HeroContentDesktop() {
   return (
     <div className="hc-pane relative flex flex-col justify-center h-full w-full overflow-hidden bg-[rgb(250,245,235)]">
-      <div className="absolute inset-0 bg-[url('/parchment.png')] bg-cover bg-center opacity-25 pointer-events-none" />
+     <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(243,217,155,0.15),transparent_40%)]" />
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(255,255,255,0.25)' }} />
       <div
         className="absolute inset-0 pointer-events-none"
