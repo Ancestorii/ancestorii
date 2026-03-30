@@ -67,7 +67,7 @@ export default function LibraryPage() {
 
         return {
           id: item.id,
-          url: urlData?.signedUrl ? `${urlData.signedUrl}&cb=${Date.now()}` : null,
+          url: urlData?.signedUrl || null,
         };
       })
     );
@@ -148,12 +148,13 @@ Upload photos or videos from your phone or computer here once and then reuse the
 
                     {/* 🔥 Trash Icon INSIDE media */}
                     <button
-                      onClick={() =>
-                        setDeleteTarget({
-                          id: item.id,
-                          filePath: item.file_path,
-                        })
-                      }
+                    onClick={(e) => {
+                    e.stopPropagation(); // 🔥 THIS FIXES IT
+                    setDeleteTarget({
+                    id: item.id,
+                    filePath: item.file_path,
+                    });
+                   }}
                       className="absolute top-3 right-3 z-50 w-6 h-6 md:w-7 md:h-7 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-700 transition"
                     >
                       <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
@@ -188,10 +189,25 @@ Upload photos or videos from your phone or computer here once and then reuse the
       </div>
 
       <UploadLibraryDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onUploaded={() => fetchLibrary()}
-      />
+  open={drawerOpen}
+  onClose={() => setDrawerOpen(false)}
+  onUploaded={(newMedia) => {
+    setMedia((prev) => [newMedia, ...prev]);
+
+    // create ONE signed URL only for this item
+    supabase.storage
+      .from('library-media')
+      .createSignedUrl(newMedia.file_path, 60 * 60 * 24 * 7)
+      .then(({ data }) => {
+        if (data?.signedUrl) {
+          setSignedMap((prev) => ({
+            ...prev,
+            [newMedia.id]: data.signedUrl,
+          }));
+        }
+      });
+  }}
+/>
 
       <DeleteLibraryMediaModal
         open={!!deleteTarget}

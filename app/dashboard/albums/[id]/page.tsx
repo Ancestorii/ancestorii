@@ -75,23 +75,7 @@ export default function AlbumDetailPage() {
   const [album, setAlbum] = useState<Album | null>(null);
   const [media, setMedia] = useState<Media[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
-  const [viewerOpen, setViewerOpen] = useState(false);
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
-function openViewer(index: number) {
-  setViewerIndex(index);
-  setViewerOpen(true);
-
-  const m = media[index];
-  if (!m) return;
-
-  // keep panel in sync (same pattern you used before)
-  setSelectedMedia({
-    ...m,
-    file_path: m.file_path ?? m.library_media?.file_path ?? null,
-    file_type: m.file_type ?? m.library_media?.file_type ?? null,
-  });
-}
   const [loading, setLoading] = useState(true);
 
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -175,18 +159,6 @@ const handlePickFromLibrary = async (item: LibraryPickerItem) => {
   }
 };
 
-useEffect(() => {
-  function handleKey(e: KeyboardEvent) {
-    if (!viewerOpen) return;
-
-    if (e.key === "ArrowRight") nextMedia();
-    if (e.key === "ArrowLeft") prevMedia();
-    if (e.key === "Escape") setViewerOpen(false);
-  }
-
-  window.addEventListener("keydown", handleKey);
-  return () => window.removeEventListener("keydown", handleKey);
-}, [viewerOpen, viewerIndex, media]);
 
   useEffect(() => {
     (async () => {
@@ -341,41 +313,6 @@ useEffect(() => {
     );
   }
 
-  const currentMedia =
-  viewerIndex !== null ? media[viewerIndex] : null;
-
-  function nextMedia() {
-  if (viewerIndex === null) return;
-
-  const next = (viewerIndex + 1) % media.length;
-  setViewerIndex(next);
-
-  const m = media[next];
-  if (!m) return;
-
-  setSelectedMedia({
-    ...m,
-    file_path: m.file_path ?? m.library_media?.file_path ?? null,
-    file_type: m.file_type ?? m.library_media?.file_type ?? null,
-  });
-}
-
-function prevMedia() {
-  if (viewerIndex === null) return;
-
-  const prev = (viewerIndex - 1 + media.length) % media.length;
-  setViewerIndex(prev);
-
-  const m = media[prev];
-  if (!m) return;
-
-  setSelectedMedia({
-    ...m,
-    file_path: m.file_path ?? m.library_media?.file_path ?? null,
-    file_type: m.file_type ?? m.library_media?.file_type ?? null,
-  });
-}
-
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-white">
       
@@ -485,8 +422,14 @@ function prevMedia() {
               return (
               <div
   key={m.id}
-  onClick={() => openViewer(i)}
-   className={`break-inside-avoid mb-6 relative group cursor-pointer ${
+  onClick={() =>
+    setSelectedMedia({
+      ...m,
+      file_path: m.file_path ?? m.library_media?.file_path ?? null,
+      file_type: m.file_type ?? m.library_media?.file_type ?? null,
+    })
+  }
+  className={`break-inside-avoid mb-6 relative group cursor-pointer rounded-none ${
     selectedMedia?.id === m.id ? 'ring-4 ring-[#E6C26E] rounded-lg' : ''
   }`}
 >
@@ -499,11 +442,11 @@ function prevMedia() {
     controls
     playsInline
     preload="metadata"
-    className="w-full rounded-lg"
+    className="w-full rounded-none"
   />
 </div>
 ) : (
-  <div className="transition-transform duration-300 group-hover:scale-[1.03]">
+  <div className="transition-transform duration-300 group-hover:scale-[1.03] rounded-none">
   <AlbumMediaImage src={m.signed_url || ''} />
 </div>
 )}
@@ -617,60 +560,6 @@ function prevMedia() {
   setTaggedPeople(withSigned);
 }}
       />
-      {viewerOpen && currentMedia && (
-  <div
-    className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100]"
-    onClick={() => setViewerOpen(false)}
-  >
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        prevMedia();
-      }}
-      className="absolute left-6 top-1/2 -translate-y-1/2
-                 text-6xl font-bold
-                 text-[#D4AF37]
-                 hover:scale-110
-                 transition cursor-pointer select-none"
-    >
-      ‹
-    </button>
-
-    <div
-      className="relative max-w-[90vw] max-h-[90vh]"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {(currentMedia.file_type === "video" ||
-        currentMedia.library_media?.file_type === "video") ? (
-        <video
-          src={currentMedia.signed_url ?? ""}
-          controls
-          autoPlay
-          className="max-w-full max-h-[95vh] rounded-lg"
-        />
-      ) : (
-        <img
-          src={currentMedia.signed_url ?? ""}
-          className="max-w-full max-h-[95vh] object-contain rounded-lg"
-        />
-      )}
-    </div>
-
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        nextMedia();
-      }}
-      className="absolute right-6 top-1/2 -translate-y-1/2
-                 text-6xl font-bold
-                 text-[#D4AF37]
-                 hover:scale-110
-                 transition cursor-pointer select-none"
-    >
-      ›
-    </button>
-  </div>
-)}
     </div>
   );
 }

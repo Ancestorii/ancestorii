@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
 
-import { memoriesLinks, accountLinks } from "@/lib/dashboardNavigation";
+import { memoriesLinks, booksLinks, accountLinks } from "@/lib/dashboardNavigation";
 import SidebarContent from "@/components/dashboard/SidebarContent";
 import TopNavbar from "@/components/dashboard/TopNavbar";
 import BottomNavigation from "@/components/dashboard/BottomNavigation";
@@ -265,277 +265,245 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   if (!hydrated) return null;
 
   return (
-    <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
-      <TopNavbar
-        scrolled={scrolled}
-        fullName={fullName}
-        userEmail={userEmail}
-        avatarUrl={avatarUrl}
-        handleLogout={handleLogout}
-      />
+  <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
+    <TopNavbar
+      scrolled={scrolled}
+      fullName={fullName}
+      userEmail={userEmail}
+      avatarUrl={avatarUrl}
+      handleLogout={handleLogout}
+    />
 
-      {/* ---------- Sidebar ---------- */}
-      <aside
-        className={`fixed top-0 left-0 z-[150] xl:z-40 w-[270px] h-screen bg-gradient-to-br from-[#0F2040] to-[#182C54] shadow-[4px_0_25px_rgba(15,32,64,0.25)] rounded-br-3xl overflow-y-auto overscroll-contain ${
-          drawerOpen ? 'block' : 'hidden xl:block'
-        }`}
-      >
-        <SidebarContent
-          closeDrawer={() => {
-            if (typeof window !== 'undefined' && window.innerWidth < 1280) {
-              setDrawerOpen(false);
-            }
-          }}
-        />
-      </aside>
-
-      <main className="pt-20 md:pt-28 px-4 md:px-8 xl:ml-64 transition-all duration-300">
-        {children}
-      </main>
-
-   <AnimatePresence>
-  {memoriesOpen && (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="xl:hidden fixed inset-0 z-[300] flex items-center justify-center px-4"
-      onClick={() => setMemoriesOpen(false)}
+    {/* ---------- Sidebar ---------- */}
+    <aside
+      className={`fixed top-0 left-0 z-[150] xl:z-40 w-[270px] h-screen bg-gradient-to-br from-[#0F2040] to-[#182C54] shadow-[4px_0_25px_rgba(15,32,64,0.25)] rounded-br-3xl overflow-y-auto overscroll-contain ${
+        drawerOpen ? 'block' : 'hidden xl:block'
+      }`}
     >
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 28, stiffness: 220 }}
-        className="w-full max-w-[560px] rounded-[28px] bg-[#F3F1FF] border-[2px] border-[#D4AF37]/60 shadow-[0_30px_90px_rgba(0,0,0,0.25)] px-6 pt-6 pb-8"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <SidebarContent
+        closeDrawer={() => {
+          if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+            setDrawerOpen(false);
+          }
+        }}
+      />
+    </aside>
 
-        {/* HANDLE */}
-        <div className="w-12 h-[3px] bg-slate-400/60 rounded-full mx-auto mb-7" />
+    <main className="pt-20 md:pt-28 px-4 md:px-8 xl:ml-64 transition-all duration-300">
+      {children}
+    </main>
 
-        {/* HEADER */}
-        <div className="px-3 mb-8">
-          <div className="flex justify-between items-end border-b-[2px] border-[#D4AF37]/50 pb-4">
-
-            <h2 className="text-[30px] font-light text-[#0F1A2E] tracking-tight">
-              My <span className="font-serif italic text-[#D4AF37]">Memories</span>
-            </h2>
-
-            <button
-              onClick={() => setMemoriesOpen(false)}
-              className="text-slate-500 hover:text-black text-sm font-medium"
-            >
-              Close
-            </button>
-
-          </div>
-        </div>
-
-        {/* MEMORY LINKS */}
+    {/* ================= MEMORIES ================= */}
+    <AnimatePresence>
+      {memoriesOpen && (
         <motion.div
-          className="space-y-4"
-          initial="hidden"
-          animate="show"
-          variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="xl:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
+          style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(15,26,46,0.25)' }}
+          onClick={() => setMemoriesOpen(false)}
         >
-          {memoriesLinks.map((item) => {
-            const active =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+          <motion.div
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 32, stiffness: 260 }}
+            className="w-full max-w-[300px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 pt-3 pb-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-[3px] bg-[#D4AF37]/40 rounded-full mx-auto mb-4" />
 
-            return (
-              <motion.div
-                key={item.href}
-                variants={{
-                  hidden: { opacity: 0, y: 10 },
-                  show: { opacity: 1, y: 0 },
-                }}
-              >
-                <Link
-                  href={item.href}
+            <div className="px-2 mb-4">
+              <div className="flex justify-between items-end border-b border-[#D4AF37]/30 pb-3">
+                <h2 className="text-[20px] font-light text-[#0F1A2E] tracking-tight">
+                  My <span className="font-serif italic text-[#D4AF37]">Memories</span>
+                </h2>
+                <button
                   onClick={() => setMemoriesOpen(false)}
-                  className={`flex items-center justify-between rounded-[18px] px-6 py-5 transition-all duration-300 ${
-                    active
-                      ? "bg-[#0F1A2E] text-white border-[2.5px] border-[#D4AF37] shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
-                      : "bg-white border-[2px] border-[#D8DBE3] text-[#0F1A2E] shadow-[0_6px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.12)]"
-                  }`}
+                  className="text-[12px] font-medium text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
+                  Done
+                </button>
+              </div>
+            </div>
 
-               <item.icon
-    size={18}
-    className={`transition ${
-      active ? "text-[#D4AF37]" : "text-[#0F1A2E]"
-    }`}
-  />
-
-  <span className="text-[16px] font-semibold">
-    {item.label}
-  </span>
-
-</div>
-
-                  <div className="flex items-center gap-3">
-
-                    {active && (
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37]">
-                        Viewing
-                      </span>
-                    )}
-
-                    <div
-                      className={`h-2 w-2 rounded-full transition-all duration-500 ${
-                        active
-                          ? "bg-[#D4AF37] scale-125 shadow-[0_0_8px_#D4AF37]"
-                          : "bg-[#C7C7D9]"
-                      }`}
-                    />
-                  </div>
-
-                </Link>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
-
-
-{/* MOBILE ACCOUNT SHEET */}
-<AnimatePresence>
-  {accountOpen && (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="xl:hidden fixed inset-0 z-[300] flex items-center justify-center px-4"
-      onClick={() => setAccountOpen(false)}
-    >
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 28, stiffness: 220 }}
-        className="w-full max-w-[560px] rounded-[28px] bg-[#F3F1FF] border-[2px] border-[#D4AF37]/60 shadow-[0_30px_90px_rgba(0,0,0,0.25)] px-6 pt-6 pb-8"
-        onClick={(e) => e.stopPropagation()}
-      >
-
-        {/* HANDLE */}
-        <div className="w-12 h-[3px] bg-slate-400/60 rounded-full mx-auto mb-7" />
-
-        {/* HEADER */}
-        <div className="px-3 mb-8">
-          <div className="flex justify-between items-end border-b-[2px] border-[#0F1A2E]/40 pb-4">
-
-            <h2 className="text-[30px] font-light text-[#0F1A2E] tracking-tight">
-              My <span className="font-serif italic text-[#0F1A2E]">Account</span>
-            </h2>
-
-            <button
-              onClick={() => setAccountOpen(false)}
-              className="text-slate-500 hover:text-black text-sm font-medium"
+            <motion.div
+              className="space-y-4"
+              initial="hidden"
+              animate="show"
+              variants={{ show: { transition: { staggerChildren: 0.05 } } }}
             >
-              Close
-            </button>
+              <div className="space-y-2">
+                {memoriesLinks.map((item) => {
+                  const active = pathname === item.href || pathname.startsWith(item.href + "/");
+                  return (
+                    <motion.div
+                      key={item.href}
+                      variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                    >
+                      <Link
+                        href={item.href}
+                        onClick={() => setMemoriesOpen(false)}
+                        className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
+                          active
+                            ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
+                            : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <item.icon size={15} className={active ? "text-[#D4AF37]" : "text-[#0F1A2E]/60"} />
+                          <span className="text-[14px] font-medium">{item.label}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {active && (
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#D4AF37]">
+                              Viewing
+                            </span>
+                          )}
+                          <div className={`h-1.5 w-1.5 rounded-full ${active ? "bg-[#D4AF37]" : "bg-[#DDDDE8]"}`} />
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
 
-          </div>
-        </div>
-
-        {/* ACCOUNT LINKS */}
-        <motion.div
-          className="space-y-4"
-          initial="hidden"
-          animate="show"
-          variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-        >
-          {accountLinks.map((item) => {
-            const active =
-              pathname === item.href || pathname.startsWith(item.href + "/");
-
-            return (
-              <motion.div
-                key={item.href}
-                variants={{
-                  hidden: { opacity: 0, y: 10 },
-                  show: { opacity: 1, y: 0 },
-                }}
-              >
-                <Link
-                  href={item.href}
-                  onClick={() => setAccountOpen(false)}
-                  className={`flex items-center justify-between rounded-[18px] px-6 py-5 transition-all duration-300 ${
-                    active
-                      ? "bg-[#0F1A2E] text-white border-[2.5px] border-[#D4AF37] shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
-                      : "bg-white border-[2px] border-[#D8DBE3] text-[#0F1A2E] shadow-[0_6px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.12)]"
-                  }`}
-                >
-                 <div className="flex items-center gap-3">
-
-  <item.icon
-    size={18}
-    className={`transition ${
-      active ? "text-[#D4AF37]" : "text-[#0F1A2E]"
-    }`}
-  />
-
-  <span className="text-[16px] font-semibold">
-    {item.label}
-  </span>
-
-</div>
-
-                  <div className="flex items-center gap-3">
-
-                    {active && (
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37]">
-                        Viewing
-                      </span>
-                    )}
-
-                    <div
-                      className={`h-2 w-2 rounded-full transition-all duration-500 ${
-                        active
-                          ? "bg-[#D4AF37] scale-125 shadow-[0_0_8px_#D4AF37]"
-                          : "bg-[#C7C7D9]"
-                      }`}
-                    />
-                  </div>
-
-                </Link>
-              </motion.div>
-            );
-          })}
+              <div className="pt-1">
+                <div className="flex items-center gap-2 px-2 mb-2">
+                  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[#D4AF37]">My Books</p>
+                  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
+                </div>
+                <div className="space-y-2">
+                  {booksLinks.map((item) => {
+                    const active = pathname === item.href || pathname.startsWith(item.href + "/");
+                    return (
+                      <motion.div
+                        key={item.href}
+                        variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                      >
+                        <Link
+                          href={item.href}
+                          onClick={() => setMemoriesOpen(false)}
+                          className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
+                            active
+                              ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
+                              : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <item.icon size={15} className={active ? "text-[#D4AF37]" : "text-[#0F1A2E]/60"} />
+                            <span className="text-[14px] font-medium">{item.label}</span>
+                          </div>
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         </motion.div>
+      )}
+    </AnimatePresence>
 
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
-      <BottomNavigation
-        setMemoriesOpen={setMemoriesOpen}
-        setAccountOpen={setAccountOpen}
-      />
+    {/* ================= ACCOUNT ================= */}
+    <AnimatePresence>
+      {accountOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="xl:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
+          style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(15,26,46,0.4)' }}
+          onClick={() => setAccountOpen(false)}
+        >
+          <motion.div
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 32, stiffness: 260 }}
+            className="w-full max-w-[300px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 pt-3 pb-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-[3px] bg-[#D4AF37]/40 rounded-full mx-auto mb-4" />
 
-      <style jsx global>{`
-        @keyframes shimmer {
-          0% {
-            background-position: -200% center;
-          }
-          100% {
-            background-position: 200% center;
-          }
-        }
-        .animate-shimmer {
-          background: linear-gradient(90deg, #d4af37, #fff8d4, #d4af37);
-          background-size: 200%;
-          animation: shimmer 3s infinite linear;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-      `}</style>
-    </div>
-  );
-}
+            <div className="px-2 mb-4">
+              <div className="flex justify-between items-end border-b border-[#0F1A2E]/15 pb-3">
+                <h2 className="text-[20px] font-light text-[#0F1A2E] tracking-tight">
+                  My <span className="font-serif italic text-[#0F1A2E]">Account</span>
+                </h2>
+                <button
+                  onClick={() => setAccountOpen(false)}
+                  className="text-[12px] font-medium text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+
+            <motion.div
+              className="space-y-2"
+              initial="hidden"
+              animate="show"
+              variants={{ show: { transition: { staggerChildren: 0.05 } } }}
+            >
+              {accountLinks.map((item) => {
+                const active = pathname === item.href || pathname.startsWith(item.href + "/");
+                return (
+                  <motion.div
+                    key={item.href}
+                    variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                  >
+                    <Link
+                      href={item.href}
+                      onClick={() => setAccountOpen(false)}
+                      className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
+                        active
+                          ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
+                          : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <item.icon size={15} className={active ? "text-[#D4AF37]" : "text-[#0F1A2E]/60"} />
+                        <span className="text-[14px] font-medium">{item.label}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {active && (
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-[#D4AF37]">
+                            Viewing
+                          </span>
+                        )}
+                        <div className={`h-1.5 w-1.5 rounded-full ${active ? "bg-[#D4AF37]" : "bg-[#DDDDE8]"}`} />
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    <BottomNavigation
+      setMemoriesOpen={setMemoriesOpen}
+      setAccountOpen={setAccountOpen}
+    />
+
+    <style jsx global>{`
+      @keyframes shimmer {
+        0% { background-position: -200% center; }
+        100% { background-position: 200% center; }
+      }
+      .animate-shimmer {
+        background: linear-gradient(90deg, #d4af37, #fff8d4, #d4af37);
+        background-size: 200%;
+        animation: shimmer 3s infinite linear;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    `}</style>
+  </div>
+)}

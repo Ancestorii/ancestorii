@@ -147,29 +147,30 @@ useEffect(() => {
 
       toast.success('Added to your library.');
       setFile(null);
-      onClose();
+
+setTimeout(() => {
+  onClose();
+}, 150);
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Upload failed.');
-    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div
-      className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300 ${
+      className={`fixed inset-0 z-50 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${
         open ? 'bg-black/40 opacity-100' : 'opacity-0 pointer-events-none'
       }`}
+      style={{ willChange: 'opacity' }}
       onClick={onClose}
     >
       <div
         className="relative bg-white w-full sm:w-[480px] rounded-2xl
         shadow-[0_0_25px_rgba(230,194,110,0.3)]
-        border border-[#E6C26E]/40 p-6
-        transform transition-all duration-300 ease-out"
+        border border-[#E6C26E]/40 p-6"
         onClick={(e) => e.stopPropagation()}
-        style={{ transform: open ? 'scale(1)' : 'scale(0.95)' }}
       >
         <button
           onClick={(e) => {
@@ -239,10 +240,10 @@ useEffect(() => {
         <button
           onClick={handleUpload}
           disabled={loading}
-          className={`w-full py-3 rounded-xl font-semibold transition text-[#1F2837] ${
+          className={`w-full py-3 rounded-xl font-semibold text-[#1F2837] ${
             loading
               ? 'bg-gray-300 cursor-not-allowed'
-              : 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] hover:shadow-md hover:scale-[1.02]'
+              : 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]'
           }`}
         >
           {loading ? (

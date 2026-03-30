@@ -39,58 +39,9 @@ export default function TimelinePage() {
 
   const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
-  const TYPING_KEY = "timelines_typing_last_run";
-  const TYPING_RESET_MS = 24 * 60 * 60 * 1000; // 24 hours
-
   // typing effect (slowed)
   const line1 = '“Every life is made of moments worth remembering.”';
   const line2 = 'Create a timeline to tell your story in the order it happened.';
-  const [typed1, setTyped1] = useState('');
-  const [typed2, setTyped2] = useState('');
-  const [isTyping1Done, setIsTyping1Done] = useState(false);
-
-  useEffect(() => {
-  const lastRun = localStorage.getItem(TYPING_KEY);
-  const now = Date.now();
-
-  if (lastRun && now - Number(lastRun) < TYPING_RESET_MS) {
-    setTyped1(line1);
-    setTyped2(line2);
-    setIsTyping1Done(true);
-    return;
-  }
-
-  localStorage.setItem(TYPING_KEY, String(now));
-
-  let i1 = 0,
-    i2 = 0,
-    t1: any,
-    t2: any;
-
-  const speed = 45;
-
-  t1 = setInterval(() => {
-    i1++;
-    setTyped1(line1.slice(0, i1));
-    if (i1 >= line1.length) {
-      clearInterval(t1);
-      setIsTyping1Done(true);
-
-      const start2 = setTimeout(() => {
-        t2 = setInterval(() => {
-          i2++;
-          setTyped2(line2.slice(0, i2));
-          if (i2 >= line2.length) clearInterval(t2);
-        }, speed);
-      }, 600);
-    }
-  }, speed);
-
-  return () => {
-    clearInterval(t1);
-    clearInterval(t2);
-  };
-}, []);
 
 
   // signed url helper
@@ -194,13 +145,13 @@ setTimelines(signed);
               <span className="text-[#C8A557]">Timelines</span>
             </h1>
 
-            <p className="text-[#5B6473] mt-3 text-lg italic min-h-[30px]">{typed1}</p>
+            <p className="text-[#000000] mt-3 text-lg italic min-h-[30px]">{line1}</p>
             <p
-              className={`text-[#7A8596] text-sm mt-2 transition-opacity duration-500 ${
-                isTyping1Done ? 'opacity-100' : 'opacity-0'
+              className={`text-[#000000] text-sm mt-2 transition-opacity duration-500 ${
+                'opacity-100'
               }`}
             >
-              {typed2}
+              {line2}
             </p>
           </div>
 

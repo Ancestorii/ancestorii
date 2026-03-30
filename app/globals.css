@@ -52,14 +52,6 @@
   }
 }
 
-/* Animations — must be outside @layer! */
-@keyframes fall {
-  0% { transform: translateY(-5vh) translateX(0); opacity: 0; }
-  10% { opacity: 0.7; }
-  50% { transform: translateY(50vh) translateX(10px); opacity: 1; }
-  100% { transform: translateY(110vh) translateX(-10px); opacity: 0; }
-}
-
 @keyframes shimmer {
   0%, 100% { opacity: 0.4; transform: scale(1); }
   50% { opacity: 0.9; transform: scale(1.1); }
@@ -94,19 +86,6 @@
   }
   100% {
     background-color: rgba(230, 194, 110, 0.12);
-  }
-}
-
-@layer utilities {
-  .memory-particle {
-    position: absolute;
-    border-radius: 9999px;
-    pointer-events: none;
-    background: radial-gradient(circle, rgba(243, 217, 155, 0.8), transparent 70%);
-    box-shadow: 0 0 10px rgba(243, 217, 155, 0.6);
-    mix-blend-mode: screen;
-    animation: fall 18s linear infinite, shimmer 3s ease-in-out infinite;
-    will-change: transform, opacity;
   }
 }
 
@@ -210,14 +189,6 @@ section {
 
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-120%);
-  }
-  100% {
-    transform: translateX(120%);
-  }
-}
 
 @keyframes confirm-shake {
   0% { transform: translateX(0); }

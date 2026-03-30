@@ -8,7 +8,9 @@ import {
   Settings,
   HandHeart,
   User,
-  BookOpen
+  BookOpen,
+  Book,
+  ShoppingBag
 } from "lucide-react";
 
 export const memoriesLinks = [
@@ -17,6 +19,11 @@ export const memoriesLinks = [
   { href: "/dashboard/timeline", label: "Timelines", icon: Calendar },
   { href: "/dashboard/capsules", label: "Capsules", icon: Package },
   { href: "/dashboard/albums", label: "Albums", icon: ImageIcon },
+];
+
+export const booksLinks = [
+  { href: "/dashboard/books", label: "Memory Books", icon: Book },
+  { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag },
 ];
 
 export const accountLinks = [
