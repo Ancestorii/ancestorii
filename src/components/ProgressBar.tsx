@@ -9,7 +9,11 @@ export default function ProgressBar() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    NProgress.done(); // stop when route changes
+    const timeout = setTimeout(() => {
+      NProgress.done();
+    }, 200); // 👈 delay so you can SEE the bar
+
+    return () => clearTimeout(timeout);
   }, [pathname, searchParams]);
 
   return null;

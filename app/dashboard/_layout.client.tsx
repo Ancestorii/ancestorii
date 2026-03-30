@@ -314,7 +314,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 32, stiffness: 260 }}
-            className="w-full max-w-[300px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 pt-3 pb-5"
+            className="w-full max-w-[300px] sm:max-w-[420px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 sm:px-6 pt-3 pb-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-[3px] bg-[#D4AF37]/40 rounded-full mx-auto mb-4" />
@@ -435,7 +435,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", damping: 32, stiffness: 260 }}
-            className="w-full max-w-[300px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 pt-3 pb-5"
+            className="w-full max-w-[300px] sm:max-w-[420px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 sm:px-6 pt-3 pb-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-[3px] bg-[#D4AF37]/40 rounded-full mx-auto mb-4" />
