@@ -10,6 +10,8 @@ import SidebarContent from "@/components/dashboard/SidebarContent";
 import TopNavbar from "@/components/dashboard/TopNavbar";
 import BottomNavigation from "@/components/dashboard/BottomNavigation";
 import { motion, AnimatePresence } from "framer-motion";
+import ProgressBar from '@/components/ProgressBar';
+import NProgress from 'nprogress';
 
 
 const supabase = getBrowserClient();
@@ -264,8 +266,11 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 
   if (!hydrated) return null;
 
-  return (
-  <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
+ return (
+  <>
+    <ProgressBar />
+
+    <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
     <TopNavbar
       scrolled={scrolled}
       fullName={fullName}
@@ -343,14 +348,17 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                       variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
                     >
                       <Link
-                        href={item.href}
-                        onClick={() => setMemoriesOpen(false)}
-                        className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
-                          active
-                            ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
-                            : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
-                        }`}
-                      >
+  href={item.href}
+  onClick={() => {
+    NProgress.start();
+    setMemoriesOpen(false);
+  }}
+  className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
+    active
+      ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
+      : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
+  }`}
+>
                         <div className="flex items-center gap-2.5">
                           <item.icon size={15} className={active ? "text-[#D4AF37]" : "text-[#0F1A2E]/60"} />
                           <span className="text-[14px] font-medium">{item.label}</span>
@@ -384,14 +392,17 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                         variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
                       >
                         <Link
-                          href={item.href}
-                          onClick={() => setMemoriesOpen(false)}
-                          className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
-                            active
-                              ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
-                              : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
-                          }`}
-                        >
+  href={item.href}
+  onClick={() => {
+    NProgress.start();
+    setMemoriesOpen(false);
+  }}
+  className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
+    active
+      ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
+      : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
+  }`}
+>
                           <div className="flex items-center gap-2.5">
                             <item.icon size={15} className={active ? "text-[#D4AF37]" : "text-[#0F1A2E]/60"} />
                             <span className="text-[14px] font-medium">{item.label}</span>
@@ -457,14 +468,17 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                     variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
                   >
                     <Link
-                      href={item.href}
-                      onClick={() => setAccountOpen(false)}
-                      className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
-                        active
-                          ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
-                          : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
-                      }`}
-                    >
+  href={item.href}
+  onClick={() => {
+    NProgress.start();
+    setAccountOpen(false); // ✅ CORRECT
+  }}
+  className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
+    active
+      ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
+      : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
+  }`}
+>
                       <div className="flex items-center gap-2.5">
                         <item.icon size={15} className={active ? "text-[#D4AF37]" : "text-[#0F1A2E]/60"} />
                         <span className="text-[14px] font-medium">{item.label}</span>
@@ -505,5 +519,6 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
         -webkit-text-fill-color: transparent;
       }
     `}</style>
-  </div>
+      </div>
+  </>
 )}
