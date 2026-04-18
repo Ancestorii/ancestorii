@@ -326,7 +326,7 @@ useEffect(() => {
           ← Back to Albums
         </button>
 
-        <div className="flex flex-row items-start justify-between gap-6 w-full mb-8 border-b border-[#E6C26E]/55 pb-6">
+       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-8 border-b border-[#E6C26E]/55 pb-6 gap-8">
           
           <div>
             <h1 className="text-5xl font-bold mb-6"
@@ -383,32 +383,36 @@ useEffect(() => {
 )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 w-full max-w-[440px]">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[440px]">
 
   <button
     onClick={() => setUploadOpen(true)}
-    className="inline-flex items-center justify-center gap-2 px-5 h-[44px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-[15px] font-semibold text-emerald-700 hover:bg-emerald-100 transition"
+    className="inline-flex items-center justify-center gap-2 px-4 xl:px-5 h-[44px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-[14px] xl:text-[15px] font-semibold text-emerald-700 hover:bg-emerald-100 transition"
   >
-    + Upload Memory
+    <span className="text-[18px] leading-none">+</span>
+    <span className="inline xl:hidden">Upload</span>
+    <span className="hidden xl:inline">Upload Memory</span>
   </button>
 
   <button
     onClick={() => setLibraryPickerOpen(true)}
-    className="inline-flex items-center justify-center gap-2 px-5 h-[44px] rounded-full bg-amber-50 border border-amber-200 shadow-sm text-[15px] font-semibold text-amber-800 hover:bg-amber-100 transition"
+    className="inline-flex items-center justify-center gap-2 px-4 xl:px-5 h-[44px] rounded-full bg-amber-50 border border-amber-200 shadow-sm text-[14px] xl:text-[15px] font-semibold text-amber-800 hover:bg-amber-100 transition"
   >
-    <BookOpen className="w-5 h-5" />
-    My Library
+    <BookOpen className="w-5 h-5 shrink-0" />
+    <span className="inline xl:hidden">Library</span>
+    <span className="hidden xl:inline">My Library</span>
   </button>
 
   <button
     onClick={() => setTagOpen(true)}
-    className="inline-flex items-center justify-center gap-2 px-5 h-[44px] rounded-full bg-violet-50 border border-violet-200 shadow-sm text-[15px] font-semibold text-violet-700 hover:bg-violet-100 transition"
+    className="inline-flex items-center justify-center gap-2 px-4 xl:px-5 h-[44px] rounded-full bg-violet-50 border border-violet-200 shadow-sm text-[14px] xl:text-[15px] font-semibold text-violet-700 hover:bg-violet-100 transition"
   >
-    💜 Tag Someone
+    <span className="text-[16px] leading-none">💜</span>
+    <span className="inline xl:hidden">Tag</span>
+    <span className="hidden xl:inline">Tag Someone</span>
   </button>
 
 </div>
-
         </div>
 
         {media.length === 0 ? (

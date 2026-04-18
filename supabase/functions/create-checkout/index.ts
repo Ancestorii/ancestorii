@@ -38,9 +38,9 @@ serve(async (req) => {
 
     const prices = {
       Premium: {
-        GBP: Deno.env.get("STRIPE_PREMIUM_MONTHLY_PRICE_GBP"),
-        USD: Deno.env.get("STRIPE_PREMIUM_MONTHLY_PRICE_USD"),
-        EUR: Deno.env.get("STRIPE_PREMIUM_MONTHLY_PRICE_EUR"),
+        GBP: Deno.env.get("STRIPE_PREMIUM_YEARLY_PRICE_GBP"),
+        USD: Deno.env.get("STRIPE_PREMIUM_YEARLY_PRICE_USD"),
+        EUR: Deno.env.get("STRIPE_PREMIUM_YEARLY_PRICE_EUR"),
       },
     } as const;
 

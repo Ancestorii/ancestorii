@@ -1,833 +1,625 @@
 'use client';
 
-import { getBrowserClient } from '@/lib/supabase/browser';
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
   BookOpen,
-  Image as ImageIcon,
-  Sparkles,
   ArrowRight,
   ArrowLeft,
-  Library,
-  Calendar,
-  Package,
   Plus,
   HandHeart,
+  User as UserIcon,
 } from 'lucide-react';
 
 export default function DashboardHomeClient({
-  name,
-  homeImages: initialImages,
-  email,
+  displayName,
+  firstName,
+  homeImages,
+  activeMemory,
+  pinnedCount,
+  onNextMemory,
+  onPrevMemory,
+  onSetActiveMemory,
+  onUploadHomeImage,
+  onGoToFamilyAdd,
+  onGoToLibrary,
+  onGoToFamily,
+  onGoToTimeline,
+  onGoToCapsules,
+  onGoToAlbums,
+  onGoToBooks,
+  metrics,
+  lovedOnes,
+  activity,
 }: {
-  name: string | null;
-  homeImages: (string | null)[];
+  displayName: string | null;
+  firstName: string;
   email: string | null;
+  homeImages: (string | null)[];
+  activeMemory: number;
+  pinnedCount: number;
+  showDesktopToast?: boolean;
+  onDismissDesktopToast?: () => void;
+  onNextMemory: () => void;
+  onPrevMemory: () => void;
+  onSetActiveMemory: (index: number) => void;
+  onUploadHomeImage: (file: File, index: number) => void | Promise<void>;
+  onGoToFamilyAdd: () => void;
+  onGoToLibrary: () => void;
+  onGoToFamily: () => void;
+  onGoToTimeline?: () => void;
+  onGoToCapsules?: () => void;
+  onGoToAlbums?: () => void;
+  onGoToBooks?: () => void;
+  metrics: {
+  lovedOnes: number;
+  memories: number;
+  timelines: number;
+  albums: number;
+  capsules: number;
+  voiceNotes: number;
+  totalCollectionItems: number;
+};
+  lovedOnes: Array<{
+  id: string;
+  full_name: string;
+  relationship_to_user?: string | null;
+  relationship_label?: string;
+  avatar_signed?: string | null;
+  memories_count?: number;
+}>;
+  activity: Array<{
+    id: string;
+    action: string;
+    target_type?: string;
+    created_at: string;
+  }>;
+  latestCapsule?: any;
 }) {
-  const supabase = getBrowserClient();
-  const [homeImages, setHomeImages] = useState(initialImages);
-  const [displayName, setDisplayName] = useState(name);
-  const router = useRouter();
-  const [activeMemory, setActiveMemory] = useState(0)
+  const placeholders = [
+    'A moment that changed everything. Add a memory that still means something.',
+    'Someone who shaped your world. Keep their story close.',
+    'A place or day that deserves to be remembered.',
+    'A memory that still makes you smile.',
+    'One moment you never want to lose.',
+  ];
 
-const nextMemory = () => {
-  setActiveMemory((prev) => (prev + 1) % 5)
-}
+  const welcomeName = displayName || 'there';
 
-const prevMemory = () => {
-  setActiveMemory((prev) => (prev - 1 + 5) % 5)
-}
-  const DESKTOP_TOAST_KEY = 'desktop_recommend_last_seen';
-  const DESKTOP_TOAST_RESET_MS = 24 * 60 * 60 * 1000;
+ const welcomeNameClass =
+  welcomeName.length > 24
+    ? 'text-[2.15rem] sm:text-[2.55rem] md:text-[2.95rem] lg:text-[3.35rem] xl:text-[5.2rem]'
+    : welcomeName.length > 18
+    ? 'text-[2.4rem] sm:text-[2.9rem] md:text-[3.3rem] lg:text-[3.75rem] xl:text-[5.8rem]'
+    : welcomeName.length > 12
+    ? 'text-[2.65rem] sm:text-[3.2rem] md:text-[3.6rem] lg:text-[4.1rem] xl:text-[6.2rem]'
+    : 'text-[2.9rem] sm:text-[3.45rem] md:text-[3.9rem] lg:text-[4.4rem] xl:text-[6.6rem]';
 
-  const [showDesktopToast, setShowDesktopToast] = useState(false);
-
-  const firstName =
-    displayName?.trim()?.split(/\s+/)?.[0] ||
-    name?.trim()?.split(/\s+/)?.[0] ||
-    'there';
-
-  const pinnedCount = useMemo(
-    () => homeImages.filter(Boolean).length,
-    [homeImages]
-  );
-
- useEffect(() => {
-  if (typeof window === 'undefined') return;
-
-  const isMobile = window.innerWidth < 768;
-
-  if (!isMobile) return;
-
-  const lastSeen = localStorage.getItem(DESKTOP_TOAST_KEY);
-  const now = Date.now();
-
-  if (!lastSeen || now - Number(lastSeen) > DESKTOP_TOAST_RESET_MS) {
-    setShowDesktopToast(true);
-  }
-}, []);
+  const todayLabel = useMemo(() => {
+    return new Date().toLocaleDateString('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }, []);
 
   useEffect(() => {
-    if (displayName) return;
-
-    const loadName = async () => {
-      const { data } = await supabase
-        .from('Profiles')
-        .select('full_name')
-        .single();
-
-      if (data?.full_name) {
-        setDisplayName(data.full_name);
-      }
-    };
-
-    loadName();
-  }, [displayName, supabase]);
-
-  useEffect(() => {
-  if (typeof window === 'undefined') return;
-
-  const trackSignup = async () => {
-    const { data } = await supabase.auth.getUser();
-    const user = data?.user;
-
-    if (!user) return;
-
-    const created = new Date(user.created_at).getTime();
-    const lastSignIn = new Date(user.last_sign_in_at || '').getTime();
-
-    const isNewUser = Math.abs(lastSignIn - created) < 10000;
-
-    if (!isNewUser) return;
-
-    if (sessionStorage.getItem('signup_tracked')) return;
-
-    if ((window as any).fbq) {
-      (window as any).fbq('track', 'CompleteRegistration', {
-        em: email,
-      });
-    }
-
-    if ((window as any).rdt) {
-      (window as any).rdt('track', 'CompleteRegistration');
-    }
-
-    (window as any).dataLayer = (window as any).dataLayer || [];
-    (window as any).dataLayer.push({
-      event: 'signup_complete',
-    });
-
-    sessionStorage.setItem('signup_tracked', '1');
-  };
-
-  trackSignup();
-}, [email, supabase]);
-
-  const uploadHomeImage = async (file: File, index: number) => {
-    const { data: auth } = await supabase.auth.getUser();
-    const uid = auth?.user?.id;
-    if (!uid) return;
-
-    const ext = file.name.split('.').pop();
-    const path = `${uid}/home-${index}-${Date.now()}.${ext}`;
-
-    await supabase.storage.from('user-media').upload(path, file, { upsert: true });
-
-    await supabase
-      .from('Profiles')
-      .update({ [`home_image_${index}`]: path })
-      .eq('id', uid);
-
-    const { data } = await supabase.storage
-      .from('user-media')
-      .createSignedUrl(path, 60 * 60 * 24 * 7);
-
-    setHomeImages((prev) => {
-      const copy = [...prev];
-      copy[index] = data?.signedUrl ?? null;
-      return copy;
-    });
-  };
-
-  const dismissDesktopToast = () => {
-    localStorage.setItem(DESKTOP_TOAST_KEY, String(Date.now()));
-    setShowDesktopToast(false);
-  };
+  homeImages.forEach((src) => {
+    if (!src) return;
+    const img = new window.Image();
+    img.src = src;
+  });
+}, [homeImages]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(212,175,55,0.08),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(15,32,64,0.06),_transparent_24%),linear-gradient(to_bottom,_#fcfaf5,_#f7f2e8_42%,_#f8f4ec_100%)] font-[Inter]">
-      {/* ambient glow */}
-      <div className="pointer-events-none absolute left-[-160px] top-[-120px] h-[360px] w-[360px] rounded-full bg-[#d4af37]/10 blur-3xl" />
-      <div className="pointer-events-none absolute right-[-120px] top-[120px] h-[320px] w-[320px] rounded-full bg-[#102347]/10 blur-3xl" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#d4af37]/50 to-transparent" />
+    <div className="min-h-screen bg-[linear-gradient(180deg,#fbf8f1_0%,#f6f0e5_50%,#f7f1e8_100%)] text-[#20180f]">
+      {/* ======================================== */}
+      {/* TOP STRIP */}
+      {/* ======================================== */}
+      <section className="relative overflow-hidden bg-[linear-gradient(90deg,#100b06_0%,#16100a_45%,#1a130c_100%)]">
+  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(171,130,50,0.12),transparent_35%),radial-gradient(circle_at_right,rgba(255,255,255,0.03),transparent_25%)]" />
 
-      {/* MOBILE DESKTOP RECOMMENDATION DRAWER */}
-      {showDesktopToast && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center md:hidden">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+  <div className="relative mx-auto max-w-[1700px] px-4 py-6 sm:px-6 sm:py-7 md:px-8 md:py-8 lg:px-10 lg:py-9 xl:px-16 xl:py-8">
+    <div className="flex flex-col gap-5 sm:gap-6 md:gap-7 lg:flex-row lg:items-end lg:justify-between xl:gap-6">
+      <div className="min-w-0 flex-1 xl:max-w-none">
+        <p className="text-[10px] sm:text-[11px] xl:text-[12px] font-semibold uppercase tracking-[0.24em] sm:tracking-[0.28em] xl:tracking-[0.32em] text-[#d3a847]">
+          {todayLabel}
+        </p>
 
-          <div className="relative w-[90%] max-w-sm overflow-hidden rounded-[24px] border border-white/60 bg-white/95 px-6 py-5 text-center shadow-[0_30px_80px_rgba(15,32,64,0.20)]">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#d4af37] via-[#f4dd9b] to-[#d4af37]" />
+        <h1 className={`mt-3 sm:mt-4 font-serif leading-[1.10] text-[#fff7eb] ${welcomeNameClass}`}>
+  <span className="block">Welcome back,</span>
+  <span className="block italic text-[#c99732]">
+    {welcomeName}.
+  </span>
+</h1>
 
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#f7f0dc] text-[#102347] shadow-sm">
-              <Sparkles size={20} />
+       <p className="mt-6 sm:mt-4 text-[15px] sm:text-[17px] lg:text-[18px] xl:text-[16px] leading-[1.55] lg:leading-[1.6] text-[#f0dfc6]">
+          Your collection is growing.{' '}
+          <span className="text-[#ffffff]">
+            {metrics.totalCollectionItems} stories preserved.
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{/* ======================================== */}
+{/* HERO */}
+{/* ======================================== */}
+<section className="relative overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#fdfbf7_55%,#fcfaf6_100%)]">
+  {/* Soft background shapes */}
+  <div className="pointer-events-none absolute inset-0">
+    <div className="absolute left-[-110px] top-[10px] h-[250px] w-[250px] rounded-full bg-gradient-to-tr from-[#d4af37]/10 via-[#e7c76d]/6 to-transparent blur-3xl" />
+    <div className="absolute right-[-90px] top-[40px] h-[220px] w-[220px] rounded-full bg-gradient-to-br from-[#c9d8f0]/10 via-[#102347]/4 to-transparent blur-3xl" />
+    <div className="absolute left-[18%] top-[65%] h-[140px] w-[140px] rounded-full bg-white/70 blur-3xl" />
+  </div>
+
+  <div className="relative mx-auto max-w-[1500px] px-6 py-16 sm:px-10 lg:px-12 lg:py-20 xl:px-14">
+    <div className="flex flex-col-reverse items-center gap-12 lg:flex-row lg:items-start lg:gap-14">
+      {/* LEFT */}
+      <div className="w-full lg:w-1/2 text-center lg:text-left">
+        <div className="flex items-center justify-center gap-3 lg:justify-start">
+          <div className="h-[2px] w-12 rounded-full bg-[#d4af37]" />
+          <p className="text-[12px] font-bold uppercase tracking-[0.32em] text-[#8f774e]">
+            Build your story
+          </p>
+        </div>
+
+        <h2 className="mt-6 font-serif text-[2.8rem] leading-[0.96] text-[#102347] sm:text-[3.5rem] lg:text-[4.2rem] xl:text-[4.6rem]">
+          Start with one memory.
+          <br />
+          <span className="italic text-[#c99732]">Keep what matters.</span>
+        </h2>
+
+        <p className="mx-auto mt-6 max-w-[620px] text-[16px] leading-[1.95] text-[#42536d] sm:text-[17px] lg:mx-0 lg:text-[18px]">
+          Add the people you love, upload your most meaningful moments from any device, and build
+          a family library that feels beautiful, personal, and worth returning to.
+        </p>
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+          <button
+            onClick={onGoToFamilyAdd}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#d4af37] to-[#ebc96e] px-7 py-3 text-[15px] font-semibold text-[#1f2837] shadow-[0_12px_28px_rgba(212,175,55,0.18)] transition hover:-translate-y-[1px]"
+          >
+            <HandHeart size={17} />
+            Add a Loved One
+          </button>
+
+          <button
+            onClick={onGoToLibrary}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#102347]/10 bg-white px-7 py-3 text-[15px] font-semibold text-[#102347] shadow-[0_8px_18px_rgba(16,35,71,0.05)] transition hover:bg-[#fdfdfd]"
+          >
+            <BookOpen size={17} />
+            Upload to My Library
+          </button>
+        </div>
+
+        {/* MEMORY BOOKS SUB-SECTION */}
+        <div className="relative mt-8">
+         <div className="absolute left-0 top-0 hidden h-full w-[2px] rounded-full bg-[linear-gradient(180deg,#d4af37_0%,#b9811f_100%)] lg:block" />
+
+         <div className="relative overflow-hidden rounded-[26px] border border-[#d7bf91] bg-[linear-gradient(180deg,#fffdf9_0%,#f6eee0_100%)] px-5 py-5 shadow-[0_18px_42px_rgba(22,18,12,0.12)] sm:px-6 sm:py-6 lg:ml-5">
+            <div className="pointer-events-none absolute inset-0">
+              <div className="absolute right-[-35px] top-[-35px] h-[110px] w-[110px] rounded-full bg-[#d4af37]/8 blur-3xl" />
+              <div className="absolute inset-x-0 top-0 h-[1px] bg-[linear-gradient(90deg,rgba(212,175,55,0),rgba(212,175,55,0.55),rgba(212,175,55,0))]" />
             </div>
 
-            <h3 className="mb-3 text-lg font-semibold text-[#1F2837]">
-              Build your library on a bigger screen!
+            <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="max-w-[520px] text-left">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#a6781f]">
+                  Memory Books
+                </p>
+
+                <h3 className="mt-2 font-serif text-[1.5rem] leading-[1.02] text-[#16120C] sm:text-[1.7rem]">
+                  Start your
+                  <span className="italic text-[#b67f18]"> physical library.</span>
+                </h3>
+
+                <p className="mt-3 text-[14px] leading-[1.8] text-[#4f4334] sm:text-[15px]">
+                  Turn your memories into a printed book made to sit on a real shelf and be held for generations.
+                </p>
+              </div>
+
+              <button
+                onClick={onGoToBooks}
+               className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-[linear-gradient(90deg,#100b06_0%,#16100a_45%,#1a130c_100%)] px-6 py-3 text-[14px] font-semibold whitespace-nowrap text-white shadow-[0_14px_28px_rgba(22,18,12,0.18)] transition hover:-translate-y-[1px] sm:self-auto"
+              >
+                Create your book
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT */}
+      <div className="relative flex w-full justify-center lg:w-1/2 lg:justify-end">
+        <div className="relative w-full max-w-[620px]">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[12px] font-bold uppercase tracking-[0.34em] text-[#a27622]">
+                Highlighted memories
+              </p>
+              <h3 className="mt-2 text-[23px] font-semibold italic text-[#102347] sm:text-[28px]">
+                Your <span className="text-[#d4af37]">most meaningful memories</span>
+              </h3>
+            </div>
+
+            <div className="hidden items-center gap-3 xl:flex">
+              <button
+                onClick={onPrevMemory}
+                aria-label="Previous Memory"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-[#102347]/10 bg-white/95 text-[#102347] shadow-[0_8px_18px_rgba(16,35,71,0.06)] transition hover:bg-white"
+              >
+                <ArrowLeft size={18} />
+              </button>
+
+              <button
+                onClick={onNextMemory}
+                aria-label="Next Memory"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-[#102347]/10 bg-white/95 text-[#102347] shadow-[0_8px_18px_rgba(16,35,71,0.06)] transition hover:bg-white"
+              >
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </div>
+
+          <MemoryDropCard
+            index={activeMemory}
+            image={homeImages[activeMemory]}
+            placeholder={placeholders[activeMemory]}
+            className="w-full"
+            innerHeightClass="aspect-square max-h-[520px]"
+            onUpload={onUploadHomeImage}
+          />
+
+          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[14px] leading-[1.75] text-[#445774]">
+              Choose up to <span className="font-semibold text-[#102347]">five</span>{' '}
+              moments to live here.
+            </p>
+
+            <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:justify-start">
+              <div className="flex gap-3">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <button
+                    key={i}
+                    onClick={() => onSetActiveMemory(i)}
+                    aria-label={`Select memory ${i + 1}`}
+                    className={`h-3 w-3 rounded-full transition ${
+                      activeMemory === i ? 'bg-[#d4af37]' : 'bg-[#aab6c8]'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className="flex gap-2 xl:hidden">
+                <button
+                  onClick={onPrevMemory}
+                  aria-label="Previous"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#102347]/10 bg-white/95 text-[#102347] shadow-[0_8px_18px_rgba(16,35,71,0.05)] transition hover:bg-white"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+                <button
+                  onClick={onNextMemory}
+                  aria-label="Next"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#102347]/10 bg-white/95 text-[#102347] shadow-[0_8px_18px_rgba(16,35,71,0.05)] transition hover:bg-white"
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+   {/* ======================================== */}
+{/* COLLECTION STRIP */}
+{/* ======================================== */}
+<section className="border-y border-transparent bg-[linear-gradient(180deg,#fffdfa_0%,#fbf8f2_100%)] [border-image:linear-gradient(90deg,#d4af37_0%,#ecd598_50%,#d4af37_100%)_1]">
+  <div className="mx-auto max-w-[1700px] px-6 py-14 sm:px-10 lg:px-14 xl:px-16">
+    <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p className="text-[12px] font-bold uppercase tracking-[0.28em] text-[#a86f12]">
+          Your collection
+        </p>
+        <h3 className="mt-2 text-[2rem] font-semibold tracking-[-0.04em] text-[#16120C] sm:text-[2.5rem]">
+          Everything you’re building
+        </h3>
+      </div>
+
+      <p className="max-w-[540px] text-[15px] leading-[1.7] text-[#4f4334]">
+        A clear view of the spaces where your memories are taking shape.
+      </p>
+    </div>
+
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <MetricBlock
+  value={metrics.lovedOnes}
+  label="Loved ones"
+  actionLabel={
+    metrics.lovedOnes === 0
+      ? '+ Add your first loved one'
+      : '+ Add another loved one'
+  }
+  onAction={onGoToFamilyAdd}
+/>
+<MetricBlock
+  value={metrics.timelines}
+  label="Timelines"
+  actionLabel={
+    metrics.timelines === 0
+      ? '+ Add your first timeline'
+      : '+ Add another timeline'
+  }
+  onAction={onGoToTimeline}
+/>
+<MetricBlock
+  value={metrics.capsules}
+  label="Capsules"
+  actionLabel={
+    metrics.capsules === 0
+      ? '+ Add your first capsule'
+      : '+ Add another capsule'
+  }
+  onAction={onGoToCapsules}
+/>
+<MetricBlock
+  value={metrics.albums}
+  label="Albums"
+  actionLabel={
+    metrics.albums === 0
+      ? '+ Add your first album'
+      : '+ Add another album'
+  }
+  onAction={onGoToAlbums}
+/>
+    </div>
+  </div>
+</section>
+
+
+      {/* ======================================== */}
+{/* FAMILY + ACTIVITY — LIGHTER / SMALLER */}
+{/* ======================================== */}
+<section className="relative overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#fcfaf6_100%)]">
+  <div className="pointer-events-none absolute inset-0">
+    <div className="absolute left-[-120px] top-[110px] h-[200px] w-[200px] rounded-full bg-[#d4af37]/8 blur-3xl" />
+    <div className="absolute right-[-90px] top-[30px] h-[170px] w-[170px] rounded-full bg-[#efe4c8]/55 blur-3xl" />
+  </div>
+
+  <div className="relative mx-auto max-w-[1420px] px-5 py-8 sm:px-7 sm:py-10 lg:px-9 xl:px-10">
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.03fr_0.97fr] xl:gap-6">
+      {/* LEFT — FAMILY */}
+      <div className="relative overflow-hidden rounded-[26px] border border-[#dcc8a5] bg-white shadow-[0_16px_36px_rgba(22,18,12,0.08)]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,#d4af37_0%,#ecd598_50%,#d4af37_100%)]" />
+
+        <div className="px-5 py-6 sm:px-6 sm:py-7 lg:px-7">
+          <div className="max-w-[500px]">
+            <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#a86f12]">
+              Your family
+            </p>
+
+            <h3 className="mt-3 font-serif text-[1.55rem] leading-[0.96] text-[#16120C] sm:text-[1.8rem] lg:text-[2.05rem]">
+              The people
+              <br />
+              <span className="italic text-[#c99732]">who shaped your story.</span>
             </h3>
 
-            <p className="mb-5 text-sm leading-relaxed text-[#5B6473]">
-  You can explore your library on mobile, but creating timelines and
-  uploading memories is best experienced on a{" "}
-  <span className="font-semibold text-[#1F2837]">desktop</span> or{" "}
-  <span className="font-semibold text-[#1F2837]">laptop</span>.
-</p>
+            <p className="mt-4 max-w-[380px] text-[12px] leading-[1.7] text-[#4b3f31] sm:text-[13px]">
+              Open a profile, revisit someone important, or start someone new.
+            </p>
+          </div>
+
+          <div className="mt-6 border-t border-[#ece2d2]">
+            {lovedOnes.map((person, idx) => (
+              <button
+                key={person.id}
+                onClick={onGoToFamily}
+               className="group grid w-full grid-cols-[18px_auto_1fr_auto] items-center gap-3 border-b border-[#e4d4bb] py-3.5 text-left transition hover:bg-[#faf5ec] sm:grid-cols-[22px_auto_1fr_auto] sm:gap-4 sm:py-4"
+              >
+                <div className="text-[10px] font-bold tracking-[0.18em] text-[#a86f12] sm:text-[11px]">
+                  {String(idx + 1).padStart(2, '0')}
+                </div>
+
+                {person.avatar_signed ? (
+  <div className="h-[40px] w-[40px] overflow-hidden rounded-full ring-1 ring-[#e4d3b2] sm:h-[44px] sm:w-[44px] md:h-[46px] md:w-[46px] lg:h-[50px] lg:w-[50px] xl:h-[52px] xl:w-[52px]">
+    <Image
+      src={person.avatar_signed}
+      alt={person.full_name}
+      width={52}
+      height={52}
+      quality={100}
+      className="h-full w-full object-cover"
+    />
+  </div>
+) : (
+  <div className="h-[40px] w-[40px] overflow-hidden rounded-full ring-1 ring-[#e4d3b2] sm:h-[44px] sm:w-[44px] md:h-[46px] md:w-[46px] lg:h-[50px] lg:w-[50px] xl:h-[52px] xl:w-[52px]">
+    <div className="flex h-full w-full items-center justify-center bg-[#f6efe2]">
+      <UserIcon className="h-4 w-4 text-[#8b6a2d] sm:h-[18px] sm:w-[18px] md:h-5 md:w-5 lg:h-[22px] lg:w-[22px]" />
+    </div>
+  </div>
+)}
+
+                <div className="min-w-0">
+                  <div className="truncate font-serif text-[16px] leading-none text-[#16120C] sm:text-[18px]">
+                    {person.full_name}
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#72685b] sm:text-[11px]">
+                    <span>
+                      {person.relationship_label || person.relationship_to_user || 'Loved one'}
+                    </span>
+                    {typeof person.memories_count === 'number' && (
+                      <>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-[17px] font-semibold text-[#7d5b14] transition duration-200 group-hover:translate-x-[4px] sm:text-[19px]">
+                  →
+                </div>
+              </button>
+            ))}
 
             <button
-              onClick={dismissDesktopToast}
-              className="w-full rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] px-5 py-3 font-semibold text-[#1F2837] shadow-[0_12px_30px_rgba(212,175,55,0.25)] transition hover:shadow-[0_16px_34px_rgba(212,175,55,0.30)]"
+              onClick={onGoToFamilyAdd}
+              className="group grid w-full grid-cols-[18px_auto_1fr_auto] items-center gap-3 py-3.5 text-left transition hover:bg-[#fcfaf6] sm:grid-cols-[22px_auto_1fr_auto] sm:gap-4 sm:py-4"
             >
-              Got it
+              <div className="text-[11px] font-semibold tracking-[0.18em] text-[#b3872f]">
+                +
+              </div>
+
+            <div className="flex h-[40px] w-[40px] items-center justify-center sm:h-[48px] sm:w-[48px]">
+  <Plus className="h-5 w-5 text-[#b99751] sm:h-6 sm:w-6" strokeWidth={1.75} />
+</div>
+
+              <div className="min-w-0">
+                <div className="font-serif text-[16px] leading-none text-[#16120C] sm:text-[18px]">
+                  Add a loved one
+                </div>
+                <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#72685b] sm:text-[11px]">
+                  Start a new profile
+                </div>
+              </div>
+
+              <div className="text-[17px] font-light text-[#8f7440] transition duration-200 group-hover:translate-x-[4px] sm:text-[19px]">
+                →
+              </div>
             </button>
           </div>
         </div>
-      )}
+      </div>
 
-      <div className="relative z-10 mx-auto max-w-[1750px] px-4 pt-4 pb-16 sm:px-8 sm:pt-6 lg:px-12 lg:pt-8 2xl:px-16">
-        {/* HERO */}
-        <section className="relative overflow-hidden rounded-[34px] border border-[#d4af37]/18 bg-white/65 shadow-[0_30px_100px_rgba(16,35,71,0.10)] backdrop-blur-xl">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.72),rgba(255,255,255,0.38))]" />
-          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#d4af37]/50 to-transparent" />
-          <div className="absolute left-0 top-0 h-full w-[42%] bg-[radial-gradient(circle_at_top_left,rgba(212,175,55,0.10),transparent_58%)]" />
-          <div className="absolute bottom-0 right-0 h-full w-[45%] bg-[radial-gradient(circle_at_bottom_right,rgba(15,32,64,0.08),transparent_60%)]" />
-
-          <div className="relative grid grid-cols-1 gap-10 px-5 py-6 sm:px-8 sm:py-8 md:px-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)] lg:gap-8 lg:px-12 lg:py-12 xl:px-14 xl:py-14 2xl:px-16">
-            {/* LEFT */}
-<div className="relative">
-
-  {/* Badge */}
-  <div className="mb-5 inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-[#d4af37]/30 bg-white/70 px-3 py-2 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.22em] text-[#102347] shadow-sm">
-    <Library size={14} className="text-[#d4af37]" />
-    Your private living library
-  </div>
-
-  {/* Welcome */}
-  <p className="mb-3 text-[13px] uppercase tracking-[0.34em] text-[#102347]/85 sm:text-[14px]">
-    Welcome back,
-  </p>
-
-  {/* Name */}
-  <h1 className="max-w-[760px] text-[2.2rem] font-extrabold leading-[0.95] text-[#102347] sm:text-[3rem] md:text-[3.6rem] xl:text-[4.5rem]">
-    {displayName || 'Welcome'}
-  </h1>
-
-  {/* underline */}
-  <div className="mt-5 h-[4px] w-[150px] rounded-full bg-gradient-to-r from-[#d4af37] via-[#ecd18a] to-transparent sm:w-[190px]" />
-
-  {/* Philosophy */}
-  <div className="mt-7 max-w-[760px] space-y-4 text-[16px] leading-[1.8] text-[#263654] sm:text-[17px] md:text-[18px]">
-    <p>
-      This is your living library. A quiet place for the people, moments,
-      and stories that continue shaping your life.
-    </p>
-    <p className="font-semibold text-[#b8921e]">
-      Built while life is happening, one memory at a time.
-    </p>
-  </div>
-
-  {/* ACTION PANEL */}
-  <div className="mt-10 max-w-[680px] rounded-[22px] border-[1.5px] border-[#d4af37]/35 bg-white/60 backdrop-blur-md p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-
-    {/* header */}
-    <div className="mb-4">
-      <h3 className="text-[16px] sm:text-[17px] font-semibold text-[#102347]">
-        Start adding to your living library
-      </h3>
-
-      <p className="mt-2 text-[14px] sm:text-[15px] leading-[1.7] text-[#52617b]">
-         Add someone important or upload a memory directly from your phone
-        into your living library.
-      </p>
-    </div>
-
-    {/* buttons */}
-    <div className="flex flex-col sm:flex-row gap-3">
-
-      {/* Preserve Loved One */}
-      <button
-        onClick={() => router.push('/dashboard/family?add=true')}
-        className="
-        group
-        w-full sm:w-[220px]
-        inline-flex items-center justify-center gap-2
-        rounded-full
-        bg-gradient-to-r from-[#E6C26E] via-[#F3D99B] to-[#E6C26E]
-        text-[#1F2837] font-semibold
-        px-5 py-2.5
-        text-[14px]
-        shadow-[0_12px_24px_rgba(212,175,55,0.25)]
-        transition duration-300
-        hover:-translate-y-[1px]
-        hover:shadow-[0_16px_30px_rgba(212,175,55,0.30)]
-        "
-      >
-        <HandHeart size={16} />
-        Add a Loved One
-      </button>
-
-      {/* Upload Memory */}
-      <button
-        onClick={() => router.push('/dashboard/library')}
-        className="
-        w-full sm:w-[220px]
-        inline-flex items-center justify-center gap-2
-        rounded-full
-        border border-[#102347]/12
-        bg-white/80
-        text-[#102347] font-semibold
-        px-5 py-2.5
-        text-[14px]
-        shadow-[0_8px_18px_rgba(16,35,71,0.08)]
-        transition duration-300
-        hover:border-[#d4af37]/40
-        hover:bg-white
-        "
-      >
-        <BookOpen size={16} />
-        Upload to My Library
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-          {/* RIGHT */}
-<div className="relative min-h-[470px] lg:min-h-[600px] flex flex-col items-center justify-center">
-
-  {/* TITLE */}
-  <div className="mb-6 text-center max-w-[380px]">
-
-    <h3 className="text-[22px] italic font-semibold text-[#102347]">
-  Your <span className="text-[#d4af37]">most meaningful memories</span>
-</h3>
-
-    <p className="mt-2 text-[14px] leading-[1.6] text-[#5c6980]">
-      Choose up to <span className="font-semibold text-[#102347]">five moments</span> that deserve to live here.  
-      Click any card to upload a memory.
-    </p>
-
-  </div>
-
-  {/* DESKTOP CAROUSEL */}
-  <div className="relative hidden lg:flex items-center justify-center w-full">
-
-    {/* LEFT ARROW */}
-    <button
-      onClick={prevMemory}
-      className="absolute left-0 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-[#102347]/10 bg-white shadow-md transition hover:bg-white"
-    >
-      <ArrowLeft size={18} />
-    </button>
-
-    {/* MEMORY CARD */}
-    <MemoryDropCard
-      index={activeMemory}
-      image={homeImages[activeMemory]}
-      placeholder={[
-        "A moment that changed everything. Add a memory that still means something.",
-        "Someone who shaped your world. Keep their story close.",
-        "A place or day that deserves to be remembered.",
-        "A memory that still makes you smile.",
-        "One moment you never want to lose."
-      ][activeMemory]}
-      className="relative w-[300px] xl:w-[340px] 2xl:w-[380px]"
-      innerHeightClass="h-[320px] xl:h-[360px] 2xl:h-[400px]"
-      onUpload={uploadHomeImage}
-    />
-
-    {/* RIGHT ARROW */}
-    <button
-      onClick={nextMemory}
-      className="absolute right-0 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-[#102347]/10 bg-white shadow-md transition hover:bg-white"
-    >
-      <ArrowRight size={18} />
-    </button>
-
-  </div>
-
-  {/* DOTS */}
-  <div className="hidden lg:flex mt-6 gap-2">
-    {[0,1,2,3,4].map((i) => (
-      <button
-        key={i}
-        onClick={() => setActiveMemory(i)}
-        className={`h-2.5 w-2.5 rounded-full transition ${
-          activeMemory === i
-            ? "bg-[#d4af37]"
-            : "bg-[#102347]/20"
-        }`}
-      />
-    ))}
-  </div>
-
-  {/* MOBILE WALL */}
-  <div className="relative grid grid-cols-1 gap-4 mt-8 w-full lg:hidden">
-
-    <MemoryDropCard
-      index={0}
-      image={homeImages[0]}
-      placeholder="A moment that changed everything. Add a memory that still means something."
-      className="relative w-full rotate-[-1deg]"
-      innerHeightClass="h-[220px]"
-      onUpload={uploadHomeImage}
-    />
-
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
-      <MemoryDropCard
-        index={1}
-        image={homeImages[1]}
-        placeholder="Someone who shaped your world. Keep their story close."
-        className="relative w-full rotate-[1deg]"
-        innerHeightClass="h-[220px]"
-        onUpload={uploadHomeImage}
-      />
-
-      <MemoryDropCard
-        index={2}
-        image={homeImages[2]}
-        placeholder="A place or day that deserves to be remembered."
-        className="relative w-full rotate-[-1deg]"
-        innerHeightClass="h-[220px]"
-        onUpload={uploadHomeImage}
-      />
-
-      <MemoryDropCard
-        index={3}
-        image={homeImages[3]}
-        placeholder="A memory that still makes you smile."
-        className="relative w-full rotate-[1deg]"
-        innerHeightClass="h-[220px]"
-        onUpload={uploadHomeImage}
-      />
-
-      <MemoryDropCard
-        index={4}
-        image={homeImages[4]}
-        placeholder="One moment you never want to lose."
-        className="relative w-full rotate-[-1deg]"
-        innerHeightClass="h-[220px]"
-        onUpload={uploadHomeImage}
-      />
-
-    </div>
-  </div>
-
-</div>
-          </div>
-        </section>
-
-       {/* SECOND ROW */}
-<section className="mt-8 w-full">
-
-  <div className="w-full overflow-hidden rounded-[32px] border border-[#d4af37]/15 bg-white/70 backdrop-blur-xl shadow-[0_28px_80px_rgba(16,35,71,0.10)]">
-
-    {/* HEADER */}
-    <div className="px-6 py-7 sm:px-8 border-b border-[#102347]/6">
-
-      <div className="flex items-center gap-4">
-
-        <div>
-          <p className="text-[16px] font-semibold uppercase tracking-[0.28em] text-[#b8921e]">
-            Begin here
-          </p>
-
-          <h2 className="mt-1 text-[26px] font-bold text-[#102347]">
-            Start building your living archive
-          </h2>
-
-          <p className="mt-2 max-w-[520px] text-[15px] leading-[1.7] text-[#55607a]">
-            Add the people, moments, and stories that shape your life.  
-            Each piece becomes part of a private library you continue building over time.
-          </p>
+      {/* RIGHT — ACTIVITY */}
+      <div className="relative overflow-hidden rounded-[26px] border border-[#dcc8a5] bg-[linear-gradient(180deg,#fffdfa_0%,#f7efe2_100%)] shadow-[0_16px_36px_rgba(22,18,12,0.08)]">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,#100b06_0%,#16100a_45%,#1a130c_100%)]" />
+          <div className="absolute right-[-50px] top-[70px] h-[130px] w-[130px] rounded-full bg-[#d4af37]/8 blur-3xl" />
         </div>
 
+        <div className="relative px-5 py-6 sm:px-6 sm:py-7 lg:px-7">
+          <div className="max-w-[420px]">
+            <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#a86f12]">
+              Recent activity
+            </p>
+
+            <h3 className="mt-3 font-serif text-[1.55rem] leading-[0.96] text-[#16120C] sm:text-[1.8rem] lg:text-[2.05rem]">
+              The latest
+              <br />
+              <span className="italic text-[#c99732]">changes you made.</span>
+            </h3>
+
+           <p className="mt-4 max-w-[340px] text-[12px] leading-[1.7] text-[#4b3f31] sm:text-[13px]">
+              A tighter view of what was added most recently.
+            </p>
+          </div>
+
+          {activity.length > 0 ? (
+            <div className="mt-6">
+              {activity.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className="grid grid-cols-[30px_1fr] gap-3 border-t border-[#e4d4bb] py-3.5 sm:grid-cols-[36px_1fr] sm:gap-4 sm:py-4"
+                >
+                  <div className="pt-1">
+                    <div className="text-[15px] font-semibold leading-none tracking-[-0.04em] text-[#c99732] sm:text-[17px]">
+                      {String(idx + 1).padStart(2, '0')}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="font-serif text-[16px] leading-[1.35] text-[#16120C] sm:text-[18px]">
+                      {item.action}
+                    </div>
+                    <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5f5142]">
+                      {formatDate(item.created_at)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="border-t border-[#ece2d2]" />
+            </div>
+          ) : (
+            <div className="mt-6 border-y border-[#ece2d2] py-5">
+              <div className="font-serif text-[16px] text-[#16120C] sm:text-[18px]">
+                No recent activity yet.
+              </div>
+              <div className="mt-2 max-w-[320px] text-[12px] leading-[1.7] text-[#786c5d]">
+                Once you start adding memories, updates will appear here.
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-
     </div>
-
-    {/* ACTION GRID */}
-    <div className="grid grid-cols-1 gap-5 p-6 sm:p-8 sm:grid-cols-2 xl:grid-cols-4">
-
-      {/* LOVED ONES */}
-      <ActionCard
-        icon={
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f7efda] text-[#102347] shadow-sm">
-            <HandHeart size={22} />
-          </div>
-        }
-        title="Loved Ones"
-        text="Create a place for the people who shaped your life and preserve the stories that belong to them."
-        button="Open Loved Ones"
-       onClick={() => {
-  router.push('/dashboard/family')
-  window.scrollTo(0, 0)
-}}
-      />
-
-      {/* TIMELINES */}
-      <ActionCard
-        icon={
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f7efda] text-[#102347] shadow-sm">
-            <Calendar size={22} />
-          </div>
-        }
-        title="Timelines"
-        text="Give memories a sense of time and meaning by organising moments across the journey of a life."
-        button="Open Timelines"
-        onClick={() => {
-  router.push('/dashboard/timeline')
-  setTimeout(() => window.scrollTo(0, 0), 0)
-}}
-      />
-
-      {/* CAPSULES */}
-      <ActionCard
-        icon={
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f7efda] text-[#102347] shadow-sm">
-            <Package size={22} />
-          </div>
-        }
-        title="Capsules"
-        text="Capture deeper stories, voice notes, and reflections that photos alone cannot hold."
-        button="Create Capsule"
-        onClick={() => {
-  router.push('/dashboard/capsules')
-  setTimeout(() => window.scrollTo(0, 0), 0)
-}}
-      />
-
-      {/* ALBUMS */}
-      <ActionCard
-        icon={
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f7efda] text-[#102347] shadow-sm">
-            <ImageIcon size={22} />
-          </div>
-        }
-        title="Albums"
-        text="Organise meaningful photographs into collections that are easy to revisit and share."
-        button="Open Albums"
-        onClick={() => {
-  router.push('/dashboard/albums')
-  setTimeout(() => window.scrollTo(0, 0), 0)
-}}
-      />
-
-    </div>
-
   </div>
-
 </section>
+    </div>
+  );
+}
 
-        {/* THIRD ROW */}
-<section className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
+function MetricBlock({
+  value,
+  label,
+  actionLabel,
+  onAction,
+}: {
+  value: number;
+  label: string;
+  actionLabel: string;
+  onAction?: () => void;
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-[24px] border border-[#dcc8a5] bg-[linear-gradient(180deg,#fffdfa_0%,#f6efe3_100%)] px-6 py-7 shadow-[0_12px_30px_rgba(22,18,12,0.08)] transition duration-300 hover:-translate-y-[2px] hover:shadow-[0_18px_38px_rgba(22,18,12,0.12)]">
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,#d4af37_0%,#ecd598_50%,#d4af37_100%)]" />
+      <div className="pointer-events-none absolute right-[-24px] top-[-24px] h-20 w-20 rounded-full bg-[#d4af37]/8 blur-2xl" />
 
-  {/* LEFT — MEMORY PROMPT */}
-  <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#fffdf8] via-[#f6efe2] to-[#efe6d5] border border-[#d4af37]/20 shadow-[0_30px_80px_rgba(16,35,71,0.12)]">
+      <div className="relative z-10">
+        <div className="text-[3.2rem] font-semibold leading-none tracking-[-0.06em] text-[#16120C] sm:text-[3.8rem]">
+          {value}
+        </div>
 
-    {/* soft glow */}
-    <div className="absolute -top-20 -left-20 h-[240px] w-[240px] rounded-full bg-[#d4af37]/10 blur-3xl" />
-
-    <div className="relative p-8 sm:p-10">
-
-      <p className="text-[12px] font-semibold uppercase tracking-[0.35em] text-[#b8921e]">
-        Memory prompt
-      </p>
-
-      <h2 className="mt-3 text-[28px] font-bold leading-[1.3] text-[#102347]">
-        Every family has one story that must never disappear.
-      </h2>
-
-      <p className="mt-5 max-w-[480px] text-[16px] leading-[1.9] text-[#4b5a73]">
-        Think of a moment that shaped your family.  
-        A tradition. A voice. A turning point.  
-        Start your living library with the memory that still matters most.
-      </p>
-
-      {/* divider */}
-      <div className="mt-8 h-[1px] w-full bg-gradient-to-r from-[#d4af37]/40 via-transparent to-transparent" />
-
-      {/* CTA */}
-      <div className="mt-8 flex flex-wrap gap-4">
+        <div className="mt-3 text-[17px] font-semibold text-[#231b14]">
+          {label}
+        </div>
 
         <button
-          onClick={() => router.push('/dashboard/library')}
-          className="
-          inline-flex items-center gap-2
-          rounded-full
-          bg-[#102347]
-          px-6 py-3
-          text-white font-semibold
-          shadow-[0_15px_35px_rgba(16,35,71,0.25)]
-          transition
-          hover:-translate-y-[2px]
-          "
+          type="button"
+          onClick={onAction}
+          className="mt-5 inline-flex items-center text-[14px] font-bold text-[#a86f12] transition hover:text-[#7d5306]"
         >
-          Add a Memory
-          <ArrowRight size={16} />
+          {actionLabel}
         </button>
       </div>
-
-    </div>
-  </div>
-
-
-  {/* RIGHT — HOW ANCESTORII WORKS */}
-  <div className="relative overflow-hidden rounded-[32px] border border-[#102347]/8 bg-white shadow-[0_25px_70px_rgba(16,35,71,0.10)]">
-
-    {/* top bar */}
-    <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#d4af37] via-[#ecd18a] to-[#d4af37]" />
-
-    <div className="p-8 sm:p-10">
-
-      <p className="text-[12px] font-semibold uppercase tracking-[0.35em] text-[#b8921e]">
-        Getting started
-      </p>
-
-      <h2 className="mt-3 text-[28px] font-bold text-[#102347]">
-        How Ancestorii works
-      </h2>
-
-      <p className="mt-4 text-[16px] leading-[1.9] text-[#52617b]">
-        Building a living library happens step by step.  
-        Start small, then continue adding memories over time.
-      </p>
-
-      {/* STEPS */}
-      <div className="mt-8 space-y-5">
-
-        <div className="flex items-start gap-3">
-  <span className="text-sm font-semibold text-[#102347]">1.</span>
-  <div>
-    <p className="font-semibold text-[#102347]">Add loved ones</p>
-    <p className="text-sm text-[#6b7280]">
-      Create a place for the people who shaped your life.
-    </p>
-  </div>
-</div>
-
-       <div className="flex items-start gap-3">
-  <span className="text-sm font-semibold text-[#102347]">2.</span>
-  <div>
-    <p className="font-semibold text-[#102347]">Upload memories</p>
-    <p className="text-sm text-[#6b7280]">
-      Add photos, moments and important events.
-    </p>
-  </div>
-</div>
-
-       <div className="flex items-start gap-3">
-  <span className="text-sm font-semibold text-[#102347]">3.</span>
-  <div>
-    <p className="font-semibold text-[#102347]">Create capsules</p>
-    <p className="text-sm text-[#6b7280]">
-      Capture deeper stories, reflections and voice notes.
-    </p>
-  </div>
-</div>
-
-      </div>
-
-      {/* coming soon */}
-      <div className="mt-8 rounded-[18px] border border-dashed border-[#d4af37]/35 bg-[#faf7ef] px-5 py-4 text-sm text-[#6b7280]">
-        Tutorials and walkthrough videos are coming soon.
-      </div>
-
-    </div>
-  </div>
-
-</section>
-      </div>
     </div>
   );
 }
 
-function PremiumMiniStat({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-[22px] border border-white/70 bg-white/72 px-4 py-4 shadow-[0_12px_28px_rgba(16,35,71,0.06)] backdrop-blur-sm">
-      <div className="flex items-center gap-2 text-[#b8921e]">{icon}</div>
-      <p className="mt-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-[#7c8798]">
-        {label}
-      </p>
-      <p className="mt-1 text-lg font-bold text-[#102347]">{value}</p>
-    </div>
-  );
-}
+function AvatarInitial({ name }: { name: string }) {
+  const initial = name?.trim()?.[0]?.toUpperCase() || '?';
 
-function ActionCard({
-  icon,
-  title,
-  text,
-  button,
-  onClick,
-}: {
-  icon: React.ReactNode
-  title: string
-  text: string
-  button: string
-  onClick: () => void
-}) {
+  const styles = [
+    'bg-[#f2e3bf] text-[#8b6520]',
+    'bg-[#e6efe7] text-[#2f6a42]',
+    'bg-[#ece7f6] text-[#56419a]',
+    'bg-[#f4e5dc] text-[#95563d]',
+  ];
+
+  const picked = styles[(initial.charCodeAt(0) || 0) % styles.length];
+
   return (
     <div
-      className="
-      group
-      relative
-      rounded-[26px]
-border-[2px] border-[#d4af37]/40
-bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(249,246,239,0.92))]
-      p-6
-      text-left
-      shadow-[0_18px_40px_rgba(16,35,71,0.06)]
-      transition
-      duration-300
-      hover:-translate-y-[4px]
-      hover:shadow-[0_28px_60px_rgba(16,35,71,0.12)]
-      hover:border-[#d4af37]/35
-      "
+      className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ring-1 ring-[#e4d3b2] font-serif text-[19px] ${picked}`}
     >
-
-      {/* gold glow */}
-      <div className="
-        pointer-events-none
-        absolute inset-0
-        rounded-[26px]
-        opacity-0
-        transition
-        duration-300
-        group-hover:opacity-100
-        bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.12),transparent_60%)]
-      " />
-
-      {/* icon */}
-      <div className="mb-4 transition duration-300 group-hover:scale-[1.05]">
-        {icon}
-      </div>
-
-      {/* title */}
-      <h3 className="text-[18px] font-bold text-[#102347]">
-        {title}
-      </h3>
-
-      {/* description */}
-      <p className="mt-2 text-[14.5px] leading-[1.8] text-[#55607a]">
-        {text}
-      </p>
-
-      {/* button */}
-      <button
-        onClick={onClick}
-        className="
-        mt-5
-        inline-flex
-        items-center
-        gap-2
-        text-[14px]
-        font-semibold
-        text-[#102347]
-        transition
-        group-hover:text-[#b8921e]
-        "
-      >
-        {button}
-        <ArrowRight
-          size={15}
-          className="transition group-hover:translate-x-[3px]"
-        />
-      </button>
-    </div>
-  )
-}
-
-function PhilosophyLine({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4 rounded-[18px] border border-white/10 bg-white/6 px-4 py-3">
-      <span className="text-sm font-semibold text-[#f3d99b]">{label}</span>
-      <span className="max-w-[250px] text-right text-sm leading-[1.6] text-white/75">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function DestinationCard({
-  title,
-  text,
-  icon,
-  onClick,
-}: {
-  title: string;
-  text: string;
-  icon: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="group rounded-[24px] border border-[#102347]/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(248,244,236,0.90))] p-5 text-left shadow-[0_16px_36px_rgba(16,35,71,0.06)] transition duration-300 hover:-translate-y-1 hover:border-[#d4af37]/24 hover:shadow-[0_20px_44px_rgba(16,35,71,0.10)]"
-    >
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f5ecd3] text-[#102347] shadow-sm">
-        {icon}
-      </div>
-      <h3 className="mt-4 text-lg font-bold text-[#102347]">{title}</h3>
-      <p className="mt-2 text-sm leading-[1.8] text-[#52617b]">{text}</p>
-      <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#102347]">
-        Open
-        <ArrowRight
-          size={14}
-          className="transition duration-300 group-hover:translate-x-0.5"
-        />
-      </div>
-    </button>
-  );
-}
-
-function FloatingStoryTile({
-  icon,
-  title,
-  text,
-  className,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  text: string;
-  className: string;
-}) {
-  return (
-    <div
-      className={`absolute z-20 max-w-[220px] rounded-[22px] border border-white/70 bg-white/82 px-4 py-3 shadow-[0_18px_36px_rgba(16,35,71,0.10)] backdrop-blur-md ${className}`}
-    >
-      <div className="flex items-center gap-2 text-[#b8921e]">{icon}</div>
-      <p className="mt-2 text-sm font-bold text-[#102347]">{title}</p>
-      <p className="mt-1 text-xs leading-[1.7] text-[#5c6980]">{text}</p>
+      {initial}
     </div>
   );
 }
@@ -845,71 +637,67 @@ function MemoryDropCard({
   placeholder: string;
   className: string;
   innerHeightClass: string;
-  onUpload: (file: File, index: number) => void;
+  onUpload: (file: File, index: number) => void | Promise<void>;
 }) {
   const [loaded, setLoaded] = useState(false);
-  const [uploading, setUploading] = useState(false)
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [image]);
 
   return (
     <label
-      className={`relative overflow-hidden rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(243,237,227,0.92))] p-3 shadow-[0_24px_60px_rgba(16,35,71,0.14)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(16,35,71,0.18)] ${className}`}
+      className={`group relative block overflow-hidden rounded-[22px] bg-transparent p-0 shadow-none transition duration-300 ${className}`}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
         const f = e.dataTransfer.files?.[0];
         if (f) {
-  setLoaded(false)
-  setUploading(true)
-  onUpload(f, index)
-}
+          setLoaded(false);
+          setUploading(true);
+          Promise.resolve(onUpload(f, index)).finally(() => {
+            setUploading(false);
+          });
+        }
       }}
     >
-      <div className="mb-2 flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#d4af37]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ead8a0]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#102347]/20" />
-        </div>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7d8695]">
-          Pinned memory
-        </span>
-      </div>
-
       <div
-        className={`relative overflow-hidden rounded-[22px] border border-[#102347]/6 bg-[#f3ede3] ${innerHeightClass}`}
+        className={`relative overflow-hidden rounded-[22px] border border-[#102347]/6 bg-[#efe6d8] ${innerHeightClass}`}
       >
         {uploading && (
-  <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-    <div className="h-12 w-12 animate-spin rounded-full border-[3px] border-[#d4af37]/40 border-t-[#d4af37]" />
-  </div>
-)}
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+            <div className="h-12 w-12 animate-spin rounded-full border-[3px] border-[#d4af37]/35 border-t-[#d4af37]" />
+          </div>
+        )}
+
         {image ? (
           <div className="relative h-full w-full">
             <Image
               src={image}
               alt=""
               fill
-              sizes="(max-width: 1024px) 100vw, 320px"
-              className={`object-cover transition-opacity duration-300 ${
+              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 70vw, 620px"
+              className={`object-contain bg-[#efe6d8] transition-opacity duration-300 ${
                 loaded ? 'opacity-100' : 'opacity-0'
               }`}
-              priority={index === 0}
+              priority
               onLoadingComplete={() => {
-              setLoaded(true)
-              setUploading(false)
+                setLoaded(true);
+                setUploading(false);
               }}
             />
-            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/35 via-black/8 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/24 via-black/5 to-transparent" />
           </div>
         ) : (
           <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/80 text-[#102347] shadow-sm">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#102347] shadow-[0_10px_20px_rgba(16,35,71,0.08)]">
               <Plus size={20} />
             </div>
-            <p className="text-base font-semibold leading-[1.5] text-[#102347]">
+            <p className="text-[18px] sm:text-[20px] font-semibold leading-[1.45] text-[#102347]">
               {placeholder.split('.')[0]}.
             </p>
-            <p className="mt-2 text-sm leading-[1.7] text-[#6b7280]">
+            <p className="mt-3 text-[14px] sm:text-[15px] leading-[1.75] text-[#4f5e77]">
               {placeholder.split('.').slice(1).join('.')}
             </p>
           </div>
@@ -923,12 +711,33 @@ function MemoryDropCard({
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) {
-  setLoaded(false)
-  setUploading(true)
-  onUpload(f, index)
-}
+            setLoaded(false);
+            setUploading(true);
+            Promise.resolve(onUpload(f, index)).finally(() => {
+              setUploading(false);
+            });
+          }
         }}
       />
     </label>
   );
+}
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (days <= 0) return 'Today';
+  if (days === 1) return '1 day ago';
+  if (days < 7) return `${days} days ago`;
+  if (days < 14) return '1 week ago';
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 }

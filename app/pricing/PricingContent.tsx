@@ -3,7 +3,7 @@
 import Link from 'next/link';
 
 const tableRows = [
-  { label: 'Storage', free: '5GB', premium: '500GB' },
+  { label: 'Storage', free: '5GB', premium: '50GB' },
   { label: 'Timelines', free: '1', premium: 'Unlimited' },
   { label: 'Albums', free: '1', premium: 'Unlimited' },
   { label: 'Capsules', free: '1', premium: 'Unlimited' },
@@ -15,8 +15,9 @@ const tableRows = [
 
 export default function PricingPage() {
 
-  const price = '£9.99';
-  const billingNote = 'Upgrade when you are ready to preserve more of your family library.';
+  const price = '£49';
+  const billingNote =
+  'One simple yearly membership for families who want to preserve more memories beautifully.';
 
   return (
     <div className="bg-[#FFFDF6] text-[#0F2040]">
@@ -153,8 +154,8 @@ export default function PricingPage() {
                   </h2>
 
                   <p className="mt-5 max-w-[31rem] text-base leading-relaxed text-[#0F2040]/62 sm:text-lg">
-                    Premium is for families who want to preserve more properly, with room for more memories,
-                    longer moments and no limit on the timelines, albums and capsules you create.
+                    Premium is for families who want to preserve more memories, unlock unlimited creations,
+                    and keep building their story all year round.
                   </p>
 
                   <div className="mt-9 h-px w-full max-w-2xl bg-gradient-to-r from-[#D4AF37]/50 via-[#D4AF37]/20 to-transparent" />
@@ -163,7 +164,7 @@ export default function PricingPage() {
                     {[
                       {
                         label: 'Storage',
-                        value: '500GB',
+                        value: '50GB',
                         sub: 'Photos, videos and voice notes',
                       },
                       {
@@ -237,7 +238,7 @@ export default function PricingPage() {
                           {price}
                         </span>
                         <span className="pb-3 text-sm text-[#0F2040]/45 sm:text-base">
-                          / month
+                          / year
                         </span>
                       </div>
 
@@ -247,10 +248,10 @@ export default function PricingPage() {
 
                       <div className="mt-6 flex flex-wrap gap-2.5">
                         <span className="rounded-full border border-[#D9C27B]/40 bg-white/70 px-4 py-1.5 text-xs font-semibold text-[#8B6914]">
-                          €11.99 EUR
+                          €59 / year
                         </span>
                         <span className="rounded-full border border-[#D9C27B]/40 bg-white/70 px-4 py-1.5 text-xs font-semibold text-[#8B6914]">
-                          $12.99 USD
+                          $69 / year
                         </span>
                       </div>
 
@@ -264,12 +265,11 @@ export default function PricingPage() {
 
                       <div className="mt-8 rounded-[1.35rem] border border-[#D8C9F2]/60 bg-[linear-gradient(180deg,#EEE7FB_0%,#E7DDF8_100%)] px-5 py-5">
   <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#7D5AA8]">
-    Included with your first upgrade
+    Premium Member Perk
   </p>
-  <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/75 sm:text-[15px]">
-    Your first physical memory book will be free — so your family’s memories can
-    live on a real shelf too.
-  </p>
+ <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/75 sm:text-[15px]">
+  Enjoy exclusive discounts on printed memory books, so your family’s memories can live on a real shelf too.
+ </p>
 </div>
                     </div>
 
@@ -282,7 +282,7 @@ export default function PricingPage() {
                       </Link>
 
                       <p className="mt-4 text-center text-xs leading-relaxed text-[#0F2040]/40">
-                        No card required · Upgrade when you are ready to preserve more.
+                        No card required · Upgrade anytime to preserve more memories.
                       </p>
                     </div>
                   </div>
@@ -335,7 +335,7 @@ export default function PricingPage() {
                       Start for free today.
                     </h3>
                     <p className="mt-3 max-w-xs text-base leading-relaxed text-[#0F2040]/68 sm:max-w-none">
-                       Build your library now, then move to Premium when you are ready to preserve more of your family story.
+                       Build your library now, then upgrade anytime when your family story grows.
                     </p>
                   </div>
 

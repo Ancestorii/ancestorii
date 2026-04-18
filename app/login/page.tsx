@@ -125,7 +125,7 @@ const handleGoogleLogin = async () => {
           Log in
         </h1>
         <p className="text-sm text-slate-600 mb-6">
-          Welcome back. Continue building your legacy.
+          Welcome back. Continue building your library.
         </p>
         {/* Google Login */}
 <button

@@ -290,9 +290,9 @@ useEffect(() => {
 
       {/* ---------- MAIN UI ---------- */}
       {!loading && !membersLoading && members.length > 0 && (
-        <div className="relative z-10 px-6 sm:px-12 lg:px-16 pt-12 pb-16 max-w-[1700px] mx-auto">
+        <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
          {/* ✅ REPLACE YOUR HEADER WITH THIS (1:1 Albums header, just “Loved Ones”) */}
-<div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-14">
+<div className="flex flex-col md:flex-row md:items-end md:justify-start gap-6 mb-14">
   <div className="text-center md:text-left flex-1">
     <h1 className="text-4xl md:text-5xl font-bold text-[#222B3A] mb-4 relative inline-block">
       <span className="relative">

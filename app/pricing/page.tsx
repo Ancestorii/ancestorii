@@ -7,7 +7,7 @@ import PricingContent from './PricingContent';
 export const metadata: Metadata = {
   title: 'Pricing | Ancestorii',
   description:
-    'Start building your private living family library for free. Transparent plans designed to grow with your memories, stories and legacy.',
+    'Start building your private family library for free. Upgrade to Premium yearly membership to preserve more memories, stories and legacy.',
   alternates: {
     canonical: 'https://www.ancestorii.com/pricing',
   },
@@ -25,20 +25,40 @@ export default function PricingPage() {
           operatingSystem: 'All',
           url: 'https://www.ancestorii.com',
           description:
-            'Ancestorii is a private living family library where you can build timelines, albums and capsules to preserve memories for future generations.',
-          offers: {
-            '@type': 'AggregateOffer',
-            url: 'https://www.ancestorii.com/pricing',
-            priceCurrency: 'GBP',
-            lowPrice: '0',
-            highPrice: '9.99',
-            offerCount: '2',
-            availability: 'https://schema.org/InStock',
-          },
+            'Ancestorii is a private family library where you can build timelines, albums and capsules to preserve memories for future generations.',
+          offers: [
+            {
+              '@type': 'Offer',
+              url: 'https://www.ancestorii.com/pricing',
+              priceCurrency: 'GBP',
+              price: '49',
+              availability: 'https://schema.org/InStock',
+              category: 'Premium yearly membership',
+              name: 'Ancestorii Premium - GBP',
+            },
+            {
+              '@type': 'Offer',
+              url: 'https://www.ancestorii.com/pricing',
+              priceCurrency: 'EUR',
+              price: '59',
+              availability: 'https://schema.org/InStock',
+              category: 'Premium yearly membership',
+              name: 'Ancestorii Premium - EUR',
+            },
+            {
+              '@type': 'Offer',
+              url: 'https://www.ancestorii.com/pricing',
+              priceCurrency: 'USD',
+              price: '69',
+              availability: 'https://schema.org/InStock',
+              category: 'Premium yearly membership',
+              name: 'Ancestorii Premium - USD',
+            },
+          ],
         })}
       </Script>
 
-      <main className="bg-[#FFFDF6] text-[#0F2040] min-h-screen">
+      <main className="min-h-screen bg-[#FFFDF6] text-[#0F2040]">
         <Nav />
         <PricingContent />
         <Footer />

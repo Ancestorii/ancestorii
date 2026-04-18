@@ -46,6 +46,47 @@ serve(async (req) => {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
+      // ── BOOK ORDER (one-time payment) ──
+      if (session.metadata?.type === "book_order") {
+        const orderId = session.metadata?.order_id;
+        const bookId = session.metadata?.book_id;
+        const userId = session.metadata?.user_id;
+
+        if (!orderId || !bookId || !userId) {
+          return new Response("Missing book order metadata", { status: 200 });
+        }
+
+        // Extract shipping address from Stripe
+        const shipping = session.shipping_details ?? session.customer_details;
+        const address = shipping?.address;
+
+        await supabase
+          .from("orders")
+          .update({
+            payment_status: "paid",
+            status: "paid",
+            paid_at: new Date().toISOString(),
+            stripe_payment_intent: session.payment_intent,
+            shipping_name: shipping?.name ?? null,
+            shipping_line1: address?.line1 ?? null,
+            shipping_line2: address?.line2 ?? null,
+            shipping_city: address?.city ?? null,
+            shipping_state: address?.state ?? null,
+            shipping_postal: address?.postal_code ?? null,
+            shipping_country: address?.country ?? null,
+          })
+          .eq("id", orderId);
+
+        // Update book status
+        await supabase
+          .from("memory_books")
+          .update({ status: "ordered" })
+          .eq("id", bookId);
+
+        return new Response("Book order handled", { status: 200 });
+      }
+
+      // ── SUBSCRIPTION (existing logic) ──
       const userId =
         session.metadata?.user_id ?? session.client_reference_id;
       const planName = session.metadata?.plan;

@@ -27,7 +27,6 @@ export const booksLinks = [
 ];
 
 export const accountLinks = [
-  { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/plans", label: "Plans", icon: CreditCard },
   { href: "/dashboard/help", label: "Support", icon: HelpCircle },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },

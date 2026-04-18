@@ -127,7 +127,7 @@ setTimelines(signed);
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
 
-      <div className="relative z-10 px-6 sm:px-12 lg:px-16 pt-12 pb-24 max-w-[1700px] mx-auto">
+       <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
         {/* header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
           <div className="text-center md:text-left flex-1">

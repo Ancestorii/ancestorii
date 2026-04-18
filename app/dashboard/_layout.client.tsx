@@ -7,7 +7,6 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 
 import { memoriesLinks, booksLinks, accountLinks } from "@/lib/dashboardNavigation";
 import SidebarContent from "@/components/dashboard/SidebarContent";
-import TopNavbar from "@/components/dashboard/TopNavbar";
 import BottomNavigation from "@/components/dashboard/BottomNavigation";
 import { motion, AnimatePresence } from "framer-motion";
 import ProgressBar from '@/components/ProgressBar';
@@ -32,9 +31,13 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [memoriesOpen, setMemoriesOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [planName, setPlanName] = useState<'Free' | 'Premium'>('Free');
+
 
   const router = useRouter();
   const pathname = usePathname();
+  const hideSidebar = /\/dashboard\/\w+\/[^/]+/.test(pathname);
   useEffect(() => {
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
 }, [pathname]);
@@ -97,6 +100,40 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   useEffect(() => {
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+  const loadSidebarData = async () => {
+    const supabase = getBrowserClient();
+
+    const { data: authResp } = await supabase.auth.getUser();
+    const uid = authResp?.user?.id;
+
+    if (!uid) return;
+
+    const { data: sub } = await supabase
+      .from('subscriptions')
+      .select('plan_id, status, cancel_at_period_end, current_period_end')
+      .eq('user_id', uid)
+      .maybeSingle();
+
+    const { data: plans } = await supabase
+      .from('plans')
+      .select('id, name');
+
+    const matchedPlan = plans?.find((p) => p.id === sub?.plan_id);
+
+    const isPremium =
+      matchedPlan?.name === 'Premium' &&
+      sub?.status === 'active' &&
+      sub?.cancel_at_period_end === false &&
+      (!sub?.current_period_end ||
+        new Date(sub.current_period_end) > new Date());
+
+    setPlanName(isPremium ? 'Premium' : 'Free');
+  };
+
+  loadSidebarData();
+}, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -271,33 +308,56 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     <ProgressBar />
 
     <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
-    <TopNavbar
-      scrolled={scrolled}
-      fullName={fullName}
-      userEmail={userEmail}
-      avatarUrl={avatarUrl}
-      handleLogout={handleLogout}
-    />
 
     {/* ---------- Sidebar ---------- */}
-    <aside
-      className={`fixed top-0 left-0 z-[150] xl:z-40 w-[270px] h-screen bg-gradient-to-br from-[#0F2040] to-[#182C54] shadow-[4px_0_25px_rgba(15,32,64,0.25)] rounded-br-3xl overflow-y-auto overscroll-contain ${
-        drawerOpen ? 'block' : 'hidden xl:block'
-      }`}
-    >
-      <SidebarContent
-        closeDrawer={() => {
-          if (typeof window !== 'undefined' && window.innerWidth < 1280) {
-            setDrawerOpen(false);
-          }
-        }}
-      />
-    </aside>
+{!hideSidebar && (
+<aside
+  className={`
+    fixed top-0 left-0 z-[150] xl:z-40 h-screen
+    ${collapsed ? 'w-[80px]' : 'w-[240px]'}
 
-    <main className="pt-20 md:pt-28 px-4 md:px-8 xl:ml-64 transition-all duration-300">
-      {children}
-    </main>
+    bg-[linear-gradient(180deg,#0F1A2E_0%,#162844_70%,#1E355A_100%)]
+    shadow-[4px_0_25px_rgba(15,32,64,0.25)]
+    overflow-hidden
+    pointer-events-auto
 
+    ${drawerOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 xl:translate-x-0 xl:opacity-100'}
+
+    ${drawerOpen 
+      ? 'transition-[transform,opacity] duration-600 ease-[cubic-bezier(0.16,1,0.3,1)]' 
+      : 'transition-[transform,opacity] duration-120 ease-in'
+    }
+
+    xl:transition-[width] xl:duration-300 xl:ease-[cubic-bezier(0.25,0.46,0.45,0.94)]
+    will-change-transform transform-gpu
+  `}
+>
+  <SidebarContent
+  collapsed={collapsed}
+  setCollapsed={setCollapsed}
+  closeDrawer={() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+      setDrawerOpen(false);
+    }
+  }}
+
+  fullName={fullName}
+  userEmail={userEmail}
+  avatarUrl={avatarUrl}
+  planName={planName}
+  handleLogout={handleLogout}
+/>
+</aside>
+)}
+<main
+  className={`
+    ${hideSidebar ? '' : collapsed ? 'xl:ml-[80px]' : 'xl:ml-[240px]'}
+    min-h-screen
+    bg-[#F7F3EC]
+  `}
+>
+  {children}
+</main>
     {/* ================= MEMORIES ================= */}
     <AnimatePresence>
       {memoriesOpen && (
