@@ -17,6 +17,8 @@ export default function DashboardHomeClient({
   homeImages,
   activeMemory,
   pinnedCount,
+  showDesktopToast,
+  onDismissDesktopToast,
   onNextMemory,
   onPrevMemory,
   onSetActiveMemory,
@@ -114,9 +116,50 @@ export default function DashboardHomeClient({
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#fbf8f1_0%,#f6f0e5_50%,#f7f1e8_100%)] text-[#20180f]">
+      {showDesktopToast && (
+  <div
+    className="fixed inset-0 z-[9999] flex items-end justify-center p-4 sm:hidden"
+    style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(6px)' }}
+  >
+    <div
+      style={{
+        background: '#FDFAF5',
+        borderRadius: 20,
+        padding: '28px 24px 24px',
+        width: '100%',
+        maxWidth: 360,
+        textAlign: 'center',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
+        marginBottom: 12,
+      }}
+    >
+      <p style={{ fontSize: 15, fontWeight: 600, color: '#1A1714', lineHeight: 1.5 }}>
+        Your memories deserve a bigger canvas.
+      </p>
+      <p style={{ fontSize: 13, color: '#6B6358', marginTop: 6, lineHeight: 1.5 }}>
+        Switch to a laptop or tablet for the full experience.
+      </p>
+      <button
+        onClick={onDismissDesktopToast}
+        style={{
+          marginTop: 18,
+          fontSize: 13,
+          fontWeight: 700,
+          color: '#B8860B',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        I'll explore for now
+      </button>
+    </div>
+  </div>
+)}
       {/* ======================================== */}
       {/* TOP STRIP */}
       {/* ======================================== */}
+
       <section className="relative overflow-hidden bg-[linear-gradient(90deg,#100b06_0%,#16100a_45%,#1a130c_100%)]">
   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(171,130,50,0.12),transparent_35%),radial-gradient(circle_at_right,rgba(255,255,255,0.03),transparent_25%)]" />
 
