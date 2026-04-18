@@ -19,6 +19,8 @@ serve(async (req) => {
     const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     const SUPABASE_URL = Deno.env.get("NEXT_PUBLIC_SUPABASE_URL");
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const FULFILL_SECRET = Deno.env.get("FULFILL_SECRET");
+    const SITE = Deno.env.get("NEXT_PUBLIC_SITE_URL") ?? "https://www.ancestorii.com";
 
     if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
       throw new Error("Missing Stripe environment variables");
@@ -83,10 +85,34 @@ serve(async (req) => {
           .update({ status: "ordered" })
           .eq("id", bookId);
 
+        // ── TRIGGER FULFILLMENT ──
+        try {
+          const fulfillUrl = `${SITE}/api/fulfill/${bookId}`;
+
+          const fulfillRes = await fetch(fulfillUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-fulfill-secret": FULFILL_SECRET || "",
+            },
+            body: JSON.stringify({ order_id: orderId }),
+          });
+
+          if (!fulfillRes.ok) {
+            const errText = await fulfillRes.text();
+            console.error("Fulfill trigger failed:", fulfillRes.status, errText);
+          } else {
+            console.log("Fulfill triggered successfully for order:", orderId);
+          }
+        } catch (fulfillErr) {
+          // Don't fail the webhook — order is paid, fulfillment can be retried
+          console.error("Fulfill trigger error:", fulfillErr);
+        }
+
         return new Response("Book order handled", { status: 200 });
       }
 
-      // ── SUBSCRIPTION (existing logic) ──
+      // ── SUBSCRIPTION (existing logic — untouched) ──
       const userId =
         session.metadata?.user_id ?? session.client_reference_id;
       const planName = session.metadata?.plan;
