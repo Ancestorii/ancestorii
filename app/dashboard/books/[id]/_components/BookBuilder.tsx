@@ -90,19 +90,43 @@ export default function BookBuilder({
     );
   };
 
-  return (
-    <>
-      <BookCanvas
-        bookId={bookId}
-        pages={sortedPages}
-        selectedImage={selectedImage}
-        setSelectedImage={setSelectedImage}
-        onOpenLayoutModal={handleSetLayout}
-        onUpdateAsset={handleUpdateAsset}
-        bookTitle={bookTitle}
-        tierKey={tierKey}
-        onUpdatePage={handleUpdatePage}
-      />
-    </>
+ return (
+    <div style={{ height: '100%' }}>
+      <div
+        className="flex lg:hidden"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          background: '#FDFAF5',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '32px 24px',
+          textAlign: 'center',
+        }}
+      >
+        <svg width="48" height="48" fill="none" stroke="#d4af37" strokeWidth="1.5" viewBox="0 0 24 24" style={{ marginBottom: 24 }}>
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8M12 17v4" />
+        </svg>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1A1714', marginBottom: 8 }}>Bigger screen needed</h2>
+        <p style={{ fontSize: 14, color: '#6B6358', lineHeight: 1.6, maxWidth: 320 }}>The book builder works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to build your memory book.</p>
+        <a href="/dashboard/books" style={{ marginTop: 24, padding: '10px 24px', borderRadius: 10, background: '#1A1714', color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Back to Books</a>
+      </div>
+      <div className="hidden lg:block" style={{ height: '100%' }}>
+        <BookCanvas
+          bookId={bookId}
+          pages={sortedPages}
+          selectedImage={selectedImage}
+          setSelectedImage={setSelectedImage}
+          onOpenLayoutModal={handleSetLayout}
+          onUpdateAsset={handleUpdateAsset}
+          bookTitle={bookTitle}
+          tierKey={tierKey}
+          onUpdatePage={handleUpdatePage}
+        />
+      </div>
+    </div>
   );
 }
