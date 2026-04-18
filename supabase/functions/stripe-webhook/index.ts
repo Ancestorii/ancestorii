@@ -9,6 +9,161 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// ── Email helper ──
+async function sendEmail(to: string, subject: string, html: string) {
+  const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+  if (!RESEND_API_KEY) {
+    console.error("Missing RESEND_API_KEY — skipping email");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Ancestorii <support@ancestorii.com>",
+        to: [to],
+        subject,
+        html,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Resend error:", res.status, err);
+    }
+  } catch (err) {
+    console.error("Email send failed:", err);
+  }
+}
+
+// ── Email templates ──
+function premiumUpgradeEmail(name: string): { subject: string; html: string } {
+  return {
+    subject: "Welcome to Ancestorii Premium",
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="margin:0; padding:0; background:#FDFAF5; font-family:Arial, sans-serif;">
+  <div style="max-width:560px; margin:0 auto; padding:48px 24px;">
+    
+    <div style="text-align:center; margin-bottom:32px;">
+      <div style="width:48px; height:3px; background:#d4af37; border-radius:2px; margin:0 auto 20px;"></div>
+      <h1 style="font-size:24px; font-weight:800; color:#1A1714; letter-spacing:-0.02em; margin:0 0 8px;">
+        Welcome to Premium
+      </h1>
+      <p style="font-size:14px; color:#6B6358; margin:0;">
+        Your upgrade is confirmed.
+      </p>
+    </div>
+
+    <div style="background:#FFFFFF; border:1px solid #E8E4DC; border-radius:16px; padding:32px 28px; margin-bottom:24px;">
+      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
+        Hi${name ? ` ${name}` : ''},
+      </p>
+      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
+        Thank you for upgrading to Ancestorii Premium. You now have access to expanded storage and all premium features to preserve and share your family's most precious memories.
+      </p>
+      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
+        Your subscription is active and will renew automatically each year. You can manage it anytime from your Plans page.
+      </p>
+      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0;">
+        If you have any questions, just reply to this email.
+      </p>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="https://www.ancestorii.com/dashboard/home" 
+         style="display:inline-block; padding:12px 32px; background:#1A1714; color:#FFFFFF; font-size:14px; font-weight:700; text-decoration:none; border-radius:10px;">
+        Go to Dashboard
+      </a>
+    </div>
+
+    <div style="text-align:center; margin-top:40px; padding-top:24px; border-top:1px solid #E8E4DC;">
+      <p style="font-size:11px; color:#A39B8F; margin:0;">
+        Ancestorii · Preserving what matters most
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>`,
+  };
+}
+
+function bookOrderEmail(name: string, bookTitle: string, tierName: string): { subject: string; html: string } {
+  return {
+    subject: `Your memory book order is confirmed`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="margin:0; padding:0; background:#FDFAF5; font-family:Arial, sans-serif;">
+  <div style="max-width:560px; margin:0 auto; padding:48px 24px;">
+    
+    <div style="text-align:center; margin-bottom:32px;">
+      <div style="width:48px; height:3px; background:#d4af37; border-radius:2px; margin:0 auto 20px;"></div>
+      <h1 style="font-size:24px; font-weight:800; color:#1A1714; letter-spacing:-0.02em; margin:0 0 8px;">
+        Your Book Is on Its Way
+      </h1>
+      <p style="font-size:14px; color:#6B6358; margin:0;">
+        Order confirmed. We're making it real.
+      </p>
+    </div>
+
+    <div style="background:#FFFFFF; border:1px solid #E8E4DC; border-radius:16px; padding:32px 28px; margin-bottom:24px;">
+      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
+        Hi${name ? ` ${name}` : ''},
+      </p>
+      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
+        Thank you for your order. Your memory book <strong>"${bookTitle}"</strong> (${tierName}) is now being prepared for print.
+      </p>
+      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
+        Here's what happens next:
+      </p>
+      <div style="background:#FBF6EA; border-radius:10px; padding:16px 20px; margin:0 0 16px;">
+        <p style="font-size:13px; color:#1A1714; line-height:1.7; margin:0;">
+          <strong style="color:#B8860B;">1.</strong> We prepare your book for printing<br/>
+          <strong style="color:#B8860B;">2.</strong> Your book is printed on premium 200gsm gloss pages<br/>
+          <strong style="color:#B8860B;">3.</strong> Bound in a hardcover matte finish<br/>
+          <strong style="color:#B8860B;">4.</strong> Shipped directly to your door — free worldwide
+        </p>
+      </div>
+      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0;">
+        You can track your order anytime in the <strong>Orders</strong> section inside Ancestorii.
+      </p>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="https://www.ancestorii.com/dashboard/orders" 
+         style="display:inline-block; padding:12px 32px; background:#1A1714; color:#FFFFFF; font-size:14px; font-weight:700; text-decoration:none; border-radius:10px;">
+        Track Your Order
+      </a>
+    </div>
+
+    <div style="text-align:center; margin-top:40px; padding-top:24px; border-top:1px solid #E8E4DC;">
+      <p style="font-size:11px; color:#A39B8F; margin:0;">
+        Ancestorii · Preserving what matters most
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>`,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
@@ -85,6 +240,30 @@ serve(async (req) => {
           .update({ status: "ordered" })
           .eq("id", bookId);
 
+        // ── SEND BOOK ORDER EMAIL ──
+        try {
+          const customerEmail = session.customer_details?.email ?? session.customer_email;
+          const customerName = shipping?.name ?? session.customer_details?.name ?? "";
+
+          if (customerEmail) {
+            const { data: bookData } = await supabase
+              .from("memory_books")
+              .select("title, tier_name")
+              .eq("id", bookId)
+              .maybeSingle();
+
+            const email = bookOrderEmail(
+              customerName,
+              bookData?.title ?? "Memory Book",
+              bookData?.tier_name ?? "Memory Book"
+            );
+
+            await sendEmail(customerEmail, email.subject, email.html);
+          }
+        } catch (emailErr) {
+          console.error("Book order email failed:", emailErr);
+        }
+
         // ── TRIGGER FULFILLMENT ──
         try {
           const fulfillUrl = `${SITE}/api/fulfill/${bookId}`;
@@ -105,7 +284,6 @@ serve(async (req) => {
             console.log("Fulfill triggered successfully for order:", orderId);
           }
         } catch (fulfillErr) {
-          // Don't fail the webhook — order is paid, fulfillment can be retried
           console.error("Fulfill trigger error:", fulfillErr);
         }
 
@@ -149,6 +327,19 @@ serve(async (req) => {
         },
         { onConflict: "user_id" }
       );
+
+      // ── SEND PREMIUM UPGRADE EMAIL ──
+      try {
+        const customerEmail = session.customer_details?.email ?? session.customer_email;
+        const customerName = session.customer_details?.name ?? "";
+
+        if (customerEmail) {
+          const email = premiumUpgradeEmail(customerName);
+          await sendEmail(customerEmail, email.subject, email.html);
+        }
+      } catch (emailErr) {
+        console.error("Premium email failed:", emailErr);
+      }
 
       return new Response("Checkout handled", { status: 200 });
     }
