@@ -553,16 +553,23 @@ const filled = pages.filter((page) =>
   tierKey={tierKey}
   onPreview={() => setPreviewOpen(true)}
   onExport={async () => {
-    const res = await fetch(`/api/export/${bookId}`);
-    if (!res.ok) throw new Error('Export failed');
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${bookTitle || 'memory-book'}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }}
+  const res = await fetch(`/api/export/${bookId}`);
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error('🚨 EXPORT ERROR RESPONSE:', text);
+    alert(text); // 👈 TEMP: shows it clearly on screen
+    throw new Error(text);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${bookTitle || 'memory-book'}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}}
   onSave={async () => {
     setSaveState('saving');
     await new Promise((r) => setTimeout(r, 500));
