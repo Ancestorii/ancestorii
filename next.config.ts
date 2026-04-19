@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['@sparticuz/chromium'],
+  experimental: {
+    serverExternalPackages: ['@sparticuz/chromium'],
+  },
   images: {
     remotePatterns: [
       {
