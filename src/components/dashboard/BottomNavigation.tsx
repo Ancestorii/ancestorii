@@ -45,7 +45,7 @@ const goHome = () => {};
 
   return (
     <>
-      <div className="xl:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] z-[200] px-2 pb-3">
+      <div className="lg:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] z-[200] px-2 pb-3">
 
         <div className="bg-white/90 backdrop-blur-2xl border-2 border-[#D4AF37]/60 shadow-[0_20px_50px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.7)_inset] rounded-[30px] p-2 active:scale-[0.99] transition">
 

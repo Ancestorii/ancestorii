@@ -313,7 +313,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 {!hideSidebar && (
 <aside
   className={`
-    fixed top-0 left-0 z-[150] xl:z-40 h-screen
+    fixed top-0 left-0 z-[150] lg:z-40 h-screen
     ${collapsed ? 'w-[80px]' : 'w-[240px]'}
 
     bg-[linear-gradient(180deg,#0F1A2E_0%,#162844_70%,#1E355A_100%)]
@@ -321,14 +321,14 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     overflow-hidden
     pointer-events-auto
 
-    ${drawerOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 xl:translate-x-0 xl:opacity-100'}
+    ${drawerOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100'}
 
     ${drawerOpen 
       ? 'transition-[transform,opacity] duration-600 ease-[cubic-bezier(0.16,1,0.3,1)]' 
       : 'transition-[transform,opacity] duration-120 ease-in'
     }
 
-    xl:transition-[width] xl:duration-300 xl:ease-[cubic-bezier(0.25,0.46,0.45,0.94)]
+    lg:transition-[width] lg:duration-300 lg:ease-[cubic-bezier(0.25,0.46,0.45,0.94)]
     will-change-transform transform-gpu
   `}
 >
@@ -336,7 +336,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   collapsed={collapsed}
   setCollapsed={setCollapsed}
   closeDrawer={() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setDrawerOpen(false);
     }
   }}
@@ -351,7 +351,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 )}
 <main
   className={`
-    ${hideSidebar ? '' : collapsed ? 'xl:ml-[80px]' : 'xl:ml-[240px]'}
+    ${hideSidebar ? '' : collapsed ? 'lg:ml-[80px]' : 'lg:ml-[240px]'}
     min-h-screen
     bg-[#F7F3EC]
   `}
@@ -365,7 +365,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="xl:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
+          className="lg:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
           style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(15,26,46,0.25)' }}
           onClick={() => setMemoriesOpen(false)}
         >
@@ -486,7 +486,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="xl:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
+          className="lg:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
           style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(15,26,46,0.4)' }}
           onClick={() => setAccountOpen(false)}
         >
