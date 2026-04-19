@@ -333,6 +333,41 @@ export default function OrdersPage() {
                       </a>
                     </div>
                   )}
+                  {(order.status === 'created' || order.status === 'error' || order.status === 'cancelled') && (
+  <div style={{ marginTop: 16 }}>
+    <button
+      onClick={async () => {
+        const confirmed = window.confirm(
+          'Are you sure? This order will be deleted forever.'
+        );
+        if (!confirmed) return;
+
+        try {
+          const { error } = await supabase
+            .from('orders')
+            .delete()
+            .eq('id', order.id);
+
+          if (error) throw error;
+          setOrders((prev) => prev.filter((o) => o.id !== order.id));
+        } catch (err) {
+          console.error('Failed to delete order:', err);
+        }
+      }}
+      style={{
+        fontSize: 13,
+        fontWeight: 600,
+        color: '#8B2020',
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: 0,
+      }}
+    >
+      Delete order
+    </button>
+  </div>
+)}
                 </div>
               );
             })}
