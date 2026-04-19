@@ -307,7 +307,7 @@ export default function PlansClient({
                   className={`mt-8 inline-flex w-full items-center justify-center rounded-full px-6 py-3.5 text-sm font-semibold transition ${
                     currentPlan?.name === 'Premium'
                       ? 'bg-slate-300 text-slate-600 cursor-not-allowed'
-                      : 'bg-[#0F2040] text-white hover:bg-[#152a52]'
+                      : 'bg-[#0F2040] text-white hover:bg-[#152a52] hover:shadow-[0_0_24px_rgba(212,175,55,0.45)] hover:scale-[1.02] active:scale-[0.98]'
                   }`}
                 >
                   {currentPlan?.name === 'Premium' ? 'Current Plan' : 'Upgrade to Premium'}
