@@ -1,13 +1,16 @@
-import { getServerClient } from '@/lib/supabase/server';
 import ExportRenderer from './ExportRenderer';
 import type { Asset } from '@/types/memory-book';
+import { createClient } from '@supabase/supabase-js';
 
 export default async function ExportPage({
   params,
 }: {
   params: Promise<{ bookId: string }>;
 }) {
-  const supabase = await getServerClient();
+  const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
   const { bookId } = await params;
 
   // ── 1. Fetch book metadata ──
