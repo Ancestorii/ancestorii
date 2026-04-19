@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120;
@@ -42,7 +42,7 @@ export async function GET(
     const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
     const executablePath = isVercel
-      ? await chromium.executablePath()
+      ? await chromium.executablePath('https://github.com/nicholidev/chromium-for-lambda/releases/download/v131.0.1/chromium-v131.0.1-pack.tar')
       : process.platform === 'win32'
         ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
         : process.platform === 'darwin'
