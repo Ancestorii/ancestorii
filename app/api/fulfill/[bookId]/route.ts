@@ -46,7 +46,7 @@ export async function POST(
     const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
     const executablePath = isVercel
-      ? await chromium.executablePath('https://github.com/nicholidev/chromium-for-lambda/releases/download/v131.0.1/chromium-v131.0.1-pack.tar')
+      ? await chromium.executablePath('https://github.com/nicholidev/chromium-for-lambda/releases/download/v133.0.0/chromium-v133.0.0-pack.tar')
       : process.platform === 'win32'
         ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
         : process.platform === 'darwin'
