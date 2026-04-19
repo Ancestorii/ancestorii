@@ -178,9 +178,11 @@ export default function DashboardHomeClient({
 </h1>
 
        <p className="mt-6 sm:mt-4 text-[15px] sm:text-[17px] lg:text-[18px] xl:text-[16px] leading-[1.55] lg:leading-[1.6] text-[#f0dfc6]">
-          Your collection is growing.{' '}
+          {metrics.totalCollectionItems > 0 ? 'Your collection is growing.' : 'Your collection starts here.'}{' '}
           <span className="text-[#ffffff]">
-            {metrics.totalCollectionItems} stories preserved.
+            {metrics.totalCollectionItems > 0
+            ? `${metrics.totalCollectionItems} stories preserved.`
+            : 'Add your first memory to begin.'}
           </span>
         </p>
       </div>

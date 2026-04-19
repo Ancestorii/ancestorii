@@ -45,6 +45,7 @@ export default function OrdersPage() {
   const supabase = getBrowserClient();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -336,24 +337,7 @@ export default function OrdersPage() {
                   {(order.status === 'created' || order.status === 'error' || order.status === 'cancelled') && (
   <div style={{ marginTop: 16 }}>
     <button
-      onClick={async () => {
-        const confirmed = window.confirm(
-          'Are you sure? This order will be deleted forever.'
-        );
-        if (!confirmed) return;
-
-        try {
-          const { error } = await supabase
-            .from('orders')
-            .delete()
-            .eq('id', order.id);
-
-          if (error) throw error;
-          setOrders((prev) => prev.filter((o) => o.id !== order.id));
-        } catch (err) {
-          console.error('Failed to delete order:', err);
-        }
-      }}
+      onClick={() => setDeleteTarget(order.id)}
       style={{
         fontSize: 13,
         fontWeight: 600,
@@ -374,6 +358,127 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
+      {deleteTarget && (
+  <div
+    style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 9999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'rgba(26, 23, 20, 0.45)',
+      backdropFilter: 'blur(6px)',
+    }}
+    onClick={() => setDeleteTarget(null)}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        width: '90%',
+        maxWidth: 380,
+        background: '#FFFFFF',
+        borderRadius: 20,
+        padding: '32px 28px 28px',
+        boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
+        border: '1px solid #E8E4DC',
+      }}
+    >
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 14,
+          background: '#FFF0F0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 20px',
+        }}
+      >
+        <svg width="22" height="22" fill="none" stroke="#8B2020" strokeWidth="1.8" viewBox="0 0 24 24">
+          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+          <path d="M10 11v6M14 11v6" />
+        </svg>
+      </div>
+
+      <h3
+        style={{
+          fontSize: 18,
+          fontWeight: 700,
+          color: '#1A1714',
+          textAlign: 'center',
+          marginBottom: 8,
+          letterSpacing: '-0.02em',
+        }}
+      >
+        Delete this order?
+      </h3>
+
+      <p
+        style={{
+          fontSize: 13,
+          color: '#6B6358',
+          textAlign: 'center',
+          lineHeight: 1.5,
+          marginBottom: 28,
+        }}
+      >
+        This order will be permanently deleted. This action cannot be undone.
+      </p>
+
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button
+          onClick={() => setDeleteTarget(null)}
+          style={{
+            flex: 1,
+            padding: '12px 0',
+            borderRadius: 12,
+            border: '1.5px solid #E8E4DC',
+            background: '#FFFFFF',
+            fontSize: 13,
+            fontWeight: 600,
+            color: '#1A1714',
+            cursor: 'pointer',
+          }}
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={async () => {
+            try {
+              const { error } = await supabase
+                .from('orders')
+                .delete()
+                .eq('id', deleteTarget);
+
+              if (error) throw error;
+              setOrders((prev) => prev.filter((o) => o.id !== deleteTarget));
+            } catch (err) {
+              console.error('Failed to delete order:', err);
+            } finally {
+              setDeleteTarget(null);
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '12px 0',
+            borderRadius: 12,
+            border: 'none',
+            background: '#8B2020',
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#FFFFFF',
+            cursor: 'pointer',
+          }}
+        >
+          Delete forever
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
