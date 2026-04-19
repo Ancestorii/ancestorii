@@ -78,6 +78,13 @@ export async function GET(
       timeout: 60_000,
     });
 
+const pageContent = await page.content();
+const pageTitle = await page.title();
+console.log('PUPPETEER LANDED ON:', exportUrl);
+console.log('PAGE TITLE:', pageTitle);
+console.log('PAGE LENGTH:', pageContent.length);
+console.log('FIRST 500 CHARS:', pageContent.substring(0, 500));
+
     // ── Wait for all images to load ──
     await page.waitForFunction(
       () => document.querySelector('[data-export-ready="true"]') !== null,
