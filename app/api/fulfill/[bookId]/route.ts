@@ -41,9 +41,7 @@ export async function POST(
       .eq('id', orderId);
 
     // ── 2. Generate PDF with Puppeteer ──
-    const protocol = request.headers.get('x-forwarded-proto') || 'https';
-    const host = request.headers.get('host') || 'www.ancestorii.com';
-    const exportUrl = `${protocol}://${host}/export/${bookId}`;
+    const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/${bookId}`;
 
     const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 

@@ -16,9 +16,7 @@ export async function GET(
   }
 
   // ── Build the export page URL ──
-  const protocol = request.headers.get('x-forwarded-proto') || 'http';
-  const host = request.headers.get('host') || 'localhost:3000';
-  const exportUrl = `${protocol}://${host}/export/${bookId}`;
+  const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/${bookId}`;
 
   // ── Forward auth cookies so server component can query Supabase ──
   const cookieHeader = request.headers.get('cookie') || '';
@@ -29,7 +27,7 @@ export async function GET(
       return {
         name: name?.trim(),
         value: rest.join('=')?.trim(),
-        domain: host.split(':')[0],
+        domain: 'www.ancestorii.com',
         path: '/',
       };
     })
