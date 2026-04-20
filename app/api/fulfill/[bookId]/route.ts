@@ -123,16 +123,16 @@ export async function POST(
 
     // ── Guard: don't submit with incomplete address ──
     if (!order.shipping_line1 || !order.shipping_city || !order.shipping_country) {
-      await supabase
-        .from('orders')
-        .update({ status: 'error', prodigi_status: 'missing_address' })
-        .eq('id', orderId);
+    await supabase
+    .from('orders')
+    .update({ status: 'error', prodigi_status: 'error' })
+    .eq('id', orderId);
 
-      return NextResponse.json(
-        { error: 'Incomplete shipping address — cannot submit to Prodigi' },
-        { status: 400 }
-      );
-    }
+   return NextResponse.json(
+    { error: 'Incomplete shipping address — cannot submit to Prodigi' },
+    { status: 400 }
+  );
+}
 
     // ── 5. Submit to Prodigi ──
     await supabase
