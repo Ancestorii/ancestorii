@@ -231,6 +231,8 @@ serve(async (req) => {
             shipping_state: address?.state ?? null,
             shipping_postal: address?.postal_code ?? null,
             shipping_country: address?.country ?? null,
+            shipping_email: session.customer_details?.email ?? null,
+            shipping_phone: session.customer_details?.phone ?? null,
           })
           .eq("id", orderId);
 

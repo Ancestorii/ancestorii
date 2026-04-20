@@ -121,6 +121,19 @@ export async function POST(
       throw new Error('Order not found: ' + (orderError?.message ?? ''));
     }
 
+    // ── Guard: don't submit with incomplete address ──
+    if (!order.shipping_line1 || !order.shipping_city || !order.shipping_country) {
+      await supabase
+        .from('orders')
+        .update({ status: 'error', prodigi_status: 'missing_address' })
+        .eq('id', orderId);
+
+      return NextResponse.json(
+        { error: 'Incomplete shipping address — cannot submit to Prodigi' },
+        { status: 400 }
+      );
+    }
+
     // ── 5. Submit to Prodigi ──
     await supabase
       .from('orders')
@@ -139,6 +152,8 @@ export async function POST(
         merchantReference: orderId,
         recipient: {
           name: order.shipping_name || 'Customer',
+          email: order.shipping_email || undefined,
+          phone: order.shipping_phone || undefined,
           address: {
             line1: order.shipping_line1 || '',
             line2: order.shipping_line2 || '',
