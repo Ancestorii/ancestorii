@@ -328,7 +328,7 @@ gap: 24px;
               <br />
               Not social.
               <br />
-              <em style={{ fontStyle: 'italic', color: '#b8924a' }}>Something else entirely.</em>
+              <em style={{ fontStyle: 'italic', fontWeight: 700, color: '#b8924a' }}>Something else entirely.</em>
             </h2>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '6px' }}>

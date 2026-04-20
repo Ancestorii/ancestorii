@@ -97,7 +97,7 @@ export default function Security() {
                 Physical archive option
               </h4>
               <p className="text-sm leading-relaxed font-medium">
-                We are developing optional physical archives so your digital library can also live on a real shelf.
+                Turn your digital library into a beautifully printed archive, made to live on a real shelf for generations.
               </p>
             </div>
 

@@ -11,6 +11,7 @@ import FeaturedBy from '@/components/FeaturedBy';
 import PodcastPreview from '@/components/PodcastPreview';
 import Security from '@/components/Security';
 import PlatformComparison from '@/components/PlatformComparison';
+import MemoryBookSection from '@/components/MemoryBookSection';
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
@@ -232,6 +233,7 @@ export default function HomePage() {
         <Nav />
         <Hero />
         <CoreValueSnapshot />
+        <MemoryBookSection/>
         <PlatformComparison />
         <FeaturedBy />
         <Security />
