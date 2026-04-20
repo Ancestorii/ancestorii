@@ -88,14 +88,14 @@ export default function DashboardHomeClient({
 
   const welcomeName = displayName || 'there';
 
- const welcomeNameClass =
-  welcomeName.length > 24
-    ? 'text-[2.15rem] sm:text-[2.55rem] md:text-[2.95rem] lg:text-[3.35rem] xl:text-[5.2rem]'
-    : welcomeName.length > 18
-    ? 'text-[2.4rem] sm:text-[2.9rem] md:text-[3.3rem] lg:text-[3.75rem] xl:text-[5.8rem]'
-    : welcomeName.length > 12
-    ? 'text-[2.65rem] sm:text-[3.2rem] md:text-[3.6rem] lg:text-[4.1rem] xl:text-[6.2rem]'
-    : 'text-[2.9rem] sm:text-[3.45rem] md:text-[3.9rem] lg:text-[4.4rem] xl:text-[6.6rem]';
+  const welcomeNameClass =
+    welcomeName.length > 24
+      ? 'text-[clamp(2.15rem,4.2vw,5.2rem)]'
+      : welcomeName.length > 18
+      ? 'text-[clamp(2.4rem,4.7vw,5.8rem)]'
+      : welcomeName.length > 12
+      ? 'text-[clamp(2.65rem,5vw,6.2rem)]'
+      : 'text-[clamp(2.9rem,5.3vw,6.6rem)]';
 
   const todayLabel = useMemo(() => {
     return new Date().toLocaleDateString('en-GB', {
@@ -163,21 +163,21 @@ export default function DashboardHomeClient({
       <section className="relative overflow-hidden bg-[linear-gradient(90deg,#100b06_0%,#16100a_45%,#1a130c_100%)]">
   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(171,130,50,0.12),transparent_35%),radial-gradient(circle_at_right,rgba(255,255,255,0.03),transparent_25%)]" />
 
-  <div className="relative mx-auto max-w-[1700px] px-4 py-6 sm:px-6 sm:py-7 md:px-8 md:py-8 lg:px-10 lg:py-9 xl:px-16 xl:py-8">
-    <div className="flex flex-col gap-5 sm:gap-6 md:gap-7 lg:flex-row lg:items-end lg:justify-between xl:gap-6">
+  <div className="relative mx-auto max-w-[1700px] px-[clamp(1rem,3vw,4rem)] py-[clamp(1.5rem,1.8vw,2.25rem)]">
+    <div className="flex flex-col gap-[clamp(1.25rem,1.5vw,1.75rem)] lg:flex-row lg:items-end lg:justify-between">
       <div className="min-w-0 flex-1 xl:max-w-none">
-        <p className="text-[10px] sm:text-[11px] xl:text-[12px] font-semibold uppercase tracking-[0.24em] sm:tracking-[0.28em] xl:tracking-[0.32em] text-[#d3a847]">
+        <p className="text-[clamp(10px,0.9vw,12px)] font-semibold uppercase tracking-[0.28em] text-[#d3a847]">
           {todayLabel}
         </p>
 
-        <h1 className={`mt-3 sm:mt-4 font-serif leading-[1.10] text-[#fff7eb] ${welcomeNameClass}`}>
+        <h1 className={`mt-[clamp(0.75rem,0.8vw,1rem)] font-serif leading-[1.10] text-[#fff7eb] ${welcomeNameClass}`}>
   <span className="block">Welcome back,</span>
   <span className="block italic text-[#c99732]">
     {welcomeName}.
   </span>
 </h1>
 
-       <p className="mt-6 sm:mt-4 text-[15px] sm:text-[17px] lg:text-[18px] xl:text-[16px] leading-[1.55] lg:leading-[1.6] text-[#f0dfc6]">
+       <p className="mt-[clamp(1rem,1.2vw,1.5rem)] text-[clamp(15px,1.2vw,16px)] leading-[1.55] lg:leading-[1.6] text-[#f0dfc6]">
           {metrics.totalCollectionItems > 0 ? 'Your collection is growing.' : 'Your collection starts here.'}{' '}
           <span className="text-[#ffffff]">
             {metrics.totalCollectionItems > 0
@@ -201,8 +201,8 @@ export default function DashboardHomeClient({
     <div className="absolute left-[18%] top-[65%] h-[140px] w-[140px] rounded-full bg-white/70 blur-3xl" />
   </div>
 
-  <div className="relative mx-auto max-w-[1500px] px-6 py-16 sm:px-10 lg:px-12 lg:py-20 xl:px-14">
-    <div className="flex flex-col-reverse items-center gap-12 lg:flex-row lg:items-start lg:gap-14">
+  <div className="relative mx-auto max-w-[1500px] px-[clamp(1.5rem,3vw,3.5rem)] py-[clamp(4rem,4.5vw,5rem)]">
+    <div className="flex flex-col-reverse items-center gap-[clamp(3rem,3.5vw,3.5rem)] lg:flex-row lg:items-start">
       {/* LEFT */}
       <div className="w-full lg:w-1/2 text-center lg:text-left">
         <div className="flex items-center justify-center gap-3 lg:justify-start">
@@ -212,13 +212,13 @@ export default function DashboardHomeClient({
           </p>
         </div>
 
-        <h2 className="mt-6 font-serif text-[2.8rem] leading-[0.96] text-[#102347] sm:text-[3.5rem] lg:text-[4.2rem] xl:text-[4.6rem]">
+        <h2 className="mt-6 font-serif text-[clamp(2.8rem,4vw,4.6rem)] leading-[0.96] text-[#102347]">
           Start with one memory.
           <br />
           <span className="italic text-[#c99732]">Keep what matters.</span>
         </h2>
 
-        <p className="mx-auto mt-6 max-w-[620px] text-[16px] leading-[1.95] text-[#42536d] sm:text-[17px] lg:mx-0 lg:text-[18px]">
+        <p className="mx-auto mt-6 max-w-[620px] text-[clamp(15px,1.3vw,18px)] leading-[1.95] text-[#42536d] lg:mx-0">
           Add the people you love, upload your most meaningful moments from any device, and build
           a family library that feels beautiful, personal, and worth returning to.
         </p>
@@ -245,7 +245,7 @@ export default function DashboardHomeClient({
         <div className="relative mt-8">
          <div className="absolute left-0 top-0 hidden h-full w-[2px] rounded-full bg-[linear-gradient(180deg,#d4af37_0%,#b9811f_100%)] lg:block" />
 
-         <div className="relative overflow-hidden rounded-[26px] border border-[#d7bf91] bg-[linear-gradient(180deg,#fffdf9_0%,#f6eee0_100%)] px-5 py-5 shadow-[0_18px_42px_rgba(22,18,12,0.12)] sm:px-6 sm:py-6 lg:ml-5">
+         <div className="relative overflow-hidden rounded-[clamp(20px,2vw,26px)] border border-[#d7bf91] bg-[linear-gradient(180deg,#fffdf9_0%,#f6eee0_100%)] px-[clamp(1.25rem,1.8vw,1.5rem)] py-[clamp(1.25rem,1.8vw,1.5rem)] shadow-[0_18px_42px_rgba(22,18,12,0.12)] lg:ml-5">
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute right-[-35px] top-[-35px] h-[110px] w-[110px] rounded-full bg-[#d4af37]/8 blur-3xl" />
               <div className="absolute inset-x-0 top-0 h-[1px] bg-[linear-gradient(90deg,rgba(212,175,55,0),rgba(212,175,55,0.55),rgba(212,175,55,0))]" />
@@ -257,12 +257,12 @@ export default function DashboardHomeClient({
                   Memory Books
                 </p>
 
-                <h3 className="mt-2 font-serif text-[1.5rem] leading-[1.02] text-[#16120C] sm:text-[1.7rem]">
+                <h3 className="mt-2 font-serif text-[clamp(1.5rem,2.2vw,1.7rem)] leading-[1.02] text-[#16120C]">
                   Start your
                   <span className="italic text-[#b67f18]"> physical library.</span>
                 </h3>
 
-                <p className="mt-3 text-[14px] leading-[1.8] text-[#4f4334] sm:text-[15px]">
+                <p className="mt-3 text-[clamp(13px,1.1vw,15px)] leading-[1.8] text-[#4f4334]">
                   Turn your memories into a printed book made to sit on a real shelf and be held for generations.
                 </p>
               </div>
@@ -287,7 +287,7 @@ export default function DashboardHomeClient({
               <p className="text-[12px] font-bold uppercase tracking-[0.34em] text-[#a27622]">
                 Highlighted memories
               </p>
-              <h3 className="mt-2 text-[23px] font-semibold italic text-[#102347] sm:text-[28px]">
+              <h3 className="mt-2 text-[clamp(23px,2.5vw,28px)] font-semibold italic text-[#102347]">
                 Your <span className="text-[#d4af37]">most meaningful memories</span>
               </h3>
             </div>
@@ -368,14 +368,14 @@ export default function DashboardHomeClient({
 {/* COLLECTION STRIP */}
 {/* ======================================== */}
 <section className="border-y border-transparent bg-[linear-gradient(180deg,#fffdfa_0%,#fbf8f2_100%)] [border-image:linear-gradient(90deg,#d4af37_0%,#ecd598_50%,#d4af37_100%)_1]">
-  <div className="mx-auto max-w-[1700px] px-6 py-14 sm:px-10 lg:px-14 xl:px-16">
-    <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+  <div className="mx-auto max-w-[1700px] px-[clamp(1.5rem,3vw,4rem)] py-[clamp(2.5rem,3vw,3.5rem)]">
+    <div className="mb-[clamp(1.5rem,2.5vw,2.5rem)] flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p className="text-[12px] font-bold uppercase tracking-[0.28em] text-[#a86f12]">
           Your collection
         </p>
-        <h3 className="mt-2 text-[2rem] font-semibold tracking-[-0.04em] text-[#16120C] sm:text-[2.5rem]">
-          Everything you’re building
+        <h3 className="mt-2 text-[clamp(2rem,3vw,2.5rem)] font-semibold tracking-[-0.04em] text-[#16120C]">
+          Everything you're building
         </h3>
       </div>
 
@@ -439,25 +439,25 @@ export default function DashboardHomeClient({
     <div className="absolute right-[-90px] top-[30px] h-[170px] w-[170px] rounded-full bg-[#efe4c8]/55 blur-3xl" />
   </div>
 
-  <div className="relative mx-auto max-w-[1420px] px-5 py-8 sm:px-7 sm:py-10 lg:px-9 xl:px-10">
+  <div className="relative mx-auto max-w-[1420px] px-[clamp(1.25rem,2vw,2.5rem)] py-[clamp(2rem,2.5vw,2.5rem)]">
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.03fr_0.97fr] xl:gap-6">
       {/* LEFT — FAMILY */}
       <div className="relative overflow-hidden rounded-[26px] border border-[#dcc8a5] bg-white shadow-[0_16px_36px_rgba(22,18,12,0.08)]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,#d4af37_0%,#ecd598_50%,#d4af37_100%)]" />
 
-        <div className="px-5 py-6 sm:px-6 sm:py-7 lg:px-7">
+        <div className="px-[clamp(1.25rem,1.5vw,1.75rem)] py-[clamp(1.5rem,1.8vw,1.75rem)]">
           <div className="max-w-[500px]">
             <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#a86f12]">
               Your family
             </p>
 
-            <h3 className="mt-3 font-serif text-[1.55rem] leading-[0.96] text-[#16120C] sm:text-[1.8rem] lg:text-[2.05rem]">
+            <h3 className="mt-3 font-serif text-[clamp(1.55rem,1.8vw,2.05rem)] leading-[0.96] text-[#16120C]">
               The people
               <br />
               <span className="italic text-[#c99732]">who shaped your story.</span>
             </h3>
 
-            <p className="mt-4 max-w-[380px] text-[12px] leading-[1.7] text-[#4b3f31] sm:text-[13px]">
+            <p className="mt-4 max-w-[380px] text-[clamp(12px,1vw,13px)] leading-[1.7] text-[#4b3f31]">
               Open a profile, revisit someone important, or start someone new.
             </p>
           </div>
@@ -467,14 +467,14 @@ export default function DashboardHomeClient({
               <button
                 key={person.id}
                 onClick={onGoToFamily}
-               className="group grid w-full grid-cols-[18px_auto_1fr_auto] items-center gap-3 border-b border-[#e4d4bb] py-3.5 text-left transition hover:bg-[#faf5ec] sm:grid-cols-[22px_auto_1fr_auto] sm:gap-4 sm:py-4"
+               className="group grid w-full grid-cols-[18px_auto_1fr_auto] items-center gap-[clamp(0.75rem,1vw,1rem)] border-b border-[#e4d4bb] py-[clamp(0.875rem,1vw,1rem)] text-left transition hover:bg-[#faf5ec] sm:grid-cols-[22px_auto_1fr_auto]"
               >
-                <div className="text-[10px] font-bold tracking-[0.18em] text-[#a86f12] sm:text-[11px]">
+                <div className="text-[clamp(10px,0.85vw,11px)] font-bold tracking-[0.18em] text-[#a86f12]">
                   {String(idx + 1).padStart(2, '0')}
                 </div>
 
                 {person.avatar_signed ? (
-  <div className="h-[40px] w-[40px] overflow-hidden rounded-full ring-1 ring-[#e4d3b2] sm:h-[44px] sm:w-[44px] md:h-[46px] md:w-[46px] lg:h-[50px] lg:w-[50px] xl:h-[52px] xl:w-[52px]">
+  <div className="h-[clamp(40px,4vw,52px)] w-[clamp(40px,4vw,52px)] overflow-hidden rounded-full ring-1 ring-[#e4d3b2]">
     <Image
       src={person.avatar_signed}
       alt={person.full_name}
@@ -485,19 +485,19 @@ export default function DashboardHomeClient({
     />
   </div>
 ) : (
-  <div className="h-[40px] w-[40px] overflow-hidden rounded-full ring-1 ring-[#e4d3b2] sm:h-[44px] sm:w-[44px] md:h-[46px] md:w-[46px] lg:h-[50px] lg:w-[50px] xl:h-[52px] xl:w-[52px]">
+  <div className="h-[clamp(40px,4vw,52px)] w-[clamp(40px,4vw,52px)] overflow-hidden rounded-full ring-1 ring-[#e4d3b2]">
     <div className="flex h-full w-full items-center justify-center bg-[#f6efe2]">
-      <UserIcon className="h-4 w-4 text-[#8b6a2d] sm:h-[18px] sm:w-[18px] md:h-5 md:w-5 lg:h-[22px] lg:w-[22px]" />
+      <UserIcon className="h-[clamp(1rem,1.6vw,22px)] w-[clamp(1rem,1.6vw,22px)] text-[#8b6a2d]" />
     </div>
   </div>
 )}
 
                 <div className="min-w-0">
-                  <div className="truncate font-serif text-[16px] leading-none text-[#16120C] sm:text-[18px]">
+                  <div className="truncate font-serif text-[clamp(16px,1.3vw,18px)] leading-none text-[#16120C]">
                     {person.full_name}
                   </div>
 
-                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#72685b] sm:text-[11px]">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[clamp(10px,0.85vw,11px)] font-semibold uppercase tracking-[0.12em] text-[#72685b]">
                     <span>
                       {person.relationship_label || person.relationship_to_user || 'Loved one'}
                     </span>
@@ -508,7 +508,7 @@ export default function DashboardHomeClient({
                   </div>
                 </div>
 
-                <div className="text-[17px] font-semibold text-[#7d5b14] transition duration-200 group-hover:translate-x-[4px] sm:text-[19px]">
+                <div className="text-[clamp(17px,1.4vw,19px)] font-semibold text-[#7d5b14] transition duration-200 group-hover:translate-x-[4px]">
                   →
                 </div>
               </button>
@@ -516,26 +516,26 @@ export default function DashboardHomeClient({
 
             <button
               onClick={onGoToFamilyAdd}
-              className="group grid w-full grid-cols-[18px_auto_1fr_auto] items-center gap-3 py-3.5 text-left transition hover:bg-[#fcfaf6] sm:grid-cols-[22px_auto_1fr_auto] sm:gap-4 sm:py-4"
+              className="group grid w-full grid-cols-[18px_auto_1fr_auto] items-center gap-[clamp(0.75rem,1vw,1rem)] py-[clamp(0.875rem,1vw,1rem)] text-left transition hover:bg-[#fcfaf6] sm:grid-cols-[22px_auto_1fr_auto]"
             >
               <div className="text-[11px] font-semibold tracking-[0.18em] text-[#b3872f]">
                 +
               </div>
 
-            <div className="flex h-[40px] w-[40px] items-center justify-center sm:h-[48px] sm:w-[48px]">
-  <Plus className="h-5 w-5 text-[#b99751] sm:h-6 sm:w-6" strokeWidth={1.75} />
+            <div className="flex h-[clamp(40px,3.5vw,48px)] w-[clamp(40px,3.5vw,48px)] items-center justify-center">
+  <Plus className="h-[clamp(1.25rem,1.5vw,1.5rem)] w-[clamp(1.25rem,1.5vw,1.5rem)] text-[#b99751]" strokeWidth={1.75} />
 </div>
 
               <div className="min-w-0">
-                <div className="font-serif text-[16px] leading-none text-[#16120C] sm:text-[18px]">
+                <div className="font-serif text-[clamp(16px,1.3vw,18px)] leading-none text-[#16120C]">
                   Add a loved one
                 </div>
-                <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#72685b] sm:text-[11px]">
+                <div className="mt-2 text-[clamp(10px,0.85vw,11px)] font-semibold uppercase tracking-[0.12em] text-[#72685b]">
                   Start a new profile
                 </div>
               </div>
 
-              <div className="text-[17px] font-light text-[#8f7440] transition duration-200 group-hover:translate-x-[4px] sm:text-[19px]">
+              <div className="text-[clamp(17px,1.4vw,19px)] font-light text-[#8f7440] transition duration-200 group-hover:translate-x-[4px]">
                 →
               </div>
             </button>
@@ -550,19 +550,19 @@ export default function DashboardHomeClient({
           <div className="absolute right-[-50px] top-[70px] h-[130px] w-[130px] rounded-full bg-[#d4af37]/8 blur-3xl" />
         </div>
 
-        <div className="relative px-5 py-6 sm:px-6 sm:py-7 lg:px-7">
+        <div className="relative px-[clamp(1.25rem,1.5vw,1.75rem)] py-[clamp(1.5rem,1.8vw,1.75rem)]">
           <div className="max-w-[420px]">
             <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-[#a86f12]">
               Recent activity
             </p>
 
-            <h3 className="mt-3 font-serif text-[1.55rem] leading-[0.96] text-[#16120C] sm:text-[1.8rem] lg:text-[2.05rem]">
+            <h3 className="mt-3 font-serif text-[clamp(1.55rem,1.8vw,2.05rem)] leading-[0.96] text-[#16120C]">
               The latest
               <br />
               <span className="italic text-[#c99732]">changes you made.</span>
             </h3>
 
-           <p className="mt-4 max-w-[340px] text-[12px] leading-[1.7] text-[#4b3f31] sm:text-[13px]">
+           <p className="mt-4 max-w-[340px] text-[clamp(12px,1vw,13px)] leading-[1.7] text-[#4b3f31]">
               A tighter view of what was added most recently.
             </p>
           </div>
@@ -572,16 +572,16 @@ export default function DashboardHomeClient({
               {activity.map((item, idx) => (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[30px_1fr] gap-3 border-t border-[#e4d4bb] py-3.5 sm:grid-cols-[36px_1fr] sm:gap-4 sm:py-4"
+                  className="grid grid-cols-[30px_1fr] gap-[clamp(0.75rem,1vw,1rem)] border-t border-[#e4d4bb] py-[clamp(0.875rem,1vw,1rem)] sm:grid-cols-[36px_1fr]"
                 >
                   <div className="pt-1">
-                    <div className="text-[15px] font-semibold leading-none tracking-[-0.04em] text-[#c99732] sm:text-[17px]">
+                    <div className="text-[clamp(15px,1.3vw,17px)] font-semibold leading-none tracking-[-0.04em] text-[#c99732]">
                       {String(idx + 1).padStart(2, '0')}
                     </div>
                   </div>
 
                   <div>
-                    <div className="font-serif text-[16px] leading-[1.35] text-[#16120C] sm:text-[18px]">
+                    <div className="font-serif text-[clamp(16px,1.3vw,18px)] leading-[1.35] text-[#16120C]">
                       {item.action}
                     </div>
                     <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5f5142]">
@@ -594,7 +594,7 @@ export default function DashboardHomeClient({
             </div>
           ) : (
             <div className="mt-6 border-y border-[#ece2d2] py-5">
-              <div className="font-serif text-[16px] text-[#16120C] sm:text-[18px]">
+              <div className="font-serif text-[clamp(16px,1.3vw,18px)] text-[#16120C]">
                 No recent activity yet.
               </div>
               <div className="mt-2 max-w-[320px] text-[12px] leading-[1.7] text-[#786c5d]">
@@ -623,12 +623,12 @@ function MetricBlock({
   onAction?: () => void;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-[24px] border border-[#dcc8a5] bg-[linear-gradient(180deg,#fffdfa_0%,#f6efe3_100%)] px-6 py-7 shadow-[0_12px_30px_rgba(22,18,12,0.08)] transition duration-300 hover:-translate-y-[2px] hover:shadow-[0_18px_38px_rgba(22,18,12,0.12)]">
+    <div className="group relative overflow-hidden rounded-[24px] border border-[#dcc8a5] bg-[linear-gradient(180deg,#fffdfa_0%,#f6efe3_100%)] px-[clamp(1.25rem,1.5vw,1.5rem)] py-[clamp(1.5rem,1.8vw,1.75rem)] shadow-[0_12px_30px_rgba(22,18,12,0.08)] transition duration-300 hover:-translate-y-[2px] hover:shadow-[0_18px_38px_rgba(22,18,12,0.12)]">
       <div className="absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,#d4af37_0%,#ecd598_50%,#d4af37_100%)]" />
       <div className="pointer-events-none absolute right-[-24px] top-[-24px] h-20 w-20 rounded-full bg-[#d4af37]/8 blur-2xl" />
 
       <div className="relative z-10">
-        <div className="text-[3.2rem] font-semibold leading-none tracking-[-0.06em] text-[#16120C] sm:text-[3.8rem]">
+        <div className="text-[clamp(3.2rem,4.5vw,3.8rem)] font-semibold leading-none tracking-[-0.06em] text-[#16120C]">
           {value}
         </div>
 
@@ -739,10 +739,10 @@ function MemoryDropCard({
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#102347] shadow-[0_10px_20px_rgba(16,35,71,0.08)]">
               <Plus size={20} />
             </div>
-            <p className="text-[18px] sm:text-[20px] font-semibold leading-[1.45] text-[#102347]">
+            <p className="text-[clamp(18px,2.5vw,20px)] font-semibold leading-[1.45] text-[#102347]">
               {placeholder.split('.')[0]}.
             </p>
-            <p className="mt-3 text-[14px] sm:text-[15px] leading-[1.75] text-[#4f5e77]">
+            <p className="mt-3 text-[clamp(13px,1.8vw,15px)] leading-[1.75] text-[#4f5e77]">
               {placeholder.split('.').slice(1).join('.')}
             </p>
           </div>

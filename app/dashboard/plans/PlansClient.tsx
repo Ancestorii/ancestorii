@@ -286,6 +286,7 @@ export default function PlansClient({
                   {currency === 'GBP' && '£49'}
                   {currency === 'USD' && '$69'}
                   {currency === 'EUR' && '€59'}
+                  <span className="text-base font-medium text-[#0F2040]/50"> /year</span>
                 </div>
 
                 <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/58">
