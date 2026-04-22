@@ -213,7 +213,7 @@ function emailDay3(name: string): string {
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px auto;">
       <tr>
         <td align="center" style="background-color:#16120c; border-radius:2px;">
-          <a href="https://ancestorii.com/dashboard/loved-ones"
+          <a href="https://ancestorii.com/login"
              target="_blank"
              style="display:inline-block; padding:14px 36px; font-family:Arial, Helvetica, sans-serif; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#fdfaf5; text-decoration:none;">
             Add a Loved One
@@ -256,7 +256,7 @@ function emailDay7(name: string): string {
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px auto;">
       <tr>
         <td align="center" style="background-color:#16120c; border-radius:2px;">
-          <a href="https://ancestorii.com/dashboard/library"
+          <a href="https://ancestorii.com/login"
              target="_blank"
              style="display:inline-block; padding:14px 36px; font-family:Arial, Helvetica, sans-serif; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#fdfaf5; text-decoration:none;">
             Upload a Memory
@@ -299,7 +299,7 @@ function emailDay14(name: string): string {
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px auto;">
       <tr>
         <td align="center" style="background-color:#16120c; border-radius:2px;">
-          <a href="https://ancestorii.com/dashboard/memory-books"
+          <a href="https://ancestorii.com/login"
              target="_blank"
              style="display:inline-block; padding:14px 36px; font-family:Arial, Helvetica, sans-serif; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#fdfaf5; text-decoration:none;">
             Create Your Book
@@ -345,7 +345,7 @@ function emailDay21(name: string): string {
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px auto;">
       <tr>
         <td align="center" style="background-color:#16120c; border-radius:2px;">
-          <a href="https://ancestorii.com/dashboard/home"
+          <a href="https://ancestorii.com/login"
              target="_blank"
              style="display:inline-block; padding:14px 36px; font-family:Arial, Helvetica, sans-serif; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#fdfaf5; text-decoration:none;">
             Open Ancestorii
