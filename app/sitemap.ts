@@ -20,6 +20,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   priority: 0.9,
 },
 
+{
+  url: "https://www.ancestorii.com/memory-books",
+  lastModified: new Date(),
+  priority: 0.9,
+},
+
     /* --- Guides hub --- */
     {
       url: "https://www.ancestorii.com/guides",
@@ -77,6 +83,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   url: "https://www.ancestorii.com/living-library",
   lastModified: new Date(),
   priority: 0.7,
+},
+
+{
+  url: "https://www.ancestorii.com/compare",
+  lastModified: new Date(),
+  priority: 0.85,
 },
 
     {

@@ -36,6 +36,7 @@ export default function Nav() {
     { href: '/', label: 'Home' },
     { href: '/how-it-works', label: 'How It Works' },
     { href: '/pricing', label: 'Pricing' },
+    { href: '/memory-books', label: 'Memory Books' },
     { href: '/guides', label: 'Guides' },
   ];
 

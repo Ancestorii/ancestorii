@@ -8,16 +8,16 @@ export default function Footer() {
       <div className="max-w-[1280px] mx-auto px-6 py-20">
 
         {/* GRID */}
-        <div className="grid grid-cols-2 md:grid-cols-[1fr_auto] gap-10 items-start">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-12 lg:gap-16 items-start">
 
-          {/* BRAND (LEFT) */}
-          <div className="col-span-2 md:col-span-1 max-w-[320px]">
+          {/* BRAND */}
+          <div className="col-span-2 sm:col-span-2 md:col-span-1">
             <div className="text-[1.8rem] font-serif text-[#1a1410]">
               Ancestor<span className="text-[#b8924a]">ii</span>
             </div>
 
             <p className="mt-4 text-[0.95rem] leading-[1.7] text-[#3d3428]">
-              A private place for your family’s stories.
+              A private place for your family's stories.
             </p>
 
             {/* FOLLOW */}
@@ -53,33 +53,42 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* RIGHT SIDE */}
-          <div className="col-span-2 md:col-span-1 flex flex-col md:flex-row md:justify-end gap-10 md:gap-16">
-
-            {/* LEARN */}
-            <div>
-              <div className="text-[0.7rem] tracking-[0.14em] uppercase text-[#b8924a] mb-4">
-                Learn
-              </div>
-              <ul className="space-y-2 text-[0.9rem] text-[#1a1410]">
-                <li><Link href="/digital-legacy">What is a Digital Legacy?</Link></li>
-                <li><Link href="/living-library">What is a Living Library?</Link></li>
-                <li><Link href="/why-this-exists">Why Ancestorii Exists</Link></li>
-                <li><Link href="/moments-worth-keeping">Moments Worth Keeping</Link></li>
-              </ul>
+          {/* EXPLORE */}
+          <div>
+            <div className="text-[0.7rem] tracking-[0.14em] uppercase text-[#b8924a] mb-4">
+              Explore
             </div>
+            <ul className="space-y-2 text-[0.9rem] text-[#1a1410]">
+              <li><Link href="/digital-legacy">What is a Digital Legacy?</Link></li>
+              <li><Link href="/living-library">What is a Living Library?</Link></li>
+              <li><Link href="/moments-worth-keeping">Moments Worth Keeping</Link></li>
+              <li><Link href="/compare">Compare Platforms</Link></li>
+            </ul>
+          </div>
 
-            {/* COMPANY */}
-            <div>
-              <div className="text-[0.7rem] tracking-[0.14em] uppercase text-[#b8924a] mb-4">
-                Company
-              </div>
-              <ul className="space-y-2 text-[0.9rem] text-[#1a1410]">
-                <li><Link href="/privacy-policy">Privacy Policy</Link></li>
-                <li><Link href="/terms">Terms & Conditions</Link></li>
-              </ul>
+          {/* PRODUCT */}
+          <div>
+            <div className="text-[0.7rem] tracking-[0.14em] uppercase text-[#b8924a] mb-4">
+              Product
             </div>
+            <ul className="space-y-2 text-[0.9rem] text-[#1a1410]">
+              <li><Link href="/how-it-works">How It Works</Link></li>
+              <li><Link href="/memory-books">Memory Books</Link></li>
+              <li><Link href="/pricing">Pricing</Link></li>
+              <li><Link href="/guides">Guides</Link></li>
+            </ul>
+          </div>
 
+          {/* COMPANY */}
+          <div>
+            <div className="text-[0.7rem] tracking-[0.14em] uppercase text-[#b8924a] mb-4">
+              Company
+            </div>
+            <ul className="space-y-2 text-[0.9rem] text-[#1a1410]">
+              <li><Link href="/why-this-exists">Why Ancestorii Exists</Link></li>
+              <li><Link href="/privacy-policy">Privacy Policy</Link></li>
+              <li><Link href="/terms">Terms & Conditions</Link></li>
+            </ul>
           </div>
 
         </div>

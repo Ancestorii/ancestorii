@@ -138,6 +138,17 @@ export default function LivingLibraryPage() {
             Not out of fear.
             But out of care.
           </p>
+
+          <p className="text-lg text-[#0F2040]/85 mt-6">
+            Explore how a living library differs from{" "}
+            <a href="/compare" className="underline underline-offset-2 hover:text-[#D4AF37] transition">
+              prompt-based book services
+            </a>{" "}
+            — or learn more about{" "}
+            <a href="/digital-legacy" className="underline underline-offset-2 hover:text-[#D4AF37] transition">
+              building a digital legacy
+            </a>.
+          </p>
         </section>
 
         {/* CTA */}

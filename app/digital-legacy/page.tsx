@@ -185,6 +185,14 @@ export default function DigitalLegacyPage() {
             It feels light to contribute to, easy to return to, and always
             belongs entirely to your family.
           </p>
+
+          <p className="text-lg text-[#0F2040]/85 mt-6">
+            You can also turn your digital library into a printed hardcover{" "}
+            <a href="/memory-books" className="underline underline-offset-2 hover:text-[#D4AF37] transition">
+              Memory Book
+            </a>{" "}
+            whenever you are ready.
+          </p>
         </section>
 
         {/* CTA */}
