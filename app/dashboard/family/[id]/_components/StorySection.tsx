@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { useQuill } from "react-quilljs";
 import Image from "next/image";
+import { ensureDisplayableImage } from '@/lib/convertImage';
 import {
   Plus,
   ImagePlus,
@@ -254,8 +255,9 @@ export default function StorySection({
     setSaving(false);
   };
 
-  const uploadStoryImage = async (file: File, key: StoryKey) => {
+  const uploadStoryImage = async (rawFile: File, key: StoryKey) => {
     setUploadingKey(key);
+    const file = await ensureDisplayableImage(rawFile);
 
     const { data: auth } = await supabase.auth.getUser();
     const uid = auth?.user?.id;

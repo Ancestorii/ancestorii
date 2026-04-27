@@ -161,7 +161,7 @@ export default function Slot({
               ? 'Placing image...'
               : selectedImage
               ? 'Click to place image'
-              : 'Choose an image from your library'}
+              : 'Choose an image from the media tab'}
           </p>
         </div>
       ) : (

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 type Image = {
   id: string;
@@ -99,6 +100,8 @@ export default function Sidebar({
 
   const handleUpload = async (file: File): Promise<Image | null> => {
     try {
+      file = await ensureDisplayableImage(file);
+
       const {
         data: { user },
       } = await supabase.auth.getUser();

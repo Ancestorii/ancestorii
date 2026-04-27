@@ -1,6 +1,7 @@
 "use client";
 
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 const supabase = getBrowserClient();
 
@@ -24,7 +25,8 @@ export async function uploadEventMedia(params: {
   eventId: string;
   file: File;
 }): Promise<UploadResult> {
-  const { eventId, file } = params;
+  const { eventId, file: rawFile } = params;
+  const file = rawFile.type.startsWith('image/') ? await ensureDisplayableImage(rawFile) : rawFile;
 
   // Auth
   const {

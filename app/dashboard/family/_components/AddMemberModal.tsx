@@ -6,6 +6,7 @@ import { safeToast as toast } from "@/lib/safeToast";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { X, ImagePlus } from "lucide-react";
 import LegacyCelebration from "@/components/LegacyCelebration";
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 
 type Person = {
@@ -171,10 +172,11 @@ const [celebrationMessage, setCelebrationMessage] = useState("");
       let avatarPath = member?.avatar_url || null;
 
       if (avatarFile) {
-        const path = `${user.id}/family_${Date.now()}_${avatarFile.name}`.replace(/\s+/g, "_");
+        const safeFile = await ensureDisplayableImage(avatarFile);
+        const path = `${user.id}/family_${Date.now()}_${safeFile.name}`.replace(/\s+/g, "_");
         const { error: upErr } = await supabase.storage
           .from("user-media")
-          .upload(path, avatarFile, { upsert: true });
+          .upload(path, safeFile, { upsert: true });
         if (upErr) throw upErr;
         avatarPath = path;
       }

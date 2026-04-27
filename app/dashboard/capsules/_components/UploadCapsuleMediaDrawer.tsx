@@ -5,6 +5,7 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { X, Upload, ImagePlus, Video, Mic } from 'lucide-react';
 import Image from "next/image";
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 // ✅ Fix for native drag events typing
 // eslint-disable-next-line no-undef
@@ -106,19 +107,21 @@ useEffect(() => {
 
     try {
       const user = (await supabase.auth.getUser()).data.user;
-      if (!user) throw new Error('User not authenticated.');
+if (!user) throw new Error('User not authenticated.');
 
-      const ext = file.name.split('.').pop();
-      const fileType = file.type.startsWith('video')
-        ? 'video'
-        : file.type.startsWith('audio')
-        ? 'audio'
-        : 'image';
+const processedFile = file.type.startsWith('image/') ? await ensureDisplayableImage(file) : file;  // ← add
 
-      const filePath = `${user.id}/capsules/${capsuleId}/${Date.now()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage
-        .from('capsule-media')
-        .upload(filePath, file);
+const ext = processedFile.name.split('.').pop();  // ← processedFile from here down
+const fileType = processedFile.type.startsWith('video')
+  ? 'video'
+  : processedFile.type.startsWith('audio')
+  ? 'audio'
+  : 'image';
+
+const filePath = `${user.id}/capsules/${capsuleId}/${Date.now()}.${ext}`;
+const { error: uploadErr } = await supabase.storage
+  .from('capsule-media')
+  .upload(filePath, processedFile);  // ← processedFile
       if (uploadErr) throw uploadErr;
 
       // create signed URL (same as albums)

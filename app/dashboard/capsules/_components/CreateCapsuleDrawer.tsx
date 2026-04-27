@@ -6,6 +6,7 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { X, ImagePlus, CalendarDays } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
 import { usePlanLimits } from '@/lib/usePlanLimits';
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 
 export type CreatedCapsule = {
@@ -169,7 +170,8 @@ const handleSubmit = async () => {
     let coverUrl: string | null = capsule?.cover_image ?? null;
 
     if (coverFile) {
-      const fileExt = coverFile.name.split('.').pop();
+      const safeFile = await ensureDisplayableImage(coverFile);
+      const fileExt = safeFile.name.split('.').pop();
       const uniqueId =
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
@@ -179,7 +181,7 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
 
       const { error: uploadErr } = await supabase.storage
         .from('capsule-media')
-        .upload(filePath, coverFile);
+        .upload(filePath, safeFile);
 
       if (uploadErr) throw uploadErr;
 

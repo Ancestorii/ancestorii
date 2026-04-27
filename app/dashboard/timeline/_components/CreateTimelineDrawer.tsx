@@ -6,6 +6,7 @@ import { safeToast as toast } from '@/lib/safeToast';
 import { X, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlanLimits } from '@/lib/usePlanLimits';
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 
 type Timeline = {
@@ -146,12 +147,13 @@ useEffect(() => {
 
       let uploadedPath: string | null = null;
       if (coverFile) {
-        const sanitized = coverFile.name.replace(/\s+/g, '_');
+        const safeFile = await ensureDisplayableImage(coverFile);
+        const sanitized = safeFile.name.replace(/\s+/g, '_');
         const path = `${user.id}/timeline-covers/${crypto.randomUUID()}_${sanitized}`;
         const { error: upErr } = await supabase
           .storage
           .from('timeline-media')
-          .upload(path, coverFile, { upsert: true });
+          .upload(path, safeFile, { upsert: true });
         if (upErr) throw upErr;
         uploadedPath = path;
       }

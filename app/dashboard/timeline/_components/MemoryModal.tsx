@@ -8,6 +8,7 @@ import { safeToast as toast } from '@/lib/safeToast';
 import { Trash2 } from 'lucide-react';
 import { Save, BookOpen } from 'lucide-react';
 import LibraryPickerModal, { LibraryPickerItem } from '@/components/LibraryPickerModal';
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 const signedUrlCache = new Map<string, string>();
 
@@ -298,9 +299,10 @@ useEffect(() => {
 }
 
 
-async function uploadMedia(file: File) {
+async function uploadMedia(rawFile: File) {
   try {
     setUploadingMedia(true);
+    const file = rawFile.type.startsWith('image/') ? await ensureDisplayableImage(rawFile) : rawFile;
     const { data: sess } = await supabase.auth.getSession();
     const user = sess?.session?.user;
     if (!user) throw new Error('Not authenticated');

@@ -4,6 +4,7 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardHomeClient from './DashboardHomeClient';
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 export default function DashboardHomeLogic({
   name,
@@ -144,7 +145,8 @@ activity: Array<{
     setActiveMemory((prev) => (prev - 1 + 5) % 5);
   };
 
-  const uploadHomeImage = async (file: File, index: number) => {
+  const uploadHomeImage = async (rawFile: File, index: number) => {
+    const file = await ensureDisplayableImage(rawFile);
     const { data: auth } = await supabase.auth.getUser();
     const uid = auth?.user?.id;
     if (!uid) return;

@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { createTimelineEvent } from '../_actions/createEvent';
+import { ensureDisplayableImage } from '@/lib/convertImage';
 import {
   Sheet,
   SheetContent,
@@ -75,20 +76,21 @@ export default function CreateEventDrawer({
         const user = sess?.session?.user;
         if (!user) throw new Error('Not authenticated');
 
-        const ext = mediaFile.name.split('.').pop();
+        const processedFile = mediaFile.type.startsWith('image/') ? await ensureDisplayableImage(mediaFile) : mediaFile;
+        const ext = processedFile.name.split('.').pop();
         const fileId = crypto.randomUUID();
         const path = `${user.id}/${evt.id}/media/${fileId}.${ext}`;
 
         const { error: uploadErr } = await supabase.storage
           .from('timeline-media')
-          .upload(path, mediaFile, { upsert: false });
+          .upload(path, processedFile, { upsert: false });
 
         if (uploadErr) throw uploadErr;
 
         const fileType =
-          mediaFile.type.startsWith('image')
+          processedFile.type.startsWith('image')
             ? 'photo'
-            : mediaFile.type.startsWith('video')
+            : processedFile.type.startsWith('video')
             ? 'video'
             : 'file';
 

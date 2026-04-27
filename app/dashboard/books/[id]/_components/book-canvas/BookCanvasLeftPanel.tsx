@@ -79,15 +79,25 @@ export default function BookCanvasLeftPanel({
 }) {
 
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
 
-  const handleUploadWithFeedback = async (file: File) => {
-  setUploading(true);
-  try {
-    await handleUpload(file);
-  } finally {
+  const handleUploadWithFeedback = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files).slice(0, 20);
+    if (fileArray.length === 0) return;
+
+    setUploading(true);
+    setUploadProgress({ done: 0, total: fileArray.length });
+
+    let done = 0;
+    for (const file of fileArray) {
+      await handleUpload(file);
+      done++;
+      setUploadProgress({ done, total: fileArray.length });
+    }
+
     setUploading(false);
-  }
-};
+    setUploadProgress({ done: 0, total: 0 });
+  };
 
   const tabs = [
     { id: 'pages', icon: <IconPages />, label: 'Pages' },
@@ -421,7 +431,7 @@ export default function BookCanvasLeftPanel({
                   color: BOOK_CANVAS_COLORS.dark,
                 }}
               >
-                Upload Photos
+                {uploading ? `Uploading ${uploadProgress.done}/${uploadProgress.total}…` : 'Upload Photos'}
               </div>
               <div
                 style={{
@@ -432,16 +442,19 @@ export default function BookCanvasLeftPanel({
                   marginTop: 2,
                 }}
               >
-                Drag & drop or browse
+                {uploading ? 'Please wait' : 'Select multiple files at once'}
               </div>
 
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 style={{ display: 'none' }}
                 onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleUploadWithFeedback(f);
+                  if (e.target.files?.length) {
+                    handleUploadWithFeedback(e.target.files);
+                    e.target.value = '';
+                  }
                 }}
               />
             </label>
@@ -473,7 +486,28 @@ export default function BookCanvasLeftPanel({
                   gap: 10,
                 }}
               >
-                {uploading && <UploadingThumb />}
+                {uploading && (
+                  <>
+                    <UploadingThumb />
+                    {uploadProgress.total > 1 && (
+                      <div style={{
+                        aspectRatio: '1',
+                        borderRadius: 8,
+                        background: BOOK_CANVAS_COLORS.canvas,
+                        border: `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontFamily: inter.style.fontFamily,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: BOOK_CANVAS_COLORS.mid,
+                      }}>
+                        {uploadProgress.done}/{uploadProgress.total}
+                      </div>
+                    )}
+                  </>
+                )}
                 {images.map((img, i) => (
                   <button
                     key={img.id ?? i}

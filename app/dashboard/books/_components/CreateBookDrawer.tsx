@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { safeToast as toast } from '@/lib/safeToast';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ImagePlus } from 'lucide-react';
+import { ensureDisplayableImage } from '@/lib/convertImage';
+
 
 /* ────────────────────────────────────────────
    Tiers
@@ -247,17 +249,19 @@ export default function CreateBookDrawer({
         return { coverAssetId, signedUrl };
       }
 
+      const safeFile = await ensureDisplayableImage(coverFile);
+
       const path = `${userId}/${Date.now()}_${Math.random()
         .toString(36)
-        .slice(2)}_${coverFile.name}`.replace(/\s+/g, '_');
+        .slice(2)}_${safeFile.name}`.replace(/\s+/g, '_');
 
       const { error: uploadError } = await supabase.storage
         .from('library-media')
-        .upload(path, coverFile, { upsert: true });
+        .upload(path, safeFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      const dimensions = await getImageDimensions(coverFile);
+      const dimensions = await getImageDimensions(safeFile);
 
       const { data: media, error: mediaError } = await supabase
         .from('library_media')
@@ -267,7 +271,7 @@ export default function CreateBookDrawer({
           file_type: 'image',
           width: dimensions.width,
           height: dimensions.height,
-          file_size_bytes: coverFile.size,
+          file_size_bytes: safeFile.size,
         })
         .select('id')
         .single();

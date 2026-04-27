@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import Image from 'next/image';
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 type Profile = {
   id: string;
@@ -139,10 +140,11 @@ useEffect(() => {
     setSaving(false);
   };
 
-  const uploadAvatar = async (file: File) => {
+  const uploadAvatar = async (rawFile: File) => {
   if (!userId) return;
   setSaving(true);
 
+  const file = await ensureDisplayableImage(rawFile);
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
   const path = `${userId}/avatar.${ext}`;
 
