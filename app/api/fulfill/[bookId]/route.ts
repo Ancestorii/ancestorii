@@ -125,11 +125,20 @@ export async function POST(
     try {
       // 5a. Query Prodigi for exact spine dimensions
       const spineInfoRes = await fetch(
-        `https://api.prodigi.com/v4.0/Products/BOOK-FE-A4-L-HARD-G/spine?pageCount=${book.total_page_limit}&destinationCountryCode=${order.shipping_country}`,
-        {
-          headers: { 'X-API-Key': process.env.PRODIGI_API_KEY! },
-        }
-      );
+  'https://api.prodigi.com/v4.0/products/spine',
+  {
+    method: 'POST',
+    headers: {
+      'X-API-Key': process.env.PRODIGI_API_KEY!,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sku: 'BOOK-FE-A4-L-HARD-G',
+      destinationCountryCode: order.shipping_country || 'GB',
+      numberOfPages: book.total_page_limit,
+    }),
+  }
+);
 
       if (!spineInfoRes.ok) {
         throw new Error(`Spine dimensions query failed: ${spineInfoRes.status}`);
@@ -137,9 +146,14 @@ export async function POST(
 
       const spineInfo = await spineInfoRes.json();
 
-      // Prodigi returns dimensions — extract width and height in pixels
-      const spineWidth = spineInfo?.width ?? spineInfo?.printAreaSizes?.spine?.horizontalResolution ?? 150;
-      const spineHeight = spineInfo?.height ?? spineInfo?.printAreaSizes?.spine?.verticalResolution ?? 2480;
+      // Prodigi returns { spineInfo: { widthMm: number } }
+// Convert mm to pixels at 300 DPI for print
+const spineWidthMm = spineInfo?.spineInfo?.widthMm ?? 10;
+const spineWidthPx = Math.round(spineWidthMm * (300 / 25.4));
+const spineHeightPx = 3508; // A4 long edge at 300 DPI (297mm)
+
+const spineWidth = spineWidthPx;
+const spineHeight = spineHeightPx;
 
       console.log('SPINE DIMENSIONS:', JSON.stringify(spineInfo));
       console.log(`SPINE SIZE: ${spineWidth} x ${spineHeight}`);

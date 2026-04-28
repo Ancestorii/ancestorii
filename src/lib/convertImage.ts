@@ -1,14 +1,9 @@
-import heic2any from 'heic2any';
-
 /**
  * Converts HEIC/HEIF images to JPEG before upload.
- * Browsers can't render HEIC natively — this ensures every
- * uploaded image is displayable everywhere (library, books,
- * timelines, capsules, albums, etc.).
- *
- * Usage:
- *   const file = await ensureDisplayableImage(rawFile);
- *   // then upload `file` to Supabase Storage as normal
+ * Strategy:
+ *   1. Try browser-native decoding (works on macOS/iOS)
+ *   2. Fall back to heic2any library
+ *   3. If both fail, return the original file — upload it anyway
  */
 export const ensureDisplayableImage = async (file: File): Promise<File> => {
   const isHeic =
@@ -18,24 +13,49 @@ export const ensureDisplayableImage = async (file: File): Promise<File> => {
 
   if (!isHeic) return file;
 
+  // ── Attempt 1: browser-native decoding via canvas ──
   try {
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(bitmap, 0, 0);
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/jpeg', 0.9)
+      );
+      bitmap.close();
+      if (blob) {
+        return new File(
+          [blob],
+          file.name.replace(/\.(heic|heif)$/i, '.jpg'),
+          { type: 'image/jpeg' }
+        );
+      }
+    }
+  } catch {
+    // Browser can't decode HEIC natively — try heic2any
+  }
+
+  // ── Attempt 2: heic2any library ──
+  try {
+    const heic2any = (await import('heic2any')).default;
     const converted = await heic2any({
       blob: file,
       toType: 'image/jpeg',
       quality: 0.9,
     });
-
     const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
-
     return new File(
       [jpegBlob],
       file.name.replace(/\.(heic|heif)$/i, '.jpg'),
       { type: 'image/jpeg' }
     );
   } catch (error) {
-    console.error('HEIC conversion failed:', error);
-    throw new Error(
-      'This image format could not be processed. Please try uploading a JPG or PNG instead.'
-    );
+    console.warn('HEIC conversion failed, uploading original:', error);
   }
+
+  // ── Attempt 3: return original file as-is ──
+  return file;
 };
