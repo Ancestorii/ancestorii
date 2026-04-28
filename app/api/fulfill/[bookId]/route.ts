@@ -317,7 +317,7 @@ const spineHeight = spineHeightPx;
           phone: order.shipping_phone || undefined,
           address: {
             line1: order.shipping_line1 || '',
-            line2: order.shipping_line2 || '',
+            line2: order.shipping_line2 || undefined,
             postalOrZipCode: order.shipping_postal || '',
             countryCode: order.shipping_country || 'GB',
             townOrCity: order.shipping_city || '',
