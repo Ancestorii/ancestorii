@@ -21,7 +21,8 @@ export default function PhotoMessageBackCover({
 }) {
   const supabase = getBrowserClient();
   const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false); // ✅ ADDED
+  const [loaded, setLoaded] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   const sorted = [...assets].sort((a, b) => a.slot_index - b.slot_index);
 
@@ -76,7 +77,9 @@ export default function PhotoMessageBackCover({
       }}
     >
       <div
-        onClick={!isExport && selectedImage ? handlePlaceImage : undefined} // ✅ SAFE
+        onClick={!isExport && selectedImage ? handlePlaceImage : undefined}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         style={{
           width: 120,
           aspectRatio: '1 / 1',
@@ -132,6 +135,41 @@ export default function PhotoMessageBackCover({
           >
             {loading ? 'Placing...' : selectedImage ? 'Click to place' : 'Add photo'}
           </div>
+        )}
+
+        {!isExport && hovered && image.url && !selectedImage && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdateAsset({
+                ...image,
+                slot_index: 0,
+                asset_id: undefined,
+                url: undefined,
+              });
+            }}
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              width: 22,
+              height: 22,
+              borderRadius: 99,
+              background: 'rgba(0,0,0,0.6)',
+              border: 'none',
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 5,
+            }}
+          >
+            ×
+          </button>
         )}
       </div>
 

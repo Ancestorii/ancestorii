@@ -26,6 +26,7 @@ export default function FullBleedCoverLayout({
   const supabase = getBrowserClient();
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   const sorted = [...assets].sort((a, b) => a.slot_index - b.slot_index);
 
@@ -82,19 +83,21 @@ export default function FullBleedCoverLayout({
           overflow: 'hidden',
           borderRadius: 6,
           cursor: !isExport && selectedImage ? 'pointer' : 'default',
-          background: selectedImage && !image.url ? '#FBF6EA' : 'transparent',
-          border: image.url ? 'none' : '2px dashed #D1D5DB',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          boxShadow: image.url
-            ? '0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)'
-            : 'none',
-        }}
-      >
-        {image.url ? (
-          <>
+        background: selectedImage && !image.url ? '#FBF6EA' : 'transparent',
+        border: image.url ? 'none' : '2px dashed #D1D5DB',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        boxShadow: image.url
+          ? '0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)'
+          : 'none',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {image.url ? (
+        <>
             {isExport ? (
               // 🔥 PDF MODE
               <img
@@ -148,6 +151,41 @@ export default function FullBleedCoverLayout({
                   {loading ? 'Placing...' : 'Click to replace'}
                 </div>
               </div>
+            )}
+
+            {!isExport && hovered && !selectedImage && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateAsset({
+                    ...image,
+                    slot_index: 0,
+                    asset_id: undefined,
+                    url: undefined,
+                  });
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 6,
+                  width: 26,
+                  height: 26,
+                  borderRadius: 99,
+                  background: 'rgba(0,0,0,0.6)',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 5,
+                }}
+              >
+                ×
+              </button>
             )}
           </>
         ) : (

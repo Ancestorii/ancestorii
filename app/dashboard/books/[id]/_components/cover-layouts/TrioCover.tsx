@@ -23,7 +23,8 @@ export default function TrioCoverLayout({
 }) {
   const supabase = getBrowserClient();
   const [loadingSlot, setLoadingSlot] = useState<number | null>(null);
-  const [loadedMap, setLoadedMap] = useState<Record<number, boolean>>({}); // ✅ ADDED
+  const [loadedMap, setLoadedMap] = useState<Record<number, boolean>>({});
+  const [hoveredSlot, setHoveredSlot] = useState<number | null>(null);
 
   const sorted = [...assets].sort((a, b) => a.slot_index - b.slot_index);
 
@@ -74,7 +75,9 @@ export default function TrioCoverLayout({
 
     return (
       <div
-        onClick={!isExport && selectedImage ? () => handlePlaceImage(asset, slotIndex) : undefined} // ✅ SAFE
+        onClick={!isExport && selectedImage ? () => handlePlaceImage(asset, slotIndex) : undefined}
+        onMouseEnter={() => setHoveredSlot(slotIndex)}
+        onMouseLeave={() => setHoveredSlot(null)}
         style={{
           position: 'relative',
           width: '100%',
@@ -167,6 +170,41 @@ export default function TrioCoverLayout({
               ? 'Click to place'
               : 'Choose an image'}
           </div>
+        )}
+
+        {!isExport && hasImage && hoveredSlot === slotIndex && !selectedImage && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdateAsset({
+                ...asset,
+                slot_index: slotIndex,
+                asset_id: undefined,
+                url: undefined,
+              });
+            }}
+            style={{
+              position: 'absolute',
+              top: 6,
+              right: 6,
+              width: 26,
+              height: 26,
+              borderRadius: 99,
+              background: 'rgba(0,0,0,0.6)',
+              border: 'none',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 5,
+            }}
+          >
+            ×
+          </button>
         )}
       </div>
     );
