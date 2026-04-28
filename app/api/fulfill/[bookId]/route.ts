@@ -133,10 +133,11 @@ export async function POST(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      sku: 'BOOK-FE-A4-L-HARD-G',
-      destinationCountryCode: order.shipping_country || 'GB',
-      numberOfPages: book.total_page_limit,
-    }),
+  sku: 'BOOK-FE-A4-L-HARD-G',
+  destinationCountryCode: order.shipping_country || 'GB',
+  state: order.shipping_state || undefined,
+  numberOfPages: book.total_page_limit,
+}),
   }
 );
 
