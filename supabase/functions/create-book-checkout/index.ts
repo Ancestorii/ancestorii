@@ -1,4 +1,4 @@
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import Stripe from "npm:stripe@14.21.0";
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2?target=deno";
 
@@ -143,6 +143,7 @@ serve(async (req) => {
       success_url: successUrl,
       cancel_url: cancelUrl,
       client_reference_id: userId,
+      allow_promotion_codes: true,   // 👈 add this
       shipping_address_collection: {
         allowed_countries: [
           "GB", "US", "CA", "AU", "NZ", "IE", "DE", "FR", "ES", "IT",
