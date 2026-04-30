@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,33 +35,40 @@ export async function GET(
     .filter((c) => c.name && c.value);
 
   let browser;
+  const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
   try {
-    // ── Detect environment ──
-    const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+    console.log('[EXPORT] connecting to browser');
+    if (isVercel) {
+      const browserlessToken = process.env.BROWSERLESS_TOKEN;
+      if (!browserlessToken) {
+        throw new Error('BROWSERLESS_TOKEN environment variable not set');
+      }
+      browser = await puppeteer.connect({
+        browserWSEndpoint: `wss://production-sfo.browserless.io?token=${browserlessToken}`,
+      });
+    } else {
+      const executablePath =
+        process.platform === 'win32'
+          ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+          : process.platform === 'darwin'
+            ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+            : '/usr/bin/google-chrome';
 
-    const executablePath = isVercel
-      ? await chromium.executablePath()
-      : process.platform === 'win32'
-        ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-        : process.platform === 'darwin'
-          ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-          : '/usr/bin/google-chrome';
-
-    browser = await puppeteer.launch({
-      args: isVercel
-        ? chromium.args
-        : [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--font-render-hinting=none',
-          ],
-      defaultViewport: null,
-      executablePath,
-      headless: true,
-    });
+      browser = await puppeteer.launch({
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--font-render-hinting=none',
+        ],
+        defaultViewport: null,
+        executablePath,
+        headless: true,
+      });
+    }
+    console.log('[EXPORT] browser connected');
 
     const page = await browser.newPage();
 
@@ -74,35 +81,35 @@ export async function GET(
     await page.setViewport({ width: 1123, height: 794, deviceScaleFactor: 2 });
 
     // ── Navigate to export page ──
+    console.log('[EXPORT] navigating to', exportUrl);
     await page.goto(exportUrl, {
       waitUntil: 'networkidle0',
       timeout: 60_000,
     });
-
-const pageContent = await page.content();
-const pageTitle = await page.title();
-console.log('PUPPETEER LANDED ON:', exportUrl);
-console.log('PAGE TITLE:', pageTitle);
-console.log('PAGE LENGTH:', pageContent.length);
-console.log('FIRST 500 CHARS:', pageContent.substring(0, 500));
+    console.log('[EXPORT] page loaded');
 
     // ── Wait for all images to load ──
+    console.log('[EXPORT] waiting for data-export-ready signal');
     await page.waitForFunction(
       () => document.querySelector('[data-export-ready="true"]') !== null,
       { timeout: 60_000 }
     );
+    console.log('[EXPORT] export ready signal received');
 
     // ── Extra buffer for font rendering + final paints ──
     await new Promise((r) => setTimeout(r, 1500));
 
     // ── Generate PDF ──
+    console.log('[EXPORT] starting page.pdf()');
     const pdfBuffer = await page.pdf({
       width: '297mm',
       height: '210mm',
       printBackground: true,
       margin: { top: '0', right: '0', bottom: '0', left: '0' },
       preferCSSPageSize: true,
+      timeout: 90_000,
     });
+    console.log('[EXPORT] page.pdf() complete, buffer size:', pdfBuffer.length);
 
     return new NextResponse(Buffer.from(pdfBuffer), {
       status: 200,
@@ -113,7 +120,7 @@ console.log('FIRST 500 CHARS:', pageContent.substring(0, 500));
       },
     });
   } catch (err: any) {
-    console.error('PDF EXPORT FAILED:', err);
+    console.error('[EXPORT] PDF EXPORT FAILED:', err);
 
     return NextResponse.json(
       { error: err?.message || 'PDF generation failed' },
@@ -121,7 +128,15 @@ console.log('FIRST 500 CHARS:', pageContent.substring(0, 500));
     );
   } finally {
     if (browser) {
-      await browser.close();
+      try {
+        if (isVercel) {
+          await browser.disconnect();
+        } else {
+          await browser.close();
+        }
+      } catch (cleanupErr) {
+        console.error('[EXPORT] browser cleanup error:', cleanupErr);
+      }
     }
   }
 }
