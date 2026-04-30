@@ -199,7 +199,7 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // 1️⃣ checkout.session.completed
+   // 1️⃣ checkout.session.completed
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
@@ -211,6 +211,20 @@ serve(async (req) => {
 
         if (!orderId || !bookId || !userId) {
           return new Response("Missing book order metadata", { status: 200 });
+        }
+
+        // ── Idempotency check: skip if this order is already paid ──
+        // Stripe retries webhooks aggressively. Without this, every retry
+        // re-runs the order update, re-sends the email, and re-triggers fulfillment.
+        const { data: existingOrder } = await supabase
+          .from("orders")
+          .select("payment_status")
+          .eq("id", orderId)
+          .maybeSingle();
+
+        if (existingOrder?.payment_status === "paid") {
+          console.log("Order already processed, skipping duplicate webhook:", orderId);
+          return new Response("Already processed", { status: 200 });
         }
 
         // Extract shipping address from Stripe
