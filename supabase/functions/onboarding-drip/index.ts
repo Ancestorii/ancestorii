@@ -62,7 +62,7 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
 
   // Find users who signed up on that date
   const { data: users, error: usersError } = await supabase
-    .from("profiles")
+    .from("Profiles")
     .select("id, full_name, email")
     .gte("created_at", `${dateStr}T00:00:00.000Z`)
     .lt("created_at", `${dateStr}T23:59:59.999Z`);
