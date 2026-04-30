@@ -414,7 +414,7 @@ const spineHeight = spineHeightPx;
             postalOrZipCode: order.shipping_postal || '',
             countryCode: order.shipping_country || 'GB',
             townOrCity: order.shipping_city || '',
-            stateOrCounty: order.shipping_state || '',
+            stateOrCounty: order.shipping_state || order.shipping_city || 'N/A',
           },
         },
         items: [
