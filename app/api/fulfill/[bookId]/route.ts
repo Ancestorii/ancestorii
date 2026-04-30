@@ -76,6 +76,17 @@ export async function POST(
     });
     console.log('[FULFILL] browser launched');
 
+    browser.on('disconnected', () => {
+      console.log('[BROWSER DISCONNECTED] at', new Date().toISOString());
+    });
+    
+    const browserProcess = browser.process();
+    if (browserProcess) {
+      browserProcess.on('exit', (code, signal) => {
+        console.log('[CHROMIUM PROCESS EXIT] code:', code, 'signal:', signal);
+      });
+    }
+
     const page = await browser.newPage();
     console.log('[FULFILL] new page created');
 
@@ -86,6 +97,16 @@ export async function POST(
       if (res.status() >= 400) {
         console.log('[BROWSER BAD RESPONSE]', res.status(), res.url());
       }
+    });
+    page.on('crash', () => console.log('[PAGE CRASH] page crashed at', new Date().toISOString()));
+    page.on('close', () => console.log('[PAGE CLOSE] page closed at', new Date().toISOString()));
+    page.on('error', (err) => console.log('[PAGE ERROR]', (err as Error)?.message ?? String(err)));
+    
+    const cdpClient = await page.createCDPSession();
+    await cdpClient.send('Performance.enable');
+    
+    cdpClient.on('Inspector.targetCrashed', () => {
+      console.log('[CDP TARGET CRASHED] at', new Date().toISOString());
     });
 
     page.setDefaultTimeout(90_000);
@@ -108,8 +129,33 @@ export async function POST(
 
     await new Promise((r) => setTimeout(r, 1500));
 
-    console.log('[FULFILL] starting page.pdf()');
-    const pdfBuffer = await page.pdf({
+    console.log('[FULFILL] starting page.pdf() at', new Date().toISOString());
+    
+    const memInterval = setInterval(async () => {
+      const mem = process.memoryUsage();
+      let pageMetrics: any = null;
+      try {
+        pageMetrics = await page.metrics();
+      } catch {
+        pageMetrics = { error: 'metrics unavailable' };
+      }
+      console.log('[MEM]', JSON.stringify({
+        ts: new Date().toISOString(),
+        rss_mb: Math.round(mem.rss / 1024 / 1024),
+        heap_used_mb: Math.round(mem.heapUsed / 1024 / 1024),
+        heap_total_mb: Math.round(mem.heapTotal / 1024 / 1024),
+        external_mb: Math.round(mem.external / 1024 / 1024),
+        page_jsHeapUsed_mb: pageMetrics?.JSHeapUsedSize ? Math.round(pageMetrics.JSHeapUsedSize / 1024 / 1024) : null,
+        page_jsHeapTotal_mb: pageMetrics?.JSHeapTotalSize ? Math.round(pageMetrics.JSHeapTotalSize / 1024 / 1024) : null,
+        page_documents: pageMetrics?.Documents ?? null,
+        page_nodes: pageMetrics?.Nodes ?? null,
+        page_layoutCount: pageMetrics?.LayoutCount ?? null,
+      }));
+    }, 5_000);
+    
+    let pdfBuffer;
+    try {
+      pdfBuffer = await page.pdf({
   width: '297mm',
   height: '210mm',
   printBackground: true,
@@ -117,6 +163,9 @@ export async function POST(
   preferCSSPageSize: true,
   timeout: 90_000,
 });
+    } finally {
+      clearInterval(memInterval);
+    }
     console.log('[FULFILL] page.pdf() complete, buffer size:', pdfBuffer.length);
 
     // ── 4. Get order details (need shipping_country for spine dimensions) ──
@@ -413,6 +462,12 @@ const spineHeight = spineHeightPx;
     });
   } catch (err: any) {
     console.error('FULFILL ERROR:', err);
+    console.error('FULFILL ERROR DETAILS:', JSON.stringify({
+      message: err?.message,
+      name: err?.name,
+      stack: err?.stack?.split('\n').slice(0, 10).join(' | '),
+      code: err?.code,
+    }));
 
     await supabase
       .from('orders')
