@@ -3,14 +3,6 @@
     "app/api/fulfill/[bookId]/route.ts": {
       "memory": 3008,
       "maxDuration": 300
-    },
-    "app/api/export/[bookId]/route.ts": {
-      "memory": 3008,
-      "maxDuration": 300
-    },
-    "app/export/[bookId]/page.tsx": {
-      "memory": 3008,
-      "maxDuration": 60
     }
   }
 }
