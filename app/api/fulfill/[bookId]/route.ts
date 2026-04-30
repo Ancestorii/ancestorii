@@ -65,29 +65,50 @@ export async function POST(
           ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
           : '/usr/bin/google-chrome';
 
+    console.log('[FULFILL] launching browser');
     browser = await puppeteer.launch({
-      args: isVercel ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
+      args: isVercel
+        ? [...chromium.args, '--single-process', '--no-zygote', '--disable-dev-shm-usage']
+        : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       defaultViewport: null,
       executablePath,
       headless: true,
     });
+    console.log('[FULFILL] browser launched');
 
     const page = await browser.newPage();
+    console.log('[FULFILL] new page created');
+
+    page.on('console', (msg) => console.log('[BROWSER CONSOLE]', msg.type(), msg.text()));
+    page.on('pageerror', (err) => console.log('[BROWSER PAGEERROR]', (err as Error)?.message ?? String(err)));
+    page.on('requestfailed', (req) => console.log('[BROWSER REQUESTFAILED]', req.url(), req.failure()?.errorText));
+    page.on('response', (res) => {
+      if (res.status() >= 400) {
+        console.log('[BROWSER BAD RESPONSE]', res.status(), res.url());
+      }
+    });
+
     page.setDefaultTimeout(90_000);
     await page.setViewport({ width: 1123, height: 794, deviceScaleFactor: 2 });
 
+    console.log('[FULFILL] navigating to', exportUrl);
     await page.goto(exportUrl, {
       waitUntil: 'networkidle0',
       timeout: 60_000,
     });
+    const pageContent = await page.content();
+    console.log('[FULFILL] page loaded, html length:', pageContent.length);
 
+    console.log('[FULFILL] waiting for data-export-ready signal');
     await page.waitForFunction(
       () => document.querySelector('[data-export-ready="true"]') !== null,
       { timeout: 60_000 }
     );
+    console.log('[FULFILL] export ready signal received');
 
     await new Promise((r) => setTimeout(r, 1500));
 
+    console.log('[FULFILL] starting page.pdf()');
     const pdfBuffer = await page.pdf({
   width: '297mm',
   height: '210mm',
@@ -96,6 +117,7 @@ export async function POST(
   preferCSSPageSize: true,
   timeout: 90_000,
 });
+    console.log('[FULFILL] page.pdf() complete, buffer size:', pdfBuffer.length);
 
     // ── 4. Get order details (need shipping_country for spine dimensions) ──
     const { data: order, error: orderError } = await supabase
