@@ -33,6 +33,7 @@ export async function POST(
   );
 
   let browser;
+  const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
   try {
     // ── 1. Fetch book data (for page count + spine) ──
@@ -55,26 +56,37 @@ export async function POST(
     // ── 3. Generate PDF with Puppeteer ──
     const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/${bookId}`;
 
-    const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+    console.log('[FULFILL] connecting to browser');
+    if (isVercel) {
+      const browserlessToken = process.env.BROWSERLESS_TOKEN;
+      if (!browserlessToken) {
+        throw new Error('BROWSERLESS_TOKEN environment variable not set');
+      }
+      browser = await puppeteer.connect({
+        browserWSEndpoint: `wss://production-sfo.browserless.io?token=${browserlessToken}`,
+      });
+    } else {
+      const executablePath =
+        process.platform === 'win32'
+          ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+          : process.platform === 'darwin'
+            ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+            : '/usr/bin/google-chrome';
 
-    const executablePath = isVercel
-      ? await chromium.executablePath()
-      : process.platform === 'win32'
-        ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-        : process.platform === 'darwin'
-          ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-          : '/usr/bin/google-chrome';
-
-    console.log('[FULFILL] launching browser');
-    browser = await puppeteer.launch({
-      args: isVercel
-        ? chromium.args
-        : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
-      defaultViewport: null,
-      executablePath,
-      headless: true,
-    });
-    console.log('[FULFILL] browser launched');
+      browser = await puppeteer.launch({
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--font-render-hinting=none',
+        ],
+        defaultViewport: null,
+        executablePath,
+        headless: true,
+      });
+    }
+    console.log('[FULFILL] browser connected');
 
     browser.on('disconnected', () => {
       console.log('[BROWSER DISCONNECTED] at', new Date().toISOString());
@@ -329,8 +341,12 @@ const spineHeight = spineHeightPx;
       console.error('SPINE GENERATION FAILED (order will proceed without spine):', spineErr?.message);
     }
 
-    // ── 6. Close browser (done with all rendering) ──
-    await browser.close();
+    // ── 6. Close/disconnect browser (done with all rendering) ──
+    if (isVercel) {
+      await browser.disconnect();
+    } else {
+      await browser.close();
+    }
     browser = null;
 
     // ── 7. Upload PDF to Supabase Storage ──
@@ -480,7 +496,15 @@ const spineHeight = spineHeightPx;
     );
   } finally {
     if (browser) {
-      await browser.close();
+      try {
+        if (isVercel) {
+          await browser.disconnect();
+        } else {
+          await browser.close();
+        }
+      } catch (cleanupErr) {
+        console.error('[FULFILL] browser cleanup error:', cleanupErr);
+      }
     }
   }
 }
