@@ -68,7 +68,7 @@ export async function POST(
     console.log('[FULFILL] launching browser');
     browser = await puppeteer.launch({
       args: isVercel
-        ? [...chromium.args, '--single-process', '--no-zygote', '--disable-dev-shm-usage']
+        ? chromium.args
         : ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--font-render-hinting=none'],
       defaultViewport: null,
       executablePath,
