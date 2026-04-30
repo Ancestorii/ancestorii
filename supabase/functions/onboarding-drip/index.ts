@@ -60,23 +60,57 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
   targetDate.setDate(targetDate.getDate() - drip.day);
   const dateStr = targetDate.toISOString().split("T")[0]; // e.g. "2026-04-19"
 
-  // Find users who signed up on that date
-  const { data: users, error: usersError } = await supabase
-    .from("Profiles")
-    .select("id, full_name, email")
-    .gte("created_at", `${dateStr}T00:00:00.000Z`)
-    .lt("created_at", `${dateStr}T23:59:59.999Z`);
+  // ── Fetch users from auth.users (paginated) ──
+  // We use auth.users because Profiles.created_at was set by a backfill,
+  // not by a per-user signup trigger, so it can't be trusted for cohort dates.
+  const matchedUsers: { id: string; email: string; name: string | null }[] = [];
+  let page = 1;
+  const perPage = 1000;
 
-  if (usersError) {
-    console.error(`Error fetching users for ${drip.step}:`, usersError);
-    return 0;
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+
+    if (error) {
+      console.error(`Error fetching auth users for ${drip.step}:`, error);
+      return 0;
+    }
+
+    const users = data?.users ?? [];
+    if (users.length === 0) break;
+
+    for (const u of users) {
+      if (!u.created_at || !u.email) continue;
+      const createdDate = u.created_at.split("T")[0];
+      if (createdDate === dateStr) {
+        matchedUsers.push({
+          id: u.id,
+          email: u.email,
+          name: u.user_metadata?.full_name ?? null,
+        });
+      }
+    }
+
+    if (users.length < perPage) break;
+    page++;
   }
 
-  if (!users || users.length === 0) return 0;
+  if (matchedUsers.length === 0) return 0;
+
+  // ── Optionally enrich with names from Profiles ──
+  const userIds = matchedUsers.map((u) => u.id);
+  const { data: profileRows } = await supabase
+    .from("Profiles")
+    .select("id, full_name")
+    .in("id", userIds);
+
+  const nameByUserId = new Map<string, string>();
+  for (const row of profileRows ?? []) {
+    if (row.full_name) nameByUserId.set(row.id, row.full_name);
+  }
 
   let sentCount = 0;
 
-  for (const user of users) {
+  for (const user of matchedUsers) {
     // Check if this email was already sent to this user
     const { data: existing } = await supabase
       .from("onboarding_emails_log")
@@ -87,19 +121,8 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
 
     if (existing) continue; // Already sent, skip
 
-    // Resolve email if not on the profiles table
-    let email = user.email;
-    let name = user.full_name;
-
-    if (!email) {
-      const { data: { user: authUser } } = await supabase.auth.admin.getUserById(user.id);
-      email = authUser?.email ?? null;
-      if (!name) name = authUser?.user_metadata?.full_name ?? null;
-    }
-
-    if (!email) continue; // No email, skip
-
-    const firstName = name ? name.split(" ")[0] : "there";
+    const fullName = nameByUserId.get(user.id) ?? user.name;
+    const firstName = fullName ? fullName.split(" ")[0] : "there";
 
     // Send the email
     const res = await fetch("https://api.resend.com/emails", {
@@ -110,7 +133,7 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
       },
       body: JSON.stringify({
         from: "Dante from Ancestorii <support@ancestorii.com>",
-        to: [email],
+        to: [user.email],
         subject: drip.subject,
         html: drip.template(firstName),
       }),
@@ -124,10 +147,10 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
         sent_at: new Date().toISOString(),
       });
       sentCount++;
-      console.log(`Sent ${drip.step} to ${email}`);
+      console.log(`Sent ${drip.step} to ${user.email}`);
     } else {
       const err = await res.json();
-      console.error(`Failed to send ${drip.step} to ${email}:`, err);
+      console.error(`Failed to send ${drip.step} to ${user.email}:`, err);
     }
   }
 
