@@ -14,10 +14,18 @@ export async function getServerClient() {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: any) {
-          cookieStore.set({ name, value, ...options });
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch {
+            // Server Component context — middleware refreshes the cookie on the next request
+          }
         },
         remove(name: string, options: any) {
-          cookieStore.set({ name, value: '', ...options });
+          try {
+            cookieStore.set({ name, value: '', ...options });
+          } catch {
+            // Server Component context — middleware refreshes the cookie on the next request
+          }
         },
       },
     }

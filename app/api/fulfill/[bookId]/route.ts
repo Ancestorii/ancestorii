@@ -73,6 +73,7 @@ export async function POST(
     });
 
     const page = await browser.newPage();
+    page.setDefaultTimeout(90_000);
     await page.setViewport({ width: 1123, height: 794, deviceScaleFactor: 2 });
 
     await page.goto(exportUrl, {
@@ -88,12 +89,13 @@ export async function POST(
     await new Promise((r) => setTimeout(r, 1500));
 
     const pdfBuffer = await page.pdf({
-      width: '297mm',
-      height: '210mm',
-      printBackground: true,
-      margin: { top: '0', right: '0', bottom: '0', left: '0' },
-      preferCSSPageSize: true,
-    });
+  width: '297mm',
+  height: '210mm',
+  printBackground: true,
+  margin: { top: '0', right: '0', bottom: '0', left: '0' },
+  preferCSSPageSize: true,
+  timeout: 90_000,
+});
 
     // ── 4. Get order details (need shipping_country for spine dimensions) ──
     const { data: order, error: orderError } = await supabase
@@ -165,6 +167,7 @@ const spineHeight = spineHeightPx;
       const spineTextColour = book.spine_text_colour || '#d4af37';
 
       const spinePage = await browser.newPage();
+      spinePage.setDefaultTimeout(60_000);
       await spinePage.setViewport({
         width: spineWidth,
         height: spineHeight,
@@ -210,7 +213,10 @@ const spineHeight = spineHeightPx;
         </html>
       `;
 
-      await spinePage.setContent(spineHtml, { waitUntil: 'networkidle0' });
+      await spinePage.setContent(spineHtml, {
+        waitUntil: 'networkidle0',
+        timeout: 60_000,
+      });
       await new Promise((r) => setTimeout(r, 300));
 
       const spineBuffer = await spinePage.screenshot({
