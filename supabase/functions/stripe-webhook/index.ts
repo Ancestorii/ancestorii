@@ -45,55 +45,86 @@ async function sendEmail(to: string, subject: string, html: string) {
 function premiumUpgradeEmail(name: string): { subject: string; html: string } {
   return {
     subject: "Welcome to Ancestorii Premium",
-    html: `
-<!DOCTYPE html>
-<html>
+    html: `<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>Welcome to Ancestorii Premium</title>
 </head>
-<body style="margin:0; padding:0; background:#FDFAF5; font-family:Arial, sans-serif;">
-  <div style="max-width:560px; margin:0 auto; padding:48px 24px;">
-    
-    <div style="text-align:center; margin-bottom:32px;">
-      <div style="width:48px; height:3px; background:#d4af37; border-radius:2px; margin:0 auto 20px;"></div>
-      <h1 style="font-size:24px; font-weight:800; color:#1A1714; letter-spacing:-0.02em; margin:0 0 8px;">
-        Welcome to Premium
-      </h1>
-      <p style="font-size:14px; color:#6B6358; margin:0;">
-        Your upgrade is confirmed.
-      </p>
-    </div>
+<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
+    <tr>
+      <td align="center" style="padding:48px 16px 56px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
 
-    <div style="background:#FFFFFF; border:1px solid #E8E4DC; border-radius:16px; padding:32px 28px; margin-bottom:24px;">
-      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
-        Hi${name ? ` ${name}` : ''},
-      </p>
-      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
-        Thank you for upgrading to Ancestorii Premium. You now have access to expanded storage and all premium features to preserve and share your family's most precious memories.
-      </p>
-      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
-        Your subscription is active and will renew automatically each year. You can manage it anytime from your Plans page.
-      </p>
-      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0;">
-        If you have any questions, just reply to this email.
-      </p>
-    </div>
+          <tr>
+            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
+                Membership confirmed
+              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
+                Ancestorii
+              </p>
+            </td>
+          </tr>
 
-    <div style="text-align:center;">
-      <a href="https://www.ancestorii.com/dashboard/home" 
-         style="display:inline-block; padding:12px 32px; background:#1A1714; color:#FFFFFF; font-size:14px; font-weight:700; text-decoration:none; border-radius:10px;">
-        Go to Dashboard
-      </a>
-    </div>
+          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
 
-    <div style="text-align:center; margin-top:40px; padding-top:24px; border-top:1px solid #E8E4DC;">
-      <p style="font-size:11px; color:#A39B8F; margin:0;">
-        Ancestorii · Preserving what matters most
-      </p>
-    </div>
+          <tr>
+            <td style="padding:48px 40px 36px 40px;">
 
-  </div>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
+                Thank you${name ? `, ${name}` : ''}.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
+                Your upgrade to Ancestorii Premium is confirmed. You now have access to expanded storage and all premium features to preserve and share your family's most precious memories.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
+                Your subscription is active and will renew automatically each year. You can manage it anytime from your Plans page.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
+                If you have any questions, just reply to this email.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
+                <tr>
+                  <td align="center" style="background-color:#16120c;">
+                    <a href="https://www.ancestorii.com/dashboard/home" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
+                      Go to Dashboard
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">
+                — The Ancestorii Team
+              </p>
+
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
+                Ancestorii Ltd &middot; London
+              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
+                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`,
   };
@@ -102,63 +133,126 @@ function premiumUpgradeEmail(name: string): { subject: string; html: string } {
 function bookOrderEmail(name: string, bookTitle: string, tierName: string): { subject: string; html: string } {
   return {
     subject: `Your memory book order is confirmed`,
-    html: `
-<!DOCTYPE html>
-<html>
+    html: `<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>Your memory book order is confirmed</title>
 </head>
-<body style="margin:0; padding:0; background:#FDFAF5; font-family:Arial, sans-serif;">
-  <div style="max-width:560px; margin:0 auto; padding:48px 24px;">
-    
-    <div style="text-align:center; margin-bottom:32px;">
-      <div style="width:48px; height:3px; background:#d4af37; border-radius:2px; margin:0 auto 20px;"></div>
-      <h1 style="font-size:24px; font-weight:800; color:#1A1714; letter-spacing:-0.02em; margin:0 0 8px;">
-        Your Book Is on Its Way
-      </h1>
-      <p style="font-size:14px; color:#6B6358; margin:0;">
-        Order confirmed. We're making it real.
-      </p>
-    </div>
+<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
+    <tr>
+      <td align="center" style="padding:48px 16px 56px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
 
-    <div style="background:#FFFFFF; border:1px solid #E8E4DC; border-radius:16px; padding:32px 28px; margin-bottom:24px;">
-      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
-        Hi${name ? ` ${name}` : ''},
-      </p>
-      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
-        Thank you for your order. Your memory book <strong>"${bookTitle}"</strong> (${tierName}) is now being prepared for print.
-      </p>
-      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0 0 16px;">
-        Here's what happens next:
-      </p>
-      <div style="background:#FBF6EA; border-radius:10px; padding:16px 20px; margin:0 0 16px;">
-        <p style="font-size:13px; color:#1A1714; line-height:1.7; margin:0;">
-          <strong style="color:#B8860B;">1.</strong> We prepare your book for printing<br/>
-          <strong style="color:#B8860B;">2.</strong> Your book is printed on premium 200gsm gloss pages<br/>
-          <strong style="color:#B8860B;">3.</strong> Bound in a hardcover matte finish<br/>
-          <strong style="color:#B8860B;">4.</strong> Shipped directly to your door — free worldwide
-        </p>
-      </div>
-      <p style="font-size:15px; color:#1A1714; line-height:1.6; margin:0;">
-        You can track your order anytime in the <strong>Orders</strong> section inside Ancestorii.
-      </p>
-    </div>
+          <tr>
+            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
+                Order confirmed
+              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
+                Ancestorii
+              </p>
+            </td>
+          </tr>
 
-    <div style="text-align:center;">
-      <a href="https://www.ancestorii.com/dashboard/orders" 
-         style="display:inline-block; padding:12px 32px; background:#1A1714; color:#FFFFFF; font-size:14px; font-weight:700; text-decoration:none; border-radius:10px;">
-        Track Your Order
-      </a>
-    </div>
+          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
 
-    <div style="text-align:center; margin-top:40px; padding-top:24px; border-top:1px solid #E8E4DC;">
-      <p style="font-size:11px; color:#A39B8F; margin:0;">
-        Ancestorii · Preserving what matters most
-      </p>
-    </div>
+          <tr>
+            <td style="padding:48px 40px 36px 40px;">
 
-  </div>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
+                Thank you${name ? `, ${name}` : ''}.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
+                Your memory book <em style="font-style:italic; color:#16120c;">"${bookTitle}"</em> (${tierName}) is now being prepared for print.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 28px 0;">
+                Here's what happens next:
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
+                <tr>
+                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">1.</td>
+                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
+                    We prepare your book for printing.
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
+                <tr>
+                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">2.</td>
+                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
+                    Your book is printed on premium 200gsm gloss pages.
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
+                <tr>
+                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">3.</td>
+                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
+                    Bound in a hardcover matte finish.
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                <tr>
+                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">4.</td>
+                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
+                    Shipped directly to your door — free worldwide.
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
+                Please allow up to <strong style="color:#16120c; font-weight:600;">14 days</strong> for your book to arrive. If it hasn't reached you by then, contact us at <a href="mailto:support@ancestorii.com" style="color:#ab8232; text-decoration:none;">support@ancestorii.com</a> and we'll sort it out straight away.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
+                You can track your order anytime in the Orders section inside Ancestorii.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
+                <tr>
+                  <td align="center" style="background-color:#16120c;">
+                    <a href="https://www.ancestorii.com/dashboard/orders" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
+                      Track Your Order
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">
+                — The Ancestorii Team
+              </p>
+
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
+                Ancestorii Ltd &middot; London
+              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
+                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`,
   };

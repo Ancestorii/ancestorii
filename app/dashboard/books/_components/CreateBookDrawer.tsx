@@ -684,57 +684,30 @@ export default function CreateBookDrawer({
                   'linear-gradient(180deg, #FAF6ED 0%, #F6F1E4 100%)',
               }}
             >
-              {/* Thumbnail */}
-              <div>
-                <p className="mb-2.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#4A5060]">
-                  Thumbnail · optional
-                </p>
+              {/* Cover image notice */}
+<div>
+  <p className="mb-2.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#4A5060]">
+    Cover Image
+  </p>
 
-                <label
-                  ref={dropRef}
-                  className="relative flex cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-[1.5px] border-dashed transition-all"
-                  style={{
-                    borderColor: 'rgba(200, 178, 110, 0.55)',
-                    background: 'rgba(255,255,255,0.7)',
-                    aspectRatio: '4/3',
-                  }}
-                >
-                  {previewUrl ? (
-                    <>
-                      <img
-                        src={previewUrl}
-                        alt="Thumbnail preview"
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/40 to-transparent px-3 pb-2 pt-5">
-                        <span className="text-[11px] font-medium text-white">
-                          Click to replace
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FFF4D8]">
-                        <ImagePlus className="h-[18px] w-[18px] text-[#B4881F]" />
-                      </div>
-                      <span className="text-[12.5px] font-medium text-[#5A6270]">
-                        Click or drop image
-                      </span>
-                    </>
-                  )}
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const f = e.target.files?.[0];
-                      if (f) handleFileSelect(f);
-                    }}
-                  />
-                </label>
-              </div>
+  <div
+    className="rounded-2xl border-[1.5px] border-dashed p-5 text-center"
+    style={{
+      borderColor: 'rgba(200, 178, 110, 0.55)',
+      background: 'rgba(255, 255, 255, 0.7)',
+    }}
+  >
+    <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FFF4D8]">
+      <ImagePlus className="h-[18px] w-[18px] text-[#B4881F]" />
+    </div>
+    <p className="mt-3 text-[12.5px] font-semibold text-[#14213D]">
+      Design your cover inside the book
+    </p>
+    <p className="mt-1.5 text-[11.5px] leading-relaxed text-[#5A6270]">
+      You'll choose photos, layouts, and titles in the next step. Your cover becomes your dashboard thumbnail automatically.
+    </p>
+  </div>
+</div>
 
               {/* Summary */}
               <div

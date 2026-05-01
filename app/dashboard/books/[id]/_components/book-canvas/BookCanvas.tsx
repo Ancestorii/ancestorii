@@ -564,8 +564,8 @@ const filled = pages.filter((page) =>
 
   if (!res.ok) {
     const text = await res.text();
-    console.error('🚨 EXPORT ERROR RESPONSE:', text);
-    alert(text); // 👈 TEMP: shows it clearly on screen
+    console.error('EXPORT ERROR:', text);
+    alert('Sorry, the PDF export failed. Please try again or contact support.');
     throw new Error(text);
   }
 

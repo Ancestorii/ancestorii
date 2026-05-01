@@ -103,113 +103,117 @@ function generateWelcomeEmail(name: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
   <title>Welcome to Ancestorii</title>
 </head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif;">
+<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
 
   <!-- Outer wrapper -->
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
     <tr>
-      <td align="center" style="padding:40px 16px;">
+      <td align="center" style="padding:48px 16px 56px 16px;">
 
         <!-- Inner card -->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background-color:#fdfaf5; border-radius:2px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
 
-          <!-- Header bar -->
+          <!-- Letterhead -->
           <tr>
-            <td style="background-color:#16120c; padding:28px 40px; text-align:center;">
-              <span style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; letter-spacing:3px; color:#ab8232; text-transform:uppercase;">
+            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
+                A letter from
+              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
                 Ancestorii
-              </span>
+              </p>
             </td>
           </tr>
 
-          <!-- Gold accent line -->
+          <!-- Gold seam -->
           <tr>
-            <td style="background-color:#ab8232; height:2px; font-size:0; line-height:0;">&nbsp;</td>
+            <td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td>
           </tr>
 
           <!-- Body content -->
           <tr>
-            <td style="padding:44px 40px 20px 40px;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; color:#16120c; margin:0 0 24px 0; line-height:1.3;">
+            <td style="padding:48px 40px 36px 40px;">
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
                 Welcome, ${name}.
               </p>
 
-              <p style="font-family:Arial, Helvetica, sans-serif; font-size:15px; color:#3d3830; line-height:1.7; margin:0 0 18px 0;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
                 Thank you for joining Ancestorii — a place to preserve the stories, photos, and memories that make your family who they are.
               </p>
 
-              <p style="font-family:Arial, Helvetica, sans-serif; font-size:15px; color:#3d3830; line-height:1.7; margin:0 0 18px 0;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 32px 0;">
                 Here are a few things you can do to get started:
               </p>
 
               <!-- Step 1 -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
                 <tr>
-                  <td width="32" valign="top" style="font-family:Georgia, serif; font-size:18px; color:#ab8232; padding-top:1px;">1.</td>
-                  <td style="font-family:Arial, Helvetica, sans-serif; font-size:15px; color:#3d3830; line-height:1.7;">
-                    <strong style="color:#16120c;">Add your loved ones</strong> — create profiles for the people whose stories matter most.
+                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">1.</td>
+                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
+                    <strong style="color:#16120c; font-weight:600;">Add your loved ones</strong> — create profiles for the people whose stories matter most.
                   </td>
                 </tr>
               </table>
 
               <!-- Step 2 -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
                 <tr>
-                  <td width="32" valign="top" style="font-family:Georgia, serif; font-size:18px; color:#ab8232; padding-top:1px;">2.</td>
-                  <td style="font-family:Arial, Helvetica, sans-serif; font-size:15px; color:#3d3830; line-height:1.7;">
-                    <strong style="color:#16120c;">Upload photos &amp; memories</strong> — build albums, timelines, and memory capsules.
+                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">2.</td>
+                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
+                    <strong style="color:#16120c; font-weight:600;">Upload photos &amp; memories</strong> — build albums, timelines, and memory capsules.
                   </td>
                 </tr>
               </table>
 
               <!-- Step 3 -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:38px;">
                 <tr>
-                  <td width="32" valign="top" style="font-family:Georgia, serif; font-size:18px; color:#ab8232; padding-top:1px;">3.</td>
-                  <td style="font-family:Arial, Helvetica, sans-serif; font-size:15px; color:#3d3830; line-height:1.7;">
-                    <strong style="color:#16120c;">Create a Memory Book</strong> — turn your favourite photos into a beautifully printed book, delivered to your door.
+                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">3.</td>
+                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
+                    <strong style="color:#16120c; font-weight:600;">Create a Memory Book</strong> — turn your favourite photos into a beautifully printed book, delivered to your door.
                   </td>
                 </tr>
               </table>
 
               <!-- CTA Button -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 32px auto;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
                 <tr>
-                  <td align="center" style="background-color:#16120c; border-radius:2px;">
+                  <td align="center" style="background-color:#16120c;">
                     <a href="https://ancestorii.com/dashboard"
                        target="_blank"
-                       style="display:inline-block; padding:14px 36px; font-family:Arial, Helvetica, sans-serif; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#fdfaf5; text-decoration:none;">
+                       style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
                       Get Started
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <!-- Divider -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-                <tr>
-                  <td style="border-top:1px solid #e5e0d5;">&nbsp;</td>
-                </tr>
-              </table>
-
-              <p style="font-family:Arial, Helvetica, sans-serif; font-size:14px; color:#8a8378; line-height:1.7; margin:0 0 6px 0;">
+              <!-- Closing line -->
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">
                 Every family has a story worth keeping.
               </p>
-              <p style="font-family:Arial, Helvetica, sans-serif; font-size:14px; color:#8a8378; line-height:1.7; margin:0;">
+
+              <!-- Signature -->
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 0 0;">
                 — The Ancestorii Team
               </p>
+
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding:24px 40px 28px 40px; text-align:center; border-top:1px solid #e5e0d5;">
-              <p style="font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#b0a99e; margin:0 0 4px 0;">
-                Ancestorii Ltd &middot; London, United Kingdom
+            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
+                Ancestorii Ltd &middot; London
               </p>
-              <p style="font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#b0a99e; margin:0;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
                 <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
               </p>
             </td>

@@ -224,10 +224,22 @@ export default function BooksPage() {
                         <BookCover src={b.cover_url} />
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
-                        No cover image
-                      </div>
-                    )}
+  <div className="flex flex-col items-center justify-center h-full gap-2 px-4 text-center bg-gradient-to-b from-[#FBF8F0] to-[#F5EFD9]">
+    <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FFF4D8]">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B4881F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <circle cx="8.5" cy="8.5" r="1.5" />
+        <path d="M21 15l-5-5L5 21" />
+      </svg>
+    </div>
+    <p className="text-[12px] font-semibold text-[#14213D]">
+      Design your cover
+    </p>
+    <p className="text-[11px] leading-relaxed text-[#5A6270]">
+      Open the book to choose a cover photo
+    </p>
+  </div>
+)}
                   </div>
 
                   <div className="absolute top-3 right-3 z-20">
