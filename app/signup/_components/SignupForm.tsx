@@ -18,6 +18,7 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
 
   const getStrength = (pwd: string) => {
     if (pwd.length < 6) return 'weak';
@@ -57,6 +58,32 @@ const handleGoogleSignup = async () => {
     }
 
     setLoading(true);
+    setEmailSuggestion(null);
+
+    // Validate email via Kickbox
+    try {
+      const validateRes = await fetch('/api/validate-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const validation = await validateRes.json();
+
+      if (!validation.allow) {
+        if (validation.did_you_mean) {
+          setEmailSuggestion(validation.did_you_mean);
+          setError(`Did you mean ${validation.did_you_mean}?`);
+        } else if (validation.disposable) {
+          setError('Please use a permanent email address.');
+        } else {
+          setError('This email address appears to be invalid. Please check it.');
+        }
+        setLoading(false);
+        return;
+      }
+    } catch {
+      // Validation failed — proceed anyway (fail open)
+    }
 
     try {
       const { error: signUpError } = await supabase.auth.signUp({
@@ -147,9 +174,25 @@ const handleGoogleSignup = async () => {
             required
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setEmailSuggestion(null);
+            }}
             className="w-full p-2.5 rounded-lg border focus:ring-[#d4af37]"
           />
+          {emailSuggestion && (
+            <button
+              type="button"
+              onClick={() => {
+                setEmail(emailSuggestion);
+                setEmailSuggestion(null);
+                setError('');
+              }}
+              className="mt-1 text-sm text-[#d4af37] underline"
+            >
+              Use {emailSuggestion} instead
+            </button>
+          )}
         </div>
 
         <div>
