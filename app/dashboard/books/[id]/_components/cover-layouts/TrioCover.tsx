@@ -55,6 +55,7 @@ export default function TrioCoverLayout({
         slot_index: slotIndex,
         asset_id: selectedImage.id,
         url: signed?.signedUrl || '',
+        rotation: selectedImage.rotation ?? 0,
       });
 
       clearSelectedImage();
@@ -107,6 +108,7 @@ export default function TrioCoverLayout({
                   height: '100%',
                   objectFit: 'cover',
                   display: 'block',
+                  transform: `rotate(${asset.rotation ?? 0}deg)`,
                 }}
               />
             ) : (
@@ -120,6 +122,10 @@ export default function TrioCoverLayout({
                 className={`object-cover transition-opacity duration-300 ${
                   loadedMap[slotIndex] ? 'opacity-100' : 'opacity-0'
                 }`}
+                style={{
+                  transform: `rotate(${asset.rotation ?? 0}deg)`,
+                  transition: 'transform 0.25s ease',
+                }}
                 onLoadingComplete={() =>
                   setLoadedMap((prev) => ({ ...prev, [slotIndex]: true }))
                 }
@@ -182,6 +188,7 @@ export default function TrioCoverLayout({
                 slot_index: slotIndex,
                 asset_id: undefined,
                 url: undefined,
+                rotation: 0,
               });
             }}
             style={{

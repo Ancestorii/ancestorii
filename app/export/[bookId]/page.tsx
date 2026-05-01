@@ -56,7 +56,8 @@ export default async function ExportPage({
         subheading,
         comment,
         library_media!memory_book_page_assets_asset_id_fkey (
-          file_path
+          file_path,
+          rotation
         )
       )
     `
@@ -87,6 +88,7 @@ export default async function ExportPage({
       const assets = await Promise.all(
         (p.memory_book_page_assets || []).map(async (a: any) => {
           const filePath = a.library_media?.file_path;
+          const rotation = a.library_media?.rotation ?? 0;
           let url = '';
           if (filePath) {
             url = await getSignedUrl(filePath);
@@ -98,6 +100,7 @@ export default async function ExportPage({
             subheading: a.subheading,
             comment: a.comment,
             url,
+            rotation,
           };
         })
       );
@@ -123,11 +126,15 @@ export default async function ExportPage({
 
     const { data: mediaRows } = await supabase
       .from('library_media')
-      .select('id, file_path')
+      .select('id, file_path, rotation')
       .in('id', assetIds);
 
     const filePathById = new Map(
       (mediaRows || []).map((row: any) => [row.id, row.file_path])
+    );
+
+    const rotationById = new Map(
+      (mediaRows || []).map((row: any) => [row.id, row.rotation ?? 0])
     );
 
     return Promise.all(
@@ -136,7 +143,8 @@ export default async function ExportPage({
         const filePath = filePathById.get(asset.asset_id);
         if (!filePath) return asset;
         const url = await getSignedUrl(filePath);
-        return { ...asset, url };
+        const rotation = rotationById.get(asset.asset_id) ?? 0;
+        return { ...asset, url, rotation };
       })
     );
   };

@@ -53,6 +53,7 @@ export default function FullBleedCoverLayout({
         slot_index: 0,
         asset_id: selectedImage.id,
         url: signed?.signedUrl || '',
+        rotation: selectedImage.rotation ?? 0,
       });
 
       clearSelectedImage();
@@ -109,6 +110,7 @@ export default function FullBleedCoverLayout({
                   objectFit: 'cover',
                   objectPosition: 'center',
                   display: 'block',
+                  transform: `rotate(${image.rotation ?? 0}deg)`,
                 }}
               />
             ) : (
@@ -122,6 +124,10 @@ export default function FullBleedCoverLayout({
   className={`object-cover transition-opacity duration-300 ${
     loaded ? 'opacity-100' : 'opacity-0'
   }`}
+  style={{
+    transform: `rotate(${image.rotation ?? 0}deg)`,
+    transition: 'transform 0.25s ease',
+  }}
   onLoadingComplete={() => setLoaded(true)}
 />
             )}
@@ -163,6 +169,7 @@ export default function FullBleedCoverLayout({
                     slot_index: 0,
                     asset_id: undefined,
                     url: undefined,
+                    rotation: 0,
                   });
                 }}
                 style={{

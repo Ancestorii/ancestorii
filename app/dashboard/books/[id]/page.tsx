@@ -24,7 +24,8 @@ export default async function BookPage({
         subheading,
         comment,
         library_media!memory_book_page_assets_asset_id_fkey (
-          file_path
+          file_path,
+          rotation
         )
       )
     `)
@@ -49,6 +50,7 @@ export default async function BookPage({
       const assets = await Promise.all(
         (p.memory_book_page_assets || []).map(async (a: any) => {
           const filePath = a.library_media?.file_path;
+          const rotation = a.library_media?.rotation ?? 0;
 
           let url = '';
           if (filePath) {
@@ -62,6 +64,7 @@ export default async function BookPage({
             subheading: a.subheading,
             comment: a.comment,
             url,
+            rotation,
           };
         })
       );

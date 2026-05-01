@@ -49,6 +49,7 @@ export default function PhotoMessageBackCover({
         slot_index: 0,
         asset_id: selectedImage.id,
         url: signed?.signedUrl || '',
+        rotation: selectedImage.rotation ?? 0,
       });
 
       clearSelectedImage();
@@ -109,6 +110,7 @@ export default function PhotoMessageBackCover({
                 height: '100%',
                 objectFit: 'cover',
                 display: 'block',
+                transform: `rotate(${image.rotation ?? 0}deg)`,
               }}
             />
           ) : (
@@ -122,6 +124,10 @@ export default function PhotoMessageBackCover({
               className={`object-cover transition-opacity duration-300 ${
                 loaded ? 'opacity-100' : 'opacity-0'
               }`}
+              style={{
+                transform: `rotate(${image.rotation ?? 0}deg)`,
+                transition: 'transform 0.25s ease',
+              }}
               onLoadingComplete={() => setLoaded(true)}
             />
           )
@@ -147,6 +153,7 @@ export default function PhotoMessageBackCover({
                 slot_index: 0,
                 asset_id: undefined,
                 url: undefined,
+                rotation: 0,
               });
             }}
             style={{

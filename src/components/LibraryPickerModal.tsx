@@ -179,13 +179,13 @@ if (!mounted && !open) return null;
 
       {/* Modal */}
       <div
-  className={`relative w-full max-w-5xl mx-4 bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-200 ${
+  className={`relative w-full max-w-5xl mx-4 bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-200 flex flex-col max-h-[80vh] ${
     open ? 'scale-100 translate-y-0' : 'scale-[0.98] translate-y-2'
   }`}
   onClick={(e) => e.stopPropagation()}
 >
         {/* Header */}
-        <div className="px-6 sm:px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-white via-[#fefaf3] to-white">
+        <div className="px-6 sm:px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-white via-[#fefaf3] to-white flex-shrink-0">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <h2 className="text-2xl sm:text-3xl font-bold text-[#1F2837]">
@@ -232,8 +232,8 @@ if (!mounted && !open) return null;
         </div>
 
         {/* Body */}
-        <div className="px-6 sm:px-8 py-6">
-          {loading ? (
+        <div className="px-6 sm:px-8 py-6 flex-1 min-h-0 overflow-y-auto" data-lenis-prevent>
+  {loading ? (
             <div className="flex items-center justify-center py-16 text-[#5B6473]">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
               Loading your library…
@@ -319,7 +319,7 @@ if (!mounted && !open) return null;
         </div>
 
         {/* Footer */}
-        <div className="px-6 sm:px-8 py-5 border-t border-gray-100 bg-white">
+        <div className="px-6 sm:px-8 py-5 border-t border-gray-100 bg-white flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
             <button
               onClick={onClose}

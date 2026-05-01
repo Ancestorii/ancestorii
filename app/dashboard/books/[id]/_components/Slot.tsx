@@ -55,8 +55,9 @@ export default function Slot({
   const upsertAssetRow = async (params: {
     libraryMediaId: string;
     signedUrl: string;
+    rotation: number;
   }) => {
-    const { libraryMediaId, signedUrl } = params;
+    const { libraryMediaId, signedUrl, rotation } = params;
 
     if (asset.id) {
       const { data: updatedRow, error: updateError } = await supabase
@@ -79,6 +80,7 @@ export default function Slot({
         subheading: updatedRow.subheading,
         comment: updatedRow.comment,
         url: signedUrl,
+        rotation,
       });
 
       return;
@@ -105,6 +107,7 @@ export default function Slot({
       subheading: insertedRow.subheading,
       comment: insertedRow.comment,
       url: signedUrl,
+      rotation,
     });
   };
 
@@ -121,6 +124,7 @@ export default function Slot({
       await upsertAssetRow({
         libraryMediaId: selectedImage.id,
         signedUrl: signed?.signedUrl ?? '',
+        rotation: selectedImage.rotation ?? 0,
       });
 
       clearSelectedImage();
@@ -182,6 +186,7 @@ export default function Slot({
           height: '100%',
           objectFit: 'cover',
           display: 'block',
+          transform: `rotate(${asset.rotation ?? 0}deg)`,
         }}
       />
     ) : (
@@ -195,6 +200,10 @@ export default function Slot({
         className={`object-cover transition-opacity duration-300 ${
           loaded ? 'opacity-100' : 'opacity-0'
         }`}
+        style={{
+          transform: `rotate(${asset.rotation ?? 0}deg)`,
+          transition: 'transform 0.25s ease',
+        }}
         onLoadingComplete={() => setLoaded(true)}
       />
     )}

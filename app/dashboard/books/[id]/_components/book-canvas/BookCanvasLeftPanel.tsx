@@ -4,7 +4,7 @@ import { inter } from '@/lib/fonts';
 import { BOOK_CANVAS_COLORS, type CanvasSpread } from './BookCanvas';
 import type { LayoutType, SelectedImage } from '@/types/memory-book';
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 
 type PanelTab = 'pages' | 'media' | 'text' | 'layout';
 
@@ -15,7 +15,8 @@ export type BackCoverLayoutType = 'blank_back' | 'dedication_back' | 'photo_mess
 type Image = {
   id: string;
   url: string;
-  file_path: string; // required now
+  file_path: string;
+  rotation: number;
 };
 
 export default function BookCanvasLeftPanel({
@@ -27,6 +28,7 @@ export default function BookCanvasLeftPanel({
   images,
   loading,
   handleUpload,
+  onRotateImage,
   selectedImage,
   setSelectedImage,
   currentSpread,
@@ -58,6 +60,7 @@ export default function BookCanvasLeftPanel({
   images: Image[];
   loading: boolean;
   handleUpload: (file: File) => Promise<Image | null>;
+  onRotateImage: (imageId: string) => Promise<void>;
   selectedImage: SelectedImage | null;
   setSelectedImage: (img: SelectedImage | null) => void;
   currentSpread: CanvasSpread;
@@ -223,8 +226,18 @@ export default function BookCanvasLeftPanel({
   };
 
   return (
-    <aside
-      className="fade-up d1"
+    <>
+      <style>{`
+        .media-thumb-wrapper:hover .rotate-btn {
+          opacity: 1 !important;
+        }
+        .rotate-btn:hover {
+          background: rgba(0, 0, 0, 0.85) !important;
+          transform: scale(1.08);
+        }
+      `}</style>
+      <aside
+        className="fade-up d1"
       style={{
         gridRow: '2',
         gridColumn: '1',
@@ -295,13 +308,15 @@ export default function BookCanvasLeftPanel({
       </div>
 
       <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          padding: '18px 16px',
-          overflowY: 'auto',
-        }}
-      >
+  data-lenis-prevent
+  style={{
+    flex: 1,
+    minHeight: 0,
+    padding: '18px 16px',
+    overflowY: 'auto',
+    overscrollBehavior: 'contain',
+  }}
+>
         {tab === 'pages' && (
           <>
             <SectionHead
@@ -509,33 +524,76 @@ export default function BookCanvasLeftPanel({
                   </>
                 )}
                 {images.map((img, i) => (
-                  <button
+                  <div
                     key={img.id ?? i}
-                    className={`thumb-btn ${
-                      selectedImage?.id === img.id ? 'active' : ''
-                    }`}
-                   onClick={() =>
-                   setSelectedImage(
-    selectedImage?.id === img.id
-      ? null
-      : {
-          id: img.id,
-          file_path: img.file_path, // 🔥 THIS IS THE FIX
-        }
-  )
-}
                     style={{
+                      position: 'relative',
                       aspectRatio: '1',
-                      padding: 0,
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      borderRadius: 8,
-                      overflow: 'visible'
                     }}
+                    className="media-thumb-wrapper"
                   >
-                    <MediaThumb src={img.url} />
-                  </button>
+                    <button
+                      className={`thumb-btn ${
+                        selectedImage?.id === img.id ? 'active' : ''
+                      }`}
+                      onClick={() =>
+                        setSelectedImage(
+                          selectedImage?.id === img.id
+                            ? null
+                            : {
+                                id: img.id,
+                                file_path: img.file_path,
+                                rotation: img.rotation,
+                              }
+                        )
+                      }
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        padding: 0,
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        borderRadius: 8,
+                        overflow: 'visible',
+                      }}
+                    >
+                      <MediaThumb src={img.url} rotation={img.rotation} />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="rotate-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRotateImage(img.id);
+                      }}
+                      title="Rotate 180°"
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        width: 28,
+                        height: 28,
+                        borderRadius: 99,
+                        background: 'rgba(0, 0, 0, 0.65)',
+                        border: 'none',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: 0,
+                        transition: 'opacity 0.15s ease',
+                        zIndex: 5,
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+                        <path d="M21 3v5h-5" />
+                      </svg>
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -1029,7 +1087,8 @@ export default function BookCanvasLeftPanel({
           </>
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 
@@ -1216,13 +1275,13 @@ function ThumbHalf({ url }: { url?: string }) {
   );
 }
 
-function MediaThumb({ src }: { src: string }) {
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    setLoaded(false);
-  }, [src]);
-
+const MediaThumb = memo(function MediaThumb({
+  src,
+  rotation = 0,
+}: {
+  src: string;
+  rotation?: number;
+}) {
   return (
     <div
       style={{
@@ -1235,21 +1294,21 @@ function MediaThumb({ src }: { src: string }) {
       }}
     >
       <Image
-  src={src}
-  alt=""
-  fill
-  sizes="96px"
-  quality={75}
-  unoptimized
-  loading="eager"
-  className={`object-cover transition-opacity duration-200 ${
-    loaded ? 'opacity-100' : 'opacity-0'
-  }`}
-  onLoadingComplete={() => setLoaded(true)}
-/>
+        src={src}
+        alt=""
+        fill
+        sizes="(min-width: 1536px) 180px, (min-width: 1280px) 160px, 120px"
+        quality={70}
+        loading="lazy"
+        className="object-cover"
+        style={{
+          transform: `rotate(${rotation}deg)`,
+          transition: 'transform 0.25s ease',
+        }}
+      />
     </div>
   );
-}
+});
 
 function LayoutIcon({ type }: { type: LayoutType }) {
   const f: React.CSSProperties = {

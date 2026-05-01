@@ -5,11 +5,13 @@ export type Asset = {
   slot_index: number;
   subheading?: string | null;
   comment?: string | null;
+  rotation?: number;
 };
 
 export type SelectedImage = {
   id: string;
   file_path: string;
+  rotation?: number;
 };
 
 export type LayoutType =

@@ -194,7 +194,7 @@ export default function BookCanvas({
 
           const { data: mediaRows, error: mediaError } = await supabase
             .from('library_media')
-            .select('id, file_path')
+            .select('id, file_path, rotation')
             .in('id', assetIds);
 
           if (mediaError) throw mediaError;
@@ -203,12 +203,18 @@ export default function BookCanvas({
             (mediaRows || []).map((row) => [row.id, row.file_path])
           );
 
+          const rotationById = new Map(
+            (mediaRows || []).map((row) => [row.id, row.rotation ?? 0])
+          );
+
           const hydrated = await Promise.all(
             assets.map(async (asset) => {
               if (!asset.asset_id) return asset;
 
               const filePath = filePathById.get(asset.asset_id);
               if (!filePath) return asset;
+
+              const rotation = rotationById.get(asset.asset_id) ?? 0;
 
               const { data: signed, error: signedError } = await supabase.storage
                 .from('library-media')
@@ -222,6 +228,7 @@ export default function BookCanvas({
               return {
                 ...asset,
                 url: signed?.signedUrl || '',
+                rotation,
               };
             })
           );
@@ -449,7 +456,7 @@ const filled = pages.filter((page) =>
 
   return (
     <Sidebar onSelectImage={setSelectedImage}>
-      {({ images, loading, handleUpload }) => (
+      {({ images, loading, handleUpload, handleRotateImage }) => (
         <>
           <style>{`
   *, *::before, *::after { box-sizing: border-box; }
@@ -588,6 +595,7 @@ const filled = pages.filter((page) =>
   images={images}
   loading={loading}
   handleUpload={handleUpload}
+  onRotateImage={handleRotateImage}
   selectedImage={selectedImage}
   setSelectedImage={setSelectedImage}
   currentSpread={cur}

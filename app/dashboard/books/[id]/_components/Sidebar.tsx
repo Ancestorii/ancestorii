@@ -7,7 +7,8 @@ import { ensureDisplayableImage } from '@/lib/convertImage';
 type Image = {
   id: string;
   url: string;
-  file_path: string; // ✅ ADD THIS
+  file_path: string;
+  rotation: number;
 };
 
 export default function Sidebar({
@@ -19,6 +20,7 @@ export default function Sidebar({
     images: Image[];
     loading: boolean;
     handleUpload: (file: File) => Promise<Image | null>;
+    handleRotateImage: (imageId: string) => Promise<void>;
     onSelectImage: (img: Image) => void;
   }) => React.ReactNode;
 }) {
@@ -43,7 +45,7 @@ export default function Sidebar({
 
         const { data, error } = await supabase
           .from('library_media')
-          .select('id, file_path')
+          .select('id, file_path, rotation')
           .eq('user_id', user.id)
           .eq('file_type', 'image')
           .order('created_at', { ascending: false });
@@ -51,16 +53,17 @@ export default function Sidebar({
         if (error) throw error;
 
         const withUrls = await Promise.all(
-          (data || []).map(async (img: { id: string; file_path: string }) => {
+          (data || []).map(async (img: { id: string; file_path: string; rotation: number }) => {
             const { data: signed } = await supabase.storage
               .from('library-media')
               .createSignedUrl(img.file_path, 60 * 60 * 24 * 30);
 
             return {
-           id: img.id,
-           url: signed?.signedUrl || '',
-           file_path: img.file_path, // 🔥 ADD THIS
-           };
+              id: img.id,
+              url: signed?.signedUrl || '',
+              file_path: img.file_path,
+              rotation: img.rotation ?? 0,
+            };
           })
         );
 
@@ -133,7 +136,7 @@ export default function Sidebar({
           height: dimensions.height,
           file_size_bytes: file.size,
         })
-        .select('id, file_path')
+        .select('id, file_path, rotation')
         .single();
 
       if (insertError) throw insertError;
@@ -146,9 +149,10 @@ export default function Sidebar({
       if (signedError) throw signedError;
 
       const newImage: Image = {
-      id: media.id,
-      url: signed?.signedUrl || '',
-      file_path: media.file_path, // 🔥 THIS IS THE MISSING LINK
+        id: media.id,
+        url: signed?.signedUrl || '',
+        file_path: media.file_path,
+        rotation: media.rotation ?? 0,
       };
 
       if (!newImage.url) {
@@ -163,12 +167,44 @@ export default function Sidebar({
     }
   };
 
+  const handleRotateImage = async (imageId: string): Promise<void> => {
+    const current = images.find((img) => img.id === imageId);
+    if (!current) return;
+
+    const newRotation = current.rotation === 180 ? 0 : 180;
+
+    // Optimistic local update — flip thumbnail immediately
+    setImages((prev) =>
+      prev.map((img) =>
+        img.id === imageId ? { ...img, rotation: newRotation } : img
+      )
+    );
+
+    try {
+      const { error } = await supabase
+        .from('library_media')
+        .update({ rotation: newRotation })
+        .eq('id', imageId);
+
+      if (error) throw error;
+    } catch (err) {
+      console.error('Failed to rotate image:', err);
+      // Revert on failure
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === imageId ? { ...img, rotation: current.rotation } : img
+        )
+      );
+    }
+  };
+
   return (
     <>
       {children({
         images,
         loading,
         handleUpload,
+        handleRotateImage,
         onSelectImage,
       })}
     </>
