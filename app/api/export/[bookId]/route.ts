@@ -72,6 +72,28 @@ export async function GET(
 
     const page = await browser.newPage();
 
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      const url = req.url();
+      if (
+        url.includes('googletagmanager.com') ||
+        url.includes('google-analytics.com') ||
+        url.includes('googleadservices.com') ||
+        url.includes('google.com/ccm') ||
+        url.includes('google.com/pagead') ||
+        url.includes('google.com/rmkt') ||
+        url.includes('redditstatic.com') ||
+        url.includes('reddit.com') ||
+        url.includes('connect.facebook.net') ||
+        url.includes('facebook.com') ||
+        url.includes('byspotify.com')
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
     // ── Set auth cookies before navigation ──
     if (cookies.length) {
       await page.setCookie(...cookies);
@@ -83,7 +105,7 @@ export async function GET(
     // ── Navigate to export page ──
     console.log('[EXPORT] navigating to', exportUrl);
     await page.goto(exportUrl, {
-      waitUntil: 'networkidle0',
+      waitUntil: 'domcontentloaded',
       timeout: 60_000,
     });
     console.log('[EXPORT] page loaded');

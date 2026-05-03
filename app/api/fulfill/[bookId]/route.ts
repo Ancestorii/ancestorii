@@ -102,6 +102,28 @@ export async function POST(
     const page = await browser.newPage();
     console.log('[FULFILL] new page created');
 
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      const url = req.url();
+      if (
+        url.includes('googletagmanager.com') ||
+        url.includes('google-analytics.com') ||
+        url.includes('googleadservices.com') ||
+        url.includes('google.com/ccm') ||
+        url.includes('google.com/pagead') ||
+        url.includes('google.com/rmkt') ||
+        url.includes('redditstatic.com') ||
+        url.includes('reddit.com') ||
+        url.includes('connect.facebook.net') ||
+        url.includes('facebook.com') ||
+        url.includes('byspotify.com')
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
     page.on('console', (msg) => console.log('[BROWSER CONSOLE]', msg.type(), msg.text()));
     page.on('pageerror', (err) => console.log('[BROWSER PAGEERROR]', (err as Error)?.message ?? String(err)));
     page.on('requestfailed', (req) => console.log('[BROWSER REQUESTFAILED]', req.url(), req.failure()?.errorText));
@@ -126,7 +148,7 @@ export async function POST(
 
     console.log('[FULFILL] navigating to', exportUrl);
     await page.goto(exportUrl, {
-      waitUntil: 'networkidle0',
+      waitUntil: 'domcontentloaded',
       timeout: 60_000,
     });
     const pageContent = await page.content();
@@ -250,7 +272,7 @@ const spineHeight = spineHeightPx;
       const spineTextColour = book.spine_text_colour || '#d4af37';
 
       const spinePage = await browser.newPage();
-      spinePage.setDefaultTimeout(60_000);
+      spinePage.setDefaultTimeout(180_000);
       await spinePage.setViewport({
         width: spineWidth,
         height: spineHeight,
@@ -297,8 +319,8 @@ const spineHeight = spineHeightPx;
       `;
 
       await spinePage.setContent(spineHtml, {
-        waitUntil: 'networkidle0',
-        timeout: 60_000,
+        waitUntil: 'load',
+        timeout: 180_000,
       });
       await new Promise((r) => setTimeout(r, 300));
 
