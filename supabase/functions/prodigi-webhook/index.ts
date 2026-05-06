@@ -102,6 +102,15 @@ serve(async (req) => {
       console.log(`Shipped detected via shipments array (stage was: ${stage})`);
     }
 
+    // ── Snapshot the order BEFORE updating, for idempotency ──
+    const { data: priorOrder } = await supabase
+      .from("orders")
+      .select("shipped_at")
+      .eq("prodigi_order_id", prodigiOrderId)
+      .single();
+
+    const wasAlreadyShipped = !!priorOrder?.shipped_at;
+
     // Update orders table
     const updateData: Record<string, unknown> = {
       prodigi_status: prodigiStatus,
@@ -112,7 +121,8 @@ serve(async (req) => {
       updateData.prodigi_tracking_url = trackingUrl;
     }
 
-    if (shippedAt) {
+    // Only set shipped_at the first time — never overwrite
+    if (shippedAt && !wasAlreadyShipped) {
       updateData.shipped_at = shippedAt;
     }
 
@@ -154,58 +164,139 @@ serve(async (req) => {
       const customerName = order?.shipping_name?.split(" ")[0] || "there";
       const bookTitle = book?.title || "your Memory Book";
 
-      // Idempotency: only send "shipped" email if shipped_at was just set this run
-      // (i.e. it wasn't already populated before this webhook fired)
-      const wasJustShipped = !!shippedAt && order?.shipped_at === shippedAt;
-
-      if (customerEmail && orderStatus === "shipped" && wasJustShipped) {
-        const trackingLine = trackingUrl
-          ? `<p style="margin: 24px 0;"><a href="${trackingUrl}" style="background: #0f2040; color: #d4af37; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-weight: 600;">Track your order</a></p>`
+      if (customerEmail && orderStatus === "shipped" && !wasAlreadyShipped) {
+        const trackingButton = trackingUrl
+          ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 28px auto;">
+              <tr>
+                <td align="center" style="background-color:#16120c;">
+                  <a href="${trackingUrl}" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">Track Your Book</a>
+                </td>
+              </tr>
+            </table>`
           : "";
 
         await sendEmail(
           customerEmail,
-          `Your Memory Book is on its way!`,
-          `
-          <div style="font-family: Georgia, 'Times New Roman', serif; max-width: 560px; margin: 0 auto; color: #1A1714;">
-            <div style="background: #0f2040; padding: 32px; text-align: center;">
-              <h1 style="color: #d4af37; margin: 0; font-size: 24px; letter-spacing: 0.02em;">Ancestorii</h1>
-            </div>
-            <div style="padding: 32px; background: #FDFAF5;">
-              <p style="font-size: 18px; margin-bottom: 16px;">Hi ${customerName},</p>
-              <p style="font-size: 16px; line-height: 1.6;">Great news — <strong>${bookTitle}</strong> has been printed and is on its way to you.</p>
-              ${trackingLine}
-              <p style="font-size: 16px; line-height: 1.6; margin-top: 24px;">We hope it brings you as much joy to hold as it did to create.</p>
-              <p style="font-size: 16px; margin-top: 24px;">With warmth,<br/>The Ancestorii Team</p>
-            </div>
-            <div style="background: #1A1714; padding: 16px; text-align: center;">
-              <p style="color: #999; font-size: 12px; margin: 0;">Ancestorii — Some things a photo can't hold.</p>
-            </div>
-          </div>
-          `
+          `Your Memory Book is in the post`,
+          `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>Your Memory Book is in the post</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
+    <tr>
+      <td align="center" style="padding:48px 16px 56px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
+          <tr>
+            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">A letter from</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">Ancestorii</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding:48px 40px 36px 40px;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">Hey ${customerName},</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">It's no longer just pages on a screen — <em style="color:#16120c;">${bookTitle}</em> is now a real book. Printed, bound, and packed up.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 36px 0;">It's on its way to you now.</p>
+              ${trackingButton}
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">When it arrives, find somewhere quiet to open it. Some moments deserve that.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">— Dante</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; color:#9a9388; margin:0; font-style:italic;">Founder, Ancestorii</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:36px;">
+                <tr>
+                  <td style="border-top:1px solid #ebe4d5; padding-top:22px;">
+                    <p style="font-family:Georgia, 'Times New Roman', serif; font-size:14px; color:#7a7368; line-height:1.7; margin:0; font-style:italic;">
+                      <span style="font-style:normal; color:#ab8232; letter-spacing:2px; font-size:12px;">P.S.</span>&nbsp;&nbsp;The first time you hold one of these is something. I'd love to hear about it — just reply to this email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;"><a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
         );
       }
 
       if (customerEmail && stage === "Complete") {
         await sendEmail(
           customerEmail,
-          `Your Memory Book has been delivered`,
-          `
-          <div style="font-family: Georgia, 'Times New Roman', serif; max-width: 560px; margin: 0 auto; color: #1A1714;">
-            <div style="background: #0f2040; padding: 32px; text-align: center;">
-              <h1 style="color: #d4af37; margin: 0; font-size: 24px; letter-spacing: 0.02em;">Ancestorii</h1>
-            </div>
-            <div style="padding: 32px; background: #FDFAF5;">
-              <p style="font-size: 18px; margin-bottom: 16px;">Hi ${customerName},</p>
-              <p style="font-size: 16px; line-height: 1.6;"><strong>${bookTitle}</strong> should have arrived. We hope you love it.</p>
-              <p style="font-size: 16px; line-height: 1.6; margin-top: 16px;">If you have a moment, we'd love to hear what you think — just reply to this email.</p>
-              <p style="font-size: 16px; margin-top: 24px;">With warmth,<br/>The Ancestorii Team</p>
-            </div>
-            <div style="background: #1A1714; padding: 16px; text-align: center;">
-              <p style="color: #999; font-size: 12px; margin: 0;">Ancestorii — Some things a photo can't hold.</p>
-            </div>
-          </div>
-          `
+          `Your Memory Book has arrived`,
+          `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>Your Memory Book has arrived</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
+    <tr>
+      <td align="center" style="padding:48px 16px 56px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
+          <tr>
+            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">A letter from</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">Ancestorii</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding:48px 40px 36px 40px;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">Hey ${customerName},</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">By now, your Memory Book should be in your hands.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">What started as a few photos and an idea is now something physical — something your family can pick up, pass around, come back to in twenty years.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">That's the whole point of what we do.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">If you have a moment, I'd love to hear what you think. Just reply to this email — every one comes straight to me.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">— Dante</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; color:#9a9388; margin:0; font-style:italic;">Founder, Ancestorii</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:36px;">
+                <tr>
+                  <td style="border-top:1px solid #ebe4d5; padding-top:22px;">
+                    <p style="font-family:Georgia, 'Times New Roman', serif; font-size:14px; color:#7a7368; line-height:1.7; margin:0; font-style:italic;">
+                      <span style="font-style:normal; color:#ab8232; letter-spacing:2px; font-size:12px;">P.S.</span>&nbsp;&nbsp;If anything's not right with the book — printing, binding, anything — tell me. I'll fix it personally.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;"><a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
         );
       }
     }
