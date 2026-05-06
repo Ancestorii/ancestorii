@@ -47,9 +47,10 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
     const payload = await req.json();
+    console.log("PRODIGI PAYLOAD:", JSON.stringify(payload));
 
-    const eventType = payload?.event;
-    const prodigiOrder = payload?.order;
+    const eventType = payload?.type;
+    const prodigiOrder = payload?.data?.order;
     const prodigiOrderId = prodigiOrder?.id;
 
     if (!prodigiOrderId) {
@@ -59,12 +60,15 @@ serve(async (req) => {
     console.log(`Prodigi webhook: ${eventType} for order ${prodigiOrderId}`);
 
     const stage = prodigiOrder?.status?.stage ?? "";
+    const shipments = prodigiOrder?.shipments ?? [];
+    const hasShipped = shipments.length > 0;
 
     let orderStatus = "printing";
     let prodigiStatus = stage;
     let trackingUrl: string | null = null;
     let shippedAt: string | null = null;
 
+    // ── Original stage-based detection (primary path) ──
     if (stage === "Complete") {
       orderStatus = "delivered";
       prodigiStatus = "delivered";
@@ -73,8 +77,7 @@ serve(async (req) => {
       prodigiStatus = "shipped";
       shippedAt = new Date().toISOString();
 
-      const shipments = prodigiOrder?.shipments ?? [];
-      if (shipments.length > 0) {
+      if (hasShipped) {
         trackingUrl = shipments[0]?.tracking?.url ?? null;
       }
     } else if (stage === "InProgress") {
@@ -83,6 +86,20 @@ serve(async (req) => {
     } else if (stage === "Cancelled") {
       orderStatus = "cancelled";
       prodigiStatus = "cancelled";
+    }
+
+    // ── Backup detection: shipments array populated but stage didn't say "Shipped" ──
+    if (
+      hasShipped &&
+      orderStatus !== "shipped" &&
+      orderStatus !== "delivered" &&
+      orderStatus !== "cancelled"
+    ) {
+      orderStatus = "shipped";
+      prodigiStatus = "shipped";
+      shippedAt = new Date().toISOString();
+      trackingUrl = shipments[0]?.tracking?.url ?? null;
+      console.log(`Shipped detected via shipments array (stage was: ${stage})`);
     }
 
     // Update orders table
@@ -119,11 +136,11 @@ serve(async (req) => {
       .eq("prodigi_order_id", prodigiOrderId);
 
     // ── Send customer email ──
-    if (stage === "Shipped" || stage === "Complete") {
-      // Fetch order to get customer email and book title
+    if (orderStatus === "shipped" || stage === "Complete") {
+      // Fetch order to get customer email, book title, and check if already emailed
       const { data: order } = await supabase
         .from("orders")
-        .select("shipping_email, shipping_name, book_id")
+        .select("shipping_email, shipping_name, book_id, shipped_at")
         .eq("prodigi_order_id", prodigiOrderId)
         .single();
 
@@ -137,7 +154,11 @@ serve(async (req) => {
       const customerName = order?.shipping_name?.split(" ")[0] || "there";
       const bookTitle = book?.title || "your Memory Book";
 
-      if (customerEmail && stage === "Shipped") {
+      // Idempotency: only send "shipped" email if shipped_at was just set this run
+      // (i.e. it wasn't already populated before this webhook fired)
+      const wasJustShipped = !!shippedAt && order?.shipped_at === shippedAt;
+
+      if (customerEmail && orderStatus === "shipped" && wasJustShipped) {
         const trackingLine = trackingUrl
           ? `<p style="margin: 24px 0;"><a href="${trackingUrl}" style="background: #0f2040; color: #d4af37; padding: 12px 24px; border-radius: 4px; text-decoration: none; font-weight: 600;">Track your order</a></p>`
           : "";
