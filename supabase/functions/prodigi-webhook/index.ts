@@ -102,13 +102,39 @@ serve(async (req) => {
       console.log(`Shipped detected via shipments array (stage was: ${stage})`);
     }
 
-    // ── Snapshot the order BEFORE updating, for idempotency ──
-    const { data: priorOrder } = await supabase
+    // ── Find the order (primary: prodigi_order_id, fallback: merchantReference) ──
+    const merchantRef = prodigiOrder?.merchantReference;
+
+    let { data: priorOrder } = await supabase
       .from("orders")
-      .select("shipped_at")
+      .select("id, shipped_at, prodigi_order_id")
       .eq("prodigi_order_id", prodigiOrderId)
       .single();
 
+    if (!priorOrder && merchantRef) {
+      const { data: fallbackOrder } = await supabase
+        .from("orders")
+        .select("id, shipped_at, prodigi_order_id")
+        .eq("id", merchantRef)
+        .single();
+
+      if (fallbackOrder) {
+        priorOrder = fallbackOrder;
+        console.log(`Order found via merchantReference fallback: ${merchantRef}`);
+
+        await supabase
+          .from("orders")
+          .update({ prodigi_order_id: prodigiOrderId })
+          .eq("id", merchantRef);
+      }
+    }
+
+    if (!priorOrder) {
+      console.error(`Order not found: prodigi=${prodigiOrderId}, merchant=${merchantRef}`);
+      return new Response("Order not found", { status: 200 });
+    }
+
+    const internalOrderId = priorOrder.id;
     const wasAlreadyShipped = !!priorOrder?.shipped_at;
 
     // Update orders table
@@ -129,7 +155,7 @@ serve(async (req) => {
     await supabase
       .from("orders")
       .update(updateData)
-      .eq("prodigi_order_id", prodigiOrderId);
+      .eq("id", internalOrderId);
 
     // Also update memory_books
     const memoryBookUpdate: Record<string, unknown> = {
@@ -140,10 +166,18 @@ serve(async (req) => {
       memoryBookUpdate.tracking_url = trackingUrl;
     }
 
-    await supabase
-      .from("memory_books")
-      .update(memoryBookUpdate)
-      .eq("prodigi_order_id", prodigiOrderId);
+    const { data: orderForBook } = await supabase
+      .from("orders")
+      .select("book_id")
+      .eq("id", internalOrderId)
+      .single();
+
+    if (orderForBook?.book_id) {
+      await supabase
+        .from("memory_books")
+        .update({ ...memoryBookUpdate, prodigi_order_id: prodigiOrderId })
+        .eq("id", orderForBook.book_id);
+    }
 
     // ── Send customer email ──
     if (orderStatus === "shipped" || stage === "Complete") {
@@ -151,7 +185,7 @@ serve(async (req) => {
       const { data: order } = await supabase
         .from("orders")
         .select("shipping_email, shipping_name, book_id, shipped_at")
-        .eq("prodigi_order_id", prodigiOrderId)
+        .eq("id", internalOrderId)
         .single();
 
       const { data: book } = await supabase

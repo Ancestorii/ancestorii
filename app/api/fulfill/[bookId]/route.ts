@@ -473,11 +473,19 @@ const spineHeight = spineHeightPx;
     // ── 9. Update order with Prodigi details ──
     const prodigiOrderId = prodigiData?.order?.id ?? null;
 
+    // Save prodigi_order_id FIRST — this is the critical link for webhooks
+    if (prodigiOrderId) {
+      await supabase
+        .from('orders')
+        .update({ prodigi_order_id: prodigiOrderId })
+        .eq('id', orderId);
+    }
+
+    // Then update the rest
     await supabase
       .from('orders')
       .update({
         status: 'printing',
-        prodigi_order_id: prodigiOrderId,
         prodigi_status: prodigiData?.order?.status?.stage ?? 'submitted',
       })
       .eq('id', orderId);
