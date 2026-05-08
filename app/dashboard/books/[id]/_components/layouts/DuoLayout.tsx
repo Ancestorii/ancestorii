@@ -4,6 +4,7 @@ import Slot from '../Slot';
 import { inter } from '@/lib/fonts';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import type { Asset, SelectedImage } from '@/types/memory-book';
+import { safeToast as toast } from '@/lib/safeToast';
 
 export default function DuoLayout({
   assets,
@@ -75,14 +76,15 @@ export default function DuoLayout({
           </div>
         ) : (
           // ✅ UI MODE (UNCHANGED)
-          <input
-            type="text"
+          <textarea
+            ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
             placeholder="A moment to remember"
-            maxLength={30}
+            onFocus={(e) => { if (!asset.id) { e.target.blur(); toast.info ('Place a photo to start writing'); } }}
             value={asset.subheading || ''}
             onChange={(e) => {
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
               if (!asset.id) return;
-              if (e.target.value.length > 30) return;
               const supabase = getBrowserClient();
               supabase
                 .from('memory_book_page_assets')
@@ -108,6 +110,7 @@ export default function DuoLayout({
               fontFamily: inter.style.fontFamily,
               overflow: 'hidden',
               flexShrink: 0,
+              resize: 'none',
             }}
           />
         )
@@ -134,6 +137,7 @@ export default function DuoLayout({
           // ✅ UI MODE (UNCHANGED)
           <textarea
             placeholder="What do you remember?"
+            onFocus={(e) => { if (!asset.id) { e.target.blur(); toast.info ('Place a photo to start writing'); } }}
             maxLength={180}
             value={asset.comment || ''}
             onChange={(e) => {

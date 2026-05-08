@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getBrowserClient } from "@/lib/supabase/browser";
-import { memoriesLinks, booksLinks, accountLinks } from "@/lib/dashboardNavigation";
+import { memoriesLinks, heirloomsLinks, accountLinks } from "@/lib/dashboardNavigation";
 
 export default function BottomNavigation({
   setMemoriesOpen,
@@ -19,7 +19,7 @@ export default function BottomNavigation({
   const pathname = usePathname();
   const isHome = pathname === "/dashboard/home";
 
-const isMemories = [...memoriesLinks, ...booksLinks].some(link =>
+const isMemories = [...memoriesLinks, ...heirloomsLinks].some(link =>
   pathname === link.href || pathname.startsWith(link.href + "/")
 );
 

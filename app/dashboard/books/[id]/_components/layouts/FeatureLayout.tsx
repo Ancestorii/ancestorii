@@ -4,6 +4,7 @@ import Slot from '../Slot';
 import { inter } from '@/lib/fonts';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import type { Asset, SelectedImage } from '@/types/memory-book';
+import { safeToast as toast } from '@/lib/safeToast';
 
 export default function FeatureLayout({
   assets,
@@ -71,7 +72,7 @@ export default function FeatureLayout({
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             minWidth: 0,
           }}
         >
@@ -94,14 +95,15 @@ export default function FeatureLayout({
               </div>
             ) : (
               // ✅ UI MODE (UNCHANGED)
-              <input
-                type="text"
+              <textarea
+                ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
                 placeholder="The story behind this"
-                maxLength={30}
+                onFocus={(e) => { if (!hero.id) { e.target.blur(); toast.info ('Place a photo to start writing'); } }}
                 value={hero.subheading || ''}
                 onChange={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
                   if (!hero.id) return;
-                  if (e.target.value.length > 30) return;
                   const supabase = getBrowserClient();
                   supabase
                     .from('memory_book_page_assets')
@@ -124,6 +126,7 @@ export default function FeatureLayout({
                   marginBottom: 6,
                   fontFamily: inter.style.fontFamily,
                   overflow: 'hidden',
+                  resize: 'none',
                 }}
               />
             )
@@ -149,6 +152,7 @@ export default function FeatureLayout({
               // ✅ UI MODE (UNCHANGED)
               <textarea
                 placeholder={"Tell the story behind this moment..."}
+                onFocus={(e) => { if (!hero.id) { e.target.blur(); toast.info ('Place a photo to start writing'); } }}
                 maxLength={200}
                 value={hero.comment || ''}
                 onChange={(e) => {

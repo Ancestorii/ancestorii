@@ -449,7 +449,7 @@ export default function CreateBookDrawer({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.97 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-[1060px] overflow-hidden rounded-3xl grid grid-cols-1 lg:grid-cols-[1fr_320px] max-h-[90vh] overflow-y-auto lg:overflow-y-visible"
+            className="relative w-full max-w-[1060px] overflow-hidden rounded-3xl grid grid-cols-1 lg:grid-cols-[1fr_320px] max-h-[90vh]"
             style={{
               background: '#FEFCF8',
               border: '1px solid rgba(205, 178, 100, 0.35)',
@@ -459,7 +459,7 @@ export default function CreateBookDrawer({
             onClick={(e) => e.stopPropagation()}
           >
             {/* ═══════════ LEFT PANEL ═══════════ */}
-            <div className="px-6 pb-8 pt-9 sm:px-10 sm:pb-10 sm:pt-11">
+            <div className="px-6 pb-8 pt-9 sm:px-10 sm:pb-10 sm:pt-11 overflow-y-auto" data-lenis-prevent>
               {/* Header */}
               <div className="mb-6">
                 <h2
@@ -678,7 +678,7 @@ export default function CreateBookDrawer({
 
             {/* ═══════════ RIGHT PANEL ═══════════ */}
             <div
-              className="flex flex-col justify-between border-t border-[rgba(210,195,155,0.3)] p-6 sm:p-7 lg:border-l lg:border-t-0"
+              className="flex flex-col justify-between border-t border-[rgba(210,195,155,0.3)] p-6 sm:p-7 lg:border-l lg:border-t-0 overflow-y-auto" data-lenis-prevent
               style={{
                 background:
                   'linear-gradient(180deg, #FAF6ED 0%, #F6F1E4 100%)',

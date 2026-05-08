@@ -17,7 +17,7 @@ export async function GET(
   }
 
   // ── Build the export page URL ──
-  const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/${bookId}`;
+  const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/book/${bookId}`;
 
   // ── Forward auth cookies so server component can query Supabase ──
   const cookieHeader = request.headers.get('cookie') || '';

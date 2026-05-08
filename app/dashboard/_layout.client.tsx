@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
 
-import { memoriesLinks, booksLinks, accountLinks } from "@/lib/dashboardNavigation";
+import { memoriesLinks, heirloomsLinks, accountLinks } from "@/lib/dashboardNavigation";
 import SidebarContent from "@/components/dashboard/SidebarContent";
 import BottomNavigation from "@/components/dashboard/BottomNavigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -440,11 +440,11 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
               <div className="pt-1">
                 <div className="flex items-center gap-2 px-2 mb-2">
                   <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-[#D4AF37]">My Books</p>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[#D4AF37]">My Heirlooms</p>
                   <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
                 </div>
                 <div className="space-y-2">
-                  {booksLinks.map((item) => {
+                  {heirloomsLinks.map((item) => {
                     const active = pathname === item.href || pathname.startsWith(item.href + "/");
                     return (
                       <motion.div

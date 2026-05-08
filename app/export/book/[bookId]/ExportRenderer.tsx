@@ -4,15 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 import type { Asset, Page, CoverLayoutType, BackCoverLayoutType } from '@/types/memory-book';
 
 // ── Layout components ──
-import PageRenderer from '../../dashboard/books/[id]/_components/PageRenderer';
+import PageRenderer from '../../../dashboard/books/[id]/_components/PageRenderer';
 
-import ClassicCover from '../../dashboard/books/[id]/_components/cover-layouts/ClassicCover';
-import FullBleedCover from '../../dashboard/books/[id]/_components/cover-layouts/FullBleedCover';
-import TrioCover from '../../dashboard/books/[id]/_components/cover-layouts/TrioCover';
+import ClassicCover from '../../../dashboard/books/[id]/_components/cover-layouts/ClassicCover';
+import FullBleedCover from '../../../dashboard/books/[id]/_components/cover-layouts/FullBleedCover';
+import TrioCover from '../../../dashboard/books/[id]/_components/cover-layouts/TrioCover';
 
-import BlankBackCover from '../../dashboard/books/[id]/_components/cover-layouts/BlankBackCover';
-import DedicationBackCover from '../../dashboard/books/[id]/_components/cover-layouts/DedicationBackCover';
-import PhotoMessageBackCover from '../../dashboard/books/[id]/_components/cover-layouts/PhotoMessageBackCover';
+import BlankBackCover from '../../../dashboard/books/[id]/_components/cover-layouts/BlankBackCover';
+import DedicationBackCover from '../../../dashboard/books/[id]/_components/cover-layouts/DedicationBackCover';
+import PhotoMessageBackCover from '../../../dashboard/books/[id]/_components/cover-layouts/PhotoMessageBackCover';
 
 // ── Constants ──k
 const PAGE_W = '297mm';

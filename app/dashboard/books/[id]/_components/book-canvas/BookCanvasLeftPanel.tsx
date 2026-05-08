@@ -601,24 +601,73 @@ export default function BookCanvasLeftPanel({
         )}
 
         {tab === 'text' && (
-          <>
-            <SectionHead fontFamily={inter.style.fontFamily}>
-              Text Settings
-            </SectionHead>
+  <>
+    <SectionHead fontFamily={inter.style.fontFamily}>
+      Text Settings
+    </SectionHead>
 
-            {isOnCover ? (
-              <div
-                style={{
-                  fontFamily: inter.style.fontFamily,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: BOOK_CANVAS_COLORS.muted,
-                  lineHeight: 1.5,
-                }}
-              >
-                Text settings are available on interior pages.
-              </div>
-            ) : (() => {
+    {isOnCover ? (
+      <div
+        style={{
+          fontFamily: inter.style.fontFamily,
+          fontSize: 13,
+          fontWeight: 500,
+          color: BOOK_CANVAS_COLORS.muted,
+          lineHeight: 1.5,
+        }}
+      >
+        Text settings are available on interior pages.
+      </div>
+    ) : (<>
+      {currentSpread.type === 'spread' && currentSpread.l && currentSpread.r && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <button
+            type="button"
+            onClick={() => setActivePageId(currentSpread.l!.id)}
+            style={{
+              flex: 1,
+              padding: '10px 12px',
+              borderRadius: 8,
+              border: activePageId === currentSpread.l.id
+                ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}`
+                : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
+              background: activePageId === currentSpread.l.id
+                ? BOOK_CANVAS_COLORS.accentBg
+                : BOOK_CANVAS_COLORS.panel,
+              color: BOOK_CANVAS_COLORS.dark,
+              fontWeight: 600,
+              fontSize: 12,
+              fontFamily: inter.style.fontFamily,
+              cursor: 'pointer',
+            }}
+          >
+            Left Page
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePageId(currentSpread.r!.id)}
+            style={{
+              flex: 1,
+              padding: '10px 12px',
+              borderRadius: 8,
+              border: activePageId === currentSpread.r.id
+                ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}`
+                : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
+              background: activePageId === currentSpread.r.id
+                ? BOOK_CANVAS_COLORS.accentBg
+                : BOOK_CANVAS_COLORS.panel,
+              color: BOOK_CANVAS_COLORS.dark,
+              fontWeight: 600,
+              fontSize: 12,
+              fontFamily: inter.style.fontFamily,
+              cursor: 'pointer',
+            }}
+          >
+            Right Page
+          </button>
+        </div>
+      )}
+      {(() => {
               const activePage =
                 activePageId && currentSpread.type === 'spread'
                   ? [currentSpread.l, currentSpread.r].find((p) => p?.id === activePageId)
@@ -687,8 +736,8 @@ export default function BookCanvasLeftPanel({
                 </>
               );
             })()}
-          </>
-        )}
+          </>)}
+        </>)}
 
         {tab === 'layout' && (
           <>

@@ -217,10 +217,10 @@ export default function Slot({
           if (!asset.id) return;
           try {
             await supabase
-              .from('memory_book_page_assets')
-              .update({ asset_id: null })
-              .eq('id', asset.id);
-            onUpdate({ ...asset, asset_id: undefined, url: undefined });
+  .from('memory_book_page_assets')
+  .delete()
+  .eq('id', asset.id);
+onUpdate({ ...asset, id: undefined, asset_id: undefined, url: undefined });
           } catch (err) {
             console.error('Failed to clear slot:', err);
           }

@@ -2,15 +2,15 @@ import {
   Calendar,
   Package,
   Image as ImageIcon,
-  Megaphone,
   CreditCard,
   HelpCircle,
   Settings,
   HandHeart,
-  User,
   BookOpen,
   Book,
-  ShoppingBag
+  ShoppingBag,
+  Frame,
+  Gem,
 } from "lucide-react";
 
 export const memoriesLinks = [
@@ -21,8 +21,10 @@ export const memoriesLinks = [
   { href: "/dashboard/albums", label: "Albums", icon: ImageIcon },
 ];
 
-export const booksLinks = [
+export const heirloomsLinks = [
   { href: "/dashboard/books", label: "Memory Books", icon: Book },
+  { href: "/dashboard/canvas", label: "Memory Canvases", icon: Frame },
+  { href: "/dashboard/acrylic", label: "Acrylic Prints", icon: Gem },
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag },
 ];
 

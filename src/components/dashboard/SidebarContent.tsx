@@ -1,19 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   memoriesLinks,
-  booksLinks,
+  heirloomsLinks,
   accountLinks,
-} from "@/lib/dashboardNavigation";
-import NavItem from "@/components/dashboard/NavItem";
+} from '@/lib/dashboardNavigation';
+import NavItem from '@/components/dashboard/NavItem';
 import {
   Home,
   User as UserIcon,
   X,
-} from "lucide-react";
+  ChevronDown,
+} from 'lucide-react';
 
 type SidebarContentProps = {
   closeDrawer: () => void;
@@ -26,6 +28,12 @@ type SidebarContentProps = {
   handleLogout: () => void;
 };
 
+const sections = [
+  { key: 'memories', title: 'My Memories', links: memoriesLinks },
+  { key: 'heirlooms', title: 'My Heirlooms', links: heirloomsLinks },
+  { key: 'account', title: 'My Account', links: accountLinks },
+];
+
 export default function SidebarContent({
   closeDrawer,
   collapsed,
@@ -36,28 +44,50 @@ export default function SidebarContent({
   planName,
   handleLogout,
 }: SidebarContentProps) {
+  const pathname = usePathname();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const cleanFullName = fullName?.trim() || '';
-const firstName = cleanFullName.split(' ')[0] || '';
-const fallbackName = userEmail?.split('@')[0] || 'Guest';
+  /* ── Determine which section owns the current route ── */
+  const getActiveSection = useCallback(() => {
+    for (const section of sections) {
+      if (
+        section.links.some(
+          (link) =>
+            pathname === link.href || pathname.startsWith(link.href + '/')
+        )
+      ) {
+        return section.key;
+      }
+    }
+    return 'memories';
+  }, [pathname]);
 
-const displayName = cleanFullName
-  ? cleanFullName.length > 15
-    ? firstName
-    : cleanFullName
-  : fallbackName;
+  const [openSection, setOpenSection] = useState<string>(getActiveSection());
+
+  /* ── Auto-open the section containing the current page ── */
+  useEffect(() => {
+    setOpenSection(getActiveSection());
+  }, [getActiveSection]);
+
+  const toggleSection = (key: string) => {
+    setOpenSection(key);
+  };
+
+  /* ── Display name logic ── */
+  const cleanFullName = fullName?.trim() || '';
+  const firstName = cleanFullName.split(' ')[0] || '';
+  const fallbackName = userEmail?.split('@')[0] || 'Guest';
+
+  const displayName = cleanFullName
+    ? cleanFullName.length > 15
+      ? firstName
+      : cleanFullName
+    : fallbackName;
 
   const userPlan =
     planName && planName.trim().length > 0
       ? `${planName} Plan`
       : 'Free Plan';
-
-  const sections = [
-    { title: 'My Memories', links: memoriesLinks },
-    { title: 'My Books', links: booksLinks },
-    { title: 'My Account', links: accountLinks },
-  ];
 
   const confirmLogout = () => {
     setShowLogoutConfirm(false);
@@ -89,7 +119,7 @@ const displayName = cleanFullName
 
         {/* NAV */}
         <nav className="flex-1 overflow-y-auto px-4 py-5">
-          <div className="space-y-6">
+          <div className="space-y-4">
             <NavItem
               href="/dashboard/home"
               label="Home"
@@ -97,27 +127,51 @@ const displayName = cleanFullName
               onClick={closeDrawer}
             />
 
-            {sections.map((section) => (
-              <section key={section.title}>
-                <div className="mb-3 px-2">
-                  <span className="text-[17px] font-semibold tracking-[0.01em] text-[#d4af37]">
-                    {section.title}
-                  </span>
-                </div>
+            {sections.map((section) => {
+              const isOpen = openSection === section.key;
 
-                <div className="space-y-1">
-                  {section.links.map((item) => (
-                    <NavItem
-                      key={item.href}
-                      href={item.href}
-                      label={item.label}
-                      Icon={item.icon}
-                      onClick={closeDrawer}
+              return (
+                <section key={section.key}>
+                  {/* ── Collapsible header ── */}
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section.key)}
+                    className="mb-1 flex w-full items-center justify-between px-2 py-1.5 transition-colors hover:bg-white/50 rounded-md"
+                  >
+                    <span className="text-[17px] font-semibold tracking-[0.01em] text-[#d4af37]">
+                      {section.title}
+                    </span>
+                    <ChevronDown
+                      className="h-4 w-4 text-[#d4af37] transition-transform duration-200"
+                      style={{
+                        transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                      }}
                     />
-                  ))}
-                </div>
-              </section>
-            ))}
+                  </button>
+
+                  {/* ── Collapsible content ── */}
+                  <div
+                    className="overflow-hidden transition-all duration-250 ease-in-out"
+                    style={{
+                      maxHeight: isOpen ? `${section.links.length * 52}px` : '0px',
+                      opacity: isOpen ? 1 : 0,
+                    }}
+                  >
+                    <div className="space-y-1 pt-1">
+                      {section.links.map((item) => (
+                        <NavItem
+                          key={item.href}
+                          href={item.href}
+                          label={item.label}
+                          Icon={item.icon}
+                          onClick={closeDrawer}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              );
+            })}
           </div>
         </nav>
 
@@ -141,13 +195,13 @@ const displayName = cleanFullName
             </div>
 
             <div className="min-w-0 flex-1">
-  <p className="mt-1 truncate text-[15px] font-semibold text-[#1f2937]">
-    {displayName}
-  </p>
-  <p className="mt-0.5 text-[13px] font-medium text-[#8a6a2f]">
-    {userPlan}
-  </p>
-</div>
+              <p className="mt-1 truncate text-[15px] font-semibold text-[#1f2937]">
+                {displayName}
+              </p>
+              <p className="mt-0.5 text-[13px] font-medium text-[#8a6a2f]">
+                {userPlan}
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">

@@ -359,7 +359,8 @@ useEffect(() => {
     } else {
       setActivePageId(null);
     }
-  }, [spread, spreads]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spread]);
 
   useEffect(() => {
     if (spread > spreads.length - 1) {
@@ -539,6 +540,19 @@ const filled = pages.filter((page) =>
       grid-template-columns: 360px minmax(0, 1fr) 280px;
     }
   }
+    .book-canvas-root input::placeholder {
+  color: #C4BDB2 !important;
+  font-style: italic;
+  font-weight: 400 !important;
+}
+.book-canvas-root textarea::placeholder {
+  color: #C4BDB2 !important;
+  font-style: italic;
+  font-weight: 400 !important;
+}
+.book-canvas-root input[type="text"] {
+  text-overflow: ellipsis;
+}
 `}</style>
 
           <div

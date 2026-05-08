@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   images: {
-    qualities: [70, 75, 90],
+    qualities: [60, 70, 75, 90],
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'i.pravatar.cc' },

@@ -400,6 +400,206 @@ serve(async (req) => {
         return new Response("Book order handled", { status: 200 });
       }
 
+      // ══════════════════════════════════════════════
+      // ── CANVAS ORDER (one-time payment) ──
+      // ══════════════════════════════════════════════
+      if (session.metadata?.type === "canvas_order") {
+        const orderId = session.metadata?.order_id;
+        const canvasId = session.metadata?.canvas_id;
+        const userId = session.metadata?.user_id;
+
+        if (!orderId || !canvasId || !userId) {
+          return new Response("Missing canvas order metadata", { status: 200 });
+        }
+
+        const { data: existingOrder } = await supabase
+          .from("canvas_orders")
+          .select("payment_status")
+          .eq("id", orderId)
+          .maybeSingle();
+
+        if (existingOrder?.payment_status === "paid") {
+          console.log("Canvas order already processed, skipping:", orderId);
+          return new Response("Already processed", { status: 200 });
+        }
+
+        const shipping = session.shipping_details ?? session.customer_details;
+        const address = shipping?.address;
+
+        await supabase
+          .from("canvas_orders")
+          .update({
+            payment_status: "paid",
+            status: "paid",
+            paid_at: new Date().toISOString(),
+            stripe_payment_intent: session.payment_intent,
+            shipping_name: shipping?.name ?? null,
+            shipping_line1: address?.line1 ?? null,
+            shipping_line2: address?.line2 ?? null,
+            shipping_city: address?.city ?? null,
+            shipping_state: address?.state ?? null,
+            shipping_postal: address?.postal_code ?? null,
+            shipping_country: address?.country ?? null,
+            shipping_email: session.customer_details?.email ?? null,
+            shipping_phone: session.customer_details?.phone ?? null,
+          })
+          .eq("id", orderId);
+
+        await supabase
+          .from("memory_canvases")
+          .update({ status: "ordered" })
+          .eq("id", canvasId);
+
+        // ── SEND CANVAS ORDER EMAIL ──
+        try {
+          const customerEmail = session.customer_details?.email ?? session.customer_email;
+          const customerName = shipping?.name ?? session.customer_details?.name ?? "";
+
+          if (customerEmail) {
+            const { data: canvasData } = await supabase
+              .from("memory_canvases")
+              .select("title, tier_name")
+              .eq("id", canvasId)
+              .maybeSingle();
+
+            const email = canvasOrderEmail(
+              customerName,
+              canvasData?.title ?? "Memory Canvas",
+              canvasData?.tier_name ?? "Memory Canvas"
+            );
+
+            await sendEmail(customerEmail, email.subject, email.html);
+          }
+        } catch (emailErr) {
+          console.error("Canvas order email failed:", emailErr);
+        }
+
+        // ── TRIGGER CANVAS FULFILLMENT ──
+        try {
+          const fulfillUrl = `${SITE}/api/fulfill/canvas/${canvasId}`;
+
+          const fulfillRes = await fetch(fulfillUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-fulfill-secret": FULFILL_SECRET || "",
+            },
+            body: JSON.stringify({ order_id: orderId }),
+          });
+
+          if (!fulfillRes.ok) {
+            const errText = await fulfillRes.text();
+            console.error("Canvas fulfill trigger failed:", fulfillRes.status, errText);
+          } else {
+            console.log("Canvas fulfill triggered for order:", orderId);
+          }
+        } catch (fulfillErr) {
+          console.error("Canvas fulfill trigger error:", fulfillErr);
+        }
+
+        return new Response("Canvas order handled", { status: 200 });
+      }
+
+      // ══════════════════════════════════════════════
+      // ── ACRYLIC ORDER (one-time payment) ──
+      // ══════════════════════════════════════════════
+      if (session.metadata?.type === "acrylic_order") {
+        const orderId = session.metadata?.order_id;
+        const acrylicId = session.metadata?.acrylic_id;
+        const userId = session.metadata?.user_id;
+
+        if (!orderId || !acrylicId || !userId) {
+          return new Response("Missing acrylic order metadata", { status: 200 });
+        }
+
+        const { data: existingOrder } = await supabase
+          .from("acrylic_orders")
+          .select("payment_status")
+          .eq("id", orderId)
+          .maybeSingle();
+
+        if (existingOrder?.payment_status === "paid") {
+          console.log("Acrylic order already processed, skipping:", orderId);
+          return new Response("Already processed", { status: 200 });
+        }
+
+        const shipping = session.shipping_details ?? session.customer_details;
+        const address = shipping?.address;
+
+        await supabase
+          .from("acrylic_orders")
+          .update({
+            payment_status: "paid",
+            status: "paid",
+            paid_at: new Date().toISOString(),
+            stripe_payment_intent: session.payment_intent,
+            shipping_name: shipping?.name ?? null,
+            shipping_line1: address?.line1 ?? null,
+            shipping_line2: address?.line2 ?? null,
+            shipping_city: address?.city ?? null,
+            shipping_state: address?.state ?? null,
+            shipping_postal: address?.postal_code ?? null,
+            shipping_country: address?.country ?? null,
+            shipping_email: session.customer_details?.email ?? null,
+            shipping_phone: session.customer_details?.phone ?? null,
+          })
+          .eq("id", orderId);
+
+        await supabase
+          .from("acrylic_prints")
+          .update({ status: "ordered" })
+          .eq("id", acrylicId);
+
+        // ── SEND ACRYLIC ORDER EMAIL ──
+        try {
+          const customerEmail = session.customer_details?.email ?? session.customer_email;
+          const customerName = shipping?.name ?? session.customer_details?.name ?? "";
+
+          if (customerEmail) {
+            const { data: acrylicData } = await supabase
+              .from("acrylic_prints")
+              .select("title, tier_name")
+              .eq("id", acrylicId)
+              .maybeSingle();
+
+            const email = acrylicOrderEmail(
+              customerName,
+              acrylicData?.title ?? "Acrylic Print",
+              acrylicData?.tier_name ?? "Acrylic Print"
+            );
+
+            await sendEmail(customerEmail, email.subject, email.html);
+          }
+        } catch (emailErr) {
+          console.error("Acrylic order email failed:", emailErr);
+        }
+
+        // ── TRIGGER ACRYLIC FULFILLMENT ──
+        try {
+          const fulfillUrl = `${SITE}/api/fulfill/acrylic/${acrylicId}`;
+
+          const fulfillRes = await fetch(fulfillUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-fulfill-secret": FULFILL_SECRET || "",
+            },
+            body: JSON.stringify({ order_id: orderId }),
+          });
+
+          if (!fulfillRes.ok) {
+            const errText = await fulfillRes.text();
+            console.error("Acrylic fulfill trigger failed:", fulfillRes.status, errText);
+          } else {
+            console.log("Acrylic fulfill triggered for order:", orderId);
+          }
+        } catch (fulfillErr) {
+          console.error("Acrylic fulfill trigger error:", fulfillErr);
+        }
+
+        return new Response("Acrylic order handled", { status: 200 });
+      }
+
       // ── SUBSCRIPTION (existing logic — untouched) ──
       const userId =
         session.metadata?.user_id ?? session.client_reference_id;
@@ -509,3 +709,110 @@ serve(async (req) => {
     });
   }
 });
+
+// ══════════════════════════════════════════════════════════
+// NEW: Canvas order confirmation email
+// ══════════════════════════════════════════════════════════
+function canvasOrderEmail(name: string, canvasTitle: string, tierName: string): { subject: string; html: string } {
+  return {
+    subject: `Your memory canvas order is confirmed`,
+    html: orderConfirmationHtml(name, canvasTitle, tierName, "Memory Canvas", [
+      "We prepare your canvas for printing.",
+      "Your image is printed on 400gsm gallery-grade canvas.",
+      "Stretched on a 38mm premium stretcher bar with imagewrap finish.",
+      "Shipped directly to your door — free worldwide.",
+    ]),
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+// NEW: Acrylic order confirmation email
+// ══════════════════════════════════════════════════════════
+function acrylicOrderEmail(name: string, acrylicTitle: string, tierName: string): { subject: string; html: string } {
+  return {
+    subject: `Your acrylic print order is confirmed`,
+    html: orderConfirmationHtml(name, acrylicTitle, tierName, "Acrylic Print", [
+      "We prepare your print for production.",
+      "Your image is printed on crystal-clear acrylic with vivid colour depth.",
+      "Float-mount hardware is included for effortless hanging.",
+      "Shipped directly to your door — free worldwide.",
+    ]),
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+// Shared order confirmation email builder
+// ══════════════════════════════════════════════════════════
+function orderConfirmationHtml(
+  name: string,
+  productTitle: string,
+  tierName: string,
+  productLabel: string,
+  steps: string[]
+): string {
+  const stepsHtml = steps
+    .map(
+      (step, i) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
+                <tr>
+                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">${i + 1}.</td>
+                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
+                    ${step}
+                  </td>
+                </tr>
+              </table>`
+    )
+    .join("\n");
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>Your ${productLabel.toLowerCase()} order is confirmed</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
+    <tr>
+      <td align="center" style="padding:48px 16px 56px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
+          <tr>
+            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">Order confirmed</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">Ancestorii</p>
+            </td>
+          </tr>
+          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
+          <tr>
+            <td style="padding:48px 40px 36px 40px;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">Thank you${name ? `, ${name}` : ''}.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">Your ${productLabel.toLowerCase()} <em style="font-style:italic; color:#16120c;">"${productTitle}"</em> (${tierName}) is now being prepared for production.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 28px 0;">Here's what happens next:</p>
+              ${stepsHtml}
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:22px 0 22px 0;">Please allow up to <strong style="color:#16120c; font-weight:600;">14 days</strong> for your ${productLabel.toLowerCase()} to arrive. If it hasn't reached you by then, contact us at <a href="mailto:support@ancestorii.com" style="color:#ab8232; text-decoration:none;">support@ancestorii.com</a> and we'll sort it out straight away.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">You can track your order anytime in the Orders section inside Ancestorii.</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
+                <tr>
+                  <td align="center" style="background-color:#16120c;">
+                    <a href="https://www.ancestorii.com/dashboard/orders" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">Track Your Order</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">— The Ancestorii Team</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;"><a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}

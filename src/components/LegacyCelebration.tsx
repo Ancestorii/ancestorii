@@ -14,8 +14,7 @@ type LegacyCelebrationProps = {
 export default function LegacyCelebration({
   open,
   message,
-  emoji,
-  durationMs = 4200, // ✅ longer so you can actually read
+  durationMs = 4200,
   onClose,
 }: LegacyCelebrationProps) {
   useEffect(() => {
@@ -24,24 +23,21 @@ export default function LegacyCelebration({
     return () => clearTimeout(t);
   }, [open, durationMs, onClose]);
 
-  // ✅ FULL SCREEN 3D SPLASH GOLD DUST
-  const particles = useMemo(
+  const flecks = useMemo(
     () =>
       open
-        ? Array.from({ length: 260 }).map((_, i) => {
+        ? Array.from({ length: 40 }).map((_, i) => {
             const angle = Math.random() * Math.PI * 2;
-            const radius = Math.random() * 900 + 200;
+            const radius = Math.random() * 500 + 150;
 
             return {
               id: i,
               x: Math.cos(angle) * radius,
-              y: Math.sin(angle) * radius * -1,
-              size: Math.random() * 4 + 2,
-              blur: Math.random() * 1.2,
-              delay: Math.random() * 0.12,
-              duration: Math.random() * 1.4 + 1.6,
-              opacity: Math.random() * 0.6 + 0.3,
-              scale: Math.random() * 1.8 + 0.6, // ✅ fake 3D depth
+              y: Math.sin(angle) * radius * -0.6,
+              size: Math.random() * 2.5 + 1,
+              delay: Math.random() * 0.3,
+              duration: Math.random() * 2 + 2.5,
+              opacity: Math.random() * 0.35 + 0.15,
             };
           })
         : [],
@@ -55,101 +51,115 @@ export default function LegacyCelebration({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-         className="fixed inset-0 z-[999] flex items-center justify-center bg-[#0B0C10]/60 overflow-hidden"
-
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="fixed inset-0 z-[999] flex items-center justify-center overflow-hidden"
+          style={{
+            background: "radial-gradient(ellipse at center, rgba(26,23,20,0.85) 0%, rgba(11,12,16,0.92) 100%)",
+            backdropFilter: "blur(12px)",
+          }}
         >
-          {/* ✅ 3D SPLASH GOLD DUST */}
+          {/* Gold flecks — slow, sparse, elegant */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {particles.map((p) => (
+            {flecks.map((p) => (
               <motion.span
                 key={p.id}
-                initial={{ x: 0, y: 0, opacity: p.opacity, scale: 0.2 }}
+                initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
                 animate={{
                   x: p.x,
                   y: p.y,
-                  opacity: 0,
-                  scale: p.scale,
+                  opacity: [0, p.opacity, 0],
+                  scale: [0, 1, 0.6],
                 }}
                 transition={{
                   duration: p.duration,
-                  delay: p.delay,
+                  delay: p.delay + 0.4,
                   ease: "easeOut",
                 }}
                 className="absolute top-1/2 left-1/2 rounded-full"
                 style={{
                   width: `${p.size}px`,
                   height: `${p.size}px`,
-                  background:
-                    "radial-gradient(circle, rgba(255,241,181,1) 0%, rgba(230,194,110,0.9) 55%, rgba(212,175,55,0.3) 100%)",
-                  filter: "none",
+                  background: "#d4af37",
                 }}
               />
             ))}
           </div>
 
-          {/* ✅ SLOWER, READABLE FLOATING MESSAGE */}
+          {/* Centre content */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.9, ease: "easeOut" }} // ✅ slower reveal
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 1, ease: "easeOut", delay: 0.15 }}
             className="relative text-center px-10"
+            style={{ maxWidth: 480 }}
           >
-            {emoji && (
-              <div className="text-7xl mb-4 animate-popSlow">{emoji}</div>
-            )}
+            {/* Gold line reveal */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+              style={{
+                width: 48,
+                height: 1.5,
+                background: "linear-gradient(90deg, transparent, #d4af37, transparent)",
+                margin: "0 auto 28px",
+                transformOrigin: "center",
+              }}
+            />
 
-            <p className="text-4xl font-semibold text-white drop-shadow-[0_0_18px_rgba(230,194,110,0.95)] animate-riseSlow delay-300">
+            {/* Main message */}
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, ease: "easeOut", delay: 0.5 }}
+              style={{
+                fontFamily: "Georgia, 'Times New Roman', serif",
+                fontSize: 28,
+                fontWeight: 400,
+                fontStyle: "italic",
+                color: "#ffffff",
+                letterSpacing: "-0.01em",
+                lineHeight: 1.35,
+                margin: "0 0 14px",
+                textShadow: "0 0 40px rgba(212,175,55,0.25)",
+              }}
+            >
               {message}
-            </p>
+            </motion.p>
 
-            <p className="text-base text-[#EADFB5] mt-3 italic animate-riseSlow delay-600">
-              This moment is now part of your legacy.
-            </p>
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.9 }}
+              style={{
+                fontFamily: "Georgia, 'Times New Roman', serif",
+                fontSize: 13,
+                fontWeight: 400,
+                color: "rgba(212,175,55,0.6)",
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                margin: 0,
+              }}
+            >
+              Ancestorii
+            </motion.p>
+
+            {/* Bottom gold line */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
+              style={{
+                width: 48,
+                height: 1.5,
+                background: "linear-gradient(90deg, transparent, #d4af37, transparent)",
+                margin: "28px auto 0",
+                transformOrigin: "center",
+              }}
+            />
           </motion.div>
-
-          <style jsx global>{`
-            @keyframes riseSlow {
-              from {
-                opacity: 0;
-                transform: translateY(22px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-
-            @keyframes popSlow {
-              0% {
-                transform: scale(0.4);
-                opacity: 0;
-              }
-              80% {
-                transform: scale(1.15);
-                opacity: 1;
-              }
-              100% {
-                transform: scale(1);
-              }
-            }
-
-            .animate-riseSlow {
-              animation: riseSlow 0.9s ease-out both;
-            }
-
-            .animate-popSlow {
-              animation: popSlow 0.9s ease-out both;
-            }
-
-            .delay-300 {
-              animation-delay: 0.3s;
-            }
-
-            .delay-600 {
-              animation-delay: 0.6s;
-            }
-          `}</style>
         </motion.div>
       )}
     </AnimatePresence>

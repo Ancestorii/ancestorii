@@ -4,6 +4,7 @@ import Slot from '../Slot';
 import { inter } from '@/lib/fonts';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import type { Asset, SelectedImage } from '@/types/memory-book';
+import { safeToast as toast } from '@/lib/safeToast';
 
 export default function PortraitLayout({
   assets,
@@ -48,7 +49,7 @@ export default function PortraitLayout({
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             gap: 0,
             fontFamily: inter.style.fontFamily,
             minWidth: 0,
@@ -73,14 +74,15 @@ export default function PortraitLayout({
               </div>
             ) : (
               // ✅ UI MODE (UNCHANGED)
-              <input
-                type="text"
+              <textarea
+                ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
                 placeholder="Summer 1987"
-                maxLength={18}
+                onFocus={(e) => { if (!asset.id) { e.target.blur(); toast.info ('Place a photo to start writing'); } }}
                 value={asset.subheading || ''}
                 onChange={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
                   if (!asset.id) return;
-                  if (e.target.value.length > 18) return;
                   const supabase = getBrowserClient();
                   supabase
                     .from('memory_book_page_assets')
@@ -103,6 +105,7 @@ export default function PortraitLayout({
                   marginBottom: 8,
                   fontFamily: inter.style.fontFamily,
                   overflow: 'hidden',
+                  resize: 'none',
                 }}
               />
             )
@@ -129,6 +132,7 @@ export default function PortraitLayout({
               // ✅ UI MODE (UNCHANGED)
               <textarea
                 placeholder={"When was this taken?\nWho's in this photo?\nWhat do you remember about this day?"}
+                onFocus={(e) => { if (!asset.id) { e.target.blur(); toast.info ('Place a photo to start writing'); } }}
                 maxLength={320}
                 value={asset.comment || ''}
                 onChange={(e) => {

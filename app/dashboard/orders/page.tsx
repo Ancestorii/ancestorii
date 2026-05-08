@@ -23,10 +23,49 @@ type Order = {
   book_title?: string;
 };
 
+type CanvasOrder = {
+  id: string;
+  canvas_id: string;
+  tier_name: string;
+  price_amount: number;
+  price_currency: string;
+  status: string;
+  payment_status: string;
+  prodigi_status: string | null;
+  prodigi_tracking_url: string | null;
+  shipping_name: string | null;
+  shipping_city: string | null;
+  shipping_country: string | null;
+  created_at: string;
+  paid_at: string | null;
+  shipped_at: string | null;
+  canvas_title?: string;
+};
+
+type AcrylicOrder = {
+  id: string;
+  acrylic_id: string;
+  tier_name: string;
+  price_amount: number;
+  price_currency: string;
+  status: string;
+  payment_status: string;
+  prodigi_status: string | null;
+  prodigi_tracking_url: string | null;
+  shipping_name: string | null;
+  shipping_city: string | null;
+  shipping_country: string | null;
+  created_at: string;
+  paid_at: string | null;
+  shipped_at: string | null;
+  acrylic_title?: string;
+};
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   created: { label: 'Awaiting Payment', color: '#7A6520', bg: '#FFF8E7' },
   paid: { label: 'Payment Received', color: '#1A6B3C', bg: '#EDFFF4' },
   generating_pdf: { label: 'Preparing Your Book', color: '#B8860B', bg: '#FFF8E7' },
+  generating_image: { label: 'Preparing Your Print', color: '#B8860B', bg: '#FFF8E7' },
   submitting: { label: 'Sending to Printer', color: '#B8860B', bg: '#FFF8E7' },
   printing: { label: 'Printing', color: '#B8860B', bg: '#FFF8E7' },
   shipped: { label: 'Shipped', color: '#1A6B3C', bg: '#EDFFF4' },
@@ -44,8 +83,11 @@ const CURRENCY_SYMBOL: Record<string, string> = {
 export default function OrdersPage() {
   const supabase = getBrowserClient();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [canvasOrders, setCanvasOrders] = useState<CanvasOrder[]>([]);
+  const [acrylicOrders, setAcrylicOrders] = useState<AcrylicOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<'book' | 'canvas' | 'acrylic'>('book');
 
   useEffect(() => {
     (async () => {
@@ -56,6 +98,7 @@ export default function OrdersPage() {
           return;
         }
 
+        // ── Book orders (existing) ──
         const { data: orderRows, error } = await supabase
           .from('orders')
           .select('*')
@@ -83,6 +126,62 @@ export default function OrdersPage() {
         }));
 
         setOrders(enriched);
+
+        // ── Canvas orders ──
+        const { data: canvasRows, error: canvasErr } = await supabase
+          .from('canvas_orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (!canvasErr && canvasRows) {
+          const canvasIds = [...new Set(canvasRows.map((o: any) => o.canvas_id))];
+          let canvasTitleMap = new Map<string, string>();
+
+          if (canvasIds.length > 0) {
+            const { data: canvases } = await supabase
+              .from('memory_canvases')
+              .select('id, title')
+              .in('id', canvasIds);
+
+            canvasTitleMap = new Map((canvases || []).map((c: any) => [c.id, c.title]));
+          }
+
+          setCanvasOrders(
+            canvasRows.map((o: any) => ({
+              ...o,
+              canvas_title: canvasTitleMap.get(o.canvas_id) || 'Memory Canvas',
+            }))
+          );
+        }
+
+        // ── Acrylic orders ──
+        const { data: acrylicRows, error: acrylicErr } = await supabase
+          .from('acrylic_orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (!acrylicErr && acrylicRows) {
+          const acrylicIds = [...new Set(acrylicRows.map((o: any) => o.acrylic_id))];
+          let acrylicTitleMap = new Map<string, string>();
+
+          if (acrylicIds.length > 0) {
+            const { data: acrylics } = await supabase
+              .from('acrylic_prints')
+              .select('id, title')
+              .in('id', acrylicIds);
+
+            acrylicTitleMap = new Map((acrylics || []).map((a: any) => [a.id, a.title]));
+          }
+
+          setAcrylicOrders(
+            acrylicRows.map((o: any) => ({
+              ...o,
+              acrylic_title: acrylicTitleMap.get(o.acrylic_id) || 'Acrylic Print',
+            }))
+          );
+        }
       } catch (err) {
         console.error('Failed to load orders:', err);
       } finally {
@@ -99,6 +198,8 @@ export default function OrdersPage() {
       year: 'numeric',
     });
   };
+
+  const totalOrders = orders.length + canvasOrders.length + acrylicOrders.length;
 
   return (
     <div
@@ -129,7 +230,7 @@ export default function OrdersPage() {
             My Orders
           </h1>
           <p style={{ fontSize: 14, color: '#6B6358' }}>
-            Track your memory book orders from payment to your doorstep.
+            Track your orders from payment to your doorstep.
           </p>
           <div
             style={{
@@ -158,7 +259,7 @@ export default function OrdersPage() {
         )}
 
         {/* Empty state */}
-        {!loading && orders.length === 0 && (
+        {!loading && totalOrders === 0 && (
           <div
             style={{
               textAlign: 'center',
@@ -194,291 +295,525 @@ export default function OrdersPage() {
               No orders yet
             </p>
             <p style={{ fontSize: 13, color: '#A39B8F' }}>
-              When you order a memory book, it will appear here.
+              When you order a product, it will appear here.
             </p>
           </div>
         )}
 
-        {/* Order cards */}
+        {/* ═══════════════════════════════════
+            BOOK ORDERS (EXISTING — UNTOUCHED)
+            ═══════════════════════════════════ */}
         {!loading && orders.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {orders.map((order) => {
-              const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.error;
+          <>
+            <SectionLabel label="Memory Books" count={orders.length} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40 }}>
+              {orders.map((order) => {
+                const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.error;
 
-              return (
-                <div
-                  key={order.id}
-                  style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E8E4DC',
-                    borderRadius: 16,
-                    padding: '24px 28px',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
-                  }}
-                >
-                  {/* Top row */}
+                return (
                   <div
+                    key={order.id}
                     style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      marginBottom: 16,
-                      flexWrap: 'wrap',
-                      gap: 12,
+                      background: '#FFFFFF',
+                      border: '1px solid #E8E4DC',
+                      borderRadius: 16,
+                      padding: '24px 28px',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
                     }}
                   >
-                    <div>
-                      <h3
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 700,
-                          color: '#1A1714',
-                          letterSpacing: '-0.02em',
-                          marginBottom: 4,
-                        }}
-                      >
-                        {order.book_title}
-                      </h3>
-                      <p style={{ fontSize: 12, color: '#A39B8F' }}>
-                        {order.tier_name} · Ordered {formatDate(order.created_at)}
-                      </p>
-                    </div>
-
+                    {/* Top row */}
                     <div
                       style={{
-                        padding: '5px 14px',
-                        borderRadius: 99,
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: statusInfo.color,
-                        background: statusInfo.bg,
-                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'space-between',
+                        marginBottom: 16,
+                        flexWrap: 'wrap',
+                        gap: 12,
                       }}
                     >
-                      {statusInfo.label}
-                    </div>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div style={{ marginBottom: 20 }}>
-                    <OrderProgress status={order.status} />
-                  </div>
-
-                  {/* Details row */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: 24,
-                      fontSize: 13,
-                      color: '#6B6358',
-                    }}
-                  >
-                    <div>
-                      <span style={{ fontWeight: 600, color: '#1A1714' }}>
-                        {CURRENCY_SYMBOL[order.price_currency] || '£'}
-                        {Number(order.price_amount).toFixed(2)}
-                      </span>
-                    </div>
-
-                    {order.shipping_city && (
                       <div>
-                        Shipping to{' '}
-                        <span style={{ fontWeight: 600, color: '#1A1714' }}>
-                          {order.shipping_city}, {order.shipping_country}
-                        </span>
+                        <h3
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 700,
+                            color: '#1A1714',
+                            letterSpacing: '-0.02em',
+                            marginBottom: 4,
+                          }}
+                        >
+                          {order.book_title}
+                        </h3>
+                        <p style={{ fontSize: 12, color: '#A39B8F' }}>
+                          {order.tier_name} · Ordered {formatDate(order.created_at)}
+                        </p>
                       </div>
-                    )}
 
-                    {order.paid_at && (
-                      <div>
-                        Paid {formatDate(order.paid_at)}
-                      </div>
-                    )}
-
-                    {order.shipped_at && (
-                      <div>
-                        Shipped {formatDate(order.shipped_at)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Tracking link */}
-                  {order.prodigi_tracking_url && (
-                    <div style={{ marginTop: 16 }}>
-                      <a
-                        href={order.prodigi_tracking_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <div
                         style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          fontSize: 13,
+                          padding: '5px 14px',
+                          borderRadius: 99,
+                          fontSize: 12,
                           fontWeight: 700,
-                          color: '#B8860B',
-                          textDecoration: 'none',
+                          color: statusInfo.color,
+                          background: statusInfo.bg,
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        Track Your Book
-                        <svg
-                          width="14"
-                          height="14"
-                          fill="none"
-                          stroke="#B8860B"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M7 17L17 7M17 7H7M17 7v10" />
-                        </svg>
-                      </a>
+                        {statusInfo.label}
+                      </div>
                     </div>
-                  )}
-                  {(order.status === 'created' || order.status === 'error' || order.status === 'cancelled') && (
-  <div style={{ marginTop: 16 }}>
-    <button
-      onClick={() => setDeleteTarget(order.id)}
-      style={{
-        fontSize: 13,
-        fontWeight: 600,
-        color: '#8B2020',
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        padding: 0,
-      }}
-    >
-      Delete order
-    </button>
-  </div>
-)}
-                </div>
-              );
-            })}
-          </div>
+
+                    {/* Progress bar */}
+                    <div style={{ marginBottom: 20 }}>
+                      <OrderProgress status={order.status} />
+                    </div>
+
+                    {/* Details row */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 24,
+                        fontSize: 13,
+                        color: '#6B6358',
+                      }}
+                    >
+                      <div>
+                        <span style={{ fontWeight: 600, color: '#1A1714' }}>
+                          {CURRENCY_SYMBOL[order.price_currency] || '£'}
+                          {Number(order.price_amount).toFixed(2)}
+                        </span>
+                      </div>
+
+                      {order.shipping_city && (
+                        <div>
+                          Shipping to{' '}
+                          <span style={{ fontWeight: 600, color: '#1A1714' }}>
+                            {order.shipping_city}, {order.shipping_country}
+                          </span>
+                        </div>
+                      )}
+
+                      {order.paid_at && (
+                        <div>
+                          Paid {formatDate(order.paid_at)}
+                        </div>
+                      )}
+
+                      {order.shipped_at && (
+                        <div>
+                          Shipped {formatDate(order.shipped_at)}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Tracking link */}
+                    {order.prodigi_tracking_url && (
+                      <div style={{ marginTop: 16 }}>
+                        <a
+                          href={order.prodigi_tracking_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: '#B8860B',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          Track Your Book
+                          <svg
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="#B8860B"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M7 17L17 7M17 7H7M17 7v10" />
+                          </svg>
+                        </a>
+                      </div>
+                    )}
+                    {(order.status === 'created' || order.status === 'error' || order.status === 'cancelled') && (
+                      <div style={{ marginTop: 16 }}>
+                        <button
+                          onClick={() => { setDeleteTarget(order.id); setDeleteType('book'); }}
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: '#8B2020',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0,
+                          }}
+                        >
+                          Delete order
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* ═══════════════════════════════════
+            CANVAS ORDERS
+            ═══════════════════════════════════ */}
+        {!loading && canvasOrders.length > 0 && (
+          <>
+            <SectionLabel label="Memory Canvases" count={canvasOrders.length} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40 }}>
+              {canvasOrders.map((order) => {
+                const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.error;
+
+                return (
+                  <div
+                    key={order.id}
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #E8E4DC',
+                      borderRadius: 16,
+                      padding: '24px 28px',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'space-between',
+                        marginBottom: 16,
+                        flexWrap: 'wrap',
+                        gap: 12,
+                      }}
+                    >
+                      <div>
+                        <h3 style={{ fontSize: 18, fontWeight: 700, color: '#1A1714', letterSpacing: '-0.02em', marginBottom: 4 }}>
+                          {order.canvas_title}
+                        </h3>
+                        <p style={{ fontSize: 12, color: '#A39B8F' }}>
+                          {order.tier_name} · Ordered {formatDate(order.created_at)}
+                        </p>
+                      </div>
+                      <div style={{ padding: '5px 14px', borderRadius: 99, fontSize: 12, fontWeight: 700, color: statusInfo.color, background: statusInfo.bg, whiteSpace: 'nowrap' }}>
+                        {statusInfo.label}
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: 20 }}>
+                      <OrderProgress status={order.status} />
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, fontSize: 13, color: '#6B6358' }}>
+                      <div>
+                        <span style={{ fontWeight: 600, color: '#1A1714' }}>
+                          {CURRENCY_SYMBOL[order.price_currency] || '£'}{Number(order.price_amount).toFixed(2)}
+                        </span>
+                      </div>
+                      {order.shipping_city && (
+                        <div>Shipping to <span style={{ fontWeight: 600, color: '#1A1714' }}>{order.shipping_city}, {order.shipping_country}</span></div>
+                      )}
+                      {order.paid_at && <div>Paid {formatDate(order.paid_at)}</div>}
+                      {order.shipped_at && <div>Shipped {formatDate(order.shipped_at)}</div>}
+                    </div>
+
+                    {order.prodigi_tracking_url && (
+                      <div style={{ marginTop: 16 }}>
+                        <a href={order.prodigi_tracking_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#B8860B', textDecoration: 'none' }}>
+                          Track Your Canvas
+                          <svg width="14" height="14" fill="none" stroke="#B8860B" strokeWidth="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10" /></svg>
+                        </a>
+                      </div>
+                    )}
+
+                    {(order.status === 'created' || order.status === 'error' || order.status === 'cancelled') && (
+                      <div style={{ marginTop: 16 }}>
+                        <button
+                          onClick={() => { setDeleteTarget(order.id); setDeleteType('canvas'); }}
+                          style={{ fontSize: 13, fontWeight: 600, color: '#8B2020', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                        >
+                          Delete order
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* ═══════════════════════════════════
+            ACRYLIC ORDERS
+            ═══════════════════════════════════ */}
+        {!loading && acrylicOrders.length > 0 && (
+          <>
+            <SectionLabel label="Acrylic Prints" count={acrylicOrders.length} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40 }}>
+              {acrylicOrders.map((order) => {
+                const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.error;
+
+                return (
+                  <div
+                    key={order.id}
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid #E8E4DC',
+                      borderRadius: 16,
+                      padding: '24px 28px',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'space-between',
+                        marginBottom: 16,
+                        flexWrap: 'wrap',
+                        gap: 12,
+                      }}
+                    >
+                      <div>
+                        <h3 style={{ fontSize: 18, fontWeight: 700, color: '#1A1714', letterSpacing: '-0.02em', marginBottom: 4 }}>
+                          {order.acrylic_title}
+                        </h3>
+                        <p style={{ fontSize: 12, color: '#A39B8F' }}>
+                          {order.tier_name} · Ordered {formatDate(order.created_at)}
+                        </p>
+                      </div>
+                      <div style={{ padding: '5px 14px', borderRadius: 99, fontSize: 12, fontWeight: 700, color: statusInfo.color, background: statusInfo.bg, whiteSpace: 'nowrap' }}>
+                        {statusInfo.label}
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: 20 }}>
+                      <OrderProgress status={order.status} />
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, fontSize: 13, color: '#6B6358' }}>
+                      <div>
+                        <span style={{ fontWeight: 600, color: '#1A1714' }}>
+                          {CURRENCY_SYMBOL[order.price_currency] || '£'}{Number(order.price_amount).toFixed(2)}
+                        </span>
+                      </div>
+                      {order.shipping_city && (
+                        <div>Shipping to <span style={{ fontWeight: 600, color: '#1A1714' }}>{order.shipping_city}, {order.shipping_country}</span></div>
+                      )}
+                      {order.paid_at && <div>Paid {formatDate(order.paid_at)}</div>}
+                      {order.shipped_at && <div>Shipped {formatDate(order.shipped_at)}</div>}
+                    </div>
+
+                    {order.prodigi_tracking_url && (
+                      <div style={{ marginTop: 16 }}>
+                        <a href={order.prodigi_tracking_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#B8860B', textDecoration: 'none' }}>
+                          Track Your Print
+                          <svg width="14" height="14" fill="none" stroke="#B8860B" strokeWidth="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10" /></svg>
+                        </a>
+                      </div>
+                    )}
+
+                    {(order.status === 'created' || order.status === 'error' || order.status === 'cancelled') && (
+                      <div style={{ marginTop: 16 }}>
+                        <button
+                          onClick={() => { setDeleteTarget(order.id); setDeleteType('acrylic'); }}
+                          style={{ fontSize: 13, fontWeight: 600, color: '#8B2020', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                        >
+                          Delete order
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
+
+      {/* Delete confirmation modal */}
       {deleteTarget && (
-  <div
-    style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 9999,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'rgba(26, 23, 20, 0.45)',
-      backdropFilter: 'blur(6px)',
-    }}
-    onClick={() => setDeleteTarget(null)}
-  >
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(26, 23, 20, 0.45)',
+            backdropFilter: 'blur(6px)',
+          }}
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '90%',
+              maxWidth: 380,
+              background: '#FFFFFF',
+              borderRadius: 20,
+              padding: '32px 28px 28px',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
+              border: '1px solid #E8E4DC',
+            }}
+          >
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: '#FFF0F0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px',
+              }}
+            >
+              <svg width="22" height="22" fill="none" stroke="#8B2020" strokeWidth="1.8" viewBox="0 0 24 24">
+                <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+              </svg>
+            </div>
+
+            <h3
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: '#1A1714',
+                textAlign: 'center',
+                marginBottom: 8,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Delete this order?
+            </h3>
+
+            <p
+              style={{
+                fontSize: 13,
+                color: '#6B6358',
+                textAlign: 'center',
+                lineHeight: 1.5,
+                marginBottom: 28,
+              }}
+            >
+              This order will be permanently deleted. This action cannot be undone.
+            </p>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                style={{
+                  flex: 1,
+                  padding: '12px 0',
+                  borderRadius: 12,
+                  border: '1.5px solid #E8E4DC',
+                  background: '#FFFFFF',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: '#1A1714',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    const table =
+                      deleteType === 'canvas' ? 'canvas_orders'
+                        : deleteType === 'acrylic' ? 'acrylic_orders'
+                        : 'orders';
+
+                    const { error } = await supabase
+                      .from(table)
+                      .delete()
+                      .eq('id', deleteTarget);
+
+                    if (error) throw error;
+
+                    if (deleteType === 'canvas') {
+                      setCanvasOrders((prev) => prev.filter((o) => o.id !== deleteTarget));
+                    } else if (deleteType === 'acrylic') {
+                      setAcrylicOrders((prev) => prev.filter((o) => o.id !== deleteTarget));
+                    } else {
+                      setOrders((prev) => prev.filter((o) => o.id !== deleteTarget));
+                    }
+                  } catch (err) {
+                    console.error('Failed to delete order:', err);
+                  } finally {
+                    setDeleteTarget(null);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px 0',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: '#8B2020',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                }}
+              >
+                Delete forever
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Section label ──
+function SectionLabel({ label, count }: { label: string; count: number }) {
+  return (
     <div
-      onClick={(e) => e.stopPropagation()}
       style={{
-        width: '90%',
-        maxWidth: 380,
-        background: '#FFFFFF',
-        borderRadius: 20,
-        padding: '32px 28px 28px',
-        boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
-        border: '1px solid #E8E4DC',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 16,
       }}
     >
-      <div
+      <span
         style={{
-          width: 48,
-          height: 48,
-          borderRadius: 14,
-          background: '#FFF0F0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 20px',
-        }}
-      >
-        <svg width="22" height="22" fill="none" stroke="#8B2020" strokeWidth="1.8" viewBox="0 0 24 24">
-          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-          <path d="M10 11v6M14 11v6" />
-        </svg>
-      </div>
-
-      <h3
-        style={{
-          fontSize: 18,
+          fontFamily: inter.style.fontFamily,
+          fontSize: 11,
           fontWeight: 700,
-          color: '#1A1714',
-          textAlign: 'center',
-          marginBottom: 8,
-          letterSpacing: '-0.02em',
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          color: '#A39B8F',
         }}
       >
-        Delete this order?
-      </h3>
-
-      <p
+        {label}
+      </span>
+      <span
         style={{
-          fontSize: 13,
-          color: '#6B6358',
-          textAlign: 'center',
-          lineHeight: 1.5,
-          marginBottom: 28,
+          fontFamily: inter.style.fontFamily,
+          fontSize: 11,
+          fontWeight: 800,
+          color: '#1A1714',
+          background: '#F7F5F0',
+          padding: '2px 8px',
+          borderRadius: 6,
+          border: '1px solid #E8E4DC',
         }}
       >
-        This order will be permanently deleted. This action cannot be undone.
-      </p>
-
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button
-          onClick={() => setDeleteTarget(null)}
-          style={{
-            flex: 1,
-            padding: '12px 0',
-            borderRadius: 12,
-            border: '1.5px solid #E8E4DC',
-            background: '#FFFFFF',
-            fontSize: 13,
-            fontWeight: 600,
-            color: '#1A1714',
-            cursor: 'pointer',
-          }}
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={async () => {
-            try {
-              const { error } = await supabase
-                .from('orders')
-                .delete()
-                .eq('id', deleteTarget);
-
-              if (error) throw error;
-              setOrders((prev) => prev.filter((o) => o.id !== deleteTarget));
-            } catch (err) {
-              console.error('Failed to delete order:', err);
-            } finally {
-              setDeleteTarget(null);
-            }
-          }}
-          style={{
-            flex: 1,
-            padding: '12px 0',
-            borderRadius: 12,
-            border: 'none',
-            background: '#8B2020',
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#FFFFFF',
-            cursor: 'pointer',
-          }}
-        >
-          Delete forever
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        {count}
+      </span>
     </div>
   );
 }
@@ -489,7 +824,7 @@ function OrderProgress({ status }: { status: string }) {
   const labels = ['Paid', 'Printing', 'Shipped', 'Delivered'];
 
   const currentIndex = steps.indexOf(status);
-  const activeIndex = currentIndex >= 0 ? currentIndex : status === 'generating_pdf' || status === 'submitting' ? 0 : -1;
+  const activeIndex = currentIndex >= 0 ? currentIndex : status === 'generating_pdf' || status === 'generating_image' || status === 'submitting' ? 0 : -1;
 
   if (status === 'cancelled' || status === 'error' || status === 'created') {
     return null;

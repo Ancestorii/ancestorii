@@ -4,6 +4,7 @@ import Slot from '../Slot';
 import { inter } from '@/lib/fonts';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import type { Asset, SelectedImage } from '@/types/memory-book';
+import { safeToast as toast } from '@/lib/safeToast';
 
 export default function LandscapeLayout({
   assets,
@@ -59,14 +60,15 @@ export default function LandscapeLayout({
             </div>
           ) : (
             // ✅ UI MODE (UNCHANGED)
-            <input
-              type="text"
+            <textarea
+              ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
               placeholder="Our First Holiday"
-              maxLength={25}
+              onFocus={(e) => { if (!asset.id) { e.target.blur(); toast.info ('Place a photo to start writing'); } }}
               value={asset.subheading || ''}
               onChange={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
                 if (!asset.id) return;
-                if (e.target.value.length > 25) return;
                 const supabase = getBrowserClient();
                 supabase
                   .from('memory_book_page_assets')
@@ -89,6 +91,7 @@ export default function LandscapeLayout({
                 textAlign: 'center',
                 fontFamily: inter.style.fontFamily,
                 overflow: 'hidden',
+                resize: 'none',
               }}
             />
           )}
@@ -128,6 +131,7 @@ export default function LandscapeLayout({
             // ✅ UI MODE (UNCHANGED)
             <textarea
               placeholder={"Where was this? What made this moment special?"}
+              onFocus={(e) => { if (!asset.id) { e.target.blur(); toast.info ('Place a photo to start writing'); } }}
               maxLength={210}
               value={asset.comment || ''}
               onChange={(e) => {

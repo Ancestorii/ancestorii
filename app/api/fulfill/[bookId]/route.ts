@@ -54,7 +54,7 @@ export async function POST(
       .eq('id', orderId);
 
     // ── 3. Generate PDF with Puppeteer ──
-    const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/${bookId}`;
+    const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/book/${bookId}`;
 
     console.log('[FULFILL] connecting to browser');
     if (isVercel) {

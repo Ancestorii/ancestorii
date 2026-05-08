@@ -69,9 +69,14 @@ serve(async (req) => {
     let shippedAt: string | null = null;
 
     // ── Original stage-based detection (primary path) ──
-    if (stage === "Complete") {
-      orderStatus = "delivered";
-      prodigiStatus = "delivered";
+    if (stage === "Complete" && hasShipped) {
+      orderStatus = "shipped";
+      prodigiStatus = "shipped";
+      shippedAt = new Date().toISOString();
+      trackingUrl = shipments[0]?.tracking?.url ?? null;
+    } else if (stage === "Complete" && !hasShipped) {
+      orderStatus = "printing";
+      prodigiStatus = "complete";
     } else if (stage === "Shipped") {
       orderStatus = "shipped";
       prodigiStatus = "shipped";
@@ -129,10 +134,26 @@ serve(async (req) => {
       }
     }
 
+    // ══════════════════════════════════════════════════════
+    // If not found in book orders, try canvas and acrylic
+    // ══════════════════════════════════════════════════════
     if (!priorOrder) {
+      const handled = await handleCanvasOrAcrylicOrder(
+        supabase, prodigiOrderId, merchantRef,
+        orderStatus, prodigiStatus, trackingUrl, shippedAt
+      );
+
+      if (handled) {
+        return new Response("OK", { status: 200 });
+      }
+
       console.error(`Order not found: prodigi=${prodigiOrderId}, merchant=${merchantRef}`);
       return new Response("Order not found", { status: 200 });
     }
+
+    // ══════════════════════════════════════════════════════
+    // EXISTING BOOK ORDER PROCESSING — UNTOUCHED BELOW
+    // ══════════════════════════════════════════════════════
 
     const internalOrderId = priorOrder.id;
     const wasAlreadyShipped = !!priorOrder?.shipped_at;
@@ -180,7 +201,7 @@ serve(async (req) => {
     }
 
     // ── Send customer email ──
-    if (orderStatus === "shipped" || stage === "Complete") {
+    if (orderStatus === "shipped") {
       // Fetch order to get customer email, book title, and check if already emailed
       const { data: order } = await supabase
         .from("orders")
@@ -270,12 +291,191 @@ serve(async (req) => {
 </html>`
         );
       }
+    }
 
-      if (customerEmail && stage === "Complete") {
-        await sendEmail(
-          customerEmail,
-          `Your Memory Book has arrived`,
-          `<!DOCTYPE html>
+    return new Response("OK", { status: 200 });
+  } catch (err) {
+    console.error("Prodigi webhook error:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+      status: 400,
+    });
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+// Canvas + Acrylic order handler
+// Called ONLY when the order was NOT found in the book
+// orders table. Returns true if handled, false if not found.
+// ══════════════════════════════════════════════════════════
+async function handleCanvasOrAcrylicOrder(
+  supabase: any,
+  prodigiOrderId: string,
+  merchantRef: string | undefined,
+  orderStatus: string,
+  prodigiStatus: string,
+  trackingUrl: string | null,
+  shippedAt: string | null
+): Promise<boolean> {
+
+  // ── Try canvas_orders ──
+  let canvasOrder: any = null;
+
+  const { data: canvasByProdigi } = await supabase
+    .from("canvas_orders")
+    .select("id, shipped_at, prodigi_order_id, canvas_id, shipping_email, shipping_name")
+    .eq("prodigi_order_id", prodigiOrderId)
+    .single();
+
+  if (canvasByProdigi) {
+    canvasOrder = canvasByProdigi;
+  } else if (merchantRef) {
+    const { data: canvasByMerchant } = await supabase
+      .from("canvas_orders")
+      .select("id, shipped_at, prodigi_order_id, canvas_id, shipping_email, shipping_name")
+      .eq("id", merchantRef)
+      .single();
+
+    if (canvasByMerchant) {
+      canvasOrder = canvasByMerchant;
+      console.log(`Canvas order found via merchantReference fallback: ${merchantRef}`);
+      await supabase.from("canvas_orders").update({ prodigi_order_id: prodigiOrderId }).eq("id", merchantRef);
+    }
+  }
+
+  if (canvasOrder) {
+    const wasAlreadyShipped = !!canvasOrder.shipped_at;
+
+    const updateData: Record<string, unknown> = {
+      prodigi_status: prodigiStatus,
+      status: orderStatus,
+    };
+    if (trackingUrl) updateData.prodigi_tracking_url = trackingUrl;
+    if (shippedAt && !wasAlreadyShipped) updateData.shipped_at = shippedAt;
+
+    await supabase.from("canvas_orders").update(updateData).eq("id", canvasOrder.id);
+
+    const canvasUpdate: Record<string, unknown> = { prodigi_status: prodigiStatus };
+    if (trackingUrl) canvasUpdate.tracking_url = trackingUrl;
+
+    await supabase
+      .from("memory_canvases")
+      .update({ ...canvasUpdate, prodigi_order_id: prodigiOrderId })
+      .eq("id", canvasOrder.canvas_id);
+
+    // Send shipped email
+    if (orderStatus === "shipped" && !wasAlreadyShipped && canvasOrder.shipping_email) {
+      const { data: canvas } = await supabase
+        .from("memory_canvases")
+        .select("title")
+        .eq("id", canvasOrder.canvas_id)
+        .single();
+
+      const customerName = canvasOrder.shipping_name?.split(" ")[0] || "there";
+      const canvasTitle = canvas?.title || "your Memory Canvas";
+
+      await sendEmail(
+        canvasOrder.shipping_email,
+        `Your Memory Canvas is in the post`,
+        shippedEmailHtml(customerName, canvasTitle, "Memory Canvas", trackingUrl, "Track Your Canvas")
+      );
+    }
+
+    console.log(`Canvas order updated: ${canvasOrder.id}`);
+    return true;
+  }
+
+  // ── Try acrylic_orders ──
+  let acrylicOrder: any = null;
+
+  const { data: acrylicByProdigi } = await supabase
+    .from("acrylic_orders")
+    .select("id, shipped_at, prodigi_order_id, acrylic_id, shipping_email, shipping_name")
+    .eq("prodigi_order_id", prodigiOrderId)
+    .single();
+
+  if (acrylicByProdigi) {
+    acrylicOrder = acrylicByProdigi;
+  } else if (merchantRef) {
+    const { data: acrylicByMerchant } = await supabase
+      .from("acrylic_orders")
+      .select("id, shipped_at, prodigi_order_id, acrylic_id, shipping_email, shipping_name")
+      .eq("id", merchantRef)
+      .single();
+
+    if (acrylicByMerchant) {
+      acrylicOrder = acrylicByMerchant;
+      console.log(`Acrylic order found via merchantReference fallback: ${merchantRef}`);
+      await supabase.from("acrylic_orders").update({ prodigi_order_id: prodigiOrderId }).eq("id", merchantRef);
+    }
+  }
+
+  if (acrylicOrder) {
+    const wasAlreadyShipped = !!acrylicOrder.shipped_at;
+
+    const updateData: Record<string, unknown> = {
+      prodigi_status: prodigiStatus,
+      status: orderStatus,
+    };
+    if (trackingUrl) updateData.prodigi_tracking_url = trackingUrl;
+    if (shippedAt && !wasAlreadyShipped) updateData.shipped_at = shippedAt;
+
+    await supabase.from("acrylic_orders").update(updateData).eq("id", acrylicOrder.id);
+
+    const acrylicUpdate: Record<string, unknown> = { prodigi_status: prodigiStatus };
+    if (trackingUrl) acrylicUpdate.tracking_url = trackingUrl;
+
+    await supabase
+      .from("acrylic_prints")
+      .update({ ...acrylicUpdate, prodigi_order_id: prodigiOrderId })
+      .eq("id", acrylicOrder.acrylic_id);
+
+    // Send shipped email
+    if (orderStatus === "shipped" && !wasAlreadyShipped && acrylicOrder.shipping_email) {
+      const { data: acrylic } = await supabase
+        .from("acrylic_prints")
+        .select("title")
+        .eq("id", acrylicOrder.acrylic_id)
+        .single();
+
+      const customerName = acrylicOrder.shipping_name?.split(" ")[0] || "there";
+      const acrylicTitle = acrylic?.title || "your Acrylic Print";
+
+      await sendEmail(
+        acrylicOrder.shipping_email,
+        `Your Acrylic Print is in the post`,
+        shippedEmailHtml(customerName, acrylicTitle, "Acrylic Print", trackingUrl, "Track Your Print")
+      );
+    }
+
+    console.log(`Acrylic order updated: ${acrylicOrder.id}`);
+    return true;
+  }
+
+  return false;
+}
+
+// ══════════════════════════════════════════════════════════
+// Shared shipped email for canvas & acrylic
+// ══════════════════════════════════════════════════════════
+function shippedEmailHtml(
+  customerName: string,
+  productTitle: string,
+  productLabel: string,
+  trackingUrl: string | null,
+  trackingCta: string
+): string {
+  const trackingButton = trackingUrl
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 28px auto;">
+        <tr>
+          <td align="center" style="background-color:#16120c;">
+            <a href="${trackingUrl}" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">${trackingCta}</a>
+          </td>
+        </tr>
+      </table>`
+    : "";
+
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -283,7 +483,7 @@ serve(async (req) => {
   <meta name="x-apple-disable-message-reformatting" />
   <meta name="color-scheme" content="light only" />
   <meta name="supported-color-schemes" content="light only" />
-  <title>Your Memory Book has arrived</title>
+  <title>Your ${productLabel} is in the post</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
@@ -302,17 +502,17 @@ serve(async (req) => {
           <tr>
             <td style="padding:48px 40px 36px 40px;">
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">Hey ${customerName},</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">By now, your Memory Book should be in your hands.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">What started as a few photos and an idea is now something physical — something your family can pick up, pass around, come back to in twenty years.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">That's the whole point of what we do.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">If you have a moment, I'd love to hear what you think. Just reply to this email — every one comes straight to me.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">It's no longer just pixels on a screen — <em style="color:#16120c;">${productTitle}</em> is now a real ${productLabel.toLowerCase()}. Printed, packed, and on its way.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 36px 0;">It's heading to you now.</p>
+              ${trackingButton}
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">When it arrives, find the right wall for it. Some pieces just belong somewhere.</p>
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">— Dante</p>
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; color:#9a9388; margin:0; font-style:italic;">Founder, Ancestorii</p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:36px;">
                 <tr>
                   <td style="border-top:1px solid #ebe4d5; padding-top:22px;">
                     <p style="font-family:Georgia, 'Times New Roman', serif; font-size:14px; color:#7a7368; line-height:1.7; margin:0; font-style:italic;">
-                      <span style="font-style:normal; color:#ab8232; letter-spacing:2px; font-size:12px;">P.S.</span>&nbsp;&nbsp;If anything's not right with the book — printing, binding, anything — tell me. I'll fix it personally.
+                      <span style="font-style:normal; color:#ab8232; letter-spacing:2px; font-size:12px;">P.S.</span>&nbsp;&nbsp;The first time you see it on your wall is something. I'd love to hear about it — just reply to this email.
                     </p>
                   </td>
                 </tr>
@@ -330,17 +530,5 @@ serve(async (req) => {
     </tr>
   </table>
 </body>
-</html>`
-        );
-      }
-    }
-
-    return new Response("OK", { status: 200 });
-  } catch (err) {
-    console.error("Prodigi webhook error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-      status: 400,
-    });
-  }
-});
+</html>`;
+}
