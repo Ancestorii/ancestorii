@@ -19,7 +19,6 @@ serve(async (req) => {
     const tierKey = body?.tier_key;
     const canvasId = body?.canvas_id;
     const currencyRaw = body?.currency;
-    const shippingMethod = body?.shipping_method === 'Express' ? 'Express' : 'Standard';
     const currency =
       currencyRaw === "USD" || currencyRaw === "EUR" ? currencyRaw : "GBP";
 
@@ -119,7 +118,6 @@ serve(async (req) => {
         tier_name: canvas.tier_name,
         price_amount: priceAmount,
         price_currency: currency,
-        shipping_method: shippingMethod,
         status: "created",
         payment_status: "pending",
       })
@@ -138,23 +136,6 @@ serve(async (req) => {
     const successUrl = `${SITE}/dashboard/canvas/${canvasId}?order_success=true&order_id=${order.id}`;
     const cancelUrl = `${SITE}/dashboard/canvas/${canvasId}?order_canceled=true`;
 
-    // Express shipping line item
-    const expressPrices: Record<string, string | undefined> = {
-      GBP: Deno.env.get("STRIPE_PRICE_ACRYLIC_EXPRESS_GBP"),
-      USD: Deno.env.get("STRIPE_PRICE_ACRYLIC_EXPRESS_USD"),
-      EUR: Deno.env.get("STRIPE_PRICE_ACRYLIC_EXPRESS_EUR"),
-    };
-
-    const lineItems: { price: string; quantity: number }[] = [
-      { price: priceId, quantity: 1 },
-    ];
-
-    if (shippingMethod === 'Express') {
-      const expressPriceId = expressPrices[currency];
-      if (!expressPriceId) throw new Error('Express shipping price not configured for ' + currency);
-      lineItems.push({ price: expressPriceId, quantity: 1 });
-    }
-
     // Heritage tier: UK only
     const allowedCountries = tierKey === 'heritage'
       ? ["GB" as const]
@@ -166,7 +147,34 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer: existingCustomerId,
-      line_items: lineItems,
+      line_items: [{ price: priceId, quantity: 1 }],
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: { amount: 0, currency: currency.toLowerCase() },
+            display_name: 'Standard Shipping (10–14 working days)',
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: 10 },
+              maximum: { unit: 'business_day', value: 14 },
+            },
+          },
+        },
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: {
+              amount: currency === 'GBP' ? 599 : currency === 'USD' ? 799 : 699,
+              currency: currency.toLowerCase(),
+            },
+            display_name: 'Express Shipping (5–7 working days)',
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: 5 },
+              maximum: { unit: 'business_day', value: 7 },
+            },
+          },
+        },
+      ],
       success_url: successUrl,
       cancel_url: cancelUrl,
       client_reference_id: userId,
@@ -181,7 +189,6 @@ serve(async (req) => {
         tier_key: tierKey,
         currency,
         user_id: userId,
-        shipping_method: shippingMethod,
       },
     });
 

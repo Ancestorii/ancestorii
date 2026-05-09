@@ -450,6 +450,13 @@ serve(async (req) => {
           .update({ status: "ordered" })
           .eq("id", canvasId);
 
+        // Store shipping method from Stripe checkout selection
+        const canvasShippingMethod = (session.shipping_cost?.amount_total ?? 0) > 0 ? 'Express' : 'Standard';
+        await supabase
+          .from("canvas_orders")
+          .update({ shipping_method: canvasShippingMethod })
+          .eq("id", orderId);
+
         // ── SEND CANVAS ORDER EMAIL ──
         try {
           const customerEmail = session.customer_details?.email ?? session.customer_email;
@@ -466,7 +473,7 @@ serve(async (req) => {
               customerName,
               canvasData?.title ?? "Memory Canvas",
               canvasData?.tier_name ?? "Memory Canvas",
-              session.metadata?.shipping_method
+              canvasShippingMethod
             );
 
             await sendEmail(customerEmail, email.subject, email.html);
@@ -551,6 +558,13 @@ serve(async (req) => {
           .update({ status: "ordered" })
           .eq("id", acrylicId);
 
+        // Store shipping method from Stripe checkout selection
+        const acrylicShippingMethod = (session.shipping_cost?.amount_total ?? 0) > 0 ? 'Express' : 'Standard';
+        await supabase
+          .from("acrylic_orders")
+          .update({ shipping_method: acrylicShippingMethod })
+          .eq("id", orderId);
+
         // ── SEND ACRYLIC ORDER EMAIL ──
         try {
           const customerEmail = session.customer_details?.email ?? session.customer_email;
@@ -567,7 +581,7 @@ serve(async (req) => {
               customerName,
               acrylicData?.title ?? "Acrylic Print",
               acrylicData?.tier_name ?? "Acrylic Print",
-              session.metadata?.shipping_method
+              acrylicShippingMethod
             );
 
             await sendEmail(customerEmail, email.subject, email.html);

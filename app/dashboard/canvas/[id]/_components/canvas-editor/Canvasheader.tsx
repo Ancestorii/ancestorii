@@ -25,7 +25,6 @@ export default function CanvasHeader({
   const router = useRouter();
   const supabase = getBrowserClient();
   const [ordering, setOrdering] = useState(false);
-  const [shippingMethod, setShippingMethod] = useState<'Standard' | 'Express'>('Standard');
 
   const handleOrder = async () => {
     if (ordering) return;
@@ -67,7 +66,6 @@ export default function CanvasHeader({
             tier_key: tierKey,
             canvas_id: canvasId,
             currency,
-            shipping_method: shippingMethod,
           }),
           cache: 'no-store',
           mode: 'cors',
@@ -227,41 +225,6 @@ export default function CanvasHeader({
         >
           Preview
         </button>
-
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: CANVAS_COLORS.canvas, borderRadius: 10, padding: 3, border: `1.5px solid ${CANVAS_COLORS.line}` }}>
-          {(['Standard', 'Express'] as const).map((method) => {
-            const active = shippingMethod === method;
-            return (
-              <button
-                key={method}
-                type="button"
-                onClick={() => setShippingMethod(method)}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: active ? CANVAS_COLORS.dark : 'transparent',
-                  color: active ? '#fff' : CANVAS_COLORS.mid,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontFamily: inter.style.fontFamily,
-                  transition: 'all 0.15s ease',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {method === 'Standard' ? 'Free Shipping' : 'Express (£5.99 / $7.99 / €6.99)'}
-              </button>
-            );
-          })}
-        </div>
-        {shippingMethod === 'Express' && (
-          <span style={{ fontFamily: inter.style.fontFamily, fontSize: 9, fontWeight: 500, color: CANVAS_COLORS.muted }}>
-            Charged in your local currency
-          </span>
-        )}
-        </div>
 
         <button
           type="button"
