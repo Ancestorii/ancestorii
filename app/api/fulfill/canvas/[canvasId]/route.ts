@@ -173,7 +173,7 @@ export async function POST(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        shippingMethod: 'Standard',
+        shippingMethod: order.shipping_method || 'Standard',
         idempotencyKey: `ancestorii-canvas-${orderId}`,
         merchantReference: orderId,
         recipient: {

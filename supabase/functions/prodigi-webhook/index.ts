@@ -324,7 +324,7 @@ async function handleCanvasOrAcrylicOrder(
 
   const { data: canvasByProdigi } = await supabase
     .from("canvas_orders")
-    .select("id, shipped_at, prodigi_order_id, canvas_id, shipping_email, shipping_name")
+    .select("id, shipped_at, prodigi_order_id, canvas_id, shipping_email, shipping_name, shipping_method")
     .eq("prodigi_order_id", prodigiOrderId)
     .single();
 
@@ -333,8 +333,8 @@ async function handleCanvasOrAcrylicOrder(
   } else if (merchantRef) {
     const { data: canvasByMerchant } = await supabase
       .from("canvas_orders")
-      .select("id, shipped_at, prodigi_order_id, canvas_id, shipping_email, shipping_name")
-      .eq("id", merchantRef)
+      .select("id, shipped_at, prodigi_order_id, canvas_id, shipping_email, shipping_name, shipping_method")
+    .eq("id", merchantRef)
       .single();
 
     if (canvasByMerchant) {
@@ -378,7 +378,7 @@ async function handleCanvasOrAcrylicOrder(
       await sendEmail(
         canvasOrder.shipping_email,
         `Your Memory Canvas is in the post`,
-        shippedEmailHtml(customerName, canvasTitle, "Memory Canvas", trackingUrl, "Track Your Canvas")
+        shippedEmailHtml(customerName, canvasTitle, "Memory Canvas", trackingUrl, "Track Your Canvas", canvasOrder.shipping_method)
       );
     }
 
@@ -391,7 +391,7 @@ async function handleCanvasOrAcrylicOrder(
 
   const { data: acrylicByProdigi } = await supabase
     .from("acrylic_orders")
-    .select("id, shipped_at, prodigi_order_id, acrylic_id, shipping_email, shipping_name")
+    .select("id, shipped_at, prodigi_order_id, acrylic_id, shipping_email, shipping_name, shipping_method")
     .eq("prodigi_order_id", prodigiOrderId)
     .single();
 
@@ -400,7 +400,7 @@ async function handleCanvasOrAcrylicOrder(
   } else if (merchantRef) {
     const { data: acrylicByMerchant } = await supabase
       .from("acrylic_orders")
-      .select("id, shipped_at, prodigi_order_id, acrylic_id, shipping_email, shipping_name")
+      .select("id, shipped_at, prodigi_order_id, acrylic_id, shipping_email, shipping_name, shipping_method")
       .eq("id", merchantRef)
       .single();
 
@@ -445,7 +445,7 @@ async function handleCanvasOrAcrylicOrder(
       await sendEmail(
         acrylicOrder.shipping_email,
         `Your Acrylic Print is in the post`,
-        shippedEmailHtml(customerName, acrylicTitle, "Acrylic Print", trackingUrl, "Track Your Print")
+        shippedEmailHtml(customerName, acrylicTitle, "Acrylic Print", trackingUrl, "Track Your Print", acrylicOrder.shipping_method)
       );
     }
 
@@ -464,8 +464,11 @@ function shippedEmailHtml(
   productTitle: string,
   productLabel: string,
   trackingUrl: string | null,
-  trackingCta: string
+  trackingCta: string,
+  shippingMethod?: string
 ): string {
+  const isExpress = shippingMethod === 'Express';
+  const contactDays = isExpress ? '7 working days' : '14 working days';
   const trackingButton = trackingUrl
     ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 28px auto;">
         <tr>
@@ -506,7 +509,8 @@ function shippedEmailHtml(
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">It's no longer just pixels on a screen — <em style="color:#16120c;">${productTitle}</em> is now a real ${productLabel.toLowerCase()}. Printed, packed, and on its way.</p>
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 36px 0;">It's heading to you now.</p>
               ${trackingButton}
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">When it arrives, find the right wall for it. Some pieces just belong somewhere.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0 0 22px 0; font-style:italic;">When it arrives, find the right wall for it. Some pieces just belong somewhere.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:14px; color:#7a7368; line-height:1.75; margin:0;">If your order hasn't arrived within ${contactDays}, please contact us at <a href="mailto:support@ancestorii.com" style="color:#ab8232; text-decoration:none;">support@ancestorii.com</a>.</p>
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">— Dante</p>
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; color:#9a9388; margin:0; font-style:italic;">Founder, Ancestorii</p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:36px;">

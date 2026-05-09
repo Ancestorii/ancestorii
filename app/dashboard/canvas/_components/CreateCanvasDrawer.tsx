@@ -480,6 +480,11 @@ export default function CreateCanvasDrawer({
                           <p className="mt-1.5 text-[13px] leading-relaxed text-[#4A5060]">
                             {tier.blurb}
                           </p>
+                          {tier.key === 'heritage' && active && (
+                            <p className="mt-2 text-[11px] font-bold leading-snug text-[#B42318]">
+                              UK shipping only. Please do not order The Heritage if you are based outside the United Kingdom — international shipping is not available for this size.
+                            </p>
+                          )}
                         </div>
 
                         {/* Price */}
@@ -661,7 +666,7 @@ export default function CreateCanvasDrawer({
                   <li>400gsm gallery-grade canvas</li>
                   <li>Imagewrap finish</li>
                   <li className="font-semibold text-[#14213D]">
-                    Free worldwide shipping
+                    {activeTier.key === 'heritage' ? 'Free UK shipping' : 'Free worldwide shipping'}
                   </li>
                 </ul>
               </div>

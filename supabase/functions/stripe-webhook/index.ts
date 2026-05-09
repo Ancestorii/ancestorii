@@ -465,7 +465,8 @@ serve(async (req) => {
             const email = canvasOrderEmail(
               customerName,
               canvasData?.title ?? "Memory Canvas",
-              canvasData?.tier_name ?? "Memory Canvas"
+              canvasData?.tier_name ?? "Memory Canvas",
+              session.metadata?.shipping_method
             );
 
             await sendEmail(customerEmail, email.subject, email.html);
@@ -565,7 +566,8 @@ serve(async (req) => {
             const email = acrylicOrderEmail(
               customerName,
               acrylicData?.title ?? "Acrylic Print",
-              acrylicData?.tier_name ?? "Acrylic Print"
+              acrylicData?.tier_name ?? "Acrylic Print",
+              session.metadata?.shipping_method
             );
 
             await sendEmail(customerEmail, email.subject, email.html);
@@ -713,14 +715,19 @@ serve(async (req) => {
 // ══════════════════════════════════════════════════════════
 // NEW: Canvas order confirmation email
 // ══════════════════════════════════════════════════════════
-function canvasOrderEmail(name: string, canvasTitle: string, tierName: string): { subject: string; html: string } {
+function canvasOrderEmail(name: string, canvasTitle: string, tierName: string, shippingMethod?: string): { subject: string; html: string } {
+  const isExpress = shippingMethod === 'Express';
+  const deliveryLine = isExpress
+    ? "Shipped directly to your door via Express delivery (5–7 working days)."
+    : "Shipped directly to your door — free Standard delivery (10–14 working days).";
+
   return {
     subject: `Your memory canvas order is confirmed`,
     html: orderConfirmationHtml(name, canvasTitle, tierName, "Memory Canvas", [
       "We prepare your canvas for printing.",
       "Your image is printed on 400gsm gallery-grade canvas.",
       "Stretched on a 38mm premium stretcher bar with imagewrap finish.",
-      "Shipped directly to your door — free worldwide.",
+      deliveryLine,
     ]),
   };
 }
@@ -728,14 +735,19 @@ function canvasOrderEmail(name: string, canvasTitle: string, tierName: string): 
 // ══════════════════════════════════════════════════════════
 // NEW: Acrylic order confirmation email
 // ══════════════════════════════════════════════════════════
-function acrylicOrderEmail(name: string, acrylicTitle: string, tierName: string): { subject: string; html: string } {
+function acrylicOrderEmail(name: string, acrylicTitle: string, tierName: string, shippingMethod?: string): { subject: string; html: string } {
+  const isExpress = shippingMethod === 'Express';
+  const deliveryLine = isExpress
+    ? "Shipped directly to your door via Express delivery (5–7 working days)."
+    : "Shipped directly to your door — free Standard delivery (10–14 working days).";
+
   return {
     subject: `Your acrylic print order is confirmed`,
     html: orderConfirmationHtml(name, acrylicTitle, tierName, "Acrylic Print", [
       "We prepare your print for production.",
       "Your image is printed on crystal-clear acrylic with vivid colour depth.",
       "Float-mount hardware is included for effortless hanging.",
-      "Shipped directly to your door — free worldwide.",
+      deliveryLine,
     ]),
   };
 }
@@ -791,7 +803,7 @@ function orderConfirmationHtml(
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">Your ${productLabel.toLowerCase()} <em style="font-style:italic; color:#16120c;">"${productTitle}"</em> (${tierName}) is now being prepared for production.</p>
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 28px 0;">Here's what happens next:</p>
               ${stepsHtml}
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:22px 0 22px 0;">Please allow up to <strong style="color:#16120c; font-weight:600;">14 days</strong> for your ${productLabel.toLowerCase()} to arrive. If it hasn't reached you by then, contact us at <a href="mailto:support@ancestorii.com" style="color:#ab8232; text-decoration:none;">support@ancestorii.com</a> and we'll sort it out straight away.</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:22px 0 22px 0;">Please allow up to <strong style="color:#16120c; font-weight:600;">14 working days</strong> for your ${productLabel.toLowerCase()} to arrive. If it hasn't reached you by then, contact us at <a href="mailto:support@ancestorii.com" style="color:#ab8232; text-decoration:none;">support@ancestorii.com</a> and we'll sort it out straight away.</p>
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">You can track your order anytime in the Orders section inside Ancestorii.</p>
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
                 <tr>
