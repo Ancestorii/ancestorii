@@ -190,7 +190,7 @@ setTimelines(signed);
         {/* cards */}
         {!loading && !error && (timelines ?? []).length > 0 && (
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 transition-opacity duration-500"
+            className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-8 transition-opacity duration-500"
             key="timelines"
           >
             {(timelines ?? []).map((t) => (
