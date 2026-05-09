@@ -254,7 +254,7 @@ export default function CreateCanvasDrawer({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.97 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-[1060px] overflow-y-auto hide-scrollbar rounded-3xl grid grid-cols-1 lg:grid-cols-[1fr_320px] max-h-[90vh]"
+            className="relative w-full max-w-[1060px] overflow-y-auto rounded-3xl grid grid-cols-1 lg:grid-cols-[1fr_320px] max-h-[90vh]"
             style={{
               background: '#FEFCF8',
               border: '1px solid rgba(205, 178, 100, 0.35)',
@@ -673,8 +673,6 @@ export default function CreateCanvasDrawer({
               0% { background-position: -200% 0; }
               100% { background-position: 200% 0; }
             }
-            .hide-scrollbar::-webkit-scrollbar { display: none; }
-            .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           `}</style>
         </motion.div>
       )}
