@@ -254,7 +254,7 @@ export default function CreateCanvasDrawer({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.97 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-[1060px] overflow-hidden rounded-3xl grid grid-cols-1 lg:grid-cols-[1fr_320px] max-h-[90vh]"
+            className="relative w-full max-w-[1060px] overflow-y-auto hide-scrollbar rounded-3xl grid grid-cols-1 lg:grid-cols-[1fr_320px] max-h-[90vh]"
             style={{
               background: '#FEFCF8',
               border: '1px solid rgba(205, 178, 100, 0.35)',
@@ -264,7 +264,7 @@ export default function CreateCanvasDrawer({
             onClick={(e) => e.stopPropagation()}
           >
             {/* ═══════════ LEFT PANEL ═══════════ */}
-            <div className="px-6 pb-6 pt-7 sm:px-10 sm:pb-8 sm:pt-9 overflow-y-auto" data-lenis-prevent>
+            <div className="min-h-0 px-6 pb-6 pt-7 sm:px-10 sm:pb-8 sm:pt-9 overflow-y-auto" data-lenis-prevent>
               {/* Header */}
               <div className="mb-6">
                 <h2
@@ -539,7 +539,7 @@ export default function CreateCanvasDrawer({
 
             {/* ═══════════ RIGHT PANEL ═══════════ */}
             <div
-              className="flex flex-col justify-between border-t border-[rgba(210,195,155,0.3)] p-5 sm:p-6 lg:border-l lg:border-t-0 overflow-y-auto" data-lenis-prevent
+              className="min-h-0 flex flex-col justify-between border-t border-[rgba(210,195,155,0.3)] p-5 sm:p-6 lg:border-l lg:border-t-0 overflow-y-auto" data-lenis-prevent
               style={{
                 background:
                   'linear-gradient(180deg, #FAF6ED 0%, #F6F1E4 100%)',
@@ -673,6 +673,8 @@ export default function CreateCanvasDrawer({
               0% { background-position: -200% 0; }
               100% { background-position: 200% 0; }
             }
+            .hide-scrollbar::-webkit-scrollbar { display: none; }
+            .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           `}</style>
         </motion.div>
       )}

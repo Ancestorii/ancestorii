@@ -30,6 +30,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [fullName, setFullName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [memoriesOpen, setMemoriesOpen] = useState(false);
+  const [heirloomsOpen, setHeirloomsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [planName, setPlanName] = useState<'Free' | 'Premium'>('Free');
@@ -275,13 +276,13 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     };
   }, [hydrated, userId]);
 
-  useEffect(() => {
-  if (memoriesOpen || accountOpen) {
+ useEffect(() => {
+  if (memoriesOpen || heirloomsOpen || accountOpen) {
     document.body.style.overflow = "hidden";
   } else {
     document.body.style.overflow = "auto";
   }
-}, [memoriesOpen, accountOpen]);
+}, [memoriesOpen, heirloomsOpen, accountOpen]);
 
   useEffect(() => {
     if (!userId) return;
@@ -436,43 +437,88 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                   );
                 })}
               </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
 
-              <div className="pt-1">
-                <div className="flex items-center gap-2 px-2 mb-2">
-                  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-[#D4AF37]">My Heirlooms</p>
-                  <div className="h-[1px] flex-1 bg-[#D4AF37]/20" />
-                </div>
-                <div className="space-y-2">
-                  {heirloomsLinks.map((item) => {
-                    const active = pathname === item.href || pathname.startsWith(item.href + "/");
-                    return (
-                      <motion.div
-                        key={item.href}
-                        variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
-                      >
-                        <Link
-  href={item.href}
-  onClick={() => {
-    NProgress.start();
-    setMemoriesOpen(false);
-  }}
-  className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
-    active
-      ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
-      : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
-  }`}
->
-                          <div className="flex items-center gap-2.5">
-                            <item.icon size={15} className={active ? "text-[#D4AF37]" : "text-[#0F1A2E]/60"} />
-                            <span className="text-[14px] font-medium">{item.label}</span>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+    {/* ================= HEIRLOOMS ================= */}
+    <AnimatePresence>
+      {heirloomsOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="lg:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
+          style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(15,26,46,0.25)' }}
+          onClick={() => setHeirloomsOpen(false)}
+        >
+          <motion.div
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 32, stiffness: 260 }}
+            className="w-full max-w-[300px] sm:max-w-[420px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 sm:px-6 pt-3 pb-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-[3px] bg-[#D4AF37]/40 rounded-full mx-auto mb-4" />
+
+            <div className="px-2 mb-4">
+              <div className="flex justify-between items-end border-b border-[#D4AF37]/30 pb-3">
+                <h2 className="text-[20px] font-light text-[#0F1A2E] tracking-tight">
+                  My <span className="font-serif italic text-[#D4AF37]">Heirlooms</span>
+                </h2>
+                <button
+                  onClick={() => setHeirloomsOpen(false)}
+                  className="text-[12px] font-medium text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  Done
+                </button>
               </div>
+            </div>
+
+            <motion.div
+              className="space-y-2"
+              initial="hidden"
+              animate="show"
+              variants={{ show: { transition: { staggerChildren: 0.05 } } }}
+            >
+              {heirloomsLinks.map((item) => {
+                const active = pathname === item.href || pathname.startsWith(item.href + "/");
+                return (
+                  <motion.div
+                    key={item.href}
+                    variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                  >
+                    <Link
+                      href={item.href}
+                      onClick={() => {
+                        NProgress.start();
+                        setHeirloomsOpen(false);
+                      }}
+                      className={`flex items-center justify-between rounded-[14px] px-4 py-3 transition-all duration-200 ${
+                        active
+                          ? "bg-[#0F1A2E] text-white border border-[#D4AF37]"
+                          : "bg-[#fafafa] border border-[#EBEBEB] text-[#0F1A2E] hover:border-[#D4AF37]/40"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <item.icon size={15} className={active ? "text-[#D4AF37]" : "text-[#0F1A2E]/60"} />
+                        <span className="text-[14px] font-medium">{item.label}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {active && (
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-[#D4AF37]">
+                            Viewing
+                          </span>
+                        )}
+                        <div className={`h-1.5 w-1.5 rounded-full ${active ? "bg-[#D4AF37]" : "bg-[#DDDDE8]"}`} />
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
             </motion.div>
           </motion.div>
         </motion.div>
@@ -563,6 +609,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 
     <BottomNavigation
       setMemoriesOpen={setMemoriesOpen}
+      setHeirloomsOpen={setHeirloomsOpen}
       setAccountOpen={setAccountOpen}
     />
 
