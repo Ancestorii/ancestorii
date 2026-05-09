@@ -37,18 +37,18 @@ Deno.serve(async (req) => {
     let email = record.email;
     let name = record.full_name;
 
-    // If email missing from Profiles, look it up from auth.users
-    if (!email) {
+    // Look up from auth.users if email or name is missing
+    if (!email || !name) {
       const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
       const {
         data: { user },
       } = await supabase.auth.admin.getUserById(record.id);
 
-      if (user?.email) {
+      if (!email && user?.email) {
         email = user.email;
       }
-      if (!name && user?.user_metadata?.full_name) {
-        name = user.user_metadata.full_name;
+      if (!name) {
+        name = user?.user_metadata?.full_name || user?.user_metadata?.name || null;
       }
     }
 
@@ -61,8 +61,7 @@ Deno.serve(async (req) => {
     }
 
     // --- Send welcome email via Resend ---
-    const firstName = name ? name.split(" ")[0] : null;
-    const greeting = firstName || "there";
+    const greeting = name || "there";
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",

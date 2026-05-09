@@ -94,8 +94,9 @@ serve(async (req) => {
     }
 
     // ── Backup detection: shipments array populated but stage didn't say "Shipped" ──
-    if (
+   if (
       hasShipped &&
+      stage !== "InProgress" &&
       orderStatus !== "shipped" &&
       orderStatus !== "delivered" &&
       orderStatus !== "cancelled"
@@ -216,7 +217,7 @@ serve(async (req) => {
         .single();
 
       const customerEmail = order?.shipping_email;
-      const customerName = order?.shipping_name?.split(" ")[0] || "there";
+      const customerName = order?.shipping_name || "there";
       const bookTitle = book?.title || "your Memory Book";
 
       if (customerEmail && orderStatus === "shipped" && !wasAlreadyShipped) {
@@ -371,7 +372,7 @@ async function handleCanvasOrAcrylicOrder(
         .eq("id", canvasOrder.canvas_id)
         .single();
 
-      const customerName = canvasOrder.shipping_name?.split(" ")[0] || "there";
+      const customerName = canvasOrder.shipping_name || "there";
       const canvasTitle = canvas?.title || "your Memory Canvas";
 
       await sendEmail(
@@ -438,7 +439,7 @@ async function handleCanvasOrAcrylicOrder(
         .eq("id", acrylicOrder.acrylic_id)
         .single();
 
-      const customerName = acrylicOrder.shipping_name?.split(" ")[0] || "there";
+      const customerName = acrylicOrder.shipping_name || "there";
       const acrylicTitle = acrylic?.title || "your Acrylic Print";
 
       await sendEmail(

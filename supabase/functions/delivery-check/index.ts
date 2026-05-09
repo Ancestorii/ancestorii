@@ -74,7 +74,7 @@ serve(async (req) => {
         .single();
 
       const customerEmail = order.shipping_email;
-      const customerName = order.shipping_name?.split(" ")[0] || "there";
+      const customerName = order.shipping_name || "there";
       const bookTitle = book?.title || "your Memory Book";
 
       // Send delivered email
@@ -178,7 +178,7 @@ serve(async (req) => {
         .single();
 
       const customerEmail = order.shipping_email;
-      const customerName = order.shipping_name?.split(" ")[0] || "there";
+      const customerName = order.shipping_name || "there";
       const canvasTitle = canvas?.title || "your Memory Canvas";
 
       if (customerEmail) {
@@ -225,7 +225,7 @@ serve(async (req) => {
         .single();
 
       const customerEmail = order.shipping_email;
-      const customerName = order.shipping_name?.split(" ")[0] || "there";
+      const customerName = order.shipping_name || "there";
       const acrylicTitle = acrylic?.title || "your Acrylic Print";
 
       if (customerEmail) {
