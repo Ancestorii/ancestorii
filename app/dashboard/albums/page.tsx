@@ -183,7 +183,7 @@ export default function AlbumsPage() {
         {/* cards */}
         {!loading && !error && (albums ?? []).length > 0 && (
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 transition-opacity duration-500"
+            className="grid grid-cols-[repeat(auto-fill,minmax(240px,280px))] gap-6 transition-opacity duration-500"
             key="albums"
           >
             {(albums ?? []).map((a) => (

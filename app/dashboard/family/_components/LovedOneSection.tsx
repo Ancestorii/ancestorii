@@ -29,7 +29,7 @@ export default function LovedOneSection({
         </h3>
       </div>
 
-      <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(320px,1fr))]">
+      <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(240px,280px))]">
         {members.map((m) => (
           <LovedOneCard
             key={m.id}

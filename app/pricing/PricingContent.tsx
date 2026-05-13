@@ -265,11 +265,11 @@ export default function PricingPage() {
 
                       <div className="mt-8 rounded-[1.35rem] border border-[#D8C9F2]/60 bg-[linear-gradient(180deg,#EEE7FB_0%,#E7DDF8_100%)] px-5 py-5">
   <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#7D5AA8]">
-    Premium Member Perk
+    Physical heirlooms
   </p>
- <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/75 sm:text-[15px]">
-  Enjoy exclusive discounts on printed memory books, so your family’s memories can live on a real shelf too.
- </p>
+  <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/75 sm:text-[15px]">
+    Premium members save 10% on every Memory Book, Canvas Print and Acrylic Print order.
+  </p>
 </div>
                     </div>
 

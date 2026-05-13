@@ -205,11 +205,11 @@ export default function PlansClient({
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>Private by default</span>
+                    <span>Voice notes, stories &amp; context</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>Add stories, voices and context</span>
+                    <span>Order Memory Books, Canvases &amp; Acrylic Prints</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
@@ -224,7 +224,7 @@ export default function PlansClient({
                 </div>
 
                 <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/58">
-                  Enough to begin building your library properly.
+                  Enough to begin building your family library properly.
                 </p>
 
                 <button
@@ -260,11 +260,11 @@ export default function PlansClient({
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>Unlimited timelines, albums and capsules</span>
+                    <span>Unlimited timelines, albums &amp; capsules</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>Max upload 10GB per file</span>
+                    <span>10GB max upload per file</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
@@ -272,11 +272,11 @@ export default function PlansClient({
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>Priority phone support</span>
+                    <span>10% off every heirloom order</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>Early access to new features</span>
+                    <span>Priority support &amp; early access</span>
                   </li>
                 </ul>
               </div>
@@ -295,10 +295,10 @@ export default function PlansClient({
 
                 <div className="mt-6 rounded-[1.35rem] border border-[#D8C9F2]/60 bg-[linear-gradient(180deg,#EEE7FB_0%,#E7DDF8_100%)] px-5 py-5">
                   <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#7D5AA8]">
-                    Physical memory books
+                    Physical heirlooms
                   </p>
                   <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/75 sm:text-[15px]">
-                    Premium members receive 15% off their first printed memory book, then 10% off future memory book orders.
+                    Premium members save 10% on every Memory Book, Canvas Print and Acrylic Print order.
                   </p>
                 </div>
 
@@ -336,7 +336,7 @@ export default function PlansClient({
             </h2>
 
             <p className="mb-6 leading-relaxed text-gray-600">
-              If you’d like to change or downgrade your Ancestorii subscription, please visit our
+              If you'd like to change or downgrade your Ancestorii subscription, please visit our
               Help page and either send us an email or complete the contact form. Our team will
               personally take care of your request.
             </p>

@@ -91,7 +91,7 @@ serve(async (req) => {
     // ── Reuse existing Stripe customer if they have one ──
     const { data: existingSub } = await supabase
       .from("subscriptions")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, plan_id, status")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -99,6 +99,18 @@ serve(async (req) => {
       existingSub?.stripe_customer_id?.startsWith("cus_")
         ? existingSub.stripe_customer_id
         : undefined;
+
+    // ── Check if Premium for heirloom discount ──
+    let isPremium = false;
+    if (existingSub?.plan_id && existingSub?.status === "active") {
+      const { data: planRow } = await supabase
+        .from("plans")
+        .select("name")
+        .eq("id", existingSub.plan_id)
+        .maybeSingle();
+      isPremium = planRow?.name === "Premium";
+    }
+    const couponId = Deno.env.get("STRIPE_COUPON_PREMIUM_HEIRLOOM");
 
     // ── Create order record ──
     const tierPrices: Record<string, Record<string, number>> = {
@@ -140,10 +152,12 @@ serve(async (req) => {
       mode: "payment",
       customer: existingCustomerId,
       line_items: [{ price: priceId, quantity: 1 }],
+      ...(isPremium && couponId
+        ? { discounts: [{ coupon: couponId }] }
+        : { allow_promotion_codes: true }),
       success_url: successUrl,
       cancel_url: cancelUrl,
       client_reference_id: userId,
-      allow_promotion_codes: true,   // 👈 add this
       shipping_address_collection: {
         allowed_countries: [
           "GB", "US", "CA", "AU", "NZ", "IE", "DE", "FR", "ES", "IT",

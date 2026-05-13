@@ -273,7 +273,7 @@ export default function CanvasPage() {
 
           {/* ── Canvas grid ── */}
           {!loading && !error && (canvases ?? []).length > 0 && (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-8">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,280px))] gap-8">
               {(canvases ?? []).map((c) => (
                 <div
                   key={c.id}

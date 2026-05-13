@@ -43,7 +43,7 @@ export default function LibraryPickerModal({
     'all' | 'image' | 'video' | 'audio' | 'file' | 'other'
   >('all');
 
-  const [pickedId, setPickedId] = useState<string | null>(null);
+  const [pickedIds, setPickedIds] = useState<Set<string>>(new Set());
   const [mounted, setMounted] = useState(false);
 
   // Lock scroll
@@ -59,7 +59,7 @@ export default function LibraryPickerModal({
   // Fetch on open
   useEffect(() => {
   if (!open) return;
-  setPickedId(null);
+  setPickedIds(new Set());
   setActiveType('all');
   fetchLibrary();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -142,14 +142,18 @@ export default function LibraryPickerModal({
 
   const handlePick = (m: LibraryPickerItem) => {
     if (!canPick(m)) return;
-    setPickedId(m.id);
+    setPickedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(m.id)) next.delete(m.id);
+      else next.add(m.id);
+      return next;
+    });
   };
 
   const confirmPick = () => {
-    if (!pickedId) return;
-    const item = media.find((m) => m.id === pickedId);
-    if (!item) return;
-    onPick(item);
+    if (pickedIds.size === 0) return;
+    const items = media.filter((m) => pickedIds.has(m.id));
+    items.forEach((item) => onPick(item));
     onClose();
   };
 
@@ -252,7 +256,7 @@ if (!mounted && !open) return null;
               {filtered.map((item) => {
                 const url = signedMap[item.id];
                 const ready = !!url;
-                const selected = pickedId === item.id;
+                const selected = pickedIds.has(item.id);
                 const disabled = !canPick(item);
 
                 return (
@@ -330,7 +334,7 @@ if (!mounted && !open) return null;
 
             <button
               onClick={confirmPick}
-              disabled={!pickedId}
+              disabled={pickedIds.size === 0}
               className="px-6 py-2 rounded-full text-sm font-semibold
                          bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
                          text-[#1F2837] shadow
@@ -338,7 +342,7 @@ if (!mounted && !open) return null;
                          disabled:opacity-60 disabled:hover:shadow disabled:hover:scale-100
                          transition"
             >
-              Use Selected Media
+              {pickedIds.size <= 1 ? 'Use Selected Media' : `Add ${pickedIds.size} Items`}
             </button>
           </div>
         </div>

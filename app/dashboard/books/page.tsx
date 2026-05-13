@@ -212,7 +212,7 @@ export default function BooksPage() {
           )}
 
           {!loading && !error && (books ?? []).length > 0 && (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-8">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,280px))] gap-8">
               {(books ?? []).map((b) => (
                 <div
                   key={b.id}

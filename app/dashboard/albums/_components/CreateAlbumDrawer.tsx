@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { safeToast as toast } from '@/lib/safeToast';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { X, ImagePlus } from 'lucide-react';
+import { ensureDisplayableImage } from '@/lib/convertImage';
 
 export default function CreateAlbumDrawer({
   open,
@@ -103,10 +104,11 @@ export default function CreateAlbumDrawer({
 
       let uploadedPath: string | null = null;
       if (coverFile) {
-        const path = `${user.id}/${Date.now()}_${coverFile.name}`.replace(/\s+/g, '_');
+        const safeFile = await ensureDisplayableImage(coverFile);
+        const path = `${user.id}/${Date.now()}_${safeFile.name}`.replace(/\s+/g, '_');
         const { error: upErr } = await supabase.storage
           .from('album-media')
-          .upload(path, coverFile, { upsert: true });
+          .upload(path, safeFile, { upsert: true });
         if (upErr) throw upErr;
         uploadedPath = path;
       }

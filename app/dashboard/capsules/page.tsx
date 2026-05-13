@@ -228,7 +228,7 @@ useEffect(() => {
 
  {/* cards */}
 {!loading && !error && (capsules ?? []).length > 0 && (
-  <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-8 transition-opacity duration-500">
+  <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,280px))] gap-8 transition-opacity duration-500">
     {capsules.map((c) => (
       <CapsuleCard
         key={c.id}
