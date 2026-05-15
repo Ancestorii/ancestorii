@@ -327,7 +327,6 @@ export default function CreateBookDrawer({
           cover_asset_id: coverAssetId,
           })
           .eq('id', book.id)
-          .eq('user_id', user.id)
           .select(
             `
               id,
@@ -383,7 +382,6 @@ export default function CreateBookDrawer({
             `,
           )
           .eq('id', newBookId)
-          .eq('user_id', user.id)
           .single();
 
         if (fetchError) throw fetchError;

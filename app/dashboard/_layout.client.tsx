@@ -8,9 +8,11 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { memoriesLinks, heirloomsLinks, accountLinks } from "@/lib/dashboardNavigation";
 import SidebarContent from "@/components/dashboard/SidebarContent";
 import BottomNavigation from "@/components/dashboard/BottomNavigation";
+import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
 import { motion, AnimatePresence } from "framer-motion";
 import ProgressBar from '@/components/ProgressBar';
 import NProgress from 'nprogress';
+
 
 
 const supabase = getBrowserClient();
@@ -22,6 +24,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [capsulesCount, setCapsulesCount] = useState(0);
   const [albumsCount, setAlbumsCount] = useState(0);
   const [timelinesCount, setTimelinesCount] = useState(0);
+  const [libraryMediaCount, setLibraryMediaCount] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -34,6 +37,11 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [accountOpen, setAccountOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [planName, setPlanName] = useState<'Free' | 'Premium'>('Free');
+  const [familyName, setFamilyName] = useState('My Family');
+  const [familyMemberCount, setFamilyMemberCount] = useState(1);
+  const [familyId, setFamilyId] = useState<string | null>(null);
+  const [usedStorage, setUsedStorage] = useState(0);
+  const [maxStorage, setMaxStorage] = useState(5 * 1024 ** 3);
 
 
   const router = useRouter();
@@ -50,38 +58,51 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 
     const uid = user.id;
 
+    // Build capsule query — must filter by family_id because
+    // capsule RLS has an OR clause that leaks unlocked capsules
+    // from other families
+    let capsuleQuery = supabase
+      .from('memory_capsules')
+      .select('id', { head: true, count: 'exact' });
+    if (familyId) capsuleQuery = capsuleQuery.eq('family_id', familyId);
+
     const [
       { count: loved },
       { count: caps },
       { count: albums },
       { count: timelines },
+      { count: libraryMedia },
     ] = await Promise.all([
       supabase
         .from('family_members')
-        .select('id', { head: true, count: 'exact' })
-        .eq('owner_id', uid),
+        .select('id', { head: true, count: 'exact' }),
 
-      supabase
-        .from('memory_capsules')
-        .select('id', { head: true, count: 'exact' })
-        .eq('user_id', uid),
+      capsuleQuery,
 
       supabase
         .from('albums')
-        .select('id', { head: true, count: 'exact' })
-        .eq('user_id', uid),
+        .select('id', { head: true, count: 'exact' }),
 
       supabase
         .from('timelines')
-        .select('id', { head: true, count: 'exact' })
-        .eq('user_id', uid),
+        .select('id', { head: true, count: 'exact' }),
+
+      supabase
+        .from('library_media')
+        .select('id', { head: true, count: 'exact' }),
     ]);
 
     setLovedOnesCount(loved || 0);
     setCapsulesCount(caps || 0);
     setAlbumsCount(albums || 0);
     setTimelinesCount(timelines || 0);
-  }, []);
+    setLibraryMediaCount(libraryMedia || 0);
+
+    setLovedOnesCount(loved || 0);
+    setCapsulesCount(caps || 0);
+    setAlbumsCount(albums || 0);
+    setTimelinesCount(timelines || 0);
+  }, [familyId]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -119,7 +140,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 
     const { data: plans } = await supabase
       .from('plans')
-      .select('id, name');
+      .select('id, name, max_storage');
 
     const matchedPlan = plans?.find((p) => p.id === sub?.plan_id);
 
@@ -131,6 +152,29 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
         new Date(sub.current_period_end) > new Date());
 
     setPlanName(isPremium ? 'Premium' : 'Free');
+    // Fetch family data
+    const { data: membership } = await supabase
+      .from('family_memberships')
+      .select('family_id, role')
+      .eq('user_id', uid)
+      .limit(1)
+      .single();
+
+    if (membership) {
+      setFamilyId(membership.family_id);
+      const { data: family } = await supabase
+        .from('families')
+        .select('name')
+        .eq('id', membership.family_id)
+        .single();
+      if (family?.name) setFamilyName(family.name);
+
+      const { count: memberCount } = await supabase
+        .from('family_memberships')
+        .select('*', { count: 'exact', head: true })
+        .eq('family_id', membership.family_id);
+      setFamilyMemberCount(memberCount || 1);
+    }
   };
 
   loadSidebarData();
@@ -315,10 +359,9 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 <aside
   className={`
     fixed top-0 left-0 z-[150] lg:z-40 h-screen
-    ${collapsed ? 'w-[80px]' : 'w-[240px]'}
+    ${collapsed ? 'w-[80px]' : 'w-[272px]'}
 
-    bg-[linear-gradient(180deg,#0F1A2E_0%,#162844_70%,#1E355A_100%)]
-    shadow-[4px_0_25px_rgba(15,32,64,0.25)]
+    bg-white border-r border-[#E5E7EB]
     overflow-hidden
     pointer-events-auto
 
@@ -347,16 +390,22 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   avatarUrl={avatarUrl}
   planName={planName}
   handleLogout={handleLogout}
+  familyName={familyName}
+  familyMemberCount={familyMemberCount}
+  totalMemories={lovedOnesCount + capsulesCount + albumsCount + timelinesCount + libraryMediaCount}
+  usedStorage={usedStorage}
+  maxStorage={maxStorage}
 />
 </aside>
 )}
 <main
   className={`
-    ${hideSidebar ? '' : collapsed ? 'lg:ml-[80px]' : 'lg:ml-[240px]'}
+    ${hideSidebar ? '' : collapsed ? 'lg:ml-[80px]' : 'lg:ml-[272px]'}
     min-h-screen
-    bg-[#F7F3EC]
+    bg-white
   `}
 >
+  {!hideSidebar && <DashboardTopBar />}
   {children}
 </main>
     {/* ================= MEMORIES ================= */}

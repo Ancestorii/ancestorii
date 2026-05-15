@@ -20,13 +20,51 @@ export default function AuthCallback() {
         return;
       }
 
-      await supabase.from('profiles').upsert({
+      // Upsert profile
+      await supabase.from('Profiles').upsert({
         id: user.id,
         full_name: user.user_metadata?.full_name || null,
         email: user.email,
         avatar_url: user.user_metadata?.avatar_url || null,
-        onboarding_completed: true,
       });
+
+      // Handle invite token (Google OAuth can't pass metadata to handle_new_user)
+      const inviteToken = sessionStorage.getItem('invite_token');
+      if (inviteToken) {
+        try {
+          await fetch('/api/accept-invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: inviteToken }),
+          });
+        } catch {
+          // Non-critical — user ends up in their own family
+        }
+        sessionStorage.removeItem('invite_token');
+      }
+
+      // Update family name from sessionStorage (set during step 1 of signup)
+      const familyName = sessionStorage.getItem('family_name');
+      if (familyName && !inviteToken) {
+        try {
+          const { data: membership } = await supabase
+            .from('family_memberships')
+            .select('family_id')
+            .eq('user_id', user.id)
+            .eq('role', 'owner')
+            .single();
+
+          if (membership) {
+            await supabase
+              .from('families')
+              .update({ name: familyName })
+              .eq('id', membership.family_id);
+          }
+        } catch {
+          // Non-critical
+        }
+        sessionStorage.removeItem('family_name');
+      }
 
       router.replace('/dashboard/home');
     };
@@ -35,8 +73,8 @@ export default function AuthCallback() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p>Signing you in…</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#fffdf7]">
+      <p className="text-[#0f2040]/60">Signing you in…</p>
     </div>
   );
 }

@@ -72,7 +72,6 @@ export default function BooksPage() {
             cover_asset_id,
             created_content_pages
           `)
-          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
         if (error) throw error;

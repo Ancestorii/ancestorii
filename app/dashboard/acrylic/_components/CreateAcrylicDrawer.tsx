@@ -160,7 +160,6 @@ export default function CreateAcrylicDrawer({
           .from('acrylic_prints')
           .update({ title: title.trim() })
           .eq('id', acrylic.id)
-          .eq('user_id', user.id)
           .select(
             `id, title, tier_key, tier_name, acrylic_size, orientation, layout_type, price_gbp`
           )
@@ -192,7 +191,6 @@ export default function CreateAcrylicDrawer({
             `id, title, tier_key, tier_name, acrylic_size, orientation, layout_type, price_gbp`
           )
           .eq('id', newId)
-          .eq('user_id', user.id)
           .single();
 
         if (fetchError) throw fetchError;

@@ -161,16 +161,14 @@ useEffect(() => {
       const coverPath = uploadedPath ?? timeline?.cover_path ?? null;
 
 
-      const payload = {
-         owner_id: user.id,  
-         title: title.trim(),
-         description: description.trim() || null,
-         cover_path: coverPath,
-      };
       if (mode === 'edit' && timeline) {
         const { data, error } = await supabase
           .from('timelines')
-          .update(payload)
+          .update({
+            title: title.trim(),
+            description: description.trim() || null,
+            cover_path: coverPath,
+          })
           .eq('id', timeline.id)
           .select()
           .single();
@@ -180,7 +178,12 @@ useEffect(() => {
       } else {
         const { data, error } = await supabase
           .from('timelines')
-          .insert(payload)
+          .insert({
+            owner_id: user.id,
+            title: title.trim(),
+            description: description.trim() || null,
+            cover_path: coverPath,
+          })
           .select()
           .single();
         if (error) throw error;

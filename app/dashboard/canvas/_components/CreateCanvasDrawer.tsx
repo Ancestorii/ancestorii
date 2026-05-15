@@ -142,7 +142,6 @@ export default function CreateCanvasDrawer({
             title: title.trim(),
           })
           .eq('id', canvas.id)
-          .eq('user_id', user.id)
           .select(
             `
               id,
@@ -192,7 +191,6 @@ export default function CreateCanvasDrawer({
             `
           )
           .eq('id', newCanvasId)
-          .eq('user_id', user.id)
           .single();
 
         if (fetchError) throw fetchError;

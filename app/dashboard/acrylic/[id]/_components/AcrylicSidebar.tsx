@@ -46,7 +46,6 @@ export default function Sidebar({
         const { data, error } = await supabase
           .from('library_media')
           .select('id, file_path, rotation')
-          .eq('user_id', user.id)
           .eq('file_type', 'image')
           .order('created_at', { ascending: false });
 

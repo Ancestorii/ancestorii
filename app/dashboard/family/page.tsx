@@ -99,8 +99,7 @@ useEffect(() => {
 
     const { count } = await supabase
       .from("family_members")
-      .select("id", { head: true, count: "exact" })
-      .eq("owner_id", user.id);
+      .select("id", { head: true, count: "exact" });
 
     setMemberCount(count || 0);
   }, [supabase]);
@@ -129,7 +128,6 @@ useEffect(() => {
     const { data: memberRows, error: memErr } = await supabase
       .from("family_members")
       .select("id, full_name, birth_date, death_date, biography, avatar_url, relationship_to_user")
-      .eq("owner_id", user.id)
       .order("full_name", { ascending: true });
 
     if (memErr) {
@@ -158,8 +156,7 @@ useEffect(() => {
 
     const { data: relRows } = await supabase
       .from("family_relationships")
-      .select("id, member_a, member_b, role")
-      .eq("owner_id", user.id);
+      .select("id, member_a, member_b, role");
 
     setRelationships((relRows || []) as Relationship[]);
 

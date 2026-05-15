@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 7. Check if this person is already a family member
+    // 7. Check if this person already has an account
     const { data: existingUser } = await admin
       .from('Profiles')
       .select('id')
@@ -99,16 +99,31 @@ export async function POST(req: NextRequest) {
     if (existingUser) {
       const { data: existingMember } = await admin
         .from('family_memberships')
-        .select('id')
-        .eq('family_id', membership.family_id)
+        .select('id, family_id')
         .eq('user_id', existingUser.id)
         .maybeSingle();
 
       if (existingMember) {
-        return NextResponse.json(
-          { error: 'This person is already a member of your family' },
-          { status: 409 }
-        );
+        // Already in the sender's family
+        if (existingMember.family_id === membership.family_id) {
+          return NextResponse.json(
+            { error: 'This person is already a member of your family' },
+            { status: 409 }
+          );
+        }
+
+        // In a different family — check if it's a real family (not just their auto-created solo one)
+        const { count } = await admin
+          .from('family_memberships')
+          .select('*', { count: 'exact', head: true })
+          .eq('family_id', existingMember.family_id);
+
+        if ((count || 0) > 1) {
+          return NextResponse.json(
+            { error: 'This person already belongs to another family library.' },
+            { status: 409 }
+          );
+        }
       }
     }
 

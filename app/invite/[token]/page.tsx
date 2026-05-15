@@ -209,7 +209,7 @@ export default function InvitePage() {
             )}
           </div>
 
-          <div className="flex items-center gap-3 text-xs sm:text-sm whitespace-nowrap">
+          <div className="flex items-start gap-3 text-xs sm:text-sm">
             <input
               type="checkbox"
               checked={agree}
@@ -230,7 +230,7 @@ export default function InvitePage() {
 
           <button
             disabled={loading}
-            className="w-full bg-[#d4af37] py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition"
+            className="w-full bg-[#d4af37] text-white py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition"
           >
             {loading ? 'Joining family…' : `Join ${invite!.familyName}`}
           </button>

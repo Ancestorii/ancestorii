@@ -87,7 +87,6 @@ export default function AlbumsPage() {
         const { data, error } = await supabase
           .from('albums')
           .select('id, title, description, visibility, created_at, cover_image')
-          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
         if (error) throw error;

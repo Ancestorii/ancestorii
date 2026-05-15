@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -15,6 +14,7 @@ import {
   User as UserIcon,
   X,
   ChevronDown,
+  LogOut,
 } from 'lucide-react';
 
 type SidebarContentProps = {
@@ -26,6 +26,11 @@ type SidebarContentProps = {
   avatarUrl?: string | null;
   planName?: string | null;
   handleLogout: () => void;
+  familyName?: string;
+  familyMemberCount?: number;
+  totalMemories?: number;
+  usedStorage?: number;
+  maxStorage?: number;
 };
 
 const sections = [
@@ -33,6 +38,14 @@ const sections = [
   { key: 'heirlooms', title: 'My Heirlooms', links: heirloomsLinks },
   { key: 'account', title: 'My Account', links: accountLinks },
 ];
+
+function formatBytes(bytes?: number | null) {
+  if (!bytes || bytes <= 0) return '0 MB';
+  const mb = bytes / 1024 ** 2;
+  if (mb < 1024) return `${mb.toFixed(1)} MB`;
+  const gb = mb / 1024;
+  return `${gb.toFixed(1)} GB`;
+}
 
 export default function SidebarContent({
   closeDrawer,
@@ -43,19 +56,19 @@ export default function SidebarContent({
   avatarUrl,
   planName,
   handleLogout,
+  familyName = 'My Family',
+  familyMemberCount = 1,
+  totalMemories = 0,
+  usedStorage = 0,
+  maxStorage = 5 * 1024 ** 3,
 }: SidebarContentProps) {
   const pathname = usePathname();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [familyDropdownOpen, setFamilyDropdownOpen] = useState(false);
 
-  /* ── Determine which section owns the current route ── */
   const getActiveSection = useCallback(() => {
     for (const section of sections) {
-      if (
-        section.links.some(
-          (link) =>
-            pathname === link.href || pathname.startsWith(link.href + '/')
-        )
-      ) {
+      if (section.links.some((link) => pathname === link.href || pathname.startsWith(link.href + '/'))) {
         return section.key;
       }
     }
@@ -64,7 +77,6 @@ export default function SidebarContent({
 
   const [openSection, setOpenSection] = useState<string>(getActiveSection());
 
-  /* ── Auto-open the section containing the current page ── */
   useEffect(() => {
     setOpenSection(getActiveSection());
   }, [getActiveSection]);
@@ -73,83 +85,105 @@ export default function SidebarContent({
     setOpenSection(key);
   };
 
-  /* ── Display name logic ── */
-  const cleanFullName = fullName?.trim() || '';
-  const firstName = cleanFullName.split(' ')[0] || '';
-  const fallbackName = userEmail?.split('@')[0] || 'Guest';
-
-  const displayName = cleanFullName
-    ? cleanFullName.length > 15
-      ? firstName
-      : cleanFullName
-    : fallbackName;
-
-  const userPlan =
-    planName && planName.trim().length > 0
-      ? `${planName} Plan`
-      : 'Free Plan';
-
   const confirmLogout = () => {
     setShowLogoutConfirm(false);
     handleLogout();
   };
 
+  const storagePct = maxStorage > 0 ? Math.min(100, Math.max(0, Math.round((usedStorage / maxStorage) * 100))) : 0;
+
   return (
     <>
-      <div
-        className="relative flex h-full flex-col overflow-hidden border-r border-[#e7dfd1] text-[#1f2937]"
-        style={{
-          background: `
-            radial-gradient(circle at top left, rgba(212,175,55,0.08), transparent 28%),
-            radial-gradient(circle at bottom right, rgba(212,175,55,0.05), transparent 34%),
-            linear-gradient(180deg, #fcfbf8 0%, #f7f3ec 100%)
-          `,
-        }}
-      >
-        {/* TOP BAR */}
-        <div className="border-b border-[#d4af37] px-5 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[1.8rem] font-serif text-[#1a1410]">
-                Ancestor<span className="text-[#b8924a]">ii</span>
-              </div>
-            </div>
+      <div className="relative flex h-full flex-col overflow-hidden bg-white">
+
+        {/* ─── LOGO ─── */}
+        <div className="px-[24px] pt-[28px]">
+          <div
+            className="font-serif leading-none text-[#111827]"
+            style={{ fontSize: '32px', fontWeight: 500, letterSpacing: '-0.03em' }}
+          >
+            Ancestor<span className="text-[#C8A557]">ii</span>
           </div>
         </div>
 
-        {/* NAV */}
-        <nav className="flex-1 overflow-y-auto px-4 py-5">
-          <div className="space-y-4">
-            <NavItem
-              href="/dashboard/home"
-              label="Home"
-              Icon={Home}
-              onClick={closeDrawer}
-            />
+        {/* ─── FAMILY ─── */}
+        <div className="px-[24px] mt-[28px]">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setFamilyDropdownOpen(!familyDropdownOpen)}
+              className="flex w-full items-center gap-3"
+            >
+              <div
+                className="flex h-[48px] w-[48px] flex-shrink-0 items-center justify-center rounded-full bg-[#FBF3E0]"
+                style={{ border: '2px solid #FFFFFF', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
+              >
+                <UserIcon className="h-5 w-5 text-[#C8A557]" />
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="line-clamp-2 text-[16px] leading-tight text-[#111827]" style={{ fontWeight: 600 }}>
+                  {familyName}
+                </p>
+                <p className="mt-1 text-[14px] text-[#6B7280]">
+                  {familyMemberCount} {familyMemberCount === 1 ? 'Member' : 'Members'}
+                </p>
+              </div>
+              <ChevronDown
+                className="h-4 w-4 flex-shrink-0 text-[#9CA3AF] transition-transform duration-200"
+                style={{ transform: familyDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              />
+            </button>
+
+            {familyDropdownOpen && (
+              <div
+                className="absolute left-0 right-0 top-full z-50 mt-2 rounded-[14px] py-1 bg-white"
+                style={{ border: '1px solid #E5E7EB', boxShadow: '0 6px 18px rgba(0,0,0,0.08)' }}
+              >
+                <Link
+                  href="/dashboard/profile"
+                  onClick={() => { setFamilyDropdownOpen(false); closeDrawer(); }}
+                  className="flex items-center gap-3 px-[14px] h-[44px] text-[14px] font-medium text-[#374151] hover:bg-[#F9FAFB] rounded-[10px] mx-1 transition-colors duration-[180ms]"
+                >
+                  <UserIcon className="h-[18px] w-[18px] text-[#9CA3AF]" />
+                  My Profile
+                </Link>
+                <button
+                  onClick={() => { setFamilyDropdownOpen(false); setShowLogoutConfirm(true); }}
+                  className="flex items-center gap-3 px-[14px] h-[44px] text-[14px] font-medium text-[#DC2626] hover:bg-red-50 rounded-[10px] mx-1 transition-colors duration-[180ms]"
+                  style={{ width: 'calc(100% - 8px)' }}
+                >
+                  <LogOut className="h-[18px] w-[18px]" />
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ─── NAVIGATION ─── */}
+        <nav className="flex-1 overflow-y-auto px-[12px] pt-[28px] pb-4" data-lenis-prevent>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <NavItem href="/dashboard/home" label="Home" Icon={Home} onClick={closeDrawer} />
 
             {sections.map((section) => {
               const isOpen = openSection === section.key;
 
               return (
-                <section key={section.key}>
-                  {/* ── Collapsible header ── */}
+                <div key={section.key} className="pt-[24px]">
                   <button
                     type="button"
                     onClick={() => toggleSection(section.key)}
-                    className="mb-1 flex w-full items-center justify-between px-2 py-1.5 transition-colors hover:bg-white/50 rounded-md"
+                    className="mb-[4px] flex w-full items-center justify-between px-[14px] py-1"
                   >
-                    <span className="text-[17px] font-semibold tracking-[0.01em] text-[#d4af37]">
+                    <span className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#C8A557]">
                       {section.title}
                     </span>
                     <ChevronDown
-                      className="h-4 w-4 text-[#d4af37] transition-transform duration-200"
-                      style={{
-                        transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
-                      }}
+                      className="h-4 w-4 text-[#9CA3AF] transition-transform duration-200"
+                      style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}
                     />
                   </button>
 
-                  {/* ── Collapsible content ── */}
                   <div
                     className="overflow-hidden transition-all duration-250 ease-in-out"
                     style={{
@@ -157,7 +191,7 @@ export default function SidebarContent({
                       opacity: isOpen ? 1 : 0,
                     }}
                   >
-                    <div className="space-y-1 pt-1">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingTop: '2px' }}>
                       {section.links.map((item) => (
                         <NavItem
                           key={item.href}
@@ -169,111 +203,84 @@ export default function SidebarContent({
                       ))}
                     </div>
                   </div>
-                </section>
+                </div>
               );
             })}
           </div>
         </nav>
 
-        {/* PROFILE */}
-        <div className="border-t border-[#d4af37] px-4 py-4">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="h-12 w-12 overflow-hidden border border-[#ded4bf] bg-[#f3f4f6]">
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt=""
-                  width={48}
-                  height={48}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <UserIcon className="h-5 w-5 text-[#6b7280]" />
-                </div>
-              )}
-            </div>
+        {/* ─── YOUR LIBRARY ─── */}
+        <div className="px-[16px] pb-[20px]">
+          <div
+            className="rounded-[20px] p-[18px]"
+            style={{ background: '#FAFAFA', border: '1px solid #E5E7EB' }}
+          >
+            <p className="text-[15px] font-semibold text-[#111827]">
+              Your Library
+            </p>
+            <p className="mt-[2px] text-[13px] text-[#6B7280]">
+              {totalMemories.toLocaleString()} memories
+            </p>
 
-            <div className="min-w-0 flex-1">
-              <p className="mt-1 truncate text-[15px] font-semibold text-[#1f2937]">
-                {displayName}
-              </p>
-              <p className="mt-0.5 text-[13px] font-medium text-[#8a6a2f]">
-                {userPlan}
-              </p>
+            <div className="mt-[12px] h-[5px] w-full overflow-hidden rounded-full bg-[#E5E7EB]">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: `${storagePct}%`, background: 'linear-gradient(90deg, #C8A557, #D4AF37)' }}
+              />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2.5">
-            <Link
-              href="/dashboard/profile"
-              onClick={closeDrawer}
-              className="
-                flex items-center justify-center
-                bg-[#d4af37] px-4 py-2.5
-                text-[13px] font-semibold text-[#1b2430]
-                transition hover:bg-[#cda428]
-              "
-            >
-              Profile
-            </Link>
+            <p className="mt-[8px] text-[13px] text-[#6B7280]">
+              {formatBytes(usedStorage)} of {formatBytes(maxStorage)} used
+            </p>
 
             <button
-              onClick={() => setShowLogoutConfirm(true)}
-              className="
-                flex items-center justify-center
-                bg-[#b42318] px-4 py-2.5
-                text-[13px] font-semibold text-[#FFFFFF]
-                transition hover:bg-[#9f1f15]
-              "
+              onClick={() => { closeDrawer(); window.location.href = '/dashboard/plans'; }}
+              className="mt-[14px] flex w-full items-center justify-center rounded-[12px] h-[40px] text-[14px] font-semibold transition-all duration-[180ms]"
+              style={{
+                background: 'linear-gradient(135deg, #D4AF37, #C8A557)',
+                color: '#FFFFFF',
+                boxShadow: '0 2px 8px rgba(196,165,87,0.35)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #C8A557, #B8924A)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(196,165,87,0.45)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #D4AF37, #C8A557)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(196,165,87,0.35)';
+              }}
             >
-              Logout
+              Upgrade Plan
             </button>
           </div>
         </div>
       </div>
 
+      {/* ─── LOGOUT CONFIRM ─── */}
       {showLogoutConfirm && (
-        <div className="absolute inset-0 z-[300] flex items-end justify-center bg-black/30">
-          <div className="w-full border-t border-[#d4af37] bg-[#fcfbf8] px-5 pb-5 pt-4 shadow-[0_-10px_30px_rgba(0,0,0,0.12)]">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-[18px] font-semibold text-[#1a1410]">
-                Log out
-              </h3>
-
+        <div className="absolute inset-0 z-[300] flex items-end justify-center bg-black/20">
+          <div className="w-full px-5 pb-5 pt-4 bg-white" style={{ borderTop: '1px solid #E5E7EB' }}>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-[16px] font-semibold text-[#111827]">Log out</h3>
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex h-9 w-9 items-center justify-center border border-[#e7dfd1] bg-white text-[#1f2937]"
+                className="flex h-8 w-8 items-center justify-center rounded-[10px] text-[#6B7280]"
+                style={{ border: '1px solid #E5E7EB' }}
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-
-            <p className="mb-5 text-[12px] text-[#5b6472]">
-              Are you sure you want to log out?
-            </p>
-
+            <p className="mb-4 text-[14px] text-[#6B7280]">Are you sure you want to log out?</p>
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="
-                  flex items-center justify-center
-                  border border-[#ded4bf] bg-white px-4 py-3
-                  text-[13px] font-semibold text-[#1f2937]
-                  transition hover:bg-[#f7f3ec]
-                "
+                className="rounded-[12px] h-[44px] text-[14px] font-semibold text-[#374151] bg-white hover:bg-[#F9FAFB] transition-colors duration-[180ms]"
+                style={{ border: '1px solid #E5E7EB' }}
               >
                 Cancel
               </button>
-
               <button
                 onClick={confirmLogout}
-                className="
-                  flex items-center justify-center
-                  bg-[#b42318] px-4 py-3
-                  text-[13px] font-semibold text-white
-                  transition hover:bg-[#9f1f15]
-                "
+                className="rounded-[12px] h-[44px] bg-[#DC2626] text-[14px] font-semibold text-white transition hover:bg-[#B91C1C]"
               >
                 Log out
               </button>

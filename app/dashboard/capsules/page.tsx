@@ -81,7 +81,6 @@ const [unlockNotificationId, setUnlockNotificationId] = useState<string | null>(
         const { data, error: qErr } = await supabase
           .from('memory_capsules')
           .select('id, title, description, unlock_date, is_locked, created_at, cover_image')
-          .eq('user_id', sess.session.user.id)
           .order('created_at', { ascending: false });
 
         if (qErr) throw qErr;
@@ -133,7 +132,6 @@ useEffect(() => {
     const { data: unlockedCapsule } = await supabase
       .from('memory_capsules')
       .select('id')
-      .eq('user_id', user.id)
       .eq('is_locked', false)
       .lte('unlock_date', new Date().toISOString())
       .limit(1)
@@ -154,8 +152,7 @@ useEffect(() => {
       const { error: delErr } = await supabase
       .from('memory_capsules')
       .delete()
-      .eq('id', id)
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+      .eq('id', id);
 
       if (delErr) throw delErr;
       setCapsules((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));

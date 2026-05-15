@@ -116,12 +116,10 @@ export default function CreateAlbumDrawer({
       let coverUrl: string | null = album?.cover_image || null;
       if (uploadedPath) coverUrl = uploadedPath;
 
-      const payload = { title, description, cover_image: coverUrl, user_id: user.id };
-
       if (mode === 'edit' && album) {
         const { data, error } = await supabase
           .from('albums')
-          .update(payload)
+          .update({ title, description, cover_image: coverUrl })
           .eq('id', album.id)
           .select()
           .single();
@@ -131,7 +129,7 @@ export default function CreateAlbumDrawer({
       } else {
         const { data, error } = await supabase
           .from('albums')
-          .insert(payload)
+          .insert({ title, description, cover_image: coverUrl, user_id: user.id })
           .select()
           .single();
         if (error) throw error;

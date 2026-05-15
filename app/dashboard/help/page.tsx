@@ -23,13 +23,25 @@ export default function HelpPage() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
-        .from("subscription_summary")
-        .select("plan_name")
+      // 1. Get user's family
+      const { data: membership } = await supabase
+        .from("family_memberships")
+        .select("family_id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (data?.plan_name) setPlan(data.plan_name);
+      if (!membership?.family_id) return;
+
+      // 2. Check if any subscription in this family is active
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("plan_id, plans(name)")
+        .eq("family_id", membership.family_id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      const planName = (sub?.plans as any)?.name;
+      if (planName) setPlan(planName);
     };
 
     fetchPlan();

@@ -78,15 +78,26 @@ serve(async (req) => {
 
     // ── Verify acrylic belongs to user ──
     const { data: acrylic, error: acrylicErr } = await supabase
-      .from("acrylic_prints")
-      .select("id, title, tier_key, tier_name, price_gbp")
-      .eq("id", acrylicId)
-      .eq("user_id", userId)
-      .maybeSingle();
+  .from("acrylic_prints")
+  .select("id, title, tier_key, tier_name, price_gbp, family_id")
+  .eq("id", acrylicId)
+  .maybeSingle();
 
-    if (acrylicErr || !acrylic) {
-      throw new Error("Acrylic print not found or not yours");
-    }
+if (acrylicErr || !acrylic) {
+  throw new Error("Acrylic print not found");
+}
+
+// Verify user belongs to the same family
+const { data: membership } = await supabase
+  .from("family_memberships")
+  .select("id")
+  .eq("user_id", userId)
+  .eq("family_id", acrylic.family_id)
+  .maybeSingle();
+
+if (!membership) {
+  throw new Error("You don't have access to this acrylic print");
+}
 
     // ── Reuse existing Stripe customer if they have one ──
     const { data: existingSub } = await supabase
@@ -100,15 +111,32 @@ serve(async (req) => {
         ? existingSub.stripe_customer_id
         : undefined;
 
-    // ── Check if Premium for heirloom discount ──
+    // ── Check if family has Premium (for heirloom discount) ──
     let isPremium = false;
-    if (existingSub?.plan_id && existingSub?.status === "active") {
-      const { data: planRow } = await supabase
+    const { data: userMembership } = await supabase
+      .from("family_memberships")
+      .select("family_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (userMembership?.family_id) {
+      const { data: premiumPlan } = await supabase
         .from("plans")
-        .select("name")
-        .eq("id", existingSub.plan_id)
+        .select("id")
+        .eq("name", "Premium")
         .maybeSingle();
-      isPremium = planRow?.name === "Premium";
+
+      if (premiumPlan) {
+        const { data: premiumSub } = await supabase
+          .from("subscriptions")
+          .select("id")
+          .eq("family_id", userMembership.family_id)
+          .eq("plan_id", premiumPlan.id)
+          .eq("status", "active")
+          .maybeSingle();
+
+        isPremium = !!premiumSub;
+      }
     }
     const couponId = Deno.env.get("STRIPE_COUPON_PREMIUM_HEIRLOOM");
 
