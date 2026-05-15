@@ -4,20 +4,18 @@ import Faq from '@/components/Faq';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import type { Metadata } from 'next';
-import CoreValueSnapshot from '@/components/CoreValueSnapshot';
 import Founder from '@/components/Founder';
 import Script from "next/script";
-import FeaturedBy from '@/components/FeaturedBy';
-import PodcastPreview from '@/components/PodcastPreview';
 import Security from '@/components/Security';
-import PlatformComparison from '@/components/PlatformComparison';
-import MemoryBookSection from '@/components/MemoryBookSection';
+import ProblemStrip from '@/components/ProblemStrip';
+import Testimonials from '@/components/Testimonials';
+import LibrarySection from '@/components/LibrarySection';
 
 /* ---------------- SEO Metadata ---------------- */
 export const metadata: Metadata = {
-  title: "Ancestorii A Living Family Library",
-  description:
-    "Ancestorii is a private digital space where families capture stories, voices, and everyday moments as they happen. Build a living family library through timelines, albums, and memory capsules that grow over time.",
+  title: "Ancestorii — Your Family Library",
+ description:
+    "A private family library where photos, stories, and voices come together in one place. Invite your family to contribute, build timelines and albums with voice notes, and turn your best moments into printed books. Free to start.",
   keywords: [
     "Ancestorii",
     "family legacy",
@@ -30,9 +28,9 @@ export const metadata: Metadata = {
     "private family platform",
   ],
   openGraph: {
-    title: "Ancestorii A Living Family Library",
+    title: "Ancestorii — Your Family Library",
     description:
-      "Capture stories, voices, and meaningful moments in a private space designed to grow with your family over time.",
+      "Photos, stories, and voices — together in a private space that grows with your family. Free to start.",
     url: "https://www.ancestorii.com",
     siteName: "Ancestorii",
     images: [
@@ -48,9 +46,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ancestorii A Living Family Library",
+    title: "Ancestorii — Your Family Library",
     description:
-      "A private space to capture and grow your family story in real time.",
+      "A private space where your family's photos, stories, and voices live together — and grow with you.",
     images: ["/og-image.jpg"],
   },
   alternates: {
@@ -205,7 +203,7 @@ export default function HomePage() {
         "name": "Can other family members contribute?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Shared contributions are coming soon. For now, each library is owned and managed by one account to maintain simplicity and privacy."
+          "text": "Yes. You can invite family members to add their own photos, stories, and voice recordings to the shared library. Everyone contributes, but you stay in control of who has access."
         }
       },
       {
@@ -232,10 +230,9 @@ export default function HomePage() {
       <main className="bg-[#fff9ee] text-[#0F2040]">
         <Nav />
         <Hero />
-        <CoreValueSnapshot />
-        <MemoryBookSection/>
-        <PlatformComparison />
-        <FeaturedBy />
+        <ProblemStrip />
+        <Testimonials />
+        <LibrarySection /> 
         <Security />
         <Founder />
         <Faq />

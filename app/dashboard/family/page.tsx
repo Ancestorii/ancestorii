@@ -339,14 +339,14 @@ useEffect(() => {
           {/* ---------- GROUPED CARDS ---------- */}
           {groups && (
             <div className="space-y-10">
-              <LovedOneSection title="My Parents" members={groups.Parents} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
-              <LovedOneSection title="My Siblings" members={groups.Siblings} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
-              <LovedOneSection title="My Children" members={groups.Children} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
-              <LovedOneSection title="My Spouse / Partner" members={groups.SpousePartner} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
-              <LovedOneSection title="My Aunties & Uncles" members={groups.AuntiesUncles} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
-              <LovedOneSection title="My Grandparents" members={groups.Grandparents} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
-              <LovedOneSection title="My Extended Family" members={groups.ExtendedFamily} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
-              <LovedOneSection title="My Friends" members={groups.Friends} onEdit={handleEditMember}onDelete={(id) => setDeleteTarget(id)} />
+             <LovedOneSection title="Parents" members={groups.Parents} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
+             <LovedOneSection title="Siblings" members={groups.Siblings} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
+             <LovedOneSection title="Children" members={groups.Children} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
+             <LovedOneSection title="Spouses & Partners" members={groups.SpousePartner} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
+             <LovedOneSection title="Aunties & Uncles" members={groups.AuntiesUncles} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
+             <LovedOneSection title="Grandparents" members={groups.Grandparents} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
+             <LovedOneSection title="Extended Family" members={groups.ExtendedFamily} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
+             <LovedOneSection title="Friends" members={groups.Friends} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
             </div>
           )}
         </div>

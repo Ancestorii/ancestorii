@@ -674,6 +674,19 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
+        .sidebar-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #C8A557, #D4AF37);
+  border-radius: 10px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #B8924A, #C8A557);
+}
     `}</style>
       </div>
   </>

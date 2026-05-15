@@ -35,7 +35,7 @@ const faqs = [
   {
     question: "Can other family members contribute?",
     answer:
-      "Shared contributions are coming soon. For now, each library is owned and managed by one account to maintain simplicity and privacy.",
+      "Yes. You can invite family members to add their own photos, stories, and voice recordings to the shared library. Everyone contributes, but you stay in control of who has access."
   },
   {
     question: "Why include voice recordings?",

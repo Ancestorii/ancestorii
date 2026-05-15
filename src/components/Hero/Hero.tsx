@@ -1,53 +1,26 @@
 'use client';
 
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
 const bulletItems = [
-  'Write the story that the photo cannot show',
-  'Keep voices, moments, and things only you remember',
-  'Private, personal, and yours forever',
+  'Add the real story behind the photo — in your own words',
+  'Record voices, save moments, keep what only your family knows',
+  'Completely private. Completely free to start.',
 ];
+
 /* ─── VISUAL PANE ──────────────────────────────────── */
 function HeroVisual() {
   return (
     <div className="relative w-full h-full overflow-hidden">
-
-      <Image
-        src="/hero.png" // 🔥 use AVIF or WebP (NOT jpg)
-        alt="Family memory"
-        fill
-        priority
-        quality={60}
-        sizes="(max-width: 1024px) 100vw, 50vw"
-        placeholder="blur"
-        blurDataURL="/hero-blur.jpg"
-        className="object-cover"
-        style={{ objectPosition: '60% 20%' }}
+      <img
+        src="/Hero1.png"
+        alt="A couple sitting together on their sofa, smiling as they look through their Ancestorii Memory Book"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ objectPosition: '50% 35%' }}
       />
 
-      {/* LIGHT overlay only (cheap to render) */}
-      <div className="absolute inset-y-0 left-0 w-32 hidden lg:block pointer-events-none bg-gradient-to-r from-[#f7f2e9]/95 to-transparent" />
-
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-[#f0eadc]/20" />
-
-      {/* REMOVE heavy blur + shadow = faster */}
-      <div className="absolute right-[7%] top-[10%] hidden xl:block w-[200px] rotate-[4deg] pointer-events-none">
-        <div className="border border-black/10 bg-white/90 px-4 py-3">
-          <p className="font-serif text-[0.85rem] text-[#3C3326]">
-            Before it’s forgotten.
-          </p>
-        </div>
-      </div>
-
-      <div className="absolute left-[7%] bottom-[9%] hidden 2xl:block w-[210px] -rotate-[3deg] pointer-events-none">
-        <div className="border border-black/10 bg-white/70 px-4 py-3">
-          <p className="font-serif italic text-[0.9rem] text-[#403629]">
-            "This was never just about storage."
-          </p>
-        </div>
-      </div>
-
+      {/* Soft fade into content pane — reduced */}
+      <div className="absolute inset-y-0 left-0 w-24 hidden lg:block pointer-events-none bg-gradient-to-r from-[#f7f2e9]/70 to-transparent" />
     </div>
   );
 }
@@ -56,7 +29,7 @@ function HeroVisual() {
 function HeroContentDesktop() {
   return (
     <div className="hc-pane relative flex flex-col justify-center h-full w-full overflow-hidden bg-[rgb(250,245,235)]">
-     <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(243,217,155,0.15),transparent_40%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(243,217,155,0.15),transparent_40%)]" />
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(255,255,255,0.25)' }} />
       <div
         className="absolute inset-0 pointer-events-none"
@@ -70,32 +43,62 @@ function HeroContentDesktop() {
       />
 
       <div className="hc-inner relative z-10 w-full">
+        {/* Overline */}
         <div className="hc-overline flex items-center gap-3 mb-6">
-          
           <div className="h-px w-5 flex-shrink-0 bg-[#B8932A]" />
-          <p className="hc-overline-text font-serif uppercase text-[#B8932A]" style={{ letterSpacing: '0.26em', fontWeight: 700 }}>
+          <p
+            className="hc-overline-text font-serif uppercase text-[#B8932A]"
+            style={{ letterSpacing: '0.26em', fontWeight: 700 }}
+          >
             Your Family Library
           </p>
         </div>
 
-        <h1 className="hc-h1 font-serif font-bold text-[#1A1612]" style={{ lineHeight: 0.92, letterSpacing: '-0.03em' }}>
+        {/* Headline */}
+        <h1
+          className="hc-h1 font-serif font-bold text-[#1A1612]"
+          style={{ lineHeight: 0.92, letterSpacing: '-0.03em' }}
+        >
           Some things
           <br />
-          <em style={{ color: '#B8932A', fontStyle: 'italic' }}>a photo can't hold.</em>
+          <em style={{ color: '#B8932A', fontStyle: 'italic' }}>
+            a photo can&apos;t hold.
+          </em>
         </h1>
 
-        <div className="hc-rule" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.85), transparent)' }} />
+        {/* Gold rule */}
+        <div
+          className="hc-rule"
+          style={{
+            height: '1px',
+            background:
+              'linear-gradient(to right, rgba(184,147,42,0.85), transparent)',
+          }}
+        />
 
-        
-        <p className="hc-sub font-serif text-[#3D3526]" style={{ lineHeight: 1.7 }}>
-  Because one day, you won’t be able to ask again.{' '}
-  <span style={{ color: '#B8932A' }}>Not everything belongs in a camera roll.</span>
-</p>
+        {/* Sub copy — warm, human, alive */}
+        <p
+          className="hc-sub font-serif text-[#3D3526]"
+          style={{ lineHeight: 1.7 }}
+        >
+          Photos sit on phones. Stories stay in your head. Voices fade.
+          This is where your family{' '}
+          <span style={{ color: '#B8932A' }}>
+            keeps all of it&nbsp;&mdash; together and growing.
+          </span>
+        </p>
 
+        {/* Numbered bullets */}
         <ul className="mt-7 space-y-0">
           {bulletItems.map((item, index) => (
-            <li key={item} className="hc-li flex items-start gap-4 border-b border-[rgba(95,78,43,0.08)] font-serif text-[#4A4030]">
-              <span className="hc-num flex-shrink-0 text-[#B8932A] mt-[0.15em]" style={{ letterSpacing: '0.08em', minWidth: '1.6rem' }}>
+            <li
+              key={item}
+              className="hc-li flex items-start gap-4 border-b border-[rgba(95,78,43,0.08)] font-serif text-[#4A4030]"
+            >
+              <span
+                className="hc-num flex-shrink-0 text-[#B8932A] mt-[0.15em]"
+                style={{ letterSpacing: '0.08em', minWidth: '1.6rem' }}
+              >
                 0{index + 1}
               </span>
               <span className="leading-relaxed">{item}</span>
@@ -103,22 +106,38 @@ function HeroContentDesktop() {
           ))}
         </ul>
 
+        {/* CTAs */}
         <div className="hc-btns mt-10 flex flex-col sm:flex-row items-start gap-3">
           <Button
             onClick={() => (window.location.href = '/signup')}
             className="rounded-none border-none shadow-none font-serif font-semibold text-[#FAF5EB] hover:opacity-90 active:scale-[0.98] transition-all duration-200"
-            style={{ background: 'linear-gradient(135deg, #1A1612 0%, #2E2820 100%)', letterSpacing: '0.1em' }}
+            style={{
+              background: 'linear-gradient(135deg, #1A1612 0%, #2E2820 100%)',
+              letterSpacing: '0.1em',
+            }}
           >
             START FOR FREE →
           </Button>
           <Button
             onClick={() => (window.location.href = '/pricing')}
             className="rounded-none bg-transparent shadow-none font-serif font-normal hover:bg-[#1A1612]/5 transition-all duration-200"
-            style={{ color: '#4A4030', border: '1px solid rgba(74,64,48,0.32)', letterSpacing: '0.08em' }}
+            style={{
+              color: '#4A4030',
+              border: '1px solid rgba(74,64,48,0.32)',
+              letterSpacing: '0.08em',
+            }}
           >
             SEE PRICING
           </Button>
         </div>
+
+        {/* Trust line */}
+        <p
+          className="mt-3 font-serif"
+          style={{ fontSize: '0.72rem', color: 'rgba(0, 0, 0, 0.5)', letterSpacing: '0.10em' }}
+        >
+          Free forever · No credit card · Takes 2 minutes
+        </p>
       </div>
     </div>
   );
@@ -128,52 +147,98 @@ function HeroContentDesktop() {
 function MobileHero() {
   return (
     <div className="lg:hidden flex flex-col">
-      <div className="relative w-full overflow-hidden" style={{ height: '56vw', minHeight: '240px', maxHeight: '340px' }}>
-        <Image
-          src="/hero.png"
-          alt="Family memory"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover scale-[1.02]"
-          style={{ objectPosition: '50% 14%' }}
+      {/* Image band — minimal overlay so the book is visible */}
+      <div
+        className="relative w-full overflow-hidden"
+        style={{ height: '56vw', minHeight: '240px', maxHeight: '340px' }}
+      >
+        <img
+          src="/Hero1.png"
+          alt="A couple sitting together on their sofa, smiling as they look through their Ancestorii Memory Book"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: '50% 20%' }}
         />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 52%, rgba(250,245,235,0.94) 100%)' }} />
-        <div className="absolute right-4 top-4 max-w-[220px]">
-          <div className="border border-[rgba(95,78,43,0.10)] bg-[rgba(255,251,244,0.76)] backdrop-blur-[8px] px-4 py-3 shadow-[0_14px_36px_rgba(62,43,18,0.08)]">
-            <p className="font-serif text-[0.86rem] leading-relaxed text-[#3E3427]">Before it’s forgotten.</p>
-          </div>
-        </div>
       </div>
 
+      {/* Content */}
       <div className="relative overflow-hidden bg-[rgb(250,245,235)]">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(243,217,155,0.15),transparent_40%)]" />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(255,255,255,0.25)' }} />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'rgba(255,255,255,0.25)' }}
+        />
 
         <div className="relative z-10 px-6 pt-7 pb-10">
+          {/* Overline */}
           <div className="flex items-center gap-2.5 mb-5">
             <div className="h-px w-4 bg-[#B8932A]" />
-            <p className="font-serif uppercase text-[#B8932A]" style={{ fontSize: '0.62rem', letterSpacing: '0.26em', fontWeight: 700 }}>
+            <p
+              className="font-serif uppercase text-[#B8932A]"
+              style={{
+                fontSize: '0.62rem',
+                letterSpacing: '0.26em',
+                fontWeight: 700,
+              }}
+            >
               Your Family Library
             </p>
           </div>
 
-          <h1 className="font-serif font-bold text-[#1A1612]" style={{ fontSize: 'clamp(2.6rem, 9vw, 3.4rem)', lineHeight: 0.9, letterSpacing: '-0.03em' }}>
-            Some things<br />
-            <em style={{ color: '#B8932A', fontStyle: 'italic' }}>a photo can't hold.</em>
+          {/* Headline */}
+          <h1
+            className="font-serif font-bold text-[#1A1612]"
+            style={{
+              fontSize: 'clamp(2.6rem, 9vw, 3.4rem)',
+              lineHeight: 0.9,
+              letterSpacing: '-0.03em',
+            }}
+          >
+            Some things
+            <br />
+            <em style={{ color: '#B8932A', fontStyle: 'italic' }}>
+              a photo can&apos;t hold.
+            </em>
           </h1>
 
-          <div className="mt-6 mb-6" style={{ height: '1px', width: '12rem', background: 'linear-gradient(to right, rgba(184,147,42,0.85), transparent)' }} />
+          {/* Gold rule */}
+          <div
+            className="mt-6 mb-6"
+            style={{
+              height: '1px',
+              width: '12rem',
+              background:
+                'linear-gradient(to right, rgba(184,147,42,0.85), transparent)',
+            }}
+          />
 
-          <p className="font-serif text-[#3D3526] mb-6" style={{ fontSize: '1rem', lineHeight: 1.7 }}>
-  Because one day, you won’t be able to ask again.{' '}
-  <span style={{ color: '#B8932A' }}>Not everything belongs in a camera roll.</span>
-</p>
+          {/* Sub copy */}
+          <p
+            className="font-serif text-[#3D3526] mb-6"
+            style={{ fontSize: '1rem', lineHeight: 1.7 }}
+          >
+            Photos sit on phones. Stories stay in your head. Voices fade.
+            This is where your family{' '}
+            <span style={{ color: '#B8932A' }}>
+              keeps all of it&nbsp;&mdash; together and growing.
+            </span>
+          </p>
 
+          {/* Bullets */}
           <ul className="space-y-0 mb-8">
             {bulletItems.map((item, index) => (
-              <li key={item} className="flex items-start gap-3.5 py-3 border-b border-[rgba(95,78,43,0.08)] font-serif text-[#4A4030]" style={{ fontSize: '0.95rem' }}>
-                <span className="flex-shrink-0 text-[#B8932A]" style={{ fontSize: '0.82rem', letterSpacing: '0.1em', fontWeight: 600 }}>
+              <li
+                key={item}
+                className="flex items-start gap-3.5 py-3 border-b border-[rgba(95,78,43,0.08)] font-serif text-[#4A4030]"
+                style={{ fontSize: '0.95rem' }}
+              >
+                <span
+                  className="flex-shrink-0 text-[#B8932A]"
+                  style={{
+                    fontSize: '0.82rem',
+                    letterSpacing: '0.1em',
+                    fontWeight: 600,
+                  }}
+                >
                   0{index + 1}
                 </span>
                 <span>{item}</span>
@@ -181,14 +246,41 @@ function MobileHero() {
             ))}
           </ul>
 
+          {/* CTAs */}
           <div className="flex flex-col gap-2.5">
-            <Button onClick={() => (window.location.href = '/signup')} className="w-full rounded-none border-none shadow-none font-serif font-semibold text-[#FAF5EB] py-3.5" style={{ background: 'linear-gradient(135deg, #1A1612 0%, #2E2820 100%)', fontSize: '0.74rem', letterSpacing: '0.1em' }}>
+            <Button
+              onClick={() => (window.location.href = '/signup')}
+              className="w-full rounded-none border-none shadow-none font-serif font-semibold text-[#FAF5EB] py-3.5"
+              style={{
+                background:
+                  'linear-gradient(135deg, #1A1612 0%, #2E2820 100%)',
+                fontSize: '0.74rem',
+                letterSpacing: '0.1em',
+              }}
+            >
               START FOR FREE →
             </Button>
-            <Button onClick={() => (window.location.href = '/pricing')} className="w-full rounded-none bg-transparent shadow-none font-serif font-normal py-3.5" style={{ color: '#4A4030', border: '1px solid rgba(74,64,48,0.32)', fontSize: '0.74rem', letterSpacing: '0.08em' }}>
+            <Button
+              onClick={() => (window.location.href = '/pricing')}
+              className="w-full rounded-none bg-transparent shadow-none font-serif font-normal py-3.5"
+              style={{
+                color: '#4A4030',
+                border: '1px solid rgba(74,64,48,0.32)',
+                fontSize: '0.74rem',
+                letterSpacing: '0.08em',
+              }}
+            >
               SEE PRICING
             </Button>
           </div>
+
+          {/* Trust line */}
+          <p
+            className="mt-3 text-center font-serif"
+            style={{ fontSize: '0.68rem', color: 'rgba(0, 0, 0, 0.5)', letterSpacing: '0.04em' }}
+          >
+            Free forever · No credit card · Takes 2 minutes
+          </p>
         </div>
       </div>
     </div>
@@ -201,8 +293,25 @@ function DesktopFootnote() {
     <div className="absolute bottom-5 right-14 hidden lg:flex items-center gap-4 pointer-events-none select-none">
       {['Private', 'Personal', 'Preserved'].map((word, i) => (
         <span key={word} className="flex items-center gap-4">
-          {i > 0 && <span style={{ color: 'rgba(74,64,48,0.22)', fontSize: '0.4rem' }}>●</span>}
-          <span className="font-serif uppercase" style={{ fontSize: '0.7rem', letterSpacing: '0.26em', color: 'rgba(26,22,18,0.9)', fontWeight: 600, background: 'rgba(255,255,255,0.75)', padding: '0.25rem 0.6rem', backdropFilter: 'blur(4px)' }}>
+          {i > 0 && (
+            <span
+              style={{ color: 'rgba(74,64,48,0.22)', fontSize: '0.4rem' }}
+            >
+              ●
+            </span>
+          )}
+          <span
+            className="font-serif uppercase"
+            style={{
+              fontSize: '0.7rem',
+              letterSpacing: '0.26em',
+              color: 'rgba(26,22,18,0.9)',
+              fontWeight: 600,
+              background: 'rgba(255,255,255,0.75)',
+              padding: '0.25rem 0.6rem',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
             {word}
           </span>
         </span>
@@ -214,8 +323,11 @@ function DesktopFootnote() {
 /* ─── HERO SHELL ────────────────────────────────────── */
 export default function Hero() {
   return (
-    <section id="hero" className="relative w-full overflow-hidden bg-[rgb(247,242,233)]" style={{ minHeight: '560px' }}>
-
+    <section
+      id="hero"
+      className="relative w-full overflow-hidden bg-[rgb(247,242,233)]"
+      style={{ minHeight: '560px' }}
+    >
       <style>{`
         /* ── LAPTOP  lg: 1024px ── */
         .hc-pane        { padding: 48px 40px; }
@@ -298,9 +410,13 @@ export default function Hero() {
 
       <DesktopFootnote />
 
+      {/* Gold baseline */}
       <div
         className="absolute bottom-0 left-0 w-full h-[5px] z-20"
-        style={{ background: 'linear-gradient(to right, rgba(227,179,65,1), rgba(227,179,65,0.7))' }}
+        style={{
+          background:
+            'linear-gradient(to right, rgba(227,179,65,1), rgba(227,179,65,0.7))',
+        }}
       />
     </section>
   );

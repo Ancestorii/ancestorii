@@ -12,10 +12,12 @@ import NavItem from '@/components/dashboard/NavItem';
 import {
   Home,
   User as UserIcon,
+  Users,
   X,
   ChevronDown,
   LogOut,
 } from 'lucide-react';
+import Image from 'next/image';
 
 type SidebarContentProps = {
   closeDrawer: () => void;
@@ -115,11 +117,24 @@ export default function SidebarContent({
               className="flex w-full items-center gap-3"
             >
               <div
-                className="flex h-[48px] w-[48px] flex-shrink-0 items-center justify-center rounded-full bg-[#FBF3E0]"
-                style={{ border: '2px solid #FFFFFF', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
-              >
-                <UserIcon className="h-5 w-5 text-[#C8A557]" />
-              </div>
+  className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#D4AF37]/40 bg-white"
+>
+  {avatarUrl ? (
+  <div className="relative h-full w-full">
+    <Image
+      src={avatarUrl}
+      alt="Avatar"
+      fill
+      sizes="96px"
+      quality={90}
+      className="object-cover"
+      priority
+    />
+  </div>
+) : (
+  <UserIcon className="h-5 w-5 text-[#C8A557]" />
+)}
+</div>
               <div className="min-w-0 flex-1 text-left">
                 <p className="line-clamp-2 text-[16px] leading-tight text-[#111827]" style={{ fontWeight: 600 }}>
                   {familyName}
@@ -161,9 +176,10 @@ export default function SidebarContent({
         </div>
 
         {/* ─── NAVIGATION ─── */}
-        <nav className="flex-1 overflow-y-auto px-[12px] pt-[28px] pb-4" data-lenis-prevent>
+        <nav className="flex-1 overflow-y-auto px-[12px] pt-[28px] pb-4 sidebar-scroll" data-lenis-prevent>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem href="/dashboard/home" label="Home" Icon={Home} onClick={closeDrawer} />
+            <NavItem href="/dashboard/our-family" label="Our Family" Icon={Users} onClick={closeDrawer} />
 
             {sections.map((section) => {
               const isOpen = openSection === section.key;

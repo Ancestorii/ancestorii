@@ -93,13 +93,6 @@ export default function Nav() {
                 );
               })}
 
-              <button
-                onClick={() => setIsVideoOpen(true)}
-                className="relative font-serif text-[1.15rem] tracking-wide px-2 whitespace-nowrap"
-              >
-                Watch Demo
-              </button>
-
             </nav>
 
             {/* ACTION BUTTONS */}
@@ -167,16 +160,6 @@ export default function Nav() {
                     {link.label}
                   </Link>
                 ))}
-
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    setIsVideoOpen(true);
-                  }}
-                  className="block w-full text-left"
-                >
-                  Watch Demo
-                </button>
 
                 <div className="pt-6 border-t border-[#E3B341] space-y-5">
 
