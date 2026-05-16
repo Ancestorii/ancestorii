@@ -243,7 +243,7 @@ export async function POST(req: NextRequest) {
     // 6. Build prompt and call Claude
     const userPrompt = buildPrompt(type as AssistType, context);
     const maxTokens = getMaxTokens(type as AssistType);
-    const model = 'claude-sonnet-4-6-20250520';
+    const model = 'claude-sonnet-4-6';
     const startTime = Date.now();
 
     const response = await fetch(ANTHROPIC_API_URL, {

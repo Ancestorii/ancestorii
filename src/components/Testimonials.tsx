@@ -2,6 +2,12 @@
 
 const testimonials = [
   {
+    name: 'Alison',
+    location: 'Nevada, United States',
+    quote: 'I walked past my dad\u2019s room and caught him looking through his memory book again. That\u2019s the third time this week. Ancestorii helped me turn years of photos into something he genuinely treasures.',
+    image: '/Testimonial2.png',
+  },
+  {
     name: 'Nicole',
     location: 'Nampa, United States',
     quote: 'In my case, I have external hard drives full of photos I never get to see, but Ancestorii finally gave those memories a place where they can be easily enjoyed and shared.',
@@ -89,7 +95,6 @@ export default function Testimonials() {
             ))}
           </div>
 
-          {/* Swipe indicator — prominent */}
           <p
             className="text-center font-sans text-[#B8932A] mt-5"
             style={{ fontSize: '0.82rem', letterSpacing: '0.08em', fontWeight: 700 }}
@@ -98,13 +103,8 @@ export default function Testimonials() {
           </p>
         </div>
 
-        {/* ── DESKTOP: grid ── */}
-        <div
-          className="hidden lg:grid gap-8 xl:gap-10"
-          style={{
-            gridTemplateColumns: `repeat(${testimonials.length}, minmax(0, 1fr))`,
-          }}
-        >
+        {/* ── DESKTOP: 3-column vertical cards ── */}
+        <div className="hidden lg:grid grid-cols-3 gap-7 xl:gap-9">
           {testimonials.map((t) => (
             <DesktopCard key={t.name} testimonial={t} />
           ))}
@@ -128,7 +128,7 @@ export default function Testimonials() {
   );
 }
 
-/* ─── MOBILE CARD — fixed height so all cards match ─── */
+/* ─── MOBILE CARD ─── */
 function MobileCard({
   testimonial,
 }: {
@@ -139,10 +139,9 @@ function MobileCard({
       className="overflow-hidden flex flex-col"
       style={{
         border: '1px solid rgba(184,147,42,0.15)',
-        height: '460px',
+        height: '520px',
       }}
     >
-      {/* Photo — fixed height */}
       <div className="relative w-full h-[220px] flex-shrink-0">
         <img
           src={testimonial.image}
@@ -152,7 +151,6 @@ function MobileCard({
         />
       </div>
 
-      {/* Golden quote card — fills remaining space */}
       <div
         className="flex flex-col justify-between flex-1 p-5"
         style={{ background: 'linear-gradient(160deg, #F5EDDA 0%, #EDE3CB 100%)' }}
@@ -194,7 +192,7 @@ function MobileCard({
   );
 }
 
-/* ─── DESKTOP CARD ─── */
+/* ─── DESKTOP CARD — vertical layout for 3 columns ─── */
 function DesktopCard({
   testimonial,
 }: {
@@ -202,83 +200,83 @@ function DesktopCard({
 }) {
   return (
     <div
-      className="overflow-hidden"
+      className="overflow-hidden flex flex-col"
       style={{
         border: '1px solid rgba(184,147,42,0.12)',
         boxShadow: '0 20px 60px rgba(42,31,17,0.06)',
-        height: '480px',
       }}
     >
-      <div className="grid grid-cols-2 h-full">
-        {/* Photo */}
-        <div className="relative overflow-hidden h-full">
-          <img
-            src={testimonial.image}
-            alt={`${testimonial.name} with their Ancestorii Memory Book`}
-            className="absolute inset-0 w-full h-full object-cover brightness-[0.92] contrast-[1.05]"
-            style={{ objectPosition: '50% 15%' }}
-          />
+      {/* Photo */}
+      <div className="relative w-full ts-photo-height flex-shrink-0">
+        <img
+          src={testimonial.image}
+          alt={`${testimonial.name} with their Ancestorii Memory Book`}
+          className="absolute inset-0 w-full h-full object-cover brightness-[0.92] contrast-[1.05]"
+          style={{ objectPosition: '50% 15%' }}
+        />
+      </div>
+
+      {/* Quote */}
+      <div
+        className="relative flex flex-col justify-between flex-1 ts-quote-pad"
+        style={{ background: 'linear-gradient(160deg, #F5EDDA 0%, #EDE3CB 100%)' }}
+      >
+        <div
+          className="absolute -left-3 -top-6 font-serif text-[#B8932A] opacity-10 select-none pointer-events-none"
+          style={{ fontSize: '6rem', lineHeight: 0.7 }}
+        >
+          &ldquo;
         </div>
 
-        {/* Golden quote card */}
-        <div
-          className="relative flex flex-col justify-between h-full ts-quote-pad"
-          style={{ background: 'linear-gradient(160deg, #F5EDDA 0%, #EDE3CB 100%)' }}
-        >
-          <div
-            className="absolute -left-3 -top-6 font-serif text-[#B8932A] opacity-10 select-none pointer-events-none"
-            style={{ fontSize: '8rem', lineHeight: 0.7 }}
+        <div className="relative z-10">
+          <svg
+            width="24"
+            height="18"
+            viewBox="0 0 32 24"
+            fill="#B8932A"
+            className="mb-4 opacity-35"
           >
-            &ldquo;
-          </div>
+            <path d="M0 24V14.4C0 6.08 4.48 1.12 13.44 0l1.28 3.2C9.28 4.48 7.04 8 6.72 12H12v12H0zm18.56 0V14.4C18.56 6.08 23.04 1.12 32 0l1.28 3.2c-5.44 1.28-7.68 4.8-8 8.8h5.28v12H18.56z" />
+          </svg>
+          <blockquote
+            className="ts-quote-text font-serif text-[#000] italic"
+            style={{ letterSpacing: '-0.01em' }}
+          >
+            {testimonial.quote}
+          </blockquote>
+        </div>
 
-          <div className="relative z-10">
-            <svg
-              width="28"
-              height="20"
-              viewBox="0 0 32 24"
-              fill="#B8932A"
-              className="mb-4 opacity-35"
-            >
-              <path d="M0 24V14.4C0 6.08 4.48 1.12 13.44 0l1.28 3.2C9.28 4.48 7.04 8 6.72 12H12v12H0zm18.56 0V14.4C18.56 6.08 23.04 1.12 32 0l1.28 3.2c-5.44 1.28-7.68 4.8-8 8.8h5.28v12H18.56z" />
-            </svg>
-            <blockquote
-              className="ts-quote-text font-serif text-[#000] italic"
-              style={{ letterSpacing: '-0.01em' }}
-            >
-              {testimonial.quote}
-            </blockquote>
-          </div>
-
-          <div className="mt-6 pt-5" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-            <p
-              className="font-sans text-[#000] uppercase"
-              style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.16em' }}
-            >
-              {testimonial.name}
-            </p>
-            <p
-              className="font-sans text-[#B8932A] mt-1 uppercase"
-              style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em' }}
-            >
-              {testimonial.location}
-            </p>
-          </div>
+        <div className="mt-6 pt-5" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+          <p
+            className="font-sans text-[#000] uppercase"
+            style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.16em' }}
+          >
+            {testimonial.name}
+          </p>
+          <p
+            className="font-sans text-[#B8932A] mt-1 uppercase"
+            style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em' }}
+          >
+            {testimonial.location}
+          </p>
         </div>
       </div>
 
       <style>{`
-        .ts-quote-pad    { padding: 32px 28px; }
-        .ts-quote-text   { font-size: 1.15rem; line-height: 1.5; }
+        .ts-photo-height { height: 300px; }
+        .ts-quote-pad    { padding: 28px 24px; }
+        .ts-quote-text   { font-size: 1.05rem; line-height: 1.55; }
 
         @media (min-width: 1280px) {
-          .ts-quote-pad    { padding: 40px 36px; }
-          .ts-quote-text   { font-size: 1.25rem; line-height: 1.45; }
+          .ts-photo-height { height: 340px; }
+          .ts-quote-pad    { padding: 32px 30px; }
+          .ts-quote-text   { font-size: 1.12rem; line-height: 1.5; }
         }
 
         @media (min-width: 1536px) {
-          .ts-quote-pad    { padding: 48px 42px; }
-          .ts-quote-text   { font-size: 1.35rem; line-height: 1.45; }
+          .ts-photo-height { height: 380px; }
+          .ts-quote-pad    { padding: 38px 36px; }
+          .ts-quote-text   { font-size: 1.2rem; line-height: 1.5; }
         }
       `}</style>
     </div>
