@@ -160,7 +160,7 @@ export default function ActionHub({
           onClick={() => setShowInviteModal(false)}
         >
           <div
-            className="w-full max-w-[480px] rounded-[20px] bg-white shadow-[0_24px_60px_rgba(22,18,12,0.25)] overflow-hidden"
+            className="w-full max-w-[480px] max-h-[90vh] overflow-y-auto rounded-[20px] bg-white shadow-[0_24px_60px_rgba(22,18,12,0.25)]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
