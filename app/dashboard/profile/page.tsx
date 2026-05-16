@@ -12,6 +12,7 @@ import {
   Calendar,
   User as UserIcon,
   Shield,
+  Feather,
 } from 'lucide-react';
 
 type Profile = {
@@ -24,6 +25,7 @@ type Profile = {
   location?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  writing_assistance_enabled?: boolean;
 };
 
 export default function ProfilePage() {
@@ -122,17 +124,18 @@ export default function ProfilePage() {
     setSaving(true);
 
     const { error: upErr } = await supabase
-      .from('Profiles')
-      .update({
-        full_name: profile.full_name,
-        dob: profile.dob,
-        profile_image_url: profile.profile_image_url,
-        bio: profile.bio,
-        phone: profile.phone,
-        location: profile.location,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', userId);
+  .from('Profiles')
+  .update({
+    full_name: profile.full_name,
+    dob: profile.dob,
+    profile_image_url: profile.profile_image_url,
+    bio: profile.bio,
+    phone: profile.phone,
+    location: profile.location,
+    writing_assistance_enabled: profile.writing_assistance_enabled,
+    updated_at: new Date().toISOString(),
+  })
+  .eq('id', userId);
 
     if (upErr) setError(upErr.message);
     else {
@@ -432,6 +435,74 @@ export default function ProfilePage() {
               className="w-full rounded-[12px] border border-[#DCC7A4] bg-white px-5 py-4 text-[15px] leading-[1.8] text-[#2C241B] outline-none transition placeholder:text-[#9B8E7D] focus:border-[#C8A557] resize-y"
               style={{ minHeight: '160px' }}
             />
+          </div>
+
+          {/* ── Preferences ── */}
+          <div className="mt-10">
+            <div className="mb-5 flex items-end justify-between">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#6F6255]">
+                  Preferences
+                </p>
+                <h3 className="mt-2 font-serif text-[28px] leading-[1.1] tracking-[-0.03em] text-[#17120E]">
+                  How you{' '}
+                  <em className="italic text-[#A9782F]">use Ancestorii</em>
+                </h3>
+              </div>
+              <p className="hidden sm:block text-[14px] text-[#7D6F5F] text-right">
+                Saves with the button below.
+              </p>
+            </div>
+
+            <div
+              className="rounded-[20px] border bg-[#FFFDF9] px-5 py-6 sm:px-8 sm:py-8 shadow-[0_14px_36px_rgba(44,36,27,0.05)]"
+              style={{ borderColor: '#EAD8B8' }}
+            >
+              <div className="flex items-start justify-between gap-4 sm:gap-6">
+                <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+                  <div className="flex h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded-[10px] bg-[#F5EDD8] text-[#A9782F] mt-0.5">
+                    <Feather size={18} strokeWidth={1.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[15px] sm:text-[16px] font-semibold text-[#17120E]">
+                      Writing Suggestions
+                    </p>
+                    <p className="mt-1.5 text-[12px] sm:text-[13px] leading-[1.6] text-[#6F6255]">
+                      Get gentle help finding the right words when writing about your
+                      loved ones. You can always edit or ignore any suggestion.
+                    </p>
+                    <p className="mt-2 text-[11px] sm:text-[12px] text-[#9B8E7D]">
+                      {profile?.writing_assistance_enabled !== false
+                        ? 'Currently on — suggestions will appear across your library.'
+                        : 'Currently off — no suggestions will be shown.'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() =>
+                    setProfile((p) =>
+                      p
+                        ? { ...p, writing_assistance_enabled: !p.writing_assistance_enabled }
+                        : p
+                    )
+                  }
+                  className={`relative mt-1 h-[26px] w-[48px] flex-shrink-0 rounded-full transition-colors ${
+                    profile?.writing_assistance_enabled !== false
+                      ? 'bg-[#C8A557]'
+                      : 'bg-[#D5CFCA]'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-[3px] left-[3px] h-[20px] w-[20px] rounded-full bg-white shadow-sm transition-transform ${
+                      profile?.writing_assistance_enabled !== false
+                        ? 'translate-x-[22px]'
+                        : ''
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* ── Save bar ── */}

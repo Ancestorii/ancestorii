@@ -15,6 +15,7 @@ import {
   X,
   Heart,
 } from "lucide-react";
+import AssistButton from "@/components/ui/AssistButton";
 import "quill/dist/quill.snow.css";
 
 type StoryKey =
@@ -25,6 +26,10 @@ type StoryKey =
 
 type FamilyMember = {
   id: string;
+  full_name?: string | null;
+  birth_date?: string | null;
+  death_date?: string | null;
+  relationship_to_user?: string | null;
   early_years?: string | null;
   important_moments?: string | null;
   special_memories?: string | null;
@@ -365,23 +370,27 @@ export default function StorySection({
           {SECTION_CONFIG.map((section, index) => {
             return (
               <StoryEditorCard
-                key={section.key}
-                memberId={member.id}
-                section={section}
-                onSave={() => saveAll()}
-                htmlValue={content[section.key]}
-                imageUrl={imageUrls[section.key]}
-                isUploading={uploadingKey === section.key}
-                onHtmlChange={(nextHtml) => {
-                  setContent((prev) => ({
-                    ...prev,
-                    [section.key]: nextHtml,
-                  }));
-                }}
-                onUploadImage={(file) => uploadStoryImage(file, section.key)}
-                onRemoveImage={() => removeStoryImage(section.key)}
-                index={index}
-              />
+  key={section.key}
+  memberId={member.id}
+  memberName={member.full_name || firstName}
+  memberBorn={member.birth_date || undefined}
+  memberDied={member.death_date || undefined}
+  memberRelationship={member.relationship_to_user || undefined}
+  section={section}
+  onSave={() => saveAll()}
+  htmlValue={content[section.key]}
+  imageUrl={imageUrls[section.key]}
+  isUploading={uploadingKey === section.key}
+  onHtmlChange={(nextHtml) => {
+    setContent((prev) => ({
+      ...prev,
+      [section.key]: nextHtml,
+    }));
+  }}
+  onUploadImage={(file) => uploadStoryImage(file, section.key)}
+  onRemoveImage={() => removeStoryImage(section.key)}
+  index={index}
+/>
             );
           })}
         </div>
@@ -400,8 +409,16 @@ function StoryEditorCard({
   onRemoveImage,
   index,
   onSave,
+  memberName,
+  memberBorn,
+  memberDied,
+  memberRelationship,
 }: {
   memberId: string;
+  memberName: string;
+  memberBorn?: string;
+  memberDied?: string;
+  memberRelationship?: string;
   section: SectionConfig;
   htmlValue: string;
   imageUrl: string | null;
@@ -561,6 +578,30 @@ const styles = accentStyles[section.accent];
     </div>
   ))}
 </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 px-1">
+                  <AssistButton
+                    type={`loved-one-${section.key.replace(/_/g, '-')}` as any}
+                    context={{
+                      name: memberName,
+                      relationship: memberRelationship,
+                      born: memberBorn,
+                      died: memberDied,
+                      existing_text: stripHtml(htmlValue).trim() || undefined,
+                    }}
+                    label={stripHtml(htmlValue).trim() ? "Help me continue" : "Help me find the words"}
+                    onUseSuggestion={(text) => {
+                      if (quill) {
+                        const len = quill.getLength();
+                        if (len <= 1) {
+                          quill.setText(text);
+                        } else {
+                          quill.insertText(len - 1, '\n\n' + text);
+                        }
+                      }
+                    }}
+                  />
                 </div>
 
                 <div className="border border-[#e6dcc8] bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
