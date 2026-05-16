@@ -109,7 +109,10 @@ useEffect(() => {
       const user = (await supabase.auth.getUser()).data.user;
 if (!user) throw new Error('User not authenticated.');
 
-const processedFile = file.type.startsWith('image/') ? await ensureDisplayableImage(file) : file;  // ← add
+const processedFile =
+  file.type.startsWith('image/') || file.name.toLowerCase().match(/\.(heic|heif)$/)
+    ? await ensureDisplayableImage(file)
+    : file;
 
 const ext = processedFile.name.split('.').pop();  // ← processedFile from here down
 const fileType = processedFile.type.startsWith('video')

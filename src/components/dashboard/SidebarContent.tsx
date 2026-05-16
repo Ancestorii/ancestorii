@@ -92,7 +92,9 @@ export default function SidebarContent({
     handleLogout();
   };
 
-  const storagePct = maxStorage > 0 ? Math.min(100, Math.max(0, Math.round((usedStorage / maxStorage) * 100))) : 0;
+  const storagePct = maxStorage > 0
+  ? Math.min(100, Math.max(usedStorage > 0 ? 1 : 0, Math.round((usedStorage / maxStorage) * 100)))
+  : 0;
 
   return (
     <>

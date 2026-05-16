@@ -6,6 +6,7 @@ import {
   Package,
   Image as ImageIcon,
   Upload,
+  Calendar,
 } from 'lucide-react';
 
 export default function ActivitySection({
@@ -74,7 +75,7 @@ function getActivityMeta(id: string) {
   if (id.startsWith('family-'))
     return { icon: <Users className="h-4 w-4 text-[#A9782F]" strokeWidth={1.6} />, bg: '#F5EDD8' };
   if (id.startsWith('timeline-'))
-    return { icon: <Clock className="h-4 w-4 text-[#8B7355]" strokeWidth={1.6} />, bg: '#F0E8D8' };
+    return { icon: <Calendar className="h-4 w-4 text-[#8B7355]" strokeWidth={1.6} />, bg: '#F0E8D8' };
   if (id.startsWith('capsule-'))
     return { icon: <Package className="h-4 w-4 text-[#A06A1C]" strokeWidth={1.6} />, bg: '#FEF3C7' };
   if (id.startsWith('album-'))

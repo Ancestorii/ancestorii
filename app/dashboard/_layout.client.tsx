@@ -152,6 +152,20 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
         new Date(sub.current_period_end) > new Date());
 
     setPlanName(isPremium ? 'Premium' : 'Free');
+
+    if (matchedPlan?.max_storage) {
+      setMaxStorage(matchedPlan.max_storage);
+    }
+
+    const { data: storageRow } = await supabase
+      .from('storage_usage')
+      .select('used_bytes')
+      .eq('user_id', uid)
+      .maybeSingle();
+
+    if (storageRow?.used_bytes) {
+      setUsedStorage(storageRow.used_bytes);
+    }
     // Fetch family data
     const { data: membership } = await supabase
       .from('family_memberships')
@@ -190,6 +204,24 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     window.addEventListener('dashboard-data-changed', handler);
     return () => window.removeEventListener('dashboard-data-changed', handler);
   }, [loadDashboardCounts]);
+
+  useEffect(() => {
+    const handleFamilyRename = (e: Event) => {
+      const name = (e as CustomEvent).detail;
+      if (name) setFamilyName(name);
+    };
+    window.addEventListener('family-name-updated', handleFamilyRename);
+    return () => window.removeEventListener('family-name-updated', handleFamilyRename);
+  }, []);
+
+  useEffect(() => {
+    const handleMemberCount = (e: Event) => {
+      const count = (e as CustomEvent).detail;
+      if (count) setFamilyMemberCount(count);
+    };
+    window.addEventListener('family-members-updated', handleMemberCount);
+    return () => window.removeEventListener('family-members-updated', handleMemberCount);
+  }, []);
 
   const scrolledRef = useRef(false);
   const rafRef = useRef<number | null>(null);
@@ -232,30 +264,18 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     if (!userId) return;
 
     (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-      if (!user) return;
-
-      const { data: verification } = await supabase
-        .from('email_verifications')
-        .select('used_at')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (verification?.used_at) return;
-
-      const { data: existing } = await supabase
+      const { data: welcomeExists } = await supabase
         .from('notifications')
         .select('id')
-        .eq('user_id', user.id)
-        .eq('title', 'Verify your email')
+        .eq('user_id', userId)
+        .eq('title', 'Welcome to Ancestorii')
         .maybeSingle();
 
-      if (!existing) {
+      if (!welcomeExists) {
         await supabase.from('notifications').insert({
-          user_id: user.id,
-          title: 'Verify your email',
-          content: 'Please confirm your email address to unlock all features.',
+          user_id: userId,
+          title: 'Welcome to Ancestorii',
+          content: 'Start by adding a loved one, then build their timeline with the moments that matter most.',
           read: false,
         });
       }

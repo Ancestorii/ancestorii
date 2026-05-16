@@ -1,6 +1,8 @@
 'use client';
 
-import { Users, UserPlus } from 'lucide-react';
+// with:
+import { useState, useRef, useEffect } from 'react';
+import { Users, UserPlus, Pencil } from 'lucide-react';
 
 export default function OurFamilyHeader({
   familyName,
@@ -8,13 +10,42 @@ export default function OurFamilyHeader({
   myRole,
   canInvite,
   onInvite,
+  onRename,
 }: {
   familyName: string;
   memberCount: number;
   myRole: string;
   canInvite: boolean;
   onInvite: () => void;
+  onRename?: (newName: string) => Promise<void>;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(familyName);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { setDraft(familyName); }, [familyName]);
+  useEffect(() => {
+    if (editing) { inputRef.current?.focus(); inputRef.current?.select(); }
+  }, [editing]);
+
+  const handleSave = async () => {
+    const trimmed = draft.trim();
+    if (!trimmed || trimmed === familyName) {
+      setDraft(familyName);
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    try { await onRename?.(trimmed); } finally { setSaving(false); setEditing(false); }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSave();
+    if (e.key === 'Escape') { setDraft(familyName); setEditing(false); }
+  };
+
+  const isOwner = myRole === 'owner';
   const roleLabel =
     myRole === 'owner' ? 'Owner' : myRole === 'admin' ? 'Admin' : 'Member';
 
@@ -32,15 +63,43 @@ export default function OurFamilyHeader({
           <div className="mt-4 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             {/* Left — family name + meta */}
             <div className="min-w-0 flex-1">
-              <h1
-                className="font-serif font-bold leading-[0.95] text-[#1A1612]"
-                style={{
-                  fontSize: 'clamp(2rem, 4.5vw, 3.5rem)',
-                  letterSpacing: '-0.03em',
-                }}
-              >
-                {familyName}
-              </h1>
+              {editing ? (
+                <input
+                  ref={inputRef}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onBlur={handleSave}
+                  onKeyDown={handleKeyDown}
+                  disabled={saving}
+                  maxLength={60}
+                  className="w-full bg-transparent font-serif font-bold leading-[0.95] text-[#1A1612] outline-none border-b-2 border-[#C8A557] pb-1"
+                  style={{
+                    fontSize: 'clamp(2rem, 4.5vw, 3.5rem)',
+                    letterSpacing: '-0.03em',
+                  }}
+                />
+              ) : (
+                <div className="flex items-baseline gap-3">
+                  <h1
+                    className="font-serif font-bold leading-[0.95] text-[#1A1612]"
+                    style={{
+                      fontSize: 'clamp(2rem, 4.5vw, 3.5rem)',
+                      letterSpacing: '-0.03em',
+                    }}
+                  >
+                    {familyName}
+                  </h1>
+                  {isOwner && (
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[#B8924A] hover:bg-[#EDE8DC] transition"
+                      title="Rename family"
+                    >
+                      <Pencil size={15} strokeWidth={1.8} />
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#E4D2AE] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#A06A1C]">

@@ -153,8 +153,32 @@ export default function OurFamilyPage() {
   }, [supabase]);
 
   useEffect(() => {
+    if (!loading && members.length > 0) {
+      window.dispatchEvent(new CustomEvent('family-members-updated', { detail: members.length }));
+    }
+  }, [loading, members]);
+
+  useEffect(() => {
     loadFamily();
   }, [loadFamily]);
+
+  const handleRename = async (newName: string) => {
+    if (!familyId) return;
+
+    const { error } = await supabase
+      .from('families')
+      .update({ name: newName })
+      .eq('id', familyId);
+
+    if (error) {
+      toast.error('Failed to rename family.');
+      return;
+    }
+
+    setFamilyName(newName);
+    toast.success('Family name updated.');
+    window.dispatchEvent(new CustomEvent('family-name-updated', { detail: newName }));
+  };
 
   const handleCancelInvite = async (inviteId: string) => {
     const { error } = await supabase
@@ -191,6 +215,7 @@ export default function OurFamilyPage() {
         myRole={myRole}
         canInvite={isOwnerOrAdmin}
         onInvite={() => setInviteDrawerOpen(true)}
+        onRename={handleRename}
       />
 
       {/* ── Members section ── */}

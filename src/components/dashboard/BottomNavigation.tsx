@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link";
-import { Home, Library, Gem, User, LogOut } from "lucide-react";
+import { Home, Users, Library, Gem, User, LogOut } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,7 @@ export default function BottomNavigation({
 
   const pathname = usePathname();
   const isHome = pathname === "/dashboard/home";
+const isOurFamily = pathname.startsWith("/dashboard/our-family");
 
 const isMemories = memoriesLinks.some(link =>
   pathname === link.href || pathname.startsWith(link.href + "/")
@@ -33,7 +34,7 @@ const isAccount = accountLinks.some(link =>
   pathname === link.href || pathname.startsWith(link.href + "/")
 );
 
-const active = isHome ? "home" : isMemories ? "memories" : isHeirlooms ? "heirlooms" : isAccount ? "account" : "home";
+const active = isHome ? "home" : isOurFamily ? "our-family" : isMemories ? "memories" : isHeirlooms ? "heirlooms" : isAccount ? "account" : "home";
   const router = useRouter();
   const supabase = getBrowserClient();
   
@@ -70,6 +71,18 @@ const goHome = () => {};
             >
               <Home
                 className={`h-[17px] w-[17px] ${active === 'home' ? "text-[#D4AF37]" : "text-slate-700"}`}
+                strokeWidth={1.8}
+              />
+            </Link>
+
+            {/* OUR FAMILY */}
+            <Link
+              href="/dashboard/our-family"
+              className={`flex items-center justify-center h-9 w-9 rounded-full transition-all active:scale-90
+              ${active === 'our-family' ? "bg-[#0F1A2E]" : "hover:bg-black/5"}`}
+            >
+              <Users
+                className={`h-[17px] w-[17px] ${active === 'our-family' ? "text-[#D4AF37]" : "text-slate-700"}`}
                 strokeWidth={1.8}
               />
             </Link>

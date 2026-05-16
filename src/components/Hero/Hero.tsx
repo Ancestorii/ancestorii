@@ -13,14 +13,35 @@ function HeroVisual() {
   return (
     <div className="relative w-full h-full overflow-hidden">
       <img
-        src="/Hero1.png"
-        alt="A couple sitting together on their sofa, smiling as they look through their Ancestorii Memory Book"
+        src="/hero.png"
+        alt="Grandparents reading a family memory book with their grandchild"
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ objectPosition: '50% 35%' }}
+        style={{ objectPosition: '45% 20%' }}
       />
 
-      {/* Soft fade into content pane — reduced */}
-      <div className="absolute inset-y-0 left-0 w-24 hidden lg:block pointer-events-none bg-gradient-to-r from-[#f7f2e9]/70 to-transparent" />
+      {/* Left fade into content pane */}
+      <div className="absolute inset-y-0 left-0 w-32 hidden lg:block pointer-events-none bg-gradient-to-r from-[#f7f2e9]/95 to-transparent" />
+
+      {/* Bottom vignette */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-[#f0eadc]/20" />
+
+      {/* Floating card — top right (xl+ only) */}
+      <div className="absolute right-[7%] top-[10%] hidden xl:block w-[240px] rotate-[4deg] pointer-events-none">
+        <div className="border border-black/10 bg-white/90 px-5 py-4">
+          <p className="font-serif text-[1rem] text-[#3C3326]">
+            Memories, kept alive.
+          </p>
+        </div>
+      </div>
+
+      {/* Floating card — bottom left (2xl+ only) */}
+      <div className="absolute left-[7%] bottom-[9%] hidden 2xl:block w-[250px] -rotate-[3deg] pointer-events-none">
+        <div className="border border-black/10 bg-white/70 px-5 py-4">
+          <p className="font-serif italic text-[1.05rem] text-[#403629]">
+            &ldquo;This was never just about storage.&rdquo;
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -76,7 +97,7 @@ function HeroContentDesktop() {
           }}
         />
 
-        {/* Sub copy — warm, human, alive */}
+        {/* Sub copy */}
         <p
           className="hc-sub font-serif text-[#3D3526]"
           style={{ lineHeight: 1.7 }}
@@ -147,19 +168,24 @@ function HeroContentDesktop() {
 function MobileHero() {
   return (
     <div className="lg:hidden flex flex-col">
-      {/* Image band — minimal overlay so the book is visible */}
-      <div
-        className="relative w-full overflow-hidden"
-        style={{ height: '56vw', minHeight: '240px', maxHeight: '340px' }}
-      >
-        <img
-          src="/Hero1.png"
-          alt="A couple sitting together on their sofa, smiling as they look through their Ancestorii Memory Book"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: '50% 20%' }}
-        />
-      </div>
-
+      {/* Image band */}
+<div
+  className="relative w-full overflow-hidden"
+  style={{ height: '56vw', minHeight: '240px', maxHeight: '340px' }}
+>
+  <img
+    src="/hero.png"
+    alt="Grandparents reading a family memory book with their grandchild"
+    className="absolute inset-0 w-full h-full object-cover"
+    style={{ objectPosition: '50% 14%' }}
+  />
+  <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 52%, rgba(250,245,235,0.94) 100%)' }} />
+  <div className="absolute right-4 top-4 max-w-[195px]">
+    <div className="border border-[rgba(95,78,43,0.10)] bg-[rgba(255,251,244,0.76)] backdrop-blur-[8px] px-3.5 py-2.5 shadow-[0_14px_36px_rgba(62,43,18,0.08)]">
+      <p className="font-serif text-[0.77rem] leading-relaxed text-[#3E3427]">Memories, kept alive.</p>
+    </div>
+  </div>
+</div>
       {/* Content */}
       <div className="relative overflow-hidden bg-[rgb(250,245,235)]">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(243,217,155,0.15),transparent_40%)]" />

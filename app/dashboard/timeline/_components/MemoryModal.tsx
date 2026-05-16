@@ -302,7 +302,10 @@ useEffect(() => {
 async function uploadMedia(rawFile: File) {
   try {
     setUploadingMedia(true);
-    const file = rawFile.type.startsWith('image/') ? await ensureDisplayableImage(rawFile) : rawFile;
+    const file =
+  rawFile.type.startsWith('image/') || rawFile.name.toLowerCase().match(/\.(heic|heif)$/)
+    ? await ensureDisplayableImage(rawFile)
+    : rawFile;
     const { data: sess } = await supabase.auth.getSession();
     const user = sess?.session?.user;
     if (!user) throw new Error('Not authenticated');

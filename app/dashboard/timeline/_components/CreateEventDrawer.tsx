@@ -76,7 +76,10 @@ export default function CreateEventDrawer({
         const user = sess?.session?.user;
         if (!user) throw new Error('Not authenticated');
 
-        const processedFile = mediaFile.type.startsWith('image/') ? await ensureDisplayableImage(mediaFile) : mediaFile;
+        const processedFile =
+  mediaFile.type.startsWith('image/') || mediaFile.name.toLowerCase().match(/\.(heic|heif)$/)
+    ? await ensureDisplayableImage(mediaFile)
+    : mediaFile;
         const ext = processedFile.name.split('.').pop();
         const fileId = crypto.randomUUID();
         const path = `${user.id}/${evt.id}/media/${fileId}.${ext}`;
