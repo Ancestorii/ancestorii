@@ -1,234 +1,570 @@
 
-import type { Metadata } from "next";
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
-
+import type { Metadata } from 'next';
+import Nav from '@/components/Nav';
+import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions – Ancestorii",
-  description: "Terms and conditions governing use of the Ancestorii platform.",
+  title: 'Terms & Conditions – Ancestorii',
+  description:
+    'Terms and conditions governing use of the Ancestorii platform, physical products, and services.',
   alternates: {
-    canonical: "https://www.ancestorii.com/terms",
+    canonical: 'https://www.ancestorii.com/terms',
   },
 };
 
+/* ────────────────────────────────────────────────────── */
+
+function Section({
+  number,
+  title,
+  children,
+}: {
+  number: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="scroll-mt-28" id={`section-${number}`}>
+      <h2
+        className="font-serif text-[clamp(1.25rem,2vw,1.5rem)] text-[#1A1612] mb-4"
+        style={{ fontWeight: 600 }}
+      >
+        <span className="text-[#B8924A] mr-2">{number}.</span>
+        {title}
+      </h2>
+      <div className="space-y-4 text-[#4A4237] leading-[1.8] text-[15px]">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────── */
 
 export default function TermsPage() {
   return (
-  <>
-    <Nav />
-    <main className="max-w-5xl mx-auto px-6 py-20 text-[#0F2040]">
-      <h1 className="text-4xl font-bold mb-6">Terms & Conditions</h1>
+    <>
+      <Nav />
 
-      <p className="text-gray-600 mb-10">
-        Last updated: {new Date().getFullYear()}
-      </p>
-
-      <section className="space-y-8 text-gray-700 leading-relaxed">
-        {/* INTRO */}
-        <p>
-          Welcome to <strong>Ancestorii</strong>. These Terms & Conditions govern
-          your use of the Ancestorii platform, website, and services.
-        </p>
-
-        <p>
-          By creating an account or using Ancestorii, you agree to be bound by
-          these terms. If you do not agree, please do not use the platform.
-        </p>
-
-        {/* SERVICE DESCRIPTION */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            1. About Ancestorii
-          </h2>
-
-          <p>
-            Ancestorii provides a digital platform designed to help users
-            preserve memories, life events, media, and personal stories for
-            long-term safekeeping.
-          </p>
-
-          <p className="mt-3">
-            Ancestorii is a memory-preservation service, not a legal, financial,
-            or estate-planning service.
-          </p>
-        </div>
-
-        {/* ELIGIBILITY */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            2. Eligibility
-          </h2>
-
-          <p>
-            You must be at least 16 years old to create an account, or have
-            permission from a parent or legal guardian.
-          </p>
-        </div>
-
-        {/* USER RESPONSIBILITIES */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            3. User Responsibilities
-          </h2>
-
-          <ul className="list-disc ml-6 space-y-2">
-            <li>
-              You are responsible for maintaining the confidentiality of your
-              login credentials.
-            </li>
-            <li>
-              You must ensure you have the legal right to upload and store any
-              content you submit.
-            </li>
-            <li>
-              You agree not to upload unlawful, harmful, or abusive material.
-            </li>
-          </ul>
-        </div>
-
-        {/* CONTENT OWNERSHIP */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            4. Content Ownership
-          </h2>
-
-          <p>
-            You retain full ownership of all content you upload to Ancestorii.
-          </p>
-
-          <p className="mt-3">
-            By uploading content, you grant Ancestorii a limited licence to
-            store, process, and display that content solely for the purpose of
-            providing the service.
-          </p>
-        </div>
-
-        {/* SUBSCRIPTIONS */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            5. Subscriptions & Payments
-          </h2>
-
-          <p>
-            Ancestorii offers subscription plans with varying features and
-            storage limits.
-          </p>
-
-          <ul className="list-disc ml-6 space-y-2">
-            <li>Subscriptions are billed in advance.</li>
-            <li>You may cancel at any time; access remains until the end of the billing period.</li>
-            <li>Prices and features may change with reasonable notice.</li>
-          </ul>
-        </div>
-
-        {/* DATA & PRIVACY */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            6. Privacy & Data Protection
-          </h2>
-
-          <p>
-            Your privacy is central to Ancestorii. Personal data is handled in
-            accordance with our{" "}
-            <a
-              href="/privacy-policy"
-              className="text-[#D4AF37] font-semibold hover:underline"
+      <main
+        className="min-h-screen"
+        style={{ background: '#FDFAF5' }}
+      >
+        {/* ── Header band ── */}
+        <div
+          className="border-b"
+          style={{
+            background: '#1A1612',
+            borderColor: 'rgba(184,146,42,0.15)',
+          }}
+        >
+          <div className="max-w-[820px] mx-auto px-6 py-[clamp(3rem,6vw,5rem)]">
+            <p
+              className="text-[11px] font-semibold uppercase tracking-[0.25em] mb-4"
+              style={{ color: '#B8924A' }}
             >
-              Privacy Policy
-            </a>.
-          </p>
+              Legal
+            </p>
+            <h1
+              className="font-serif text-[clamp(2rem,4vw,3rem)] text-[#F5F1E6]"
+              style={{ fontWeight: 700, lineHeight: 1.15 }}
+            >
+              Terms &amp; Conditions
+            </h1>
+            <p
+              className="mt-4 text-[14px]"
+              style={{ color: 'rgba(245,241,230,0.5)' }}
+            >
+              Last updated: 17 May 2026
+            </p>
+          </div>
         </div>
 
-        {/* AVAILABILITY */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            7. Service Availability
-          </h2>
+        {/* ── Body ── */}
+        <div className="max-w-[820px] mx-auto px-6 py-[clamp(2.5rem,5vw,4rem)]">
+          <div className="space-y-12">
+            {/* Intro */}
+            <div className="text-[#4A4237] leading-[1.8] text-[15px] space-y-4">
+              <p>
+                Welcome to <strong className="text-[#1A1612]">Ancestorii</strong>.
+                These Terms &amp; Conditions (&quot;Terms&quot;) govern your access
+                to and use of the Ancestorii platform, website at{' '}
+                <strong>ancestorii.com</strong>, mobile experience, and all related
+                services including digital memory preservation, family
+                collaboration features, physical product ordering, and AI-assisted
+                writing tools (collectively, the &quot;Service&quot;).
+              </p>
+              <p>
+                By creating an account, accessing the platform, or placing an
+                order, you agree to be bound by these Terms. If you do not agree,
+                please do not use the Service.
+              </p>
+              <p>
+                Ancestorii is operated by Ancestorii Ltd, registered in England
+                and Wales, with correspondence addressed to{' '}
+                <strong>support@ancestorii.com</strong>.
+              </p>
+            </div>
 
-          <p>
-            We strive to keep Ancestorii available at all times, but uninterrupted
-            access cannot be guaranteed.
-          </p>
+            {/* 1 */}
+            <Section number="1" title="About Ancestorii">
+              <p>
+                Ancestorii is a digital platform designed to help individuals and
+                families preserve memories, life stories, photographs, voice
+                recordings, and personal histories for long-term safekeeping. The
+                Service includes a digital library, timeline and album tools,
+                memory capsules, family collaboration features, AI-assisted story
+                writing, and the ability to order physical products including
+                Memory Books, Memory Canvases, and Acrylic Prints.
+              </p>
+              <p>
+                Ancestorii is a memory-preservation and storytelling service. It is
+                not a legal, financial, genealogical research, or estate-planning
+                service.
+              </p>
+            </Section>
 
-          <p className="mt-3">
-            We may suspend access temporarily for maintenance, security, or
-            operational reasons.
-          </p>
+            {/* 2 */}
+            <Section number="2" title="Eligibility">
+              <p>
+                You must be at least 16 years old to create an account. If you are
+                under 18, you confirm that you have the consent of a parent or
+                legal guardian. Ancestorii reserves the right to request
+                verification of age or parental consent at any time and to suspend
+                accounts where eligibility cannot be confirmed.
+              </p>
+            </Section>
+
+            {/* 3 */}
+            <Section number="3" title="Account Registration &amp; Security">
+              <p>
+                You may register using an email address and password or through a
+                supported third-party authentication provider such as Google. You
+                are responsible for maintaining the confidentiality of your login
+                credentials and for all activity that occurs under your account.
+              </p>
+              <p>
+                You agree to provide accurate, current information during
+                registration and to update it as necessary. If you become aware of
+                any unauthorised use of your account, you must notify us
+                immediately at support@ancestorii.com.
+              </p>
+              <p>
+                Ancestorii may validate email addresses at the point of
+                registration using third-party verification services to reduce
+                fraud and ensure deliverability of important communications.
+              </p>
+            </Section>
+
+            {/* 4 */}
+            <Section number="4" title="Family Collaboration">
+              <p>
+                Ancestorii allows account holders to create a family space and
+                invite other users to join as family members. Invitations are sent
+                via email and expire after seven days.
+              </p>
+              <p>
+                Family spaces have three roles: Owner, Admin, and Member. The
+                Owner has full control over the family space, including the ability
+                to invite and remove members, rename the family, and manage
+                content. Admins may invite new members. Members may view and
+                contribute content within the shared family library.
+              </p>
+              <p>
+                Content uploaded by any family member is visible to all members of
+                that family space. Only the original creator of a piece of content
+                may delete it. By inviting someone to your family space, you
+                acknowledge that they will have access to all content within it.
+              </p>
+              <p>
+                Ancestorii is not responsible for disputes between family members
+                regarding shared content or access.
+              </p>
+            </Section>
+
+            {/* 5 */}
+            <Section number="5" title="Content Ownership &amp; Licence">
+              <p>
+                You retain full ownership of all content you upload to Ancestorii,
+                including photographs, text, voice recordings, and other media.
+                Ancestorii does not claim any ownership rights over your content.
+              </p>
+              <p>
+                By uploading content, you grant Ancestorii a limited,
+                non-exclusive, worldwide licence to store, process, display,
+                reproduce, and transmit that content solely for the purpose of
+                providing and improving the Service. This includes generating
+                print-ready files for physical product orders and displaying
+                content to other members of your family space.
+              </p>
+              <p>
+                You represent and warrant that you have the legal right to upload
+                and share any content you submit, and that your content does not
+                infringe the intellectual property rights, privacy rights, or any
+                other rights of any third party.
+              </p>
+              <p>
+                You agree not to upload content that is unlawful, harmful,
+                threatening, abusive, defamatory, obscene, or otherwise
+                objectionable.
+              </p>
+            </Section>
+
+            {/* 6 */}
+            <Section number="6" title="AI Story Assistance">
+              <p>
+                Ancestorii offers an optional AI-assisted writing feature
+                (&quot;Story Assistance&quot;) designed to help you find words to
+                describe memories, write captions, and craft introductory text for
+                your content. This feature can be enabled or disabled in your
+                account settings at any time.
+              </p>
+              <p>
+                Story Assistance generates suggestions based on the names, dates,
+                and context you provide. All AI-generated text is offered as a
+                starting point for your own editing and is not a substitute for
+                your personal voice. You are solely responsible for reviewing,
+                editing, and approving any AI-generated content before it is saved
+                or published within your library or included in a physical product.
+              </p>
+              <p>
+                Ancestorii does not guarantee the accuracy, completeness, or
+                suitability of AI-generated suggestions. The AI writing feature is
+                powered by third-party language model technology. Your content
+                inputs to this feature are processed in accordance with our Privacy
+                Policy.
+              </p>
+            </Section>
+
+            {/* 7 */}
+            <Section number="7" title="Subscriptions &amp; Digital Access">
+              <p>
+                Ancestorii offers subscription plans with varying features and
+                storage limits. Subscriptions are billed in advance on a recurring
+                basis at the interval specified at the time of purchase.
+              </p>
+              <p>
+                You may cancel your subscription at any time. Upon cancellation,
+                you will retain access to your plan&apos;s features until the end
+                of the current billing period, after which your account will revert
+                to the free tier. Content already stored will remain accessible
+                subject to free-tier storage limits.
+              </p>
+              <p>
+                Ancestorii reserves the right to change subscription pricing or
+                features with reasonable notice. Any price change will take effect
+                at your next billing cycle following the notice period.
+              </p>
+              <p>
+                Subscription payments are processed securely through Stripe.
+                Ancestorii does not store your full payment card details.
+              </p>
+            </Section>
+
+            {/* 8 */}
+            <Section number="8" title="Physical Products &amp; Orders">
+              <p>
+                Ancestorii offers physical products including Memory Books, Memory
+                Canvases, and Acrylic Prints. These are one-time purchases,
+                separate from any subscription plan.
+              </p>
+              <p>
+                When you place an order, a print-ready file is generated from your
+                digital content and submitted to our third-party print-fulfilment
+                partner for production and delivery. By placing an order, you
+                authorise Ancestorii to share the necessary content and shipping
+                details with our fulfilment partner for the sole purpose of
+                completing your order.
+              </p>
+              <p>
+                All physical product prices are displayed inclusive of the product
+                cost. Shipping costs and any applicable taxes are calculated at
+                checkout. Prices are displayed in GBP, USD, or EUR depending on
+                your detected location and may vary by currency.
+              </p>
+              <p>
+                Once a physical product order has been submitted to our fulfilment
+                partner for production, it cannot be cancelled or modified. Printed
+                products are made to order using your personal content and are
+                therefore non-refundable unless they arrive damaged, defective, or
+                materially different from what was ordered.
+              </p>
+              <p>
+                If you receive a damaged or defective product, please contact
+                support@ancestorii.com within 14 days of delivery with photographs
+                of the issue. We will arrange a replacement or refund at our
+                discretion.
+              </p>
+              <p>
+                Delivery times are estimates and are not guaranteed. Ancestorii is
+                not liable for delays caused by our fulfilment partner, postal
+                services, customs processing, or other circumstances beyond our
+                reasonable control.
+              </p>
+            </Section>
+
+            {/* 9 */}
+            <Section number="9" title="Payments &amp; Refunds">
+              <p>
+                All payments are processed through Stripe. By making a purchase,
+                you agree to Stripe&apos;s terms of service in addition to these
+                Terms.
+              </p>
+              <p>
+                Subscription refunds are not provided for partial billing periods.
+                If you believe you have been charged in error, please contact
+                support@ancestorii.com and we will investigate promptly.
+              </p>
+              <p>
+                Physical product refunds are handled in accordance with Section 8
+                above. Refunds for damaged or defective products will be issued to
+                the original payment method.
+              </p>
+            </Section>
+
+            {/* 10 */}
+            <Section number="10" title="Privacy &amp; Data Protection">
+              <p>
+                Your privacy is central to Ancestorii. We collect and process
+                personal data only as necessary to provide the Service. Personal
+                data is handled in accordance with our{' '}
+                <a
+                  href="/privacy-policy"
+                  className="text-[#B8924A] font-semibold hover:underline"
+                >
+                  Privacy Policy
+                </a>
+                , which forms part of these Terms.
+              </p>
+              <p>
+                By using the Service, you acknowledge that certain data may be
+                processed by third-party service providers (including
+                authentication, email delivery, payment processing, email
+                validation, and print fulfilment) as described in our Privacy
+                Policy.
+              </p>
+            </Section>
+
+            {/* 11 */}
+            <Section number="11" title="Acceptable Use">
+              <p>You agree not to use Ancestorii to:</p>
+              <p>
+                Upload, store, or distribute content that is illegal, harmful,
+                threatening, abusive, harassing, defamatory, obscene, or
+                discriminatory; impersonate any person or entity, or
+                misrepresent your affiliation with any person or entity; attempt to
+                gain unauthorised access to other users&apos; accounts, family
+                spaces, or data; use the platform for commercial purposes
+                unrelated to its intended use as a personal memory-preservation
+                tool; interfere with or disrupt the integrity or performance of the
+                Service; use automated tools, bots, or scrapers to access or
+                extract data from the platform; or circumvent any security features
+                or usage limits.
+              </p>
+              <p>
+                Ancestorii reserves the right to remove content and suspend or
+                terminate accounts that violate these acceptable use provisions
+                without prior notice.
+              </p>
+            </Section>
+
+            {/* 12 */}
+            <Section number="12" title="Intellectual Property">
+              <p>
+                The Ancestorii name, logo, brand identity, website design, and all
+                associated visual elements, software, and documentation are the
+                intellectual property of Ancestorii Ltd and are protected by
+                applicable copyright, trademark, and other intellectual property
+                laws.
+              </p>
+              <p>
+                You may not reproduce, distribute, modify, or create derivative
+                works from any part of the Ancestorii platform or brand without
+                prior written consent.
+              </p>
+            </Section>
+
+            {/* 13 */}
+            <Section number="13" title="Service Availability &amp; Modifications">
+              <p>
+                We strive to keep Ancestorii available at all times, but
+                uninterrupted or error-free access cannot be guaranteed. The
+                Service may be temporarily unavailable due to scheduled
+                maintenance, updates, security patches, or circumstances beyond our
+                reasonable control.
+              </p>
+              <p>
+                Ancestorii reserves the right to modify, suspend, or discontinue
+                any part of the Service at any time. Where a significant change
+                affects your stored content or active subscription, we will provide
+                reasonable notice and, where applicable, the opportunity to export
+                your data.
+              </p>
+            </Section>
+
+            {/* 14 */}
+            <Section number="14" title="Account Termination">
+              <p>
+                You may delete your account at any time through your account
+                settings or by contacting support@ancestorii.com. Upon deletion,
+                your personal data and uploaded content will be permanently removed
+                in accordance with our data-retention practices outlined in the
+                Privacy Policy. Content within a shared family space that was
+                uploaded by you will also be removed.
+              </p>
+              <p>
+                Ancestorii reserves the right to suspend or terminate accounts that
+                violate these Terms, applicable laws, or our acceptable-use
+                provisions. Where possible, we will provide notice before
+                termination unless immediate action is required to protect the
+                Service or other users.
+              </p>
+            </Section>
+
+            {/* 15 */}
+            <Section number="15" title="Disclaimer of Warranties">
+              <p>
+                The Service is provided on an &quot;as is&quot; and &quot;as
+                available&quot; basis without warranties of any kind, whether
+                express or implied, including but not limited to implied warranties
+                of merchantability, fitness for a particular purpose, and
+                non-infringement.
+              </p>
+              <p>
+                Ancestorii does not warrant that the Service will be uninterrupted,
+                secure, or free from errors, viruses, or other harmful components.
+                Ancestorii does not warrant the accuracy or reliability of any
+                AI-generated content. You use the Service at your own risk.
+              </p>
+            </Section>
+
+            {/* 16 */}
+            <Section number="16" title="Limitation of Liability">
+              <p>
+                To the fullest extent permitted by law, Ancestorii Ltd, its
+                directors, employees, and agents shall not be liable for any
+                indirect, incidental, special, consequential, or punitive damages,
+                including but not limited to loss of data, loss of profits, or
+                emotional distress, arising from or in connection with your use of
+                or inability to use the Service.
+              </p>
+              <p>
+                In no event shall Ancestorii&apos;s total aggregate liability to
+                you for all claims arising from or related to the Service exceed
+                the total amount you have paid to Ancestorii in the twelve months
+                preceding the claim, or £100, whichever is greater.
+              </p>
+              <p>
+                Nothing in these Terms excludes or limits liability for death or
+                personal injury caused by negligence, fraud, or any other liability
+                that cannot be excluded or limited under applicable law.
+              </p>
+            </Section>
+
+            {/* 17 */}
+            <Section number="17" title="Indemnification">
+              <p>
+                You agree to indemnify, defend, and hold harmless Ancestorii Ltd
+                and its directors, employees, and agents from and against any
+                claims, damages, losses, liabilities, costs, and expenses
+                (including reasonable legal fees) arising from or related to your
+                use of the Service, your content, your violation of these Terms, or
+                your violation of any rights of a third party.
+              </p>
+            </Section>
+
+            {/* 18 */}
+            <Section number="18" title="Third-Party Services">
+              <p>
+                Ancestorii integrates with third-party services for authentication,
+                payment processing, email delivery, email validation, print
+                fulfilment, and AI language processing. Your use of the Service may
+                be subject to the terms and privacy policies of these third-party
+                providers.
+              </p>
+              <p>
+                Ancestorii is not responsible for the availability, accuracy, or
+                practices of any third-party service. Links to external websites or
+                services do not constitute endorsement.
+              </p>
+            </Section>
+
+            {/* 19 */}
+            <Section number="19" title="Communications &amp; Emails">
+              <p>
+                By creating an account, you consent to receive transactional
+                and service-related emails from Ancestorii, including welcome
+                messages, onboarding guidance, order confirmations, family
+                invitation notifications, and account security alerts. These
+                communications are necessary for the operation of the Service and
+                are not marketing.
+              </p>
+              <p>
+                We may also send occasional product updates or feature
+                announcements. You may opt out of non-essential communications at
+                any time.
+              </p>
+            </Section>
+
+            {/* 20 */}
+            <Section number="20" title="Governing Law &amp; Jurisdiction">
+              <p>
+                These Terms are governed by and construed in accordance with the
+                laws of England and Wales. Any dispute arising from or in
+                connection with these Terms shall be subject to the exclusive
+                jurisdiction of the courts of England and Wales.
+              </p>
+              <p>
+                If any provision of these Terms is found to be unenforceable or
+                invalid, that provision shall be limited or eliminated to the
+                minimum extent necessary, and the remaining provisions shall
+                continue in full force and effect.
+              </p>
+            </Section>
+
+            {/* 21 */}
+            <Section number="21" title="Changes to These Terms">
+              <p>
+                Ancestorii may update these Terms from time to time to reflect
+                changes to the Service, legal requirements, or business practices.
+                When we make material changes, we will notify you via email or
+                through a prominent notice on the platform.
+              </p>
+              <p>
+                Continued use of Ancestorii after such changes constitutes
+                acceptance of the updated Terms. If you do not agree with the
+                revised Terms, you should discontinue use of the Service and delete
+                your account.
+              </p>
+            </Section>
+
+            {/* 22 */}
+            <Section number="22" title="Contact">
+              <p>
+                If you have any questions, concerns, or requests regarding these
+                Terms &amp; Conditions, please contact us at{' '}
+                <a
+                  href="mailto:support@ancestorii.com"
+                  className="text-[#B8924A] font-semibold hover:underline"
+                >
+                  support@ancestorii.com
+                </a>
+                .
+              </p>
+            </Section>
+          </div>
+
+          {/* ── End mark ── */}
+          <div className="mt-16 pt-8 border-t border-[#E8E0D0]">
+            <p className="text-[13px] text-[#A09888] leading-relaxed">
+              These Terms &amp; Conditions were last reviewed and updated on 17 May
+              2026. Previous versions are available upon request.
+            </p>
+          </div>
         </div>
+      </main>
 
-        {/* TERMINATION */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            8. Account Termination
-          </h2>
-
-          <p>
-            You may delete your account at any time.
-          </p>
-
-          <p className="mt-3">
-            Ancestorii reserves the right to suspend or terminate accounts that
-            violate these terms or applicable laws.
-          </p>
-        </div>
-
-        {/* LIABILITY */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            9. Limitation of Liability
-          </h2>
-
-          <p>
-            Ancestorii is provided on an “as is” and “as available” basis.
-          </p>
-
-          <p className="mt-3">
-            To the fullest extent permitted by law, Ancestorii shall not be
-            liable for indirect, incidental, or consequential damages arising
-            from use of the platform.
-          </p>
-        </div>
-
-        {/* GOVERNING LAW */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            10. Governing Law
-          </h2>
-
-          <p>
-            These Terms & Conditions are governed by the laws of the United
-            Kingdom.
-          </p>
-        </div>
-
-        {/* CHANGES */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            11. Changes to These Terms
-          </h2>
-
-          <p>
-            We may update these terms from time to time. Continued use of
-            Ancestorii constitutes acceptance of any updated terms.
-          </p>
-        </div>
-
-        {/* CONTACT */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            12. Contact
-          </h2>
-
-          <p>
-            If you have questions regarding these Terms & Conditions, please
-            contact us at{" "}
-            <strong>support@ancestorii.com</strong>.
-          </p>
-        </div>
-      </section>
-    </main>
-    <Footer />
-  </>
-);
+      <Footer />
+    </>
+  );
 }

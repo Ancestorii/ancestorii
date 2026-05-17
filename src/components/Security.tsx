@@ -305,6 +305,7 @@ export default function Security() {
                 <li><span className="sec-check">✓</span> Full family control over access</li>
                 <li><span className="sec-check">✓</span> Long-term continuity and preservation</li>
                 <li><span className="sec-check">✓</span> Funded by families, not advertisers</li>
+                <li><span className="sec-check">✓</span> Story Assistance you control — on or off in Profile Settings</li>
               </ul>
             </div>
           </div>
