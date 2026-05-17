@@ -9,6 +9,7 @@ import CapsuleCreatedOverlay from '@/components/CapsuleCreatedOverlay';
 import CapsuleCard from './_components/CapsuleCard';
 import CapsuleUnlock from '@/components/CapsuleUnlock';
 import { usePlanLimits } from '@/lib/usePlanLimits';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 
 
 type Capsule = {
@@ -149,12 +150,8 @@ useEffect(() => {
 
   const handleDeleteCapsule = async (id: string) => {
     try {
-      const { error: delErr } = await supabase
-      .from('memory_capsules')
-      .delete()
-      .eq('id', id);
-
-      if (delErr) throw delErr;
+      const deleted = await deleteWithOwnerCheck(supabase, 'memory_capsules', id, 'capsule');
+      if (!deleted) return;
       setCapsules((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
       toast.success('Capsule deleted.');
     } catch {

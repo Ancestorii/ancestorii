@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import LegacyCelebration from '@/components/LegacyCelebration';
 import { usePlanLimits } from '@/lib/usePlanLimits';
 import Image from "next/image";
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 
 
 type Timeline = {
@@ -98,14 +99,8 @@ setTimelines(signed);
   const handleDeleteTimeline = async (id: string) => {
   try {
 
-    const { error: delErr } = await supabase
-      .from('timelines')
-      .delete()
-      .eq('id', id);
-
-    if (delErr) {
-      throw delErr;
-    }
+    const deleted = await deleteWithOwnerCheck(supabase, 'timelines', id, 'timeline');
+    if (!deleted) return;
 
     setTimelines((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
 

@@ -10,6 +10,7 @@ import LegacyCelebration from "@/components/LegacyCelebration";
 import { ContextMenuDots } from "@/components/ContextMenuDots";
 import { usePlanLimits } from '@/lib/usePlanLimits';
 import Image from "next/image";
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 
 
 type Album = {
@@ -110,7 +111,8 @@ export default function AlbumsPage() {
 
   const handleDeleteAlbum = async (id: string) => {
     try {
-      await supabase.from('albums').delete().eq('id', id);
+      const deleted = await deleteWithOwnerCheck(supabase, 'albums', id, 'album');
+      if (!deleted) return;
       setAlbums((prev) => (prev ? prev.filter((a) => a.id !== id) : prev));
       toast.success('Album deleted.');
     } catch {

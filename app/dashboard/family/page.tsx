@@ -11,6 +11,7 @@ import { getLovedOneGroups } from "./_utils/getLovedOneGroups";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { safeToast as toast } from "@/lib/safeToast";
 import { useSearchParams } from "next/navigation";
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 
 
 type FamilyMember = {
@@ -212,21 +213,11 @@ useEffect(() => {
 
  const handleDeleteMember = async (id: string) => {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) throw new Error("Not authenticated");
-
-    const { error } = await supabase
-      .from("family_members")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
+    const deleted = await deleteWithOwnerCheck(supabase, 'family_members', id, 'loved one');
+    if (!deleted) return;
 
     toast.success("Loved one removed from your legacy.");
-    setMembers((prev) => prev.filter((m) => m.id !== id)); // ✅ instant UI
+    setMembers((prev) => prev.filter((m) => m.id !== id));
     reload();
   } catch (err: any) {
   console.error("DELETE FAILED:", {
