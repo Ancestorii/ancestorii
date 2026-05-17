@@ -70,6 +70,7 @@ export default function VoiceNoteDrawer({
         const blob = new Blob(chunks.current, { type: 'audio/webm' });
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach((t) => t.stop());
       };
       recorder.start();
       setRecording(true);

@@ -77,11 +77,37 @@ export default function SettingsPage() {
         .single();
 
       if (!error && data) {
-  setPrefs({
-    ...data,
-    email: marketingOptIn,
-  });
-}
+        setPrefs({
+          ...data,
+          email: marketingOptIn,
+        });
+      } else {
+        // No row exists yet — create one with defaults
+        const { data: newRow } = await supabase
+          .from('notification_preferences')
+          .upsert({
+            user_id: user.id,
+            in_app: false,
+            email: marketingOptIn,
+          }, { onConflict: 'user_id' })
+          .select()
+          .single();
+
+        if (newRow) {
+          setPrefs({
+            ...newRow,
+            email: marketingOptIn,
+          });
+        } else {
+          // Fallback — at least make toggles work visually
+          setPrefs({
+            id: 'temp',
+            user_id: user.id,
+            in_app: false,
+            email: marketingOptIn,
+          });
+        }
+      }
 
       setLoading(false);
     };

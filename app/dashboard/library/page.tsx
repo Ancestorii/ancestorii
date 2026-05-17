@@ -104,7 +104,7 @@ export default function LibraryPage() {
             </h1>
 
 <p className="text-[#000000] text-lg mt-2">
-Upload photos or videos from your phone or computer here once and then reuse them anywhere across your family library.
+Upload your photos and videos here once. When you're adding memories to timelines, albums, or capsules, look for the "My Library" button to pull from this collection.
 </p>
 
           </div>

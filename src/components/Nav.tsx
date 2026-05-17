@@ -36,7 +36,6 @@ export default function Nav() {
     { href: '/', label: 'Home' },
     { href: '/how-it-works', label: 'How It Works' },
     { href: '/pricing', label: 'Pricing' },
-    { href: '/memory-books', label: 'Memory Books' },
     { href: '/guides', label: 'Guides' },
   ];
 
@@ -60,15 +59,13 @@ export default function Nav() {
           <div className="flex items-center justify-between md:scale-[0.85] lg:scale-100 origin-top">
 
             {/* LOGO */}
-            <Link href="/" className="flex items-center shrink-0">
-              <Image
-                src="/logo.png"
-                alt="Ancestorii Logo"
-                width={300}
-                height={85}
-                className="w-[160px] sm:w-[180px] md:w-[200px] lg:w-[260px] object-contain"
-                priority
-              />
+            <Link href="/" className="flex items-center shrink-0 select-none">
+              <span
+                className="font-serif leading-none text-[#111827] text-[32px] sm:text-[36px] md:text-[40px] lg:text-[44px]"
+                style={{ fontWeight: 500, letterSpacing: '-0.03em' }}
+              >
+                Ancestor<span className="text-[#C8A557]">ii</span>
+              </span>
             </Link>
 
             {/* NAV LINKS */}

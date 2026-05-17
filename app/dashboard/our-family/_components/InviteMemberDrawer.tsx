@@ -26,9 +26,15 @@ export default function InviteMemberDrawer({
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   const handleSendInvite = async () => {
     if (!email.trim() || loading) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setEmailError('Please enter a valid email address.');
+      setShowConfirm(false);
+      return;
+    }
     setLoading(true);
 
     try {
@@ -57,6 +63,7 @@ export default function InviteMemberDrawer({
 
   const handleClose = () => {
     setEmail('');
+    setEmailError('');
     setShowConfirm(false);
     onClose();
   };
@@ -120,18 +127,32 @@ export default function InviteMemberDrawer({
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) setEmailError('');
+                    }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && email.trim())
-                        setShowConfirm(true);
+                      if (e.key === 'Enter' && email.trim()) {
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+                          setEmailError('Please enter a valid email address.');
+                        } else {
+                          setShowConfirm(true);
+                        }
+                      }
                     }}
                     placeholder="Enter their email address"
                     className="h-full flex-1 bg-transparent text-[14px] text-[#2C241B] outline-none placeholder:text-[#9B8E7D]"
                   />
                 </div>
 
-                <button
-                  onClick={() => setShowConfirm(true)}
+               <button
+                  onClick={() => {
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+                      setEmailError('Please enter a valid email address.');
+                      return;
+                    }
+                    setShowConfirm(true);
+                  }}
                   disabled={!email.trim() || loading}
                   className="flex h-[52px] items-center justify-center gap-2.5 rounded-[12px] bg-[#C8A557] px-6 text-[14px] font-semibold text-white shadow-[0_8px_20px_rgba(184,146,74,0.2)] transition hover:bg-[#B8924A] disabled:opacity-50"
                 >
@@ -139,6 +160,10 @@ export default function InviteMemberDrawer({
                   Review
                 </button>
               </div>
+
+              {emailError && (
+                <p className="mt-3 text-[13px] text-red-500">{emailError}</p>
+              )}
             </div>
 
             {/* ── Confirmation panel ── */}

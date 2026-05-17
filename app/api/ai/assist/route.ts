@@ -134,7 +134,13 @@ Focus on: how they carried themselves, their laugh, their stubbornness, what the
       const title = context.event_title as string;
       const date = context.event_date as string;
 
-      return `The user added a timeline event called "${title || 'Untitled'}"${date ? ` on ${date}` : ''} for ${name}${relStr}, but the description is empty.\n\nWrite a rich 4-5 sentence description of what this event might have been like. Be specific to the title and date. Paint a scene. The user will edit this to match what actually happened.`;
+      return `The user added a timeline event called "${title || 'Untitled'}"${date ? ` on ${date}` : ''} for ${name}${relStr}, but the description is empty.
+
+Write structured prompts to help them describe this event using the question-then-paragraph format. Give 3-4 sections.
+
+Format your response EXACTLY like this pattern — a question on its own line, then a short paragraph beneath it, then a blank line before the next question.
+
+Each question should be specific to "${title || 'this event'}"${date ? ` and the date ${date}` : ''}. Ask about: what led up to it, what the moment itself felt like, who was there, and what changed afterwards. Each paragraph should be 2-3 sentences maximum. Make every question personal to ${name} using their name directly.`;
     }
 
     case 'album-caption': {
@@ -198,7 +204,11 @@ Focus on: describing what life is like right now, sharing a message to the perso
       const chapterTitle = context.chapter_title as string;
       const memories = context.chapter_memories as string[];
 
-      return `Write a chapter introduction (4-5 sentences) for a chapter called "${chapterTitle || 'Untitled Chapter'}" in a Memory Book about ${name}${relStr}.\n\n${memories?.length ? `Memories in this chapter include: ${memories.join(', ')}\n\n` : ''}Set the scene for this section of the book. It should feel like a pause before turning the page — warm, understated, and full of anticipation.`;
+      return `Write a chapter introduction for a chapter called "${chapterTitle || 'Untitled Chapter'}" in a Memory Book about ${name}${relStr}.\n\n${memories?.length ? `Memories in this chapter include: ${memories.join(', ')}\n\n` : ''}Write two short paragraphs separated by a blank line.
+
+The first paragraph should set the scene for this section of the book — where we are in ${name}'s story and what this chapter holds.
+
+The second paragraph should feel like a pause before turning the page — warm, understated, and full of anticipation. Each paragraph should be 2-3 sentences maximum.`;
     }
 
     case 'book-page-comment': {

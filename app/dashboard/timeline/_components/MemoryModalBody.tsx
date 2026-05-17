@@ -98,6 +98,7 @@ export default function MemoryModalBody({
   onAddComment,
   onUploadVoice,
   onDeleteComment,
+  onDeleteVoice,
   onUploadMedia,
   uploadingMedia,
   onDeleteMedia, // 👈 ADD THIS
@@ -113,9 +114,10 @@ export default function MemoryModalBody({
   onAddComment: () => void;
   onUploadVoice: (file: File) => Promise<void>;
   onDeleteComment: (commentId: string) => void;
+  onDeleteVoice: (voiceId: string) => void;
   onUploadMedia: (file: File) => void;
   uploadingMedia: boolean;
-  onDeleteMedia: (media: MediaItem) => void; // 👈 ADD THIS
+  onDeleteMedia: (media: MediaItem) => void;
 }) {
 
 
@@ -125,9 +127,18 @@ export default function MemoryModalBody({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
 
+const streamRef = useRef<MediaStream | null>(null);
+
+useEffect(() => {
+  return () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+  };
+}, []);
+
 const startRecording = async () => {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => null);
 if (!stream) return;
+  streamRef.current = stream;
   const recorder = new MediaRecorder(stream);
   recorderRef.current = recorder;
   chunks.current = [];
@@ -370,9 +381,17 @@ if (uploadingMedia) {
 
                   <audio controls src={v.url} className="w-full" />
 
-                  <p className="text-xs text-gray-500 italic mt-2">
-                    {v.profile?.[0]?.full_name ?? 'You'} · {new Date(v.created_at).toLocaleString()}
-                  </p>
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-xs text-gray-500 italic">
+                      {v.profile?.[0]?.full_name ?? 'You'} · {new Date(v.created_at).toLocaleString()}
+                    </p>
+                    <button
+                      onClick={() => onDeleteVoice(v.id)}
+                      className="text-xs text-gray-400 hover:text-red-500 transition-colors duration-150"
+                    >
+                      Delete
+                    </button>
+                  </div>
 
                 </div>
               ))}
@@ -441,6 +460,17 @@ if (uploadingMedia) {
                 className="w-full rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] py-2 text-sm font-semibold text-[#1F2837]"
               >
                 Seal voice into memory
+              </button>
+
+              <button
+                onClick={() => {
+                  setRecording(false);
+                  setAudioBlob(null);
+                  setAudioUrl(null);
+                }}
+                className="w-full rounded-full border border-[#E6C26E] py-2 text-sm font-semibold text-[#1F2837] hover:bg-[#FFF7DF] transition"
+              >
+                Discard & re-record
               </button>
 
             </div>

@@ -141,7 +141,7 @@ export default async function DashboardHomePage() {
         </div>
 
         {/* Recent Activity — right panel */}
-        <div className="hidden xl:block w-[300px] flex-shrink-0 border-l border-stone-200">
+        <div className="hidden xl:block w-[240px] flex-shrink-0 border-l border-stone-200">
           <ActivitySection activity={activity} />
         </div>
       </div>

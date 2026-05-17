@@ -109,6 +109,10 @@ export default function ActionHub({
 
   const sendInvite = async () => {
     if (!inviteEmail.trim() || inviteLoading) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) {
+      setInviteError('Please enter a valid email address.');
+      return;
+    }
     setInviteLoading(true);
     setInviteError('');
     setInviteSuccess('');
@@ -408,8 +412,10 @@ export default function ActionHub({
                     key={i}
                     onClick={() => setActiveMemory(i)}
                     aria-label={`Memory ${i + 1}`}
-                    className={`h-2.5 w-2.5 rounded-full transition ${activeMemory === i ? 'bg-[#D1A33E]' : 'bg-[#DEDAD4]'}`}
-                  />
+                    className={`h-5 w-5 rounded-full text-[10px] font-bold transition flex items-center justify-center ${activeMemory === i ? 'bg-[#D1A33E] text-white' : 'bg-[#DEDAD4] text-[#9B8E7D]'}`}
+                  >
+                    {i + 1}
+                  </button>
                 ))}
               </div>
               <div className="flex gap-2 lg:hidden">

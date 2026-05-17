@@ -42,6 +42,8 @@ export default function HorizontalTimeline({
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const zoomRef = useRef<any>(null);
+  const selRef = useRef<any>(null);
   const [width, setWidth] = useState(1200);
 
   // Modal state (centered)
@@ -130,6 +132,8 @@ export default function HorizontalTimeline({
         setTransform(e.transform);
         setZoomLevel(e.transform.k);
       });
+    zoomRef.current = z;
+    selRef.current = sel;
     (sel as any).call(z as any);
     (sel as any).call((z as any).transform, zoomIdentity);
     return () => (sel as any).on('.zoom', null);
@@ -388,8 +392,8 @@ export default function HorizontalTimeline({
   const ticks = showMonths
     ? months
     : months.filter((d) => {
-        const m = d.getUTCMonth(); // 0=Jan,1=Feb,...,3=Apr,6=Jul,9=Oct
-        return m === 3 || m === 6 || m === 9; // Apr/Jul/Oct only
+        const m = d.getUTCMonth();
+        return m === 0 || m === 3 || m === 6 || m === 9; // Jan/Apr/Jul/Oct
       });
 
   const LABEL_FONT = showMonths ? 12 : 13;
@@ -461,6 +465,88 @@ export default function HorizontalTimeline({
   `}
 </style>
       </svg>
+
+      {/* Zoom & Pan Controls */}
+      <div
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2"
+        style={{
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1.5px solid #E8E2D6',
+          borderRadius: 14,
+          padding: '6px 8px',
+          boxShadow: '0 8px 24px rgba(22,18,12,0.1), 0 2px 6px rgba(22,18,12,0.06)',
+        }}
+      >
+        {/* Pan Left */}
+        <button
+          onClick={() => {
+            if (selRef.current && zoomRef.current) {
+              selRef.current.transition().duration(300).call(zoomRef.current.translateBy, 150, 0);
+            }
+          }}
+          className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6358] transition hover:bg-[#F5F0E8] hover:text-[#1A1714]"
+          title="Pan left"
+        >
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+
+        {/* Zoom Out */}
+        <button
+          onClick={() => {
+            if (selRef.current && zoomRef.current) {
+              selRef.current.transition().duration(300).call(zoomRef.current.scaleBy, 0.7);
+            }
+          }}
+          className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6358] transition hover:bg-[#F5F0E8] hover:text-[#1A1714]"
+          title="Zoom out"
+        >
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+            <path d="M5 12h14" />
+          </svg>
+        </button>
+
+        {/* Zoom Level */}
+        <span
+          className="text-[12px] font-semibold text-[#6B6358] select-none"
+          style={{ minWidth: 40, textAlign: 'center' }}
+        >
+          {Math.round(zoomLevel * 100)}%
+        </span>
+
+        {/* Zoom In */}
+        <button
+          onClick={() => {
+            if (selRef.current && zoomRef.current) {
+              selRef.current.transition().duration(300).call(zoomRef.current.scaleBy, 1.4);
+            }
+          }}
+          className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6358] transition hover:bg-[#F5F0E8] hover:text-[#1A1714]"
+          title="Zoom in"
+        >
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+
+        {/* Pan Right */}
+        <button
+          onClick={() => {
+            if (selRef.current && zoomRef.current) {
+              selRef.current.transition().duration(300).call(zoomRef.current.translateBy, -150, 0);
+            }
+          }}
+          className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6358] transition hover:bg-[#F5F0E8] hover:text-[#1A1714]"
+          title="Pan right"
+        >
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+      </div>
 
       {/* Centered Memory Modal */}
       {activeEvent && (

@@ -493,9 +493,52 @@ useEffect(() => {
     const commentCount = commentCheck.count ?? 0;
     const voiceCount = voiceCheck.count ?? 0;
 
-    if (mediaCount > 0 || commentCount > 0 || voiceCount > 0) {
-      toast.error('Remove all content first.');
-      return;
+    // Cascade delete all content before removing the event
+    if (mediaCount > 0) {
+      const { data: allMedia } = await supabase
+        .from('timeline_event_media')
+        .select('id, file_path, library_media_id')
+        .eq('event_id', eventId);
+
+      if (allMedia?.length) {
+        const directPaths = allMedia
+          .filter((m) => !m.library_media_id && m.file_path)
+          .map((m) => m.file_path!);
+
+        if (directPaths.length) {
+          await supabase.storage.from('timeline-media').remove(directPaths);
+        }
+
+        await supabase
+          .from('timeline_event_media')
+          .delete()
+          .eq('event_id', eventId);
+      }
+    }
+
+    if (commentCount > 0) {
+      await supabase
+        .from('timeline_event_media_comments')
+        .delete()
+        .eq('event_id', eventId);
+    }
+
+    if (voiceCount > 0) {
+      const { data: allVoices } = await supabase
+        .from('timeline_event_media_voice_notes')
+        .select('file_path')
+        .eq('event_id', eventId);
+
+      if (allVoices?.length) {
+        await supabase.storage
+          .from('timeline-media')
+          .remove(allVoices.map((v) => v.file_path));
+      }
+
+      await supabase
+        .from('timeline_event_media_voice_notes')
+        .delete()
+        .eq('event_id', eventId);
     }
 
     const { error } = await supabase
@@ -580,7 +623,36 @@ async function deleteComment(commentId: string) {
   }
 }
 
+async function deleteVoice(voiceId: string) {
+  try {
+    const voice = voices.find((v) => v.id === voiceId);
 
+    if (voice?.url) {
+      const { data: row } = await supabase
+        .from('timeline_event_media_voice_notes')
+        .select('file_path')
+        .eq('id', voiceId)
+        .single();
+
+      if (row?.file_path) {
+        await supabase.storage.from('timeline-media').remove([row.file_path]);
+      }
+    }
+
+    const { error } = await supabase
+      .from('timeline_event_media_voice_notes')
+      .delete()
+      .eq('id', voiceId);
+
+    if (error) throw error;
+
+    setVoices((p) => p.filter((v) => v.id !== voiceId));
+    toast.success('Voice note deleted.');
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to delete voice note.');
+  }
+}
 
   // Upload a per-media voice note (store + show author)
 async function uploadVoice(file: File) {
@@ -853,6 +925,7 @@ async function uploadVoice(file: File) {
     onAddComment={addComment}
     onUploadVoice={uploadVoice}
     onDeleteComment={deleteComment}
+    onDeleteVoice={deleteVoice}
     onUploadMedia={uploadMedia}
     uploadingMedia={uploadingMedia}
     onDeleteMedia={deleteMedia}

@@ -119,7 +119,7 @@ export default function SidebarContent({
               className="flex w-full items-center gap-3"
             >
               <div
-  className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#D4AF37]/40 bg-white"
+  className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#D4AF37]/40 bg-white flex items-center justify-center"
 >
   {avatarUrl ? (
   <div className="relative h-full w-full">

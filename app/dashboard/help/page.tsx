@@ -41,7 +41,7 @@ export default function HelpPage() {
         .maybeSingle();
 
       const planName = (sub?.plans as any)?.name;
-      if (planName) setPlan(planName);
+      setPlan(planName || 'Free');
     };
 
     fetchPlan();

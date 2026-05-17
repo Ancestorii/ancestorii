@@ -19,7 +19,7 @@ export default function ActivitySection({
   }>;
 }) {
   return (
-    <div className="sticky top-[72px] px-5 py-6">
+    <div className="sticky top-[72px] px-4 py-5">
       <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#B8924A]">
         Recent Activity
       </p>
@@ -37,20 +37,20 @@ export default function ActivitySection({
                 }`}
               >
                 <div
-                  className="h-9 w-9 flex-shrink-0 rounded-[10px] flex items-center justify-center"
+                  className="h-8 w-8 flex-shrink-0 rounded-[8px] flex items-center justify-center"
                   style={{ background: bg }}
                 >
                   {icon}
                 </div>
 
-                <div className="min-w-0 flex-1 pt-0.5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B8924A]">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#B8924A]">
                     {getActivityLabel(item.id)}
                   </p>
-                  <p className="mt-1 text-[14px] font-semibold text-[#17120E] leading-snug truncate">
+                  <p className="mt-0.5 text-[13px] font-semibold text-[#17120E] leading-snug truncate">
                     {getActivityTitle(item.action)}
                   </p>
-                  <p className="mt-1 text-[12px] text-[#9B8E7D]">
+                  <p className="mt-0.5 text-[11px] text-[#9B8E7D]">
                     {formatDate(item.created_at)}
                   </p>
                 </div>

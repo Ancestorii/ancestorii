@@ -31,6 +31,7 @@ export default function SignupForm() {
   const [agree, setAgree] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState('');
 
   // Shared state
   const [loading, setLoading] = useState(false);
@@ -300,7 +301,7 @@ export default function SignupForm() {
             </div>
 
             {/* Email signup form */}
-            <form onSubmit={onSubmit} className="space-y-5">
+            <form onSubmit={onSubmit} noValidate className="space-y-5">
               <div>
                 <label className="block font-semibold text-sm mb-1 text-[#0f2040]">Full Name</label>
                 <input
@@ -320,9 +321,22 @@ export default function SignupForm() {
                   onChange={(e) => {
                     setEmail(e.target.value);
                     setEmailSuggestion(null);
+                    if (emailError) setEmailError('');
                   }}
-                  className="w-full p-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]"
+                  onBlur={() => {
+                    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                      setEmailError('Please enter a valid email address.');
+                    } else {
+                      setEmailError('');
+                    }
+                  }}
+                  className={`w-full p-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] ${
+                    emailError ? 'border-red-400' : 'border-gray-200'
+                  }`}
                 />
+                {emailError && (
+                  <p className="mt-1 text-sm text-red-500">{emailError}</p>
+                )}
                 {emailSuggestion && (
                   <button
                     type="button"

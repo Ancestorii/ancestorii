@@ -44,7 +44,7 @@ export default function StoryAssistanceCard({
   assistanceEnabled = true,
 }: StoryAssistanceCardProps) {
   const [dismissed, setDismissed] = useState(false);
-  const [minimized, setMinimized] = useState(false);
+  const [minimized, setMinimized] = useState(true);
   const [step, setStep] = useState<Step>('welcome');
   const [selectedOption, setSelectedOption] = useState<AssistOption | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -66,7 +66,7 @@ export default function StoryAssistanceCard({
 
   // ── Drag handlers (desktop only) ──
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (isMobile || minimized) return;
+    if (isMobile) return;
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('a')) return;
 
@@ -78,7 +78,7 @@ export default function StoryAssistanceCard({
       posY: position.y,
     };
     e.preventDefault();
-  }, [isMobile, minimized, position]);
+  }, [isMobile, position]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -101,6 +101,12 @@ export default function StoryAssistanceCard({
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging]);
+
+  // ── Helper: minimize and reset position ──
+  const handleMinimize = useCallback(() => {
+    setPosition({ x: 0, y: 0 });
+    setMinimized(true);
+  }, []);
 
   // ── Actions ──
   const handleSelectOption = async (option: AssistOption) => {
@@ -136,27 +142,52 @@ export default function StoryAssistanceCard({
         animate={{ opacity: 1, scale: 1 }}
         className="fixed z-[150]"
         style={{
-          top: `calc(90px + ${position.y}px)`,
+          bottom: `calc(24px - ${position.y}px)`,
           right: `calc(24px - ${position.x}px)`,
+          cursor: isDragging ? 'grabbing' : 'grab',
+        }}
+        onMouseDown={(e) => {
+          setIsDragging(true);
+          dragStartRef.current = {
+            x: e.clientX,
+            y: e.clientY,
+            posX: position.x,
+            posY: position.y,
+          };
+          e.preventDefault();
+        }}
+        onMouseUp={(e) => {
+          const dx = Math.abs(e.clientX - dragStartRef.current.x);
+          const dy = Math.abs(e.clientY - dragStartRef.current.y);
+          if (dx < 5 && dy < 5) {
+            setPosition({ x: 0, y: 0 });
+            setMinimized(false);
+          }
         }}
       >
-        <button
-          onClick={() => setMinimized(false)}
-          className="flex items-center gap-2.5 rounded-[14px] px-4 py-3 transition hover:scale-[1.02]"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,253,248,0.95), rgba(250,245,235,0.95))',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(200,165,87,0.3)',
-            boxShadow: '0 12px 40px rgba(22,18,12,0.15), 0 0 30px rgba(200,165,87,0.1)',
-          }}
-        >
-          <div className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-[#F5EDD8] text-[#A9782F]">
-            <Feather size={14} strokeWidth={1.6} />
+        <div className="relative">
+          <button
+            onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="absolute -top-2 -right-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white border border-[#E5E7EB] text-[#9B8E7D] hover:text-[#6F6255] hover:bg-[#F5F0E8] transition shadow-sm"
+          >
+            <X size={10} strokeWidth={2.5} />
+          </button>
+          <div
+            className="flex items-center gap-2.5 rounded-[14px] px-4 py-3 transition hover:scale-[1.02] select-none"
+            style={{
+              background: 'linear-gradient(135deg, #FFFDF8, #FAF5EB)',
+              border: '1.5px solid rgba(200,165,87,0.5)',
+              boxShadow: '0 8px 28px rgba(22,18,12,0.18), 0 0 20px rgba(200,165,87,0.15), 0 2px 6px rgba(22,18,12,0.1)',
+            }}
+          >
+            <div className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-[#F5EDD8] text-[#A9782F]">
+              <Feather size={14} strokeWidth={1.6} />
+            </div>
+            <span className="text-[13px] font-semibold text-[#17120E]">Story Assistance</span>
+            <span className="text-[12px] text-[#6F6255] ml-0.5">— here if you need me</span>
           </div>
-          <span className="text-[13px] font-semibold text-[#17120E]">Story Assistance</span>
-          <Maximize2 size={14} className="text-[#9B8E7D] ml-1" />
-        </button>
+        </div>
       </motion.div>
     );
   }
@@ -168,21 +199,29 @@ export default function StoryAssistanceCard({
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="fixed top-3 right-3 z-[150]"
+          className="fixed bottom-3 right-3 z-[150]"
         >
-          <button
-            onClick={() => setMinimized(false)}
-            className="flex items-center gap-1.5 rounded-[10px] px-3 py-2"
-            style={{
-              background: 'rgba(255,253,248,0.95)',
-              border: '1px solid rgba(200,165,87,0.3)',
-              boxShadow: '0 8px 24px rgba(22,18,12,0.12)',
-            }}
-          >
-            <Feather size={11} strokeWidth={1.6} className="text-[#B8924A]" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#17120E]">Story Assistance</span>
-            <Maximize2 size={11} className="text-[#9B8E7D]" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setDismissed(true)}
+              className="absolute -top-2 -right-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white border border-[#E5E7EB] text-[#9B8E7D] hover:text-[#6F6255] hover:bg-[#F5F0E8] transition shadow-sm"
+            >
+              <X size={10} strokeWidth={2.5} />
+            </button>
+            <button
+              onClick={() => setMinimized(false)}
+              className="flex items-center gap-1.5 rounded-[10px] px-3 py-2"
+              style={{
+                background: 'linear-gradient(135deg, #FFFDF8, #FAF5EB)',
+                border: '1.5px solid rgba(200,165,87,0.5)',
+                boxShadow: '0 8px 28px rgba(22,18,12,0.18), 0 0 20px rgba(200,165,87,0.15), 0 2px 6px rgba(22,18,12,0.1)',
+              }}
+            >
+              <Feather size={11} strokeWidth={1.6} className="text-[#B8924A]" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#17120E]">Story Assistance</span>
+              <Maximize2 size={11} className="text-[#9B8E7D]" />
+            </button>
+          </div>
         </motion.div>
       );
     }
@@ -194,7 +233,7 @@ export default function StoryAssistanceCard({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className={`fixed z-[150] ${step === 'welcome' ? 'top-3 right-3 w-[200px]' : 'inset-3 bottom-[70px]'}`}
+          className={`fixed z-[150] ${step === 'welcome' ? 'bottom-3 right-3 w-[200px]' : 'inset-3 bottom-[70px]'}`}
         >
           <div
             className="rounded-[16px] overflow-hidden overflow-y-auto"
@@ -238,7 +277,7 @@ export default function StoryAssistanceCard({
                     Yes please
                   </button>
                   <button
-                    onClick={() => setMinimized(true)}
+                    onClick={handleMinimize}
                     className="h-[32px] rounded-[8px] text-[11px] font-semibold text-[#9B8E7D] transition hover:text-[#6F6255]"
                   >
                     No thanks, I'll write on my own
@@ -258,7 +297,7 @@ export default function StoryAssistanceCard({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
-                      onClick={() => setMinimized(true)}
+                      onClick={handleMinimize}
                       className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F5EDD8] text-[#9B8E7D]"
                     >
                       <Minus size={13} strokeWidth={2} />
@@ -284,7 +323,7 @@ export default function StoryAssistanceCard({
                   onStart={() => setStep('options')}
                   onSelectOption={handleSelectOption}
                   onBack={handleBack}
-                  onDismiss={() => setMinimized(true)}
+                  onDismiss={handleMinimize}
                   onRetry={handleRetry}
                 />
               </div>
@@ -299,14 +338,14 @@ export default function StoryAssistanceCard({
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -16, scale: 0.96 }}
+        initial={{ opacity: 0, y: 16, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -16, scale: 0.96 }}
+        exit={{ opacity: 0, y: 16, scale: 0.96 }}
         transition={{ duration: 0.45, ease: 'easeOut' }}
         onMouseDown={handleMouseDown}
         className="fixed z-[150] sa-card-width"
         style={{
-          top: `calc(90px + ${position.y}px)`,
+          bottom: `calc(24px - ${position.y}px)`,
           right: `calc(24px - ${position.x}px)`,
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
@@ -350,7 +389,7 @@ export default function StoryAssistanceCard({
           {/* Control buttons */}
           <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
             <button
-              onClick={() => setMinimized(true)}
+              onClick={handleMinimize}
               className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F5EDD8] text-[#9B8E7D] transition hover:bg-[#EAD8B8] hover:text-[#6F6255]"
               title="Minimise"
             >
@@ -378,7 +417,7 @@ export default function StoryAssistanceCard({
             onStart={() => setStep('options')}
             onSelectOption={handleSelectOption}
             onBack={handleBack}
-            onDismiss={() => setMinimized(true)}
+            onDismiss={handleMinimize}
             onRetry={handleRetry}
           />
         </div>

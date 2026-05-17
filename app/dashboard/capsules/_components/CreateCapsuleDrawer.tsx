@@ -195,24 +195,26 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
           description: description.trim() || null,
           unlock_date: unlockDate,
           cover_image: coverUrl,
+          is_locked: new Date(unlockDate) > new Date(),
         })
         .eq('id', capsule.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Capsule not found or access denied.');
 
       onUpdated(data);
     } else {
       const { data, error } = await supabase
         .from('memory_capsules')
         .insert({
-          user_id: user.id, // ← THIS WAS MISSING
+          user_id: user.id,
           title: title.trim(),
           description: description.trim() || null,
           unlock_date: unlockDate,
           cover_image: coverUrl,
-          is_locked: false,
+          is_locked: new Date(unlockDate) > new Date(),
         })
         .select()
         .single();
