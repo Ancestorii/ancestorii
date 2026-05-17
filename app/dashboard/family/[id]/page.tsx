@@ -10,6 +10,7 @@ import { getBrowserClient } from "@/lib/supabase/browser";
 import ProfileSection from "./_components/ProfileSection";
 import StorySection from "./_components/StorySection";
 import LinkedContentSection from "./_components/LinkedContentSection";
+import LovedOneAI from "./_components/LovedOneAI";
 
 type FamilyMember = {
   id: string;
@@ -295,6 +296,14 @@ export default function LovedOneProfilePage() {
 
       <div className="relative z-10 w-full px-4 sm:px-6 lg:px-10 xl:px-16 pb-20 pt-5 lg:pb-28">
         <TopActions router={router} />
+
+        <LovedOneAI
+          memberName={member.full_name}
+          firstName={firstName}
+          memberBorn={member.birth_date}
+          memberDied={member.death_date}
+          memberRelationship={member.relationship_to_user}
+        />
 
         <ProfileSection
           member={member}

@@ -19,6 +19,12 @@ const testimonials = [
     quote: 'I recently lost my dad, so this book became incredibly special. It captured the essence of him and the life he lived. Our family will treasure it for years to come.',
     image: '/testimonial4.png',
   },
+  {
+    name: 'Erin',
+    location: 'United Kingdom',
+    quote: 'Ancestorii feels less like cloud storage and more like a living family archive. Beautifully designed and genuinely meaningful. I love how the library keeps photos, voices, and memories connected instead of scattered across apps.',
+    image: '/Testimonial5.png',
+  },
 ];
 
 const Star = () => (
@@ -75,8 +81,8 @@ export default function Testimonials() {
           </div>
         </div>
 
-        {/* ── MOBILE / TABLET: horizontal scroll ── */}
-        <div className="block lg:hidden">
+        {/* ── MOBILE ONLY: horizontal swipe (below md) ── */}
+        <div className="block md:hidden">
           <div
             className="flex gap-4 overflow-x-auto pb-2 px-[8vw] snap-x snap-mandatory"
             style={{
@@ -103,8 +109,15 @@ export default function Testimonials() {
           </p>
         </div>
 
-        {/* ── DESKTOP: 3-column vertical cards ── */}
-        <div className="hidden lg:grid grid-cols-3 gap-7 xl:gap-9">
+        {/* ── TABLET / RESIZED DESKTOP: 2×2 grid (md to lg) ── */}
+        <div className="hidden md:grid lg:hidden grid-cols-2 gap-5">
+          {testimonials.map((t) => (
+            <DesktopCard key={t.name} testimonial={t} />
+          ))}
+        </div>
+
+        {/* ── FULL DESKTOP: 4-column grid (lg+) ── */}
+        <div className="hidden lg:grid grid-cols-4 gap-5 xl:gap-7">
           {testimonials.map((t) => (
             <DesktopCard key={t.name} testimonial={t} />
           ))}
@@ -139,10 +152,10 @@ function MobileCard({
       className="overflow-hidden flex flex-col"
       style={{
         border: '1px solid rgba(184,147,42,0.15)',
-        height: '520px',
+        height: '620px',
       }}
     >
-      <div className="relative w-full h-[220px] flex-shrink-0">
+      <div className="relative w-full h-[320px] flex-shrink-0">
         <img
           src={testimonial.image}
           alt={`${testimonial.name} with their Ancestorii Memory Book`}
@@ -192,7 +205,7 @@ function MobileCard({
   );
 }
 
-/* ─── DESKTOP CARD — vertical layout for 3 columns ─── */
+/* ─── DESKTOP CARD — vertical layout for 4 columns ─── */
 function DesktopCard({
   testimonial,
 }: {
@@ -249,13 +262,13 @@ function DesktopCard({
         <div className="mt-6 pt-5" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
           <p
             className="font-sans text-[#000] uppercase"
-            style={{ fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.16em' }}
+            style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.14em' }}
           >
             {testimonial.name}
           </p>
           <p
             className="font-sans text-[#B8932A] mt-1 uppercase"
-            style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em' }}
+            style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em' }}
           >
             {testimonial.location}
           </p>
@@ -263,20 +276,20 @@ function DesktopCard({
       </div>
 
       <style>{`
-        .ts-photo-height { height: 300px; }
-        .ts-quote-pad    { padding: 28px 24px; }
-        .ts-quote-text   { font-size: 1.05rem; line-height: 1.55; }
+        .ts-photo-height { height: 420px; }
+        .ts-quote-pad    { padding: 24px 20px; }
+        .ts-quote-text   { font-size: 0.95rem; line-height: 1.5; }
 
         @media (min-width: 1280px) {
-          .ts-photo-height { height: 340px; }
-          .ts-quote-pad    { padding: 32px 30px; }
-          .ts-quote-text   { font-size: 1.12rem; line-height: 1.5; }
+          .ts-photo-height { height: 480px; }
+          .ts-quote-pad    { padding: 28px 24px; }
+          .ts-quote-text   { font-size: 1rem; line-height: 1.5; }
         }
 
         @media (min-width: 1536px) {
-          .ts-photo-height { height: 380px; }
-          .ts-quote-pad    { padding: 38px 36px; }
-          .ts-quote-text   { font-size: 1.2rem; line-height: 1.5; }
+          .ts-photo-height { height: 540px; }
+          .ts-quote-pad    { padding: 32px 28px; }
+          .ts-quote-text   { font-size: 1.08rem; line-height: 1.5; }
         }
       `}</style>
     </div>

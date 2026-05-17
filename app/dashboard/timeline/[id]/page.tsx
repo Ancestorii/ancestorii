@@ -7,6 +7,7 @@ import HorizontalTimeline, { TimelineEvent } from '@app/dashboard/timeline/_comp
 import CreateEventDrawer from '@app/dashboard/timeline/_components/CreateEventDrawer';
 import UniversalPeopleTagger from '@/components/UniversalPeopleTagger';
 import ExportTimelineDrawer from '@app/dashboard/timeline/_components/ExportTimelineDrawer';
+import TimelineAI from '../_components/TimelineAI';
 
 const thumbnailCache = new Map<string, TimelineThumbnail[]>();
 
@@ -353,6 +354,11 @@ export default function TimelineDetailPage() {
 </div>
 
     </div>
+
+    <TimelineAI
+        timelineTitle={timeline?.title || ''}
+        taggedPeopleNames={taggedPeople.map((p) => p.full_name)}
+      />
 
       <UniversalPeopleTagger
        parentType="timeline"

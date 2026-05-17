@@ -13,6 +13,7 @@ import CapsuleMediaInteractionsPanel from '../_components/media-interactions/Cap
 import UniversalPeopleTagger from '@/components/UniversalPeopleTagger';
 import CapsuleSealOverlay from '@/components/CapsuleSealOverlay';
 import LibraryPickerModal, { LibraryPickerItem } from '@/components/LibraryPickerModal';
+import CapsuleAI from '../_components/CapsuleAI';
 
 
 type Capsule = {
@@ -649,6 +650,11 @@ function prevMedia() {
       {/* -------- Right: Media Interactions -------- */}
       <CapsuleMediaInteractionsPanel capsuleId={capsule.id} />
       {/* -------- Drawers -------- */}
+      <CapsuleAI
+        capsuleTitle={capsule.title}
+        unlockDate={capsule.unlock_date}
+        taggedPeopleNames={taggedPeople.map((p) => p.full_name)}
+      />
       <UploadCapsuleMediaDrawer
         capsuleId={capsule.id}
         open={uploadOpen}

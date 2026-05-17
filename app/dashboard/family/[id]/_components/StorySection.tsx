@@ -15,7 +15,6 @@ import {
   X,
   Heart,
 } from "lucide-react";
-import AssistButton from "@/components/ui/AssistButton";
 import "quill/dist/quill.snow.css";
 
 type StoryKey =
@@ -579,31 +578,6 @@ const styles = accentStyles[section.accent];
   ))}
 </div>
                 </div>
-
-                <div className="flex items-center justify-between gap-3 px-1">
-                  <AssistButton
-                    type={`loved-one-${section.key.replace(/_/g, '-')}` as any}
-                    context={{
-                      name: memberName,
-                      relationship: memberRelationship,
-                      born: memberBorn,
-                      died: memberDied,
-                      existing_text: stripHtml(htmlValue).trim() || undefined,
-                    }}
-                    label={stripHtml(htmlValue).trim() ? "Help me continue" : "Help me find the words"}
-                    onUseSuggestion={(text) => {
-                      if (quill) {
-                        const len = quill.getLength();
-                        if (len <= 1) {
-                          quill.setText(text);
-                        } else {
-                          quill.insertText(len - 1, '\n\n' + text);
-                        }
-                      }
-                    }}
-                  />
-                </div>
-
                 <div className="border border-[#e6dcc8] bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                   <div className="border-b border-[#efe5d1] px-4 py-4 sm:px-5">
                     <div className="flex items-center gap-3">

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import BookCanvas from './book-canvas/BookCanvas';
 import type { Asset, Page, SelectedImage, LayoutType } from '@/types/memory-book';
+import BookAI from './BookAI';
 
 export default function BookBuilder({
   bookId,
@@ -114,6 +115,7 @@ export default function BookBuilder({
         <p style={{ fontSize: 14, color: '#6B6358', lineHeight: 1.6, maxWidth: 320 }}>The book builder works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to build your memory book.</p>
         <a href="/dashboard/books" style={{ marginTop: 24, padding: '10px 24px', borderRadius: 10, background: '#1A1714', color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Back to Books</a>
       </div>
+      <BookAI bookTitle={bookTitle} />
       <div className="hidden lg:block" style={{ height: '100%' }}>
         <BookCanvas
           bookId={bookId}

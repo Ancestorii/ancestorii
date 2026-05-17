@@ -15,6 +15,7 @@ import UniversalPeopleTagger from '@/components/UniversalPeopleTagger';
 import LibraryPickerModal, {
   LibraryPickerItem,
 } from '@/components/LibraryPickerModal';
+import AlbumAI from '../_components/AlbumAI';
 
 /* ───────────────────── types ───────────────────── */
 
@@ -325,6 +326,13 @@ export default function Page() {
         @media (max-width: 1023px) { .desktop-panel { display: none !important; } }
         @media (min-width: 1024px) { .mobile-panel-backdrop { display: none !important; } .mobile-panel-sheet { display: none !important; } }
       `}</style>
+
+      <AlbumAI
+        albumTitle={album.title}
+        albumDescription={album.description}
+        mediaCount={media.length}
+        taggedPeopleNames={taggedPeople.map((p) => p.full_name)}
+      />
 
       <div style={{ height: '100vh', overflow: 'hidden', background: '#f6f1e8', display: 'flex', fontFamily: "'Inter', sans-serif" }}>
         {/* LEFT COLUMN */}

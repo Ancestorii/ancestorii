@@ -1,5 +1,6 @@
 import { getServerClient } from '@/lib/supabase/server';
 import BookBuilder from './_components/BookBuilder';
+import BookAI from './_components/BookAI';
 
 export default async function BookPage({
   params,
