@@ -195,7 +195,6 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
           description: description.trim() || null,
           unlock_date: unlockDate,
           cover_image: coverUrl,
-          is_locked: new Date(unlockDate) > new Date(),
         })
         .eq('id', capsule.id)
         .select()
@@ -214,7 +213,7 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
           description: description.trim() || null,
           unlock_date: unlockDate,
           cover_image: coverUrl,
-          is_locked: new Date(unlockDate) > new Date(),
+          is_locked: false,
         })
         .select()
         .single();
