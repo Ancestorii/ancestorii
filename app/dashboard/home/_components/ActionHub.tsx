@@ -1,3 +1,5 @@
+// ActionHub.tsx — updated with Share Link as primary, Email as secondary
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -17,6 +19,12 @@ import {
   Eye,
   Pencil,
   Trash2,
+  Share2,
+  Link2,
+  Copy,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ensureDisplayableImage } from '@/lib/convertImage';
@@ -33,12 +41,22 @@ export default function ActionHub({
 
   const [homeImages, setHomeImages] = useState(initialImages);
   const [activeMemory, setActiveMemory] = useState(0);
+  const [showDesktopToast, setShowDesktopToast] = useState(false);
+
+  // ── Email invite state ──
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteSuccess, setInviteSuccess] = useState('');
   const [inviteError, setInviteError] = useState('');
-  const [showDesktopToast, setShowDesktopToast] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showEmailSection, setShowEmailSection] = useState(false);
+
+  // ── Share link state ──
+  const [shareLink, setShareLink] = useState('');
+  const [shareLinkLoading, setShareLinkLoading] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [shareError, setShareError] = useState('');
 
   const placeholders = [
     'A moment that changed everything. Add a memory that still means something.',
@@ -107,6 +125,87 @@ export default function ActionHub({
     });
   };
 
+  // ── Share link logic ──
+  const fetchShareLink = async (regenerate = false) => {
+    setShareLinkLoading(true);
+    setShareError('');
+    try {
+      const res = await fetch('/api/family-invite-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(regenerate ? { regenerate: true } : {}),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setShareError(data.error || 'Failed to create invite link');
+        return null;
+      }
+      setShareLink(data.url);
+      return data.url;
+    } catch {
+      setShareError('Something went wrong');
+      return null;
+    } finally {
+      setShareLinkLoading(false);
+    }
+  };
+
+  const handleShareClick = () => {
+    setShowShareModal(true);
+  };
+
+  const confirmAndShare = async () => {
+    setShowShareModal(false);
+
+    // Fetch link if we don't already have one
+    const url = shareLink || (await fetchShareLink());
+    if (!url) return;
+
+    const shareMessage =
+      "I'm building our family's memory library on Ancestorii — come add your photos and stories.";
+
+    // Mobile: native share sheet (WhatsApp, iMessage, Messenger, etc.)
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join our Family Library on Ancestorii',
+          text: shareMessage,
+          url,
+        });
+        return;
+      } catch (err: any) {
+        // User cancelled share sheet — that's fine
+        if (err?.name === 'AbortError') return;
+      }
+    }
+
+    // Desktop fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(`${shareMessage}\n\n${url}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      setShareError('Failed to copy link');
+    }
+  };
+
+  const copyLinkOnly = async () => {
+    const url = shareLink || (await fetchShareLink());
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      setShareError('Failed to copy link');
+    }
+  };
+
+  const regenerateLink = async () => {
+    await fetchShareLink(true);
+  };
+
+  // ── Email invite logic ──
   const sendInvite = async () => {
     if (!inviteEmail.trim() || inviteLoading) return;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) {
@@ -156,7 +255,7 @@ export default function ActionHub({
         </div>
       )}
 
-      {/* ── Invite Confirmation Modal ── */}
+      {/* ── Email Invite Confirmation Modal ── */}
       {showInviteModal && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
@@ -170,9 +269,6 @@ export default function ActionHub({
             {/* Header */}
             <div className="px-6 pt-6 pb-4 flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF3C7]">
-                  <ShieldAlert className="h-5 w-5 text-[#A06A1C]" strokeWidth={1.6} />
-                </div>
                 <div>
                   <h3 className="text-[18px] font-bold text-[#17120E]">Before you invite</h3>
                   <p className="text-[13px] text-[#7D6F5F] mt-0.5">
@@ -188,64 +284,12 @@ export default function ActionHub({
               </button>
             </div>
 
-            {/* Divider */}
             <div className="mx-6 h-px bg-[#EAD8B8]" />
 
-            {/* Considerations */}
-            <div className="px-6 py-5 space-y-4">
-              <div className="flex items-start gap-3.5">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] bg-[#F5EDD8] mt-0.5">
-                  <Eye className="h-4 w-4 text-[#A9782F]" strokeWidth={1.7} />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#17120E] leading-snug">Full library access</p>
-                  <p className="text-[13px] text-[#7D6F5F] leading-[1.6] mt-0.5">
-                    This person will be able to browse, view, and explore everything in your family library.
-                  </p>
-                </div>
-              </div>
+            <InviteWarningContent />
 
-              <div className="flex items-start gap-3.5">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] bg-[#F5EDD8] mt-0.5">
-                  <Pencil className="h-4 w-4 text-[#A9782F]" strokeWidth={1.7} />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#17120E] leading-snug">They can create and contribute</p>
-                  <p className="text-[13px] text-[#7D6F5F] leading-[1.6] mt-0.5">
-                    They&apos;ll be able to add photos, videos, voice notes, loved ones, timelines, albums, capsules, and order books, canvases, and acrylics.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3.5">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] bg-[#F5EDD8] mt-0.5">
-                  <Trash2 className="h-4 w-4 text-[#A9782F]" strokeWidth={1.7} />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#17120E] leading-snug">Deleting is creator-only</p>
-                  <p className="text-[13px] text-[#7D6F5F] leading-[1.6] mt-0.5">
-                    Only the person who created something can delete it. For example, if you create a timeline, they can view and add to it — but only you can delete it.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3.5">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] bg-[#FEF3C7] mt-0.5">
-                  <Users className="h-4 w-4 text-[#A06A1C]" strokeWidth={1.7} />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#17120E] leading-snug">Only invite people you trust</p>
-                  <p className="text-[13px] text-[#7D6F5F] leading-[1.6] mt-0.5">
-                    Your library contains personal memories. Only share access with trusted family members.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Divider */}
             <div className="mx-6 h-px bg-[#EAD8B8]" />
 
-            {/* Actions */}
             <div className="px-6 py-5 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
               <button
                 onClick={() => setShowInviteModal(false)}
@@ -260,6 +304,80 @@ export default function ActionHub({
               >
                 <Send className="h-4 w-4" strokeWidth={1.8} />
                 Send Invite
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Share Link Confirmation Modal ── */}
+      {showShareModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          style={{ background: 'rgba(22,18,12,0.45)', backdropFilter: 'blur(8px)' }}
+          onClick={() => setShowShareModal(false)}
+        >
+          <div
+            className="w-full max-w-[480px] max-h-[90vh] overflow-y-auto rounded-[20px] bg-white shadow-[0_24px_60px_rgba(22,18,12,0.25)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 pt-6 pb-4 flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div>
+                  <h3 className="text-[18px] font-bold text-[#17120E]">Before you share</h3>
+                  <p className="text-[13px] text-[#7D6F5F] mt-0.5">
+                    Anyone with this link can join your library
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#F5F0E8] transition"
+              >
+                <X className="h-4 w-4 text-[#7D6F5F]" strokeWidth={2} />
+              </button>
+            </div>
+
+            <div className="mx-6 h-px bg-[#EAD8B8]" />
+
+            <InviteWarningContent />
+
+            {/* Extra warning for link sharing */}
+            <div className="px-6 pb-4">
+              <div className="flex items-start gap-3.5">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] bg-[#FEF3C7] mt-0.5">
+                  <Link2 className="h-4 w-4 text-[#A06A1C]" strokeWidth={1.7} />
+                </div>
+                <div>
+                  <p className="text-[14px] font-semibold text-[#17120E] leading-snug">This link is reusable</p>
+                  <p className="text-[13px] text-[#7D6F5F] leading-[1.6] mt-0.5">
+                    Anyone who receives this link can use it to join. You can deactivate it at any time by regenerating a new one.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mx-6 h-px bg-[#EAD8B8]" />
+
+            <div className="px-6 py-5 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="flex h-[46px] items-center justify-center rounded-[12px] border border-[#DCC7A4] bg-white px-6 text-[14px] font-semibold text-[#6F6255] transition hover:bg-[#FAF4EA]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAndShare}
+                disabled={shareLinkLoading}
+                className="flex h-[46px] items-center justify-center gap-2.5 rounded-[12px] bg-[#C8A557] px-6 text-[14px] font-semibold text-white shadow-[0_8px_20px_rgba(184,146,74,0.2)] transition hover:bg-[#B8924A] disabled:opacity-50"
+              >
+                {shareLinkLoading ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                ) : (
+                  <Share2 className="h-4 w-4" strokeWidth={1.8} />
+                )}
+                {shareLinkLoading ? 'Preparing…' : 'Share Link'}
               </button>
             </div>
           </div>
@@ -286,53 +404,120 @@ export default function ActionHub({
           </h2>
 
           <p className="mt-4 max-w-[460px] text-[15px] leading-[1.8] text-[#6F6255]">
-            Invite the people who matter most and start building your family&apos;s story — together.
+            Share a link with your family — via WhatsApp, text, Messenger, or however you stay in touch.
           </p>
 
-          {/* EMAIL ROW */}
+          {/* ── PRIMARY: Share Link ── */}
           <div className="mt-7 flex flex-col sm:flex-row gap-3">
-            <div className="flex h-[64px] sm:h-[52px] w-full sm:flex-1 items-center gap-3 rounded-[12px] border border-[#DCC7A4] bg-white px-5">
-              <Mail className="h-5 w-5 text-[#B8AFA4]" strokeWidth={1.7} />
-              <input
-                type="email"
-                value={inviteEmail}
-                onChange={(e) => { setInviteEmail(e.target.value); setInviteError(''); }}
-                onKeyDown={(e) => { if (e.key === 'Enter' && inviteEmail.trim()) setShowInviteModal(true); }}
-                placeholder="Enter their email address"
-                className="h-full flex-1 bg-transparent text-[14px] text-[#2C241B] outline-none placeholder:text-[#9B8E7D]"
-              />
-            </div>
-
             <button
-              onClick={() => setShowInviteModal(true)}
-              disabled={inviteLoading || !inviteEmail.trim()}
-              className="flex h-[52px] items-center justify-center gap-2.5 rounded-[12px] bg-[#C8A557] px-6 text-[14px] font-semibold text-white shadow-[0_8px_20px_rgba(184,146,74,0.2)] transition hover:bg-[#B8924A] disabled:opacity-50"
+              onClick={handleShareClick}
+              disabled={shareLinkLoading}
+             className="flex h-[60px] w-full items-center justify-center gap-3 rounded-[12px] bg-[#C8A557] px-6 text-[15px] font-semibold text-white shadow-[0_8px_20px_rgba(184,146,74,0.2)] transition hover:bg-[#B8924A] disabled:opacity-50"
             >
-              {inviteLoading ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              {shareLinkLoading ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               ) : (
-                <Send className="h-4 w-4" strokeWidth={1.8} />
+                <Share2 className="h-5 w-5" strokeWidth={1.8} />
               )}
-              {inviteLoading ? 'Sending…' : 'Send Invite'}
+              {shareLinkLoading ? 'Preparing…' : 'Share with Family'}
             </button>
           </div>
 
-          {inviteSuccess && (
-            <div className="mt-3 flex items-center gap-2 text-[13px] text-emerald-600">
-              <Check size={14} /> {inviteSuccess}
+          {/* Copy link + Regenerate row (shown after first share) */}
+          {shareLink && (
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                onClick={copyLinkOnly}
+                className="flex items-center gap-2 text-[13px] font-medium text-[#A9782F] hover:text-[#8A6324] transition"
+              >
+                {copied ? <Check className="h-3.5 w-3.5" strokeWidth={2} /> : <Copy className="h-3.5 w-3.5" strokeWidth={1.7} />}
+                {copied ? 'Copied!' : 'Copy link'}
+              </button>
+              <span className="text-[#DCC7A4]">·</span>
+              <button
+                onClick={regenerateLink}
+                disabled={shareLinkLoading}
+                className="flex items-center gap-1.5 text-[13px] font-medium text-[#7D6F5F] hover:text-[#A9782F] transition disabled:opacity-50"
+              >
+                <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.7} />
+                New link
+              </button>
             </div>
           )}
-          {inviteError && <p className="mt-3 text-[13px] text-red-500">{inviteError}</p>}
 
-          {/* DIVIDER */}
+          {copied && !shareLink && (
+            <div className="mt-3 flex items-center gap-2 text-[13px] text-emerald-600">
+              <Check size={14} /> Link copied to clipboard
+            </div>
+          )}
+
+          {shareError && <p className="mt-3 text-[13px] text-red-500">{shareError}</p>}
+
+          {/* ── DIVIDER ── */}
           <div className="my-7 flex items-center gap-5">
             <div className="h-px flex-1 bg-[#E7D8C1]" />
             <span className="text-[13px] text-[#7D6F5F]">OR</span>
             <div className="h-px flex-1 bg-[#E7D8C1]" />
           </div>
 
-          {/* ACTIONS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* ── SECONDARY: Email invite (collapsible) ── */}
+          <button
+            onClick={() => setShowEmailSection(!showEmailSection)}
+            className="flex w-full items-center justify-between rounded-[12px] border border-[#DCC7A4] bg-white px-5 py-4 text-left transition hover:bg-[#FAF4EA]"
+          >
+            <div className="flex items-center gap-3">
+              <Mail className="h-5 w-5 text-[#A9782F]" strokeWidth={1.7} />
+              <div>
+                <p className="text-[14px] font-semibold text-[#17120E]">Invite by email</p>
+                <p className="text-[12px] text-[#7D6F5F] mt-0.5">Send a personal invitation to a specific person</p>
+              </div>
+            </div>
+            {showEmailSection ? (
+              <ChevronUp className="h-4 w-4 text-[#7D6F5F]" strokeWidth={1.8} />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-[#7D6F5F]" strokeWidth={1.8} />
+            )}
+          </button>
+
+          {showEmailSection && (
+            <div className="mt-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex h-[52px] w-full sm:flex-1 items-center gap-3 rounded-[12px] border border-[#DCC7A4] bg-white px-5">
+                  <Mail className="h-5 w-5 text-[#B8AFA4]" strokeWidth={1.7} />
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => { setInviteEmail(e.target.value); setInviteError(''); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && inviteEmail.trim()) setShowInviteModal(true); }}
+                    placeholder="Enter their email address"
+                    className="h-full flex-1 bg-transparent text-[14px] text-[#2C241B] outline-none placeholder:text-[#9B8E7D]"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowInviteModal(true)}
+                  disabled={inviteLoading || !inviteEmail.trim()}
+                  className="flex h-[52px] items-center justify-center gap-2.5 rounded-[12px] border border-[#DCC7A4] bg-white px-6 text-[14px] font-semibold text-[#17120E] transition hover:bg-[#FAF4EA] disabled:opacity-50"
+                >
+                  {inviteLoading ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#C8A557]/30 border-t-[#C8A557]" />
+                  ) : (
+                    <Send className="h-4 w-4 text-[#A9782F]" strokeWidth={1.8} />
+                  )}
+                  {inviteLoading ? 'Sending…' : 'Send'}
+                </button>
+              </div>
+
+              {inviteSuccess && (
+                <div className="mt-3 flex items-center gap-2 text-[13px] text-emerald-600">
+                  <Check size={14} /> {inviteSuccess}
+                </div>
+              )}
+              {inviteError && <p className="mt-3 text-[13px] text-red-500">{inviteError}</p>}
+            </div>
+          )}
+
+          {/* ── ACTIONS ── */}
+          <div className="mt-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               onClick={() => router.push('/dashboard/family?add=true')}
               className="rounded-[14px] bg-[#C8A557] px-6 py-6 text-center text-white shadow-[0_10px_22px_rgba(184,146,74,0.2)] transition hover:bg-[#B8924A]"
@@ -357,7 +542,7 @@ export default function ActionHub({
           </div>
         </div>
 
-        {/* RIGHT CARD */}
+        {/* RIGHT CARD — unchanged */}
         <div
           className="rounded-[20px] border bg-[#FFFDF9] px-5 py-6 sm:px-8 sm:py-8 shadow-[0_14px_36px_rgba(44,36,27,0.05)] flex flex-col"
           style={{ borderColor: '#E7DFD3' }}
@@ -431,6 +616,61 @@ export default function ActionHub({
         </div>
       </div>
     </section>
+  );
+}
+
+// ── Shared warning content for both modals ──
+function InviteWarningContent() {
+  return (
+    <div className="px-6 py-5 space-y-4">
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] bg-[#F5EDD8] mt-0.5">
+          <Eye className="h-4 w-4 text-[#A9782F]" strokeWidth={1.7} />
+        </div>
+        <div>
+          <p className="text-[14px] font-semibold text-[#17120E] leading-snug">Full library access</p>
+          <p className="text-[13px] text-[#7D6F5F] leading-[1.6] mt-0.5">
+            This person will be able to browse, view, and explore everything in your family library.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] bg-[#F5EDD8] mt-0.5">
+          <Pencil className="h-4 w-4 text-[#A9782F]" strokeWidth={1.7} />
+        </div>
+        <div>
+          <p className="text-[14px] font-semibold text-[#17120E] leading-snug">They can create and contribute</p>
+          <p className="text-[13px] text-[#7D6F5F] leading-[1.6] mt-0.5">
+            They&apos;ll be able to add photos, videos, voice notes, loved ones, timelines, albums, capsules, and order books, canvases, and acrylics.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] bg-[#F5EDD8] mt-0.5">
+          <Trash2 className="h-4 w-4 text-[#A9782F]" strokeWidth={1.7} />
+        </div>
+        <div>
+          <p className="text-[14px] font-semibold text-[#17120E] leading-snug">Deleting is creator-only</p>
+          <p className="text-[13px] text-[#7D6F5F] leading-[1.6] mt-0.5">
+            Only the person who created something can delete it. For example, if you create a timeline, they can view and add to it — but only you can delete it.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] bg-[#FEF3C7] mt-0.5">
+          <Users className="h-4 w-4 text-[#A06A1C]" strokeWidth={1.7} />
+        </div>
+        <div>
+          <p className="text-[14px] font-semibold text-[#17120E] leading-snug">Only invite people you trust</p>
+          <p className="text-[13px] text-[#7D6F5F] leading-[1.6] mt-0.5">
+            Your library contains personal memories. Only share access with trusted family members.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -1,3 +1,5 @@
+// app/auth/callback/page.tsx
+
 'use client';
 
 import { useEffect } from 'react';
@@ -43,9 +45,24 @@ export default function AuthCallback() {
         sessionStorage.removeItem('invite_token');
       }
 
+      // Handle join token (Google OAuth from /join/[token] page)
+      const joinToken = sessionStorage.getItem('join_token');
+      if (joinToken && !inviteToken) {
+        try {
+          await fetch('/api/join-via-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: joinToken }),
+          });
+        } catch {
+          // Non-critical — user ends up in their own family
+        }
+        sessionStorage.removeItem('join_token');
+      }
+
       // Update family name from sessionStorage (set during step 1 of signup)
       const familyName = sessionStorage.getItem('family_name');
-      if (familyName && !inviteToken) {
+      if (familyName && !inviteToken && !joinToken) {
         try {
           const { data: membership } = await supabase
             .from('family_memberships')
@@ -66,7 +83,14 @@ export default function AuthCallback() {
         sessionStorage.removeItem('family_name');
       }
 
-      router.replace('/dashboard/home');
+      // Check for a redirect destination (e.g. existing user logging in from /join/[token])
+      const postLoginRedirect = sessionStorage.getItem('post_login_redirect');
+      if (postLoginRedirect) {
+        sessionStorage.removeItem('post_login_redirect');
+        router.replace(postLoginRedirect);
+      } else {
+        router.replace('/dashboard/home');
+      }
     };
 
     handleOAuth();

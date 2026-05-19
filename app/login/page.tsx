@@ -45,8 +45,10 @@ export default function LoginPage() {
       // ⏳ Give Supabase time to persist auth cookies
       await new Promise((res) => setTimeout(res, 200));
 
-      // ✅ ALWAYS REDIRECT TO DASHBOARD
-      router.replace("/dashboard/home");
+      // Redirect to original destination (e.g. /join/[token]) or dashboard
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectTo = searchParams.get('redirect');
+      router.replace(redirectTo || '/dashboard/home');
     } catch (err: any) {
   const message = err?.message ?? "";
 
@@ -92,6 +94,11 @@ export default function LoginPage() {
 // ---------------------------
 const handleGoogleLogin = async () => {
   setError(null);
+
+  // Preserve redirect destination for after OAuth callback
+  const searchParams = new URLSearchParams(window.location.search);
+  const redirectTo = searchParams.get('redirect');
+  if (redirectTo) sessionStorage.setItem('post_login_redirect', redirectTo);
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
