@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     siteName: "Ancestorii",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/Ancestorii.png",
         width: 1200,
         height: 630,
         alt: "Ancestorii Living Family Library",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     title: "Ancestorii — Your Family Library",
     description:
       "A private space where your family's photos, stories, and voices live together — and grow with you.",
-    images: ["/og-image.jpg"],
+    images: ["/Ancestorii.png"],
   },
   alternates: {
     canonical: "https://www.ancestorii.com/",
