@@ -43,12 +43,12 @@ export const metadata: Metadata = {
     locale: "en_GB",
     url: "https://www.ancestorii.com",
     siteName: "Ancestorii",
-    title: "Ancestorii A Living Family Library",
+    title: "Ancestorii — Your Family Library",
     description:
       "Capture stories, voices, and meaningful moments in a private space designed to grow with your family over time.",
     images: [
       {
-        url: "/Ancestorii.png",
+        url: "/Ancestorii.jpg",
         width: 1200,
         height: 630,
         alt: "Ancestorii Living Family Library",
@@ -58,10 +58,10 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Ancestorii A Living Family Library",
+    title: "Ancestorii — Your Family Library",
     description:
       "A private space to capture and grow your family story in real time.",
-    images: ["/Ancestorii.png"],
+    images: ["/Ancestorii.jpg"],
     creator: "@ancestorii",
   },
 

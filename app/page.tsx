@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     siteName: "Ancestorii",
     images: [
       {
-        url: "/Ancestorii.png",
+        url: "/Ancestorii.jpg",
         width: 1200,
         height: 630,
         alt: "Ancestorii Living Family Library",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     title: "Ancestorii — Your Family Library",
     description:
       "A private space where your family's photos, stories, and voices live together — and grow with you.",
-    images: ["/Ancestorii.png"],
+    images: ["/Ancestorii.jpg"],
   },
   alternates: {
     canonical: "https://www.ancestorii.com/",
@@ -90,7 +90,7 @@ export default function HomePage() {
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebPage",
-          name: "Ancestorii A Living Family Library",
+          name: "Ancestorii — Your Family Library",
           description:
             "Build a living family library by capturing stories, voices, and meaningful moments in a private space designed to grow over time.",
           url: "https://www.ancestorii.com/",

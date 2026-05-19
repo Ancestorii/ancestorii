@@ -29,7 +29,7 @@ export default function MomentsWorthKeepingPage() {
           description:
             "A short podcast about capturing memories while life is happening. Each episode offers calm reflections on stories, voices, and moments that shape a family story.",
           url: "https://www.ancestorii.com/moments-worth-keeping",
-          image: "https://www.ancestorii.com/Ancestorii.png",
+          image: "https://www.ancestorii.com/Ancestorii.jpg",
           publisher: {
             "@type": "Organization",
             name: "Ancestorii",
