@@ -517,7 +517,7 @@ export default function ProfilePage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           TAB CONTENT
          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <div className="mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12 py-8 sm:py-10">
+      <div className="mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12 py-8 pb-36 sm:py-10 sm:pb-10">
 
         {activeTab === 'details' && (
           <div className="space-y-8">

@@ -286,7 +286,7 @@ export default function WhyThisExists() {
           </p>
         </Body>
 
-        <CentrePhoto src="/outdoor.jpg" alt="A childhood memory" caption="A childhood memory · the kind of moment that disappears if nobody writes it down" rotate="right" />
+        <CentrePhoto src="/sister.jpg" alt="A childhood memory" caption="A childhood memory · the kind of moment that disappears if nobody writes it down" rotate="right" />
 
         <Body>
           <p>
