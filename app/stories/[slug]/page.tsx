@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${story.title} — Ancestorii`,
+    title: story.title,
     description,
     authors: [{ name: story.author_name }],
     openGraph: {
