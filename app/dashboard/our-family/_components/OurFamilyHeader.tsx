@@ -57,7 +57,7 @@ export default function OurFamilyHeader({
       <div className="px-[clamp(1.5rem,3vw,4rem)] py-[clamp(2.5rem,3vw,3.5rem)]">
         <div className="mx-auto max-w-[1200px]">
           <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#B8932A]">
-            Our Family
+            My Family
           </p>
 
           <div className="mt-4 flex flex-col md:flex-row md:items-end md:justify-between gap-6">

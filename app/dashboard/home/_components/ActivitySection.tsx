@@ -2,71 +2,80 @@
 
 import {
   Users,
-  Clock,
   Package,
   Image as ImageIcon,
   Upload,
   Calendar,
 } from 'lucide-react';
+import type { ExploreStoryPreview } from './FamilyHeader';
 
 export default function ActivitySection({
   activity,
+  exploreStories,
 }: {
   activity: Array<{
     id: string;
     action: string;
     created_at: string;
   }>;
+  exploreStories?: ExploreStoryPreview[];
 }) {
+  const stories = exploreStories ?? [];
+
   return (
-    <div className="sticky top-[72px] px-4 py-5">
-      <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#B8924A]">
-        Recent Activity
-      </p>
+    <div className="sticky top-0">
+      <style>{`.community-sidebar-scroll::-webkit-scrollbar{display:none}`}</style>
 
-      {activity.length > 0 ? (
-        <div className="mt-5 flex flex-col">
-          {activity.map((item, idx) => {
-            const { icon, bg } = getActivityMeta(item.id);
+      {/* Recent Activity */}
+      <div className="px-4 pt-10 pb-5">
+        <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#B8924A]">
+          Recent Activity
+        </p>
 
-            return (
-              <div
-                key={item.id}
-                className={`flex items-start gap-3 py-4 ${
-                  idx !== activity.length - 1 ? 'border-b border-[#EAD8B8]/60' : ''
-                }`}
-              >
+        {activity.length > 0 ? (
+          <div className="mt-2 flex flex-col">
+            {activity.map((item, idx) => {
+              const { icon, bg } = getActivityMeta(item.id);
+
+              return (
                 <div
-                  className="h-8 w-8 flex-shrink-0 rounded-[8px] flex items-center justify-center"
-                  style={{ background: bg }}
+                  key={item.id}
+                  className={`flex items-start gap-3 py-4 ${
+                    idx !== activity.length - 1 ? 'border-b border-[#EAD8B8]/60' : ''
+                  }`}
                 >
-                  {icon}
-                </div>
+                  <div
+                    className="h-8 w-8 flex-shrink-0 rounded-[8px] flex items-center justify-center"
+                    style={{ background: bg }}
+                  >
+                    {icon}
+                  </div>
 
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#B8924A]">
-                    {getActivityLabel(item.id)}
-                  </p>
-                  <p className="mt-0.5 text-[13px] font-semibold text-[#17120E] leading-snug truncate">
-                    {getActivityTitle(item.action)}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-[#9B8E7D]">
-                    {formatDate(item.created_at)}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#B8924A]">
+                      {getActivityLabel(item.id)}
+                    </p>
+                    <p className="mt-0.5 text-[13px] font-semibold text-[#17120E] leading-snug truncate">
+                      {getActivityTitle(item.action)}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-[#9B8E7D]">
+                      {formatDate(item.created_at)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="mt-10 text-center">
-          <p className="text-[15px] font-semibold text-[#17120E]">No activity yet.</p>
-          <p className="mt-2 text-[13px] text-[#7D6F5F] leading-relaxed">
-            Once you start adding memories,
-            <br />updates will appear here.
-          </p>
-        </div>
-      )}
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mt-10 text-center">
+            <p className="text-[15px] font-semibold text-[#17120E]">No activity yet.</p>
+            <p className="mt-2 text-[13px] text-[#7D6F5F] leading-relaxed">
+              Once you start adding memories,
+              <br />updates will appear here.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

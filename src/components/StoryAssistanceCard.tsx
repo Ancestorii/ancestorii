@@ -30,6 +30,8 @@ export interface StoryAssistanceCardProps {
   familyId?: string;
   /** Whether writing assistance is enabled (from user profile) */
   assistanceEnabled?: boolean;
+  /** Optional API endpoint override (default: /api/ai/assist) */
+  apiEndpoint?: string;
 }
 
 type Step = 'welcome' | 'options' | 'suggestion';
@@ -42,6 +44,7 @@ export default function StoryAssistanceCard({
   assistContext,
   familyId,
   assistanceEnabled = true,
+  apiEndpoint,
 }: StoryAssistanceCardProps) {
   const [dismissed, setDismissed] = useState(false);
   const [minimized, setMinimized] = useState(true);
@@ -113,13 +116,13 @@ export default function StoryAssistanceCard({
     setSelectedOption(option);
     setStep('suggestion');
     clear();
-    await assist(option.assistType, assistContext, familyId);
+    await assist(option.assistType, assistContext, familyId, apiEndpoint);
   };
 
   const handleRetry = () => {
     if (!selectedOption) return;
     clear();
-    assist(selectedOption.assistType, assistContext, familyId);
+    assist(selectedOption.assistType, assistContext, familyId, apiEndpoint);
   };
 
   const handleBack = () => {

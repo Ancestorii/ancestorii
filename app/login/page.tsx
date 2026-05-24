@@ -42,24 +42,22 @@ export default function LoginPage() {
         throw new Error("Login failed. Please try again.");
       }
 
-      // ⏳ Give Supabase time to persist auth cookies
       await new Promise((res) => setTimeout(res, 200));
 
-      // Redirect to original destination (e.g. /join/[token]) or dashboard
       const searchParams = new URLSearchParams(window.location.search);
       const redirectTo = searchParams.get('redirect');
-      router.replace(redirectTo || '/dashboard/home');
+      router.replace(redirectTo || '/');
     } catch (err: any) {
-  const message = err?.message ?? "";
+      const message = err?.message ?? "";
 
-  if (message.toLowerCase().includes("invalid login credentials")) {
-  setError(
-    "We could not log you in.\n\nIf you signed up with Google, please continue with Google.\nOtherwise you may need to reset your password."
-  );
-} else {
-  setError(message || "Something went wrong. Please try again.");
-}
-} finally {
+      if (message.toLowerCase().includes("invalid login credentials")) {
+        setError(
+          "We could not log you in.\n\nIf you signed up with Google, please continue with Google.\nOtherwise you may need to reset your password."
+        );
+      } else {
+        setError(message || "Something went wrong. Please try again.");
+      }
+    } finally {
       setBusy(false);
     }
   };
@@ -90,185 +88,188 @@ export default function LoginPage() {
   };
 
   // ---------------------------
-// GOOGLE LOGIN
-// ---------------------------
-const handleGoogleLogin = async () => {
-  setError(null);
+  // GOOGLE LOGIN
+  // ---------------------------
+  const handleGoogleLogin = async () => {
+    setError(null);
 
-  // Preserve redirect destination for after OAuth callback
-  const searchParams = new URLSearchParams(window.location.search);
-  const redirectTo = searchParams.get('redirect');
-  if (redirectTo) sessionStorage.setItem('post_login_redirect', redirectTo);
+    const searchParams = new URLSearchParams(window.location.search);
+    const redirectTo = searchParams.get('redirect');
+    if (redirectTo) sessionStorage.setItem('post_login_redirect', redirectTo);
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    },
-  });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
 
-  if (error) {
-    setError(error.message);
-  }
-};
-
+    if (error) {
+      setError(error.message);
+    }
+  };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-        {/* Brand */}
-        <div className="flex items-center justify-center mb-6">
-          <Link href="/" className="flex items-center gap-2">
-            <img
-              src="/logo.png"
-              alt="Ancestorii"
-              className="h-10 w-auto"
-            />
-            <span className="sr-only">Ancestorii</span>
-          </Link>
-        </div>
-
-        <h1 className="text-2xl font-semibold text-[#0f2040] mb-1">
-          Log in
-        </h1>
-        <p className="text-sm text-slate-600 mb-6">
-          Welcome back. Continue building your library.
-        </p>
-        {/* Google Login */}
-<button
-  type="button"
-  onClick={handleGoogleLogin}
-  className="w-full mb-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 48 48"
-    className="h-5 w-5"
-  >
-    <path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.1-6.1C34.6 2.4 29.7 0 24 0 14.6 0 6.4 5.8 2.6 14.2l7.5 5.8C12.1 13.2 17.6 9.5 24 9.5z"/>
-    <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4H24v7.6h12.6c-.3 2-1.6 5-4.4 7l6.8 5.3c4-3.7 7.1-9.2 7.1-15.9z"/>
-    <path fill="#FBBC05" d="M10.1 28c-1-3-1-6.2 0-9.2l-7.5-5.8C.9 16.3 0 20 0 24c0 4 1 7.7 2.6 11l7.5-5.8z"/>
-    <path fill="#34A853" d="M24 48c6.5 0 12-2.1 16-5.8l-6.8-5.3c-1.9 1.3-4.5 2.2-9.2 2.2-6.4 0-11.9-3.7-13.9-8.5l-7.5 5.8C6.4 42.2 14.6 48 24 48z"/>
-  </svg>
-  Continue with Google
-</button>
-
-<div className="flex items-center my-4">
-  <div className="flex-grow h-px bg-gray-200" />
-  <span className="px-3 text-sm text-gray-400">or</span>
-  <div className="flex-grow h-px bg-gray-200" />
-</div>
-
-
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37]"
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </div>
-
-          <div>
-  <label className="block text-sm font-medium text-slate-700 mb-1">
-    Password
-  </label>
-
-  <div className="relative">
-    <input
-      type={showPassword ? "text" : "password"}
-      required
-      minLength={6}
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      className="w-full rounded-md border px-3 py-2 pr-16 focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37]"
-      placeholder="••••••••"
-      autoComplete="current-password"
-    />
-
-    <button
-      type="button"
-      onClick={() => setShowPassword((prev) => !prev)}
-      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 hover:text-[#0f2040] font-medium"
+    <div
+      className="min-h-screen flex items-center justify-center px-4 py-12"
+      style={{ background: '#FFFDF8', fontFamily: "'DM Sans', sans-serif" }}
     >
-      {showPassword ? "Hide" : "Show"}
-    </button>
-  </div>
-</div>
+      <div className="w-full max-w-[420px]">
 
-          <div className="text-right">
-            <button
-              type="button"
-              onClick={sendReset}
-              disabled={resetBusy}
-              className="text-sm text-[#0f2040] hover:text-[#d4af37] font-medium"
-            >
-              {resetBusy ? "Sending…" : "Forgot password?"}
-            </button>
-          </div>
-
-          {error && (
-         <p className="text-sm text-red-600 whitespace-pre-line">
-         {error}
-       </p>
-          )}
-          {resetSent && (
-            <p className="text-sm text-green-600">
-              Password reset email sent. Please check your inbox.
-            </p>
-          )}
-
-          <button
-  type="submit"
-  disabled={busy}
-  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-white bg-[#0f2040] hover:bg-[#152a52] disabled:opacity-50"
->
-  {busy && (
-    <svg
-      className="h-4 w-4 animate-spin"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="white"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="white"
-        d="M4 12a8 8 0 018-8v8H4z"
-      />
-    </svg>
-  )}
-  {busy ? "Logging in…" : "Log in"}
-</button>
-
-        </form>
-
-        <div className="mt-6 text-sm text-slate-600 flex items-center justify-between">
+        {/* Logo */}
+        <div className="text-center mb-10">
           <Link
-            href="/signup" prefetch
-            className="text-[#0f2040] hover:text-[#d4af37] font-medium"
+            href="/"
+            className="inline-block text-[32px] tracking-[-0.03em] text-[#181512] no-underline"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, lineHeight: 1 }}
           >
-            Need an account? Create one
-          </Link>
-
-          <Link href="/" className="hover:underline">
-            Back to site
+            Ancestor<span className="text-[#C8A557]">ii</span>
           </Link>
         </div>
+
+        {/* Card */}
+        <div
+          className="border border-[#ECE5D8] px-7 py-8 sm:px-9 sm:py-10"
+          style={{ background: '#FFFFFF' }}
+        >
+          {/* Header */}
+          <h1
+            className="text-[26px] sm:text-[30px] tracking-[-0.03em] text-[#181512] mb-1.5"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, lineHeight: 1.1 }}
+          >
+            Welcome back.
+          </h1>
+          <p className="text-[13px] sm:text-[14px] text-[#8A7F72] mb-7 leading-relaxed">
+            Continue building your family library.
+          </p>
+
+          {/* Google */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 border border-[#E0D6C8] text-[13px] font-medium text-[#3D3526] transition-all duration-200 hover:border-[#B8932A] hover:text-[#181512] active:scale-[0.98]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-[18px] w-[18px]">
+              <path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.1-6.1C34.6 2.4 29.7 0 24 0 14.6 0 6.4 5.8 2.6 14.2l7.5 5.8C12.1 13.2 17.6 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4H24v7.6h12.6c-.3 2-1.6 5-4.4 7l6.8 5.3c4-3.7 7.1-9.2 7.1-15.9z"/>
+              <path fill="#FBBC05" d="M10.1 28c-1-3-1-6.2 0-9.2l-7.5-5.8C.9 16.3 0 20 0 24c0 4 1 7.7 2.6 11l7.5-5.8z"/>
+              <path fill="#34A853" d="M24 48c6.5 0 12-2.1 16-5.8l-6.8-5.3c-1.9 1.3-4.5 2.2-9.2 2.2-6.4 0-11.9-3.7-13.9-8.5l-7.5 5.8C6.4 42.2 14.6 48 24 48z"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-[#ECE5D8]" />
+            <span className="text-[11px] tracking-[0.08em] uppercase text-[#B5AFA6] font-medium">or</span>
+            <div className="flex-1 h-px bg-[#ECE5D8]" />
+          </div>
+
+          {/* Form */}
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">
+                Email
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-[#E0D6C8] px-3.5 py-2.5 text-[14px] text-[#181512] placeholder-[#C0B9AE] transition-colors duration-200 focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A]"
+                style={{ background: '#FDFCFA' }}
+                placeholder="you@example.com"
+                autoComplete="email"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full border border-[#E0D6C8] px-3.5 py-2.5 pr-16 text-[14px] text-[#181512] placeholder-[#C0B9AE] transition-colors duration-200 focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A]"
+                  style={{ background: '#FDFCFA' }}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[12px] font-medium text-[#8A7F72] hover:text-[#B8932A] transition-colors duration-200"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={sendReset}
+                disabled={resetBusy}
+                className="text-[12px] font-medium text-[#8A7F72] hover:text-[#B8932A] transition-colors duration-200"
+              >
+                {resetBusy ? "Sending…" : "Forgot password?"}
+              </button>
+            </div>
+
+            {error && (
+              <div className="border border-[#E8C4C0] bg-[#FDF6F5] px-4 py-3">
+                <p className="text-[13px] text-[#8B3A32] leading-relaxed whitespace-pre-line">
+                  {error}
+                </p>
+              </div>
+            )}
+            {resetSent && (
+              <div className="border border-[#C5DBBF] bg-[#F5FAF3] px-4 py-3">
+                <p className="text-[13px] text-[#3D6B35] leading-relaxed">
+                  Password reset email sent. Please check your inbox.
+                </p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 text-[13px] font-semibold text-white tracking-[0.04em] transition-all duration-200 hover:shadow-lg hover:shadow-[#1A1612]/15 active:scale-[0.98] disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #1A1612 0%, #2E2820 100%)' }}
+            >
+              {busy && (
+                <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4" />
+                  <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              )}
+              {busy ? "Logging in…" : "Log in"}
+            </button>
+          </form>
+
+          {/* Footer links */}
+          <div className="mt-7 pt-6 border-t border-[#ECE5D8] flex items-center justify-between">
+            <Link
+              href="/signup"
+              prefetch
+              className="text-[12px] sm:text-[13px] font-medium text-[#B8932A] hover:text-[#96751E] transition-colors duration-200 no-underline"
+            >
+              Create an account
+            </Link>
+            <Link
+              href="/"
+              className="text-[12px] sm:text-[13px] text-[#8A7F72] hover:text-[#4A4030] transition-colors duration-200 no-underline"
+            >
+              Back to stories
+            </Link>
+          </div>
+        </div>
+
+        {/* Trust line */}
       </div>
     </div>
   );

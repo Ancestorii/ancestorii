@@ -8,7 +8,7 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { memoriesLinks, heirloomsLinks, accountLinks } from "@/lib/dashboardNavigation";
 import SidebarContent from "@/components/dashboard/SidebarContent";
 import BottomNavigation from "@/components/dashboard/BottomNavigation";
-import DashboardTopBar from "@/components/dashboard/DashboardTopBar";
+import PublicNav from '@/components/stories/layout/PublicNav';
 import { motion, AnimatePresence } from "framer-motion";
 import ProgressBar from '@/components/ProgressBar';
 import NProgress from 'nprogress';
@@ -268,15 +268,14 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
         .from('notifications')
         .select('id')
         .eq('user_id', userId)
-        .eq('title', 'Welcome to Ancestorii')
+        .eq('type', 'welcome')
         .maybeSingle();
 
       if (!welcomeExists) {
         await supabase.from('notifications').insert({
           user_id: userId,
-          title: 'Welcome to Ancestorii',
-          content: 'Start by adding a loved one, then build their timeline with the moments that matter most.',
-          read: false,
+          type: 'welcome',
+          actor_name: 'Ancestorii',
         });
       }
     })();
@@ -374,10 +373,13 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 
     <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
 
+    {!hideSidebar && <PublicNav />}
+
     {/* ---------- Sidebar ---------- */}
 {!hideSidebar && (
 <aside
   className={`
+    dashboard-sidebar
     fixed top-0 left-0 z-[150] lg:z-40 h-screen
     ${collapsed ? 'w-[80px]' : 'w-[272px]'}
 
@@ -425,7 +427,6 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     bg-white
   `}
 >
-  {!hideSidebar && <DashboardTopBar />}
   {children}
 </main>
     {/* ================= MEMORIES ================= */}
@@ -694,6 +695,12 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
+        @media (min-width: 1024px) {
+          .dashboard-sidebar {
+            top: calc(clamp(64px, 6vw, 88px) + 2px) !important;
+            height: calc(100vh - clamp(64px, 6vw, 88px) - 2px) !important;
+          }
+        }
         .sidebar-scroll::-webkit-scrollbar {
   width: 5px;
 }

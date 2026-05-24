@@ -1,19 +1,30 @@
 'use client';
 
 import { useMemo } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, Heart, MessageCircle } from 'lucide-react';
+
+export type ExploreStoryPreview = {
+  slug: string;
+  title: string;
+  author_name: string;
+  reaction_count: number;
+  comment_count: number;
+};
 
 export default function FamilyHeader({
   familyName,
   familyRole,
   familyMemberCount,
   totalMemories,
+  exploreStories,
 }: {
   familyName: string;
   familyRole: string;
   familyMemberCount: number;
   totalMemories: number;
+  exploreStories?: ExploreStoryPreview[];
 }) {
   const todayLabel = useMemo(() => {
     return new Date().toLocaleDateString('en-GB', {
@@ -40,8 +51,12 @@ export default function FamilyHeader({
     ? 'clamp(1.5rem,5.5vw,2.2rem)'
     : 'clamp(1.3rem,4.5vw,1.8rem)';
 
+  const stories = exploreStories ?? [];
+
   return (
     <section className="relative overflow-hidden">
+      <style>{`.community-scroll::-webkit-scrollbar{display:none}`}</style>
+      {/* Desktop + Tablet */}
       <div className="hidden md:grid" style={{ gridTemplateColumns: '7fr 3fr' }}>
         {/* Left — Content */}
         <div className="relative flex flex-col justify-center px-[clamp(1.5rem,3vw,4rem)] py-[clamp(2.5rem,3vw,3.5rem)]" style={{ background: 'rgb(250,245,235)' }}>
@@ -80,34 +95,35 @@ export default function FamilyHeader({
           />
 
           {/* Soft wide fade — no hard seam */}
-          <div className="absolute inset-y-0 left-0 w-[70%] pointer-events-none bg-gradient-to-r from-[#faf5eb] via-[#faf5eb]/50 to-transparent" />
+          <div className="absolute inset-y-0 left-0 w-[30%] pointer-events-none bg-gradient-to-r from-[#faf5eb] via-[#faf5eb]/50 to-transparent" />
 
           {/* Bottom fade */}
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-[#f0eadc]/20" />
         </div>
       </div>
 
-      {/* Mobile — no image */}
-      <div className="md:hidden px-[clamp(1.5rem,3vw,4rem)] py-[clamp(2rem,2.5vw,3rem)]" style={{ background: 'rgb(250,245,235)' }}>
-        <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#B8932A]">
-          {todayLabel}
-        </p>
+      {/* Mobile */}
+      <div className="md:hidden" style={{ background: 'rgb(250,245,235)' }}>
+        <div className="px-[clamp(1.5rem,3vw,4rem)] py-[clamp(2rem,2.5vw,3rem)]">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#B8932A]">
+            {todayLabel}
+          </p>
 
-        <h1 className="mt-3 font-serif font-bold leading-[0.95] text-[#1A1612]" style={{ fontSize: mobileSize, letterSpacing: '-0.03em' }}>
-          {familyName}
-        </h1>
+          <h1 className="mt-3 font-serif font-bold leading-[0.95] text-[#1A1612]" style={{ fontSize: mobileSize, letterSpacing: '-0.03em' }}>
+            {familyName}
+          </h1>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFFFFF] border border-[#E4D2AE] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#A06A1C]">
-            <UserIcon size={12} className="text-[#B8924A]" />
-            {familyRole}
-          </span>
-          <span className="text-[14px] text-[#57534E]">
-            {familyMemberCount} {familyMemberCount === 1 ? 'member' : 'members'} · {totalMemories} {totalMemories === 1 ? 'memory' : 'memories'} preserved
-          </span>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFFFFF] border border-[#E4D2AE] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#A06A1C]">
+              <UserIcon size={12} className="text-[#B8924A]" />
+              {familyRole}
+            </span>
+            <span className="text-[14px] text-[#57534E]">
+              {familyMemberCount} {familyMemberCount === 1 ? 'member' : 'members'} · {totalMemories} {totalMemories === 1 ? 'memory' : 'memories'} preserved
+            </span>
+          </div>
         </div>
       </div>
-
       {/* Bottom gold line */}
       <div className="h-[3px]" style={{ background: 'linear-gradient(to right, rgba(184,147,42,0.9), rgba(184,147,42,0.3))' }} />
     </section>

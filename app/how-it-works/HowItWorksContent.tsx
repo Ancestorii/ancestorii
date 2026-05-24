@@ -1,496 +1,291 @@
 import Link from 'next/link';
 
-function Divider() {
+/* ─── Pull quote ─── */
+function PullQuote({ children }: { children: React.ReactNode }) {
   return (
-    <div className="max-w-6xl mx-auto px-6">
-      <div className="border-t border-[#E8D9A8]" />
-    </div>
+    <blockquote className="my-12 md:my-16 xl:my-20 py-6 md:py-8 xl:py-10 border-l-[3px] border-[#B8932A] pl-6 md:pl-8 xl:pl-10 clear-both">
+      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+        {children}
+      </p>
+    </blockquote>
   );
 }
 
-function SectionTitle({
-  eyebrow,
-  title,
-  subtitle,
-}: {
-  eyebrow: string;
-  title: string;
-  subtitle: string;
-}) {
+/* ─── Body text wrapper ─── */
+function Body({ children }: { children: React.ReactNode }) {
   return (
-    <div className="max-w-5xl mx-auto px-6">
-      <p className="text-sm tracking-[0.3em] uppercase font-semibold text-[#D4AF37]">
-        {eyebrow}
-      </p>
-      <h2 className="mt-6 font-serif text-3xl sm:text-4xl leading-tight">
-        {title}
-      </h2>
-      <p className="mt-8 text-lg leading-relaxed max-w-3xl">
-        {subtitle}
-      </p>
-    </div>
-  );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-full border border-[#E8D9A8] px-4 py-2 text-sm">
+    <div className="space-y-6 md:space-y-7 xl:space-y-8 text-[15px] md:text-[17px] lg:text-[18px] xl:text-[20px] 2xl:text-[22px] leading-[1.85] text-[#3D3526]">
       {children}
-    </span>
-  );
-}
-
-function FeatureCard({
-  title,
-  body,
-  points,
-  tone = 'parchment',
-}: {
-  title: string;
-  body: string;
-  points: string[];
-  tone?: 'parchment' | 'cream';
-}) {
-  const bg = tone === 'parchment' ? 'bg-[#F6F1E4]' : 'bg-[#FFF9EE]';
-  return (
-    <div className={`rounded-[2rem] border border-[#E8D9A8] ${bg} p-8 sm:p-10`}>
-      <h3 className="font-serif text-2xl leading-tight">{title}</h3>
-      <p className="mt-6 leading-relaxed">{body}</p>
-      <ul className="mt-8 space-y-3">
-        {points.map((p) => (
-          <li key={p} className="flex gap-3">
-            <span className="text-[#D4AF37]">●</span>
-            <span className="leading-relaxed">{p}</span>
-          </li>
-        ))}
-      </ul>
     </div>
-  );
-}
-
-function DetailBlock({
-  heading,
-  body,
-}: {
-  heading: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-[2rem] border border-[#E8D9A8] bg-white p-8 sm:p-10">
-      <h3 className="text-xl font-semibold">{heading}</h3>
-      <p className="mt-6 leading-relaxed">{body}</p>
-    </div>
-  );
-}
-
-function FAQItem({
-  q,
-  a,
-}: {
-  q: string;
-  a: React.ReactNode;
-}) {
-  return (
-    <details className="rounded-[2rem] border border-[#E8D9A8] bg-white p-7 sm:p-8">
-      <summary className="cursor-pointer list-none">
-        <div className="flex items-start justify-between gap-6">
-          <h3 className="text-lg font-semibold">{q}</h3>
-          <span className="text-[#D4AF37]">+</span>
-        </div>
-      </summary>
-      <div className="mt-6 leading-relaxed">
-        {a}
-      </div>
-    </details>
   );
 }
 
 export default function HowItWorksContent() {
   return (
-    <>
-      {/* HERO */}
-      <section className="bg-[#F6F1E4] border-b border-[#E8D9A8]">
-        <div className="px-6 pt-14 pb-20">
-          <div className="max-w-6xl mx-auto">
-            <div className="max-w-4xl">
-              <p className="text-lg tracking-[0.25em] uppercase text-[#D4AF37]">
-                How It Works
+    <div className="w-full relative overflow-hidden" style={{ background: '#FFFDF8', fontFamily: "'DM Sans', sans-serif" }}>
+
+      {/* ━━━ HERO ━━━ */}
+      <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pt-16 sm:pt-20 md:pt-28 lg:pt-36 xl:pt-44 pb-16 md:pb-24">
+
+        <div className="flex items-center gap-2.5 mb-5 md:mb-6 xl:mb-8">
+          <div className="h-px w-5 xl:w-6 bg-[#B8932A]" />
+          <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">
+            How It Works
+          </span>
+        </div>
+
+        <h1
+          className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
+          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+        >
+          Two spaces.<br />
+          <span className="italic text-[#A9782F]">One purpose.</span>
+        </h1>
+
+        <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', width: '10rem', background: 'linear-gradient(to right, rgba(184,147,42,0.85), transparent)' }} />
+
+        <Body>
+          <p>
+            Ancestorii is built around a simple idea. Some memories are meant to be shared with the world. Others are meant to stay in the family.
+          </p>
+          <p>
+            So we gave you both. A public space called <strong>Our Stories</strong>, where families share memories openly. And a private space called <strong>My Family</strong>, where everything stays between the people you invite. Nobody else gets in.
+          </p>
+          <p>
+            They work side by side, but they do very different things. Here is how.
+          </p>
+        </Body>
+      </div>
+
+      {/* ━━━ OUR STORIES ━━━ */}
+      <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pt-8 md:pt-12 pb-16 md:pb-24">
+
+        <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
+
+        <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">
+          Public
+        </span>
+
+        <h2
+          className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+        >
+          Our Stories
+        </h2>
+
+        <div className="mt-8 md:mt-10 xl:mt-12">
+          <Body>
+            <p>
+              This is the open side of Ancestorii. When you publish a story here, anyone on the platform can read it. They can like it. They can leave a comment. They can share it with someone who needs to hear it.
+            </p>
+            <p>
+              Think of it as a place for the stories you want to pass on beyond your own family. Your grandparents' journey to a new country. The tradition your family kept alive for decades. The recipe that started arguments every Christmas. These are the memories that connect people across families, across cultures, across generations.
+            </p>
+            <p>
+              You decide what goes public. Nothing is ever pushed there without your say.
+            </p>
+          </Body>
+        </div>
+
+        <PullQuote>
+          This is not social media.{' '}
+          <span className="italic text-[#A9782F]">It is a memory space with a door that stays open.</span>
+        </PullQuote>
+
+        <Body>
+          <p>
+            We stripped out everything that makes sharing exhausting on other platforms.
+          </p>
+          <p>
+            <strong>There is no algorithm.</strong> Stories appear in the order they are published. Nobody's memory gets buried because it did not perform well. Nobody's story gets boosted because it went viral. Every family gets the same treatment.
+          </p>
+          <p>
+            <strong>There are no follower counts.</strong> You are not building an audience. You are not competing with anyone. There are no metrics, no vanity numbers, no pressure to perform. You share a memory because it matters to you, and that is enough.
+          </p>
+          <p>
+            <strong>There is no religion or politics.</strong> This is a hard rule. Our Stories exists for memories only. Faith and political views are personal, and they belong in personal conversations. Not here. This space is for the stuff that brings families together, not the stuff that tears people apart.
+          </p>
+          <p>
+            Just memories. A first day of school. A Sunday dinner tradition. The way your grandfather held his cup of tea. That is what this space is for. Nothing else.
+          </p>
+        </Body>
+      </div>
+
+      {/* ━━━ MY FAMILY ━━━ */}
+      <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pt-8 md:pt-12 pb-16 md:pb-24">
+
+        <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
+
+        <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">
+          Private
+        </span>
+
+        <h2
+          className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+        >
+          My Family
+        </h2>
+
+        <div className="mt-8 md:mt-10 xl:mt-12">
+          <Body>
+            <p>
+              This is the closed side. Your family's private space. The photos you would never post anywhere. The voice recording of your mum telling that story one more time. The dates and details that only mean something to the people who were there.
+            </p>
+            <p>
+              Only family members you invite can see what is inside. Nobody else can browse it, search for it, or stumble into it. There is no discovery feed for private content. There is no "suggested families" feature. My Family is a locked room and the only people with a key are the ones you hand it to.
+            </p>
+          </Body>
+        </div>
+
+        <PullQuote>
+          When a family knows a space is private, they speak differently.{' '}
+          <span className="italic text-[#A9782F]">They tell the real story.</span>
+        </PullQuote>
+
+        <Body>
+          <p>
+            Inside My Family, you have everything you need to build a proper family archive.
+          </p>
+          <p>
+            <strong>Timelines</strong> let you place a life in order. Milestones, dates, the moments in between. A timeline makes a life readable for the people who come after you. Your children will not have to guess what happened when or why it mattered.
+          </p>
+          <p>
+            <strong>Albums</strong> let you group memories by theme or chapter. A wedding. A childhood home. A decade of Sunday mornings. Instead of thousands of scattered photos on a phone, you have something that makes sense.
+          </p>
+          <p>
+            <strong>Capsules</strong>  let you seal a memory and set a date for it to be opened. A message for your daughter on her 18th birthday. A letter to your grandchildren. A photo with a story attached that nobody sees until the day you choose.
+          </p>
+          <p>
+            <strong>Family Collaboration</strong> means you do not have to build this alone. Invite family members to contribute. They can add missing names, upload photos you have never seen, and fill in the gaps that only they know about. The library grows together.
+          </p>
+        </Body>
+
+        {/* ── MY HEIRLOOMS ── */}
+        <div className="mt-16 md:mt-20 xl:mt-24 pt-10 md:pt-14 xl:pt-16 border-t border-[#ECE5D8]">
+
+          <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">
+            Physical
+          </span>
+
+          <h3
+            className="mt-4 text-[28px] sm:text-[36px] md:text-[44px] lg:text-[52px] xl:text-[60px] 2xl:text-[66px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+          >
+            My Heirlooms
+          </h3>
+
+          <div className="mt-8 md:mt-10 xl:mt-12">
+            <Body>
+              <p>
+                Digital memories are fragile. Platforms close. Devices break. Accounts get lost. My Heirlooms lets you turn your family's library into something real. Something you can hold, hang on a wall, and pass down.
               </p>
-
-              <h1 className="mt-6 font-serif text-[2.8rem] sm:text-[3.6rem] leading-tight">
-                A living library for the people you love.
-              </h1>
-
-              <p className="mt-8 text-lg leading-relaxed max-w-3xl">
-                Ancestorii is for families who don’t want their history scattered across phones or buried on social platforms. It’s a private home for memory, organised and built to last.
+              <p>
+                <strong>Memory Book.</strong> A printed, hardcover book built from your family's stories, photos, and timelines. You design it in our book editor, we print it at professional quality and deliver it to your door. Three tiers available, from a single chapter to a full legacy edition.
               </p>
-
-              <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/signup"
-                  className="inline-flex justify-center items-center px-9 py-4 rounded-full bg-[#E6C26E] text-[#0F2040] font-semibold"
-                >
-                  Create your library
-                </Link>
-              </div>
-
-              <div className="mt-20 border-t border-[#E8D9A8] pt-10">
-
-  <h2 className="font-serif text-2xl sm:text-3xl leading-tight">
-    What this page covers
-  </h2>
-
-  <ul className="mt-10 space-y-4 text-lg">
-    <li className="flex gap-4">
-      <span className="text-[#D4AF37]">●</span>
-      <span>The Why</span>
-    </li>
-    <li className="flex gap-4">
-      <span className="text-[#D4AF37]">●</span>
-      <span>Inside the Library</span>
-    </li>
-    <li className="flex gap-4">
-      <span className="text-[#D4AF37]">●</span>
-      <span>The Process</span>
-    </li>
-    <li className="flex gap-4">
-      <span className="text-[#D4AF37]">●</span>
-      <span>Security & Continuity</span>
-    </li>
-    <li className="flex gap-4">
-      <span className="text-[#D4AF37]">●</span>
-      <span>Our Privacy Model</span>
-    </li>
-  </ul>
-
-</div>
-            </div>
+              <p>
+                <strong>Canvas Print.</strong> A meaningful photo turned into a gallery quality canvas. The kind of image that belongs on a wall, not buried in a camera roll. Museum grade print on stretched canvas.
+              </p>
+              <p>
+                <strong>Acrylic Print.</strong> A photo printed behind polished acrylic glass. Vivid colour, clean edges, and the kind of weight that makes a memory feel permanent. High definition UV print with a contemporary finish.
+              </p>
+              <p>
+                Everything you create in My Heirlooms is built from the memories already in your private library. The physical product is the final step, not the starting point.
+              </p>
+            </Body>
           </div>
         </div>
-      </section>
+      </div>
 
-      <Divider />
+      {/* ━━━ COMMUNITY STANDARDS ━━━ */}
+      <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pt-8 md:pt-12 pb-16 md:pb-24">
 
-      {/* THE PROBLEM + THE PROMISE */}
-      <section className="px-4 py-18">
-        <SectionTitle
-          eyebrow="The Why"
-          title="Most places store files. Ancestorii preserves lives."
-          subtitle="A photograph without a story becomes a mystery. A voice note without context becomes noise. We built Ancestorii to protect the meaning, not just the media."
-        />
+        <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
 
-        <div className="max-w-6xl mx-auto px-6 mt-16 grid gap-10 md:grid-cols-3">
-          <DetailBlock
-            heading="Memory needs context"
-            body="The smallest details become priceless later: names, dates, places, the reason behind the photo, the feeling in the room."
-          />
-          <DetailBlock
-            heading="Families are not feeds"
-            body="There is no algorithm. No engagement loop. No pressure. Just a quiet place for what matters."
-          />
-          <DetailBlock
-            heading="Legacy needs continuity"
-            body="People change devices. Accounts get lost. Platforms disappear. Preservation is about reducing fragile points so your family can still access what you saved."
-          />
+        <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">
+          Standards
+        </span>
+
+        <h2
+          className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+        >
+          Keeping the space{' '}
+          <span className="italic text-[#A9782F]">safe.</span>
+        </h2>
+
+        <div className="mt-8 md:mt-10 xl:mt-12">
+          <Body>
+            <p>
+              Our Stories is a shared space. And shared spaces only work when everyone agrees on what belongs there.
+            </p>
+            <p>
+              Every story published to the public feed is reviewed before it goes live. If it does not meet our standards, it does not appear. Simple as that.
+            </p>
+            <p>
+              We review for religious or political content of any kind, hate speech, harassment, discriminatory language, spam, self promotion, commercial content, and anything that is not a genuine family memory. If it is not a memory, it does not belong.
+            </p>
+          </Body>
         </div>
-      </section>
 
-      <Divider />
+        <PullQuote>
+          A space for family memories only works{' '}
+          <span className="italic text-[#A9782F]">if it stays that way.</span>
+        </PullQuote>
 
-     {/* INSIDE THE PLATFORM */}
-<section id="inside" className="relative px-6 py-28 bg-[#FFFDF6] overflow-hidden">
-  <SectionTitle
-    eyebrow="Inside the Library"
-    title="Built on four foundations."
-    subtitle="Everything inside Ancestorii exists for one reason: to protect meaning."
-  />
+        <Body>
+          <p>
+            If a published story breaks the rules, we follow a three strike policy.
+          </p>
+          <p>
+            <strong>First time:</strong> the story is removed and we send you an email explaining what happened and why. Everyone makes mistakes.
+          </p>
+          <p>
+            <strong>Second time:</strong> the story is removed, you get a final warning, and you are suspended from publishing to Our Stories for seven days.
+          </p>
+          <p>
+            <strong>Third time:</strong> you are permanently banned from Our Stories. You can no longer publish, comment, or interact with the public feed.
+          </p>
+          <p>
+            One thing that will never happen: your private library is never touched. Strikes only affect the public side. My Family is yours. We do not go near it.
+          </p>
+          <p>
+            We also have a report button on every story, so if something slips through, the community can flag it. When you open Our Stories, you should find exactly what you came for. Real memories from real families. Nothing else.
+          </p>
+        </Body>
+      </div>
 
-  <div className="relative max-w-6xl mx-auto mt-24 grid grid-cols-[1fr_3fr] gap-x-16">
+      {/* ━━━ CTA ━━━ */}
+      <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pt-8 pb-20 md:pb-32 xl:pb-40">
 
-    {/* Vertical Line */}
-    <div className="relative flex justify-center">
-      <div className="w-[2px] h-full bg-[#E5C45C]" />
+        <div className="mb-14 md:mb-20 xl:mb-24" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
+
+        <div className="flex justify-center">
+          <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14" style={{ background: '#1A1612' }}>
+            <p
+  className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center"
+  style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
+>
+  Some memories are for everyone.<br />
+  <span className="italic text-[#C8A557]">Some are just for you.</span>
+</p>
+            <p className="text-[13px] md:text-[14px] xl:text-[15px] text-[#A09888] mb-6 leading-relaxed text-center">
+              One side is open. The other is yours alone.
+            </p>
+            <Link
+              href="/signup"
+              prefetch
+              className="block w-full px-8 py-3.5 xl:py-4 text-[13px] xl:text-[14px] font-semibold tracking-[0.06em] text-[#1A1612] text-center transition hover:opacity-90"
+              style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #C8A557 0%, #D4AF37 100%)' }}
+            >
+              START FOR FREE
+            </Link>
+            <p className="mt-3 text-[11px] xl:text-[12px] text-[#6F6255] tracking-[0.04em] text-center">
+              Free forever · No credit card · Takes 2 minutes
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div className="space-y-28">
-
-      {/* TIMELINES */}
-      <div className="relative">
-        <h3 className="font-serif text-[2.4rem] sm:text-[3rem] leading-tight">
-          A life needs structure.
-          <br />
-          <span className="italic text-[#C9AE4A]">Timelines.</span>
-        </h3>
-
-        <ul className="mt-10 space-y-4 text-lg">
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Place memories in chronological order.</span>
-          </li>
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Attach context to milestones.</span>
-          </li>
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Make a life readable for future generations.</span>
-          </li>
-        </ul>
-      </div>
-
-      {/* ALBUMS */}
-      <div className="relative">
-        <h3 className="font-serif text-[2.4rem] sm:text-[3rem] leading-tight">
-          Chapters deserve order.
-          <br />
-          <span className="italic text-[#C9AE4A]">Albums.</span>
-        </h3>
-
-        <ul className="mt-10 space-y-4 text-lg">
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Group moments by theme or chapter.</span>
-          </li>
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Keep documents and photos together.</span>
-          </li>
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Turn collections into coherent records.</span>
-          </li>
-        </ul>
-      </div>
-
-      {/* CAPSULES */}
-      <div className="relative">
-        <h3 className="font-serif text-[2.4rem] sm:text-[3rem] leading-tight">
-          Presence should remain.
-          <br />
-          <span className="italic text-[#C9AE4A]">Capsules.</span>
-        </h3>
-
-        <ul className="mt-10 space-y-4 text-lg">
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Record voice with tone and warmth.</span>
-          </li>
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Write reflections in full.</span>
-          </li>
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Preserve meaning with the memory.</span>
-          </li>
-        </ul>
-      </div>
-
-      {/* LOVED ONES */}
-      <div className="relative">
-        <h3 className="font-serif text-[2.4rem] sm:text-[3rem] leading-tight">
-          Memory is shared.
-          <br />
-          <span className="italic text-[#C9AE4A]">Loved Ones.</span>
-        </h3>
-
-        <ul className="mt-10 space-y-4 text-lg">
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Soon you will be allowed to invite trusted family members.</span>
-          </li>
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Add missing names and context.</span>
-          </li>
-          <li className="flex gap-4">
-            <span className="text-[#D4AF37]">●</span>
-            <span>Preserve knowledge across generations.</span>
-          </li>
-        </ul>
-      </div>
-
-    </div>
-  </div>
-</section>
-      <Divider />
-
-      {/* HOW IT WORKS: STEPS (architectural + editorial) */}
-      <section className="bg-[#F6F1E4] border-y border-[#E8D9A8]">
-        <div className="px-6 py-24">
-          <SectionTitle
-            eyebrow="The Process"
-            title="How families usually build their library"
-            subtitle="Most people do not create a perfect archive in a weekend. They build a little at a time."
-          />
-
-          <div className="max-w-6xl mx-auto px-6 mt-16 grid gap-10 md:grid-cols-2">
-            <DetailBlock
-              heading="1. Begin with one person"
-              body="Start with a Timeline for someone central: a parent, grandparent, or yourself. Add a few milestones, a few photos, and one story that matters. The goal is not volume. The goal is a foundation."
-            />
-            <DetailBlock
-              heading="2. Add an Album for a chapter"
-              body="Choose a meaningful chapter: childhood home, wedding, family holidays, migration, Sunday dinners. Albums bring coherence fast. A small album with context is better than a thousand unlabelled images."
-            />
-            <DetailBlock
-              heading="3. Create a Capsule"
-              body="Record a voice memory or write a reflection. Capsules are where people feel the emotional weight of what they are building. This is often the first moment where the library becomes more than storage."
-            />
-            <DetailBlock
-              heading="4. Invite one loved one"
-              body="Invite someone who holds knowledge you don’t. Ask for names, dates, and stories behind certain photos. This turns the library into a shared act of preservation rather than a solo project."
-            />
-          </div>
-
-          <div className="max-w-6xl mx-auto px-6 mt-16">
-            <div className="rounded-[2rem] border border-[#E8D9A8] bg-[#FFF9EE] p-10">
-              <h3 className="font-serif text-2xl">The quiet truth</h3>
-              <p className="mt-6 leading-relaxed max-w-4xl">
-                Families often wait too long because preservation feels overwhelming.
-                Start small. Build with intention.
-                The library becomes powerful because it accumulates meaning.
-              </p>
-              <div className="mt-10">
-                <Link
-                  href="/signup"
-                  className="inline-flex justify-center items-center px-9 py-4 rounded-full bg-[#E6C26E] text-[#0F2040] font-semibold"
-                >
-                  Begin your library
-                </Link>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <Divider />
-
-      {/* SECURITY + CONTINUITY (deep, explicit) */}
-      <section className="px-6 py-24">
-        <SectionTitle
-          eyebrow="Security & Continuity"
-          title="What happens if you stop paying"
-          subtitle="We do not believe your family history should be held hostage. If you downgrade or stop paying, you can still enter your library. You keep access to what you created. The difference is capacity."
-        />
-
-        <div className="max-w-6xl mx-auto px-6 mt-16 grid gap-10 md:grid-cols-3">
-          <DetailBlock
-            heading="You keep access"
-            body="You can still sign in and view your library. Your memories remain yours. Your family should be able to return to what they’ve preserved without fear."
-          />
-          <DetailBlock
-            heading="Creation limits apply"
-            body="If you are over the free plan limits, you won’t be able to create new memories until you upgrade again. This protects fairness while still protecting continuity."
-          />
-          <DetailBlock
-            heading="Nothing is deleted"
-            body="Stopping payment does not mean your history disappears. Your library remains intact. This is not a product designed around anxiety. It is designed around preservation."
-          />
-        </div>
-
-        <div className="max-w-6xl mx-auto px-6 mt-16 grid gap-12 md:grid-cols-2 items-stretch">
-          <FeatureCard
-            title="Your archive is not a subscription trick"
-            body="A family archive should not behave like entertainment. The purpose is long-term care. Our model is designed so that your history remains accessible even if your plan changes."
-            points={[
-              'Access remains, creation adjusts to plan limits.',
-              'We aim for long-term trust, not short-term pressure.',
-              'The archive should feel stable, not rented.',
-              'Preservation must be calm; not transactional fear.',
-            ]}
-            tone="parchment"
-          />
-          <FeatureCard
-            title="Annual physical archive option"
-            body="We are developing an annual physical archive option; a printed record of your year’s additions, so your family can hold a tangible copy of your memories."
-            points={[
-              'A physical record is resilient in a way digital cannot be.',
-              'Printed memory becomes part of family tradition.',
-              'A yearly archive helps you reflect, not just store.',
-              'Your library can exist both digitally and physically.',
-            ]}
-            tone="cream"
-          />
-        </div>
-      </section>
-
-      <Divider />
-
-      {/* PRIVACY MODEL (sell it hard, clearly) */}
-      <section className="bg-[#F6F1E4] border-y border-[#E8D9A8]">
-        <div className="px-6 py-24">
-          <SectionTitle
-            eyebrow="Our Privacy Model"
-            title="Built without the incentives that ruin trust"
-            subtitle="Most platforms are funded by attention and advertising. That changes how they behave. Ancestorii is built for families who want a private space where the goal is preservation, not performance."
-          />
-
-          <div className="max-w-6xl mx-auto px-6 mt-16 grid gap-10 md:grid-cols-2">
-            <DetailBlock
-              heading="No public feeds"
-              body="There is no “post to the world.” Your library is private. It is for your family. Preservation is intimate, not performative."
-            />
-            <DetailBlock
-              heading="No advertising"
-              body="Advertising introduces incentives that do not belong in a family archive. Ancestorii is not built to monetise attention."
-            />
-            <DetailBlock
-              heading="No sale of personal data"
-              body="Your family history should not become a dataset. The library exists to protect memory, not extract value from it."
-            />
-            <DetailBlock
-              heading="Designed for long-term care"
-              body="Every structural decision is made with continuity in mind: clarity, ownership, access, and a calm relationship with the archive."
-            />
-          </div>
-
-          <div className="max-w-6xl mx-auto px-6 mt-16">
-            <div className="rounded-[2rem] border border-[#E8D9A8] bg-[#FFF9EE] p-10">
-              <h3 className="font-serif text-2xl">What privacy feels like</h3>
-              <p className="mt-6 leading-relaxed max-w-4xl">
-                Privacy is not a feature. It is the atmosphere.
-                When a family knows a space is private, they speak differently.
-                They record the voice note. They write the real story. They preserve the truth without fear of it becoming content.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-        <div className="px-6 py-24">
-          <div className="max-w-5xl mx-auto">
-            <div className="rounded-[2rem] border border-[#E8D9A8] bg-[#FFF9EE] p-10 sm:p-12">
-              <p className="text-xs tracking-[0.25em] uppercase text-[#D4AF37]">
-                Begin
-              </p>
-              <h2 className="mt-6 font-serif text-3xl sm:text-4xl leading-tight">
-                Start with one person. One story. One moment worth keeping.
-              </h2>
-              <p className="mt-8 text-lg leading-relaxed max-w-3xl">
-                You do not need to do everything today. A library is built over time.
-                The important thing is to begin while the stories are still here to be told.
-              </p>
-
-              <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/signup"
-                  className="inline-flex justify-center items-center px-10 py-4 rounded-full bg-[#E6C26E] text-[#0F2040] font-semibold"
-                >
-                  Create your library
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="inline-flex justify-center items-center px-10 py-4 rounded-full border border-[#D4AF37] text-[#0F2040] font-semibold"
-                >
-                  View pricing
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-    </>
   );
 }

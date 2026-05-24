@@ -22,13 +22,21 @@ export default function AuthCallback() {
         return;
       }
 
-      // Upsert profile
-      await supabase.from('Profiles').upsert({
-        id: user.id,
-        full_name: user.user_metadata?.full_name || null,
-        email: user.email,
-        avatar_url: user.user_metadata?.avatar_url || null,
-      });
+      // Create profile if it doesn't exist — never overwrite user's custom values
+      const { data: existingProfile } = await supabase
+        .from('Profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        await supabase.from('Profiles').insert({
+          id: user.id,
+          full_name: user.user_metadata?.full_name || null,
+          email: user.email,
+          avatar_url: user.user_metadata?.avatar_url || null,
+        });
+      }
 
       // Handle invite token (Google OAuth can't pass metadata to handle_new_user)
       const inviteToken = sessionStorage.getItem('invite_token');
@@ -88,8 +96,10 @@ export default function AuthCallback() {
       if (postLoginRedirect) {
         sessionStorage.removeItem('post_login_redirect');
         router.replace(postLoginRedirect);
-      } else {
+      } else if (inviteToken || joinToken) {
         router.replace('/dashboard/home');
+      } else {
+        router.replace('/');
       }
     };
 

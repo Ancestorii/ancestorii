@@ -1,5 +1,5 @@
-import Nav from '@/components/Nav';
-import Footer from '@/components/Footer';
+import PublicNav from '@/components/stories/layout/PublicNav';
+import PublicFooter from '@/components/stories/layout/PublicFooter';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import PricingContent from './PricingContent';
@@ -59,9 +59,9 @@ export default function PricingPage() {
       </Script>
 
       <main className="min-h-screen bg-[#FFFDF6] text-[#0F2040]">
-        <Nav />
+        <PublicNav />
         <PricingContent />
-        <Footer />
+        <PublicFooter />
       </main>
     </>
   );

@@ -15,7 +15,6 @@ import {
   CloudUpload,
   Mail,
   X,
-  ShieldAlert,
   Eye,
   Pencil,
   Trash2,
@@ -585,19 +584,19 @@ export default function ActionHub({
             />
           </div>
 
-          <div className="mt-7 flex items-center justify-between">
+          <div className="mt-7 space-y-4">
             <p className="text-[14px] text-[#7D6F5F]">
               Choose <span className="text-[#A9782F]">five</span> moments that deserve to live here.
             </p>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between">
               <div className="flex gap-3">
                 {[0, 1, 2, 3, 4].map((i) => (
                   <button
                     key={i}
                     onClick={() => setActiveMemory(i)}
                     aria-label={`Memory ${i + 1}`}
-                    className={`h-5 w-5 rounded-full text-[10px] font-bold transition flex items-center justify-center ${activeMemory === i ? 'bg-[#D1A33E] text-white' : 'bg-[#DEDAD4] text-[#9B8E7D]'}`}
+                    className={`h-7 w-7 rounded-full text-[11px] font-bold transition flex items-center justify-center ${activeMemory === i ? 'bg-[#D1A33E] text-white' : 'bg-[#DEDAD4] text-[#9B8E7D]'}`}
                   >
                     {i + 1}
                   </button>
@@ -697,7 +696,7 @@ function MemoryDropCard({
         if (f) { setLoaded(false); setUploading(true); Promise.resolve(onUpload(f, index)).finally(() => setUploading(false)); }
       }}
     >
-      <div className="relative overflow-hidden rounded-[20px] border border-dashed border-[#E1C99D] bg-[#FFFCF8] min-h-[380px] flex items-center justify-center">
+     <div className={`relative overflow-hidden rounded-[20px] min-h-[380px] flex items-center justify-center ${image ? 'border border-[#E7DFD3] bg-[#F5F2ED]' : 'border border-dashed border-[#E1C99D] bg-[#FFFCF8]'}`}>
         {uploading && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm">
             <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[#E1C99D] border-t-[#C8A557]" />
@@ -709,7 +708,7 @@ function MemoryDropCard({
             <Image
               src={image} alt="" fill
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 70vw, 620px"
-              className={`object-contain bg-[#FFFCF8] transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+              className={`object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
               priority
               onLoadingComplete={() => { setLoaded(true); setUploading(false); }}
             />

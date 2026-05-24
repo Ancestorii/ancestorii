@@ -15,14 +15,15 @@ export function useAssistance(options?: UseAssistanceOptions) {
   const assist = useCallback(async (
     type: string,
     context: Record<string, unknown>,
-    familyId?: string
+    familyId?: string,
+    apiEndpoint?: string
   ) => {
     setIsLoading(true);
     setError(null);
     setSuggestion('');
 
     try {
-      const response = await fetch('/api/ai/assist', {
+      const response = await fetch(apiEndpoint || '/api/ai/assist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type, context, family_id: familyId }),

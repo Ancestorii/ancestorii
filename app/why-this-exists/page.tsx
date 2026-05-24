@@ -1,15 +1,40 @@
 import WhyThisExists from "@/components/WhyThisExists";
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
+import PublicNav from '@/components/stories/layout/PublicNav';
+import PublicFooter from '@/components/stories/layout/PublicFooter';
 import type { Metadata } from "next";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Why Ancestorii Exists | A Living Family Library",
+  title: "Our Roots — Why Ancestorii Exists",
   description:
-    "Discover why Ancestorii was created. A personal and private space designed to capture family stories, voices, and memories as they happen and grow them into a living collection.",
+    "The personal story behind Ancestorii. Built by one person who could not stop thinking about how much families lose when nobody writes things down.",
   alternates: {
     canonical: "https://www.ancestorii.com/why-this-exists",
+  },
+  openGraph: {
+    title: "Our Roots — Why Ancestorii Exists",
+    description:
+      "The personal story behind Ancestorii. Built by one person who could not stop thinking about how much families lose when nobody writes things down.",
+    url: "https://www.ancestorii.com/why-this-exists",
+    siteName: "Ancestorii",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Ancestorii — Our Roots",
+      },
+    ],
+    locale: "en_GB",
+    type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Our Roots — Why Ancestorii Exists",
+    description:
+      "The personal story behind Ancestorii. Built by one person who could not stop thinking about how much families lose when nobody writes things down.",
+    images: ["/og-image.jpg"],
+    creator: "@ancestorii",
   },
   robots: {
     index: true,
@@ -20,7 +45,6 @@ export const metadata: Metadata = {
 export default function WhyThisExistsPage() {
   return (
     <>
-      {/* About Page Schema */}
       <Script
         id="aboutpage-schema"
         type="application/ld+json"
@@ -29,10 +53,19 @@ export default function WhyThisExistsPage() {
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "AboutPage",
-          "name": "Why Ancestorii Exists",
+          "name": "Our Roots — Why Ancestorii Exists",
           "description":
-            "The story behind Ancestorii and why it was created as a private living family library for capturing stories, voices, and meaningful moments while life unfolds.",
+            "The personal story behind Ancestorii — built because every family has moments worth sharing, and most of them are never written down.",
           "url": "https://www.ancestorii.com/why-this-exists",
+          "author": {
+            "@type": "Person",
+            "name": "Dante Leon",
+            "jobTitle": "Founder",
+            "worksFor": {
+              "@type": "Organization",
+              "name": "Ancestorii"
+            }
+          },
           "about": {
             "@type": "Organization",
             "name": "Ancestorii"
@@ -44,10 +77,10 @@ export default function WhyThisExistsPage() {
         })}
       </Script>
 
-      <main className="bg-[#fff9ee] text-[#0F2040]">
-        <Nav />
+      <main className="bg-[#FFFDF8] text-[#0F2040]">
+        <PublicNav />
         <WhyThisExists />
-        <Footer />
+        <PublicFooter />
       </main>
     </>
   );

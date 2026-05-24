@@ -119,6 +119,34 @@ export default async function DashboardHomePage() {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 8);
 
+  /* ── Explore stories ── */
+  const { data: exploreStories } = await supabase
+    .from('stories')
+    .select('id, slug, title, author_name')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(8);
+
+  const storyPreviews = await Promise.all(
+    (exploreStories ?? []).map(async (s) => {
+      const { count: rCount } = await supabase
+        .from('story_reactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('story_id', s.id);
+      const { count: cCount } = await supabase
+        .from('story_comments')
+        .select('*', { count: 'exact', head: true })
+        .eq('story_id', s.id);
+      return {
+        slug: s.slug,
+        title: s.title,
+        author_name: s.author_name,
+        reaction_count: rCount ?? 0,
+        comment_count: cCount ?? 0,
+      };
+    })
+  );
+
   /* ── Render ── */
   return (
     <div className="min-h-screen bg-white text-stone-900">
@@ -130,6 +158,7 @@ export default async function DashboardHomePage() {
             familyRole={familyRole}
             familyMemberCount={familyMemberCount}
             totalMemories={metrics.totalCollectionItems}
+            exploreStories={storyPreviews}
           />
 
           <ActionHub
@@ -142,7 +171,7 @@ export default async function DashboardHomePage() {
 
         {/* Recent Activity — right panel */}
         <div className="hidden xl:block w-[240px] flex-shrink-0 border-l border-stone-200">
-          <ActivitySection activity={activity} />
+          <ActivitySection activity={activity} exploreStories={storyPreviews} />
         </div>
       </div>
     </div>
