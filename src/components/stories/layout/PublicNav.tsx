@@ -817,7 +817,7 @@ export default function PublicNav() {
           </button>
 
           {isLoggedIn && (
-            <div className="pn-drawer-profile">
+            <Link href="/dashboard/profile" className="pn-drawer-profile" onClick={() => setIsOpen(false)} style={{ textDecoration: 'none' }}>
               <div className="pn-drawer-avatar">
                 {avatarUrl ? (
                   <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -831,7 +831,7 @@ export default function PublicNav() {
                 <div className="pn-drawer-name">My Account</div>
                 <div className="pn-drawer-email">{userEmail}</div>
               </div>
-            </div>
+            </Link>
           )}
 
           {navLinks.map((link) => (
