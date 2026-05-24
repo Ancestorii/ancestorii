@@ -157,6 +157,7 @@ export default function StoryFeed({
                     excerpt={story.excerpt}
                     authorName={story.author_name}
                     authorAvatarUrl={story.author_avatar_url}
+                    authorTitle={story.author_title}
                     coverUrl={story.cover_url}
                     coverType={story.cover_type}
                     voiceNotePath={story.voice_note_path}

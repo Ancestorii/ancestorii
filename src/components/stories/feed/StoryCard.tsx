@@ -23,6 +23,7 @@ export default function StoryCard({
   excerpt,
   authorName,
   authorAvatarUrl,
+  authorTitle,
   coverUrl,
   coverType,
   voiceNotePath,
@@ -41,6 +42,7 @@ export default function StoryCard({
   excerpt?: string | null;
   authorName: string;
   authorAvatarUrl: string | null;
+  authorTitle?: string | null;
   coverUrl: string | null;
   coverType?: 'image' | 'video' | null;
   voiceNotePath: string | null;
@@ -177,9 +179,14 @@ export default function StoryCard({
              <span className="text-[9px] font-bold text-[#A9782F]">{initials}</span>
             )}
           </div>
-          <span className="text-[11px] sm:text-[12px] font-medium text-[#1A1612]">
-            By {authorName}
-          </span>
+          <div>
+            <span className="text-[11px] sm:text-[12px] font-medium text-[#1A1612] block">
+              By {authorName}
+            </span>
+            {authorTitle && (
+              <span className="block text-[10px] sm:text-[11px] text-[#A9782F]">{authorTitle}</span>
+            )}
+          </div>
           {timeAgo && (
             <>
               <span className="text-[#E4D2AE] text-[10px]">·</span>
