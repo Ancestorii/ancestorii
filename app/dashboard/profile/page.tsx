@@ -5,6 +5,7 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import ImageCropModal from '@/components/ImageCropModal';
 import {
   Camera,
   MapPin,
@@ -113,6 +114,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [avatarLoaded, setAvatarLoaded] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [stories, setStories] = useState<UserStory[]>([]);
   const [storiesLoading, setStoriesLoading] = useState(true);
  const [activeTab, setActiveTab] = useState<'details' | 'stories' | 'nominate' | 'admin'>('details');
@@ -453,9 +455,12 @@ export default function ProfilePage() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const f = e.target.files?.[0];
-                    if (f) uploadAvatar(f);
+                    if (!f) return;
+                    const displayable = await ensureDisplayableImage(f);
+                    const url = URL.createObjectURL(displayable);
+                    setCropSrc(url);
                   }}
                 />
               </label>
@@ -954,6 +959,20 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+    {cropSrc && (
+        <ImageCropModal
+          imageSrc={cropSrc}
+          onCancel={() => {
+            URL.revokeObjectURL(cropSrc);
+            setCropSrc(null);
+          }}
+          onConfirm={(croppedFile) => {
+            URL.revokeObjectURL(cropSrc);
+            setCropSrc(null);
+            uploadAvatar(croppedFile);
+          }}
+        />
+      )}
     </div>
   );
 }

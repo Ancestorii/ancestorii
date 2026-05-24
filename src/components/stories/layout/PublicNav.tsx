@@ -98,6 +98,10 @@ export default function PublicNav() {
       }
     };
     getUser();
+
+    const onAvatarChange = () => getUser();
+    window.addEventListener('profile-image-updated', onAvatarChange);
+    return () => window.removeEventListener('profile-image-updated', onAvatarChange);
   }, []);
 
   const handleLogout = async () => {
