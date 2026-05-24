@@ -801,11 +801,26 @@ function HeroImageCarousel({
   const goNext = () => goTo((activeImage + 1) % images.length);
   const goPrev = () => goTo((activeImage - 1 + images.length) % images.length);
 
+  const touchStart = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStart.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart.current === null) return;
+    const diff = touchStart.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      diff > 0 ? goNext() : goPrev();
+    }
+    touchStart.current = null;
+  };
+
   return (
     <div
       className="relative w-full aspect-[4/3] sm:aspect-[16/11] overflow-hidden bg-[#F5F0E8] group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Main image */}
       <Image
