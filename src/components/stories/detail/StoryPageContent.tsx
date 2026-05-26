@@ -38,6 +38,7 @@ type RelatedStory = {
   title: string;
   coverUrl: string | null;
   reactionCount: number;
+  commentCount: number;
 };
 
 type Props = {
@@ -590,8 +591,13 @@ export default function StoryPageContent({
                       <p className="text-[13px] leading-[1.5] font-semibold text-[#1B2D4F] transition-colors duration-200 group-hover:text-[#C8A557] line-clamp-2" style={{ fontFamily: "'DM Sans', sans-serif" }}>
                         {rs.title}
                       </p>
-                      <span className="inline-flex items-center gap-1.5 mt-2 text-[11px] text-[#8A8A8A]">
-                        <Heart size={10} strokeWidth={1.7} className="text-[#C8A557]" />{rs.reactionCount}
+                      <span className="inline-flex items-center gap-3 mt-2 text-[11px] text-[#8A8A8A]">
+                        <span className="inline-flex items-center gap-1">
+                          <Heart size={11} strokeWidth={1.7} className="text-[#D94F4F]" fill="#D94F4F" />{rs.reactionCount}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <MessageCircle size={11} strokeWidth={1.7} className="text-[#5A87A8]" fill="#5A87A8" />{rs.commentCount}
+                        </span>
                       </span>
                     </div>
                   </Link>

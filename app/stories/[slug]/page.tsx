@@ -182,20 +182,35 @@ export default async function StoryPage({ params }: Props) {
   // Fetch comments for SSR (avoids flash of "0 Comments")
   const initialComments = await getStoryComments(supabase, story.id);
 
-  // Related stories (same category, exclude current)
-  let relatedQuery = supabase
-    .from('stories')
-    .select('id, slug, title')
-    .eq('status', 'published')
-    .neq('id', story.id)
-    .order('published_at', { ascending: false })
-    .limit(4);
+  // Related stories — same category first, backfill with latest to always show 4
+  const RELATED_LIMIT = 4;
+  let relatedRaw: { id: string; slug: string; title: string }[] = [];
 
   if (story.category) {
-    relatedQuery = relatedQuery.eq('category', story.category);
+    const { data: categoryMatches } = await supabase
+      .from('stories')
+      .select('id, slug, title')
+      .eq('status', 'published')
+      .eq('category', story.category)
+      .neq('id', story.id)
+      .order('published_at', { ascending: false })
+      .limit(RELATED_LIMIT);
+
+    relatedRaw = categoryMatches ?? [];
   }
 
-  const { data: relatedRaw } = await relatedQuery;
+  if (relatedRaw.length < RELATED_LIMIT) {
+    const excludeIds = [story.id, ...relatedRaw.map((s) => s.id)];
+    const { data: backfill } = await supabase
+      .from('stories')
+      .select('id, slug, title')
+      .eq('status', 'published')
+      .not('id', 'in', `(${excludeIds.join(',')})`)
+      .order('published_at', { ascending: false })
+      .limit(RELATED_LIMIT - relatedRaw.length);
+
+    relatedRaw = [...relatedRaw, ...(backfill ?? [])];
+  }
 
   const relatedIds = (relatedRaw ?? []).map((s) => s.id);
   const { data: relatedMedia } = relatedIds.length
@@ -206,12 +221,20 @@ export default async function StoryPage({ params }: Props) {
         .order('display_order', { ascending: true })
     : { data: [] };
 
-  const { data: relatedReactions } = relatedIds.length
-    ? await supabase
-        .from('story_reactions')
-        .select('story_id')
-        .in('story_id', relatedIds)
-    : { data: [] };
+  const [{ data: relatedReactions }, { data: relatedComments }] = await Promise.all([
+    relatedIds.length
+      ? supabase
+          .from('story_reactions')
+          .select('story_id')
+          .in('story_id', relatedIds)
+      : { data: [] },
+    relatedIds.length
+      ? supabase
+          .from('story_comments')
+          .select('story_id')
+          .in('story_id', relatedIds)
+      : { data: [] },
+  ]);
 
   const relatedMediaMap = new Map<string, string>();
   (relatedMedia ?? []).forEach((m: { story_id: string; file_path: string; file_type: string }) => {
@@ -228,11 +251,17 @@ export default async function StoryPage({ params }: Props) {
     relatedReactionMap.set(r.story_id, (relatedReactionMap.get(r.story_id) ?? 0) + 1);
   });
 
+  const relatedCommentMap = new Map<string, number>();
+  ((relatedComments ?? []) as { story_id: string }[]).forEach((c) => {
+    relatedCommentMap.set(c.story_id, (relatedCommentMap.get(c.story_id) ?? 0) + 1);
+  });
+
   const relatedStories = (relatedRaw ?? []).map((s) => ({
     slug: s.slug,
     title: s.title,
     coverUrl: relatedMediaMap.get(s.id) ?? null,
     reactionCount: relatedReactionMap.get(s.id) ?? 0,
+    commentCount: relatedCommentMap.get(s.id) ?? 0,
   }));
 
   return (

@@ -149,8 +149,8 @@ export default function WhyThisExists() {
 
         {/* Headline */}
         <h1 className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
-          I did not build this<br />
-          <span className="italic text-[#A9782F]">for everyone.</span>
+           I built this because<br />
+          <span className="italic text-[#A9782F]">I was scared of forgetting.</span>
         </h1>
 
         {/* Byline */}
@@ -163,9 +163,6 @@ export default function WhyThisExists() {
 
         {/* ─── Body ─── */}
         <Body>
-          <p>
-            I built this because I was scared of forgetting.
-          </p>
 
           <p>
             Not the big things. You remember birthdays and weddings and holidays. I was scared of losing the small stuff. The way my grandmother used to hum when she was cooking. The way she would describe the village she grew up in, always with the same faraway look, always adding a detail she had never mentioned before. The sound of my mum laughing at her own jokes before she even gets to the punchline.

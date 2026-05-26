@@ -20,6 +20,80 @@ function Body({ children }: { children: React.ReactNode }) {
   );
 }
 
+/* ─── Rule card (for Our Stories rules) ─── */
+function RuleCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="relative pl-6 md:pl-8 py-5 md:py-6 xl:py-7 pr-5 md:pr-8 border-l-[2px] border-[#B8932A]/40" style={{ background: 'linear-gradient(135deg, rgba(184,147,42,0.04) 0%, transparent 70%)' }}>
+      <p className="text-[15px] md:text-[17px] lg:text-[18px] xl:text-[20px] 2xl:text-[22px] leading-[1.85] text-[#3D3526]">
+        <strong>{title}</strong>{' '}{children}
+      </p>
+    </div>
+  );
+}
+
+/* ─── Feature card (for My Family features) ─── */
+function FeatureCard({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
+  return (
+    <div className="relative p-6 md:p-7 xl:p-8" style={{ background: 'rgba(184,147,42,0.03)', border: '1px solid rgba(184,147,42,0.12)' }}>
+      <span className="text-[40px] md:text-[48px] xl:text-[56px] leading-none font-semibold text-[#B8932A]/10 absolute top-4 right-5 md:top-5 md:right-6 select-none" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+        {number}
+      </span>
+      <h4 className="text-[16px] md:text-[18px] xl:text-[20px] font-semibold text-[#181512] mb-3 md:mb-4 tracking-[-0.01em]">
+        {title}
+      </h4>
+      <p className="text-[14px] md:text-[16px] xl:text-[17px] 2xl:text-[18px] leading-[1.8] text-[#3D3526]">
+        {children}
+      </p>
+    </div>
+  );
+}
+
+/* ─── Product card (for My Heirlooms) ─── */
+function ProductCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="relative p-6 md:p-7 xl:p-8 flex flex-col" style={{ background: '#1A1612' }}>
+      <div className="mb-4 md:mb-5" style={{ height: '2px', width: '2rem', background: 'linear-gradient(to right, #C8A557, transparent)' }} />
+      <h4 className="text-[17px] md:text-[19px] xl:text-[21px] font-semibold text-white mb-3 md:mb-4 tracking-[-0.01em]">
+        {title}
+      </h4>
+      <p className="text-[14px] md:text-[15px] xl:text-[16px] 2xl:text-[17px] leading-[1.8] text-white">
+        {children}
+      </p>
+    </div>
+  );
+}
+
+/* ─── Strike step (for three-strike policy) ─── */
+function StrikeStep({ step, label, isLast, children }: { step: string; label: string; isLast?: boolean; children: React.ReactNode }) {
+  return (
+    <div className="flex gap-5 md:gap-6">
+      <div className="flex flex-col items-center">
+        <div
+          className="w-9 h-9 md:w-10 md:h-10 xl:w-11 xl:h-11 rounded-full flex items-center justify-center text-[13px] md:text-[14px] font-semibold shrink-0"
+          style={{
+            background: step === '3' ? '#B8932A' : 'transparent',
+            border: step === '3' ? 'none' : '1.5px solid rgba(184,147,42,0.4)',
+            color: step === '3' ? '#1A1612' : '#B8932A',
+          }}
+        >
+          {step}
+        </div>
+        {!isLast && (
+          <div className="w-px flex-1 mt-2" style={{ background: 'rgba(184,147,42,0.2)' }} />
+        )}
+      </div>
+      <div className="pb-8 md:pb-10">
+        <p className="text-[12px] md:text-[13px] tracking-[0.12em] uppercase text-[#B8932A] font-semibold mb-2">
+          {label}
+        </p>
+        <p className="text-[15px] md:text-[17px] lg:text-[18px] xl:text-[20px] 2xl:text-[22px] leading-[1.85] text-[#3D3526]">
+          {children}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function HowItWorksContent() {
   return (
     <div className="w-full relative overflow-hidden" style={{ background: '#FFFDF8', fontFamily: "'DM Sans', sans-serif" }}>
@@ -96,19 +170,28 @@ export default function HowItWorksContent() {
           <p>
             We stripped out everything that makes sharing exhausting on other platforms.
           </p>
-          <p>
-            <strong>There is no algorithm.</strong> Stories appear in the order they are published. Nobody's memory gets buried because it did not perform well. Nobody's story gets boosted because it went viral. Every family gets the same treatment.
-          </p>
-          <p>
-            <strong>There are no follower counts.</strong> You are not building an audience. You are not competing with anyone. There are no metrics, no vanity numbers, no pressure to perform. You share a memory because it matters to you, and that is enough.
-          </p>
-          <p>
-            <strong>There is no religion or politics.</strong> This is a hard rule. Our Stories exists for memories only. Faith and political views are personal, and they belong in personal conversations. Not here. This space is for the stuff that brings families together, not the stuff that tears people apart.
-          </p>
-          <p>
-            Just memories. A first day of school. A Sunday dinner tradition. The way your grandfather held his cup of tea. That is what this space is for. Nothing else.
-          </p>
         </Body>
+
+        {/* ── Rules as cards ── */}
+        <div className="mt-8 md:mt-10 xl:mt-12 space-y-4 md:space-y-5">
+          <RuleCard title="There is no algorithm.">
+            Stories appear in the order they are published. Nobody's memory gets buried because it did not perform well. Nobody's story gets boosted because it went viral. Every family gets the same treatment.
+          </RuleCard>
+          <RuleCard title="There are no follower counts.">
+            You are not building an audience. You are not competing with anyone. There are no metrics, no vanity numbers, no pressure to perform. You share a memory because it matters to you, and that is enough.
+          </RuleCard>
+          <RuleCard title="There is no religion or politics.">
+            This is a hard rule. Our Stories exists for memories only. Faith and political views are personal, and they belong in personal conversations. Not here. This space is for the stuff that brings families together, not the stuff that tears people apart.
+          </RuleCard>
+        </div>
+
+        <div className="mt-8 md:mt-10 xl:mt-12">
+          <Body>
+            <p>
+              Just memories. A first day of school. A Sunday dinner tradition. The way your grandfather held his cup of tea. That is what this space is for. Nothing else.
+            </p>
+          </Body>
+        </div>
       </div>
 
       {/* ━━━ MY FAMILY ━━━ */}
@@ -147,19 +230,23 @@ export default function HowItWorksContent() {
           <p>
             Inside My Family, you have everything you need to build a proper family archive.
           </p>
-          <p>
-            <strong>Timelines</strong> let you place a life in order. Milestones, dates, the moments in between. A timeline makes a life readable for the people who come after you. Your children will not have to guess what happened when or why it mattered.
-          </p>
-          <p>
-            <strong>Albums</strong> let you group memories by theme or chapter. A wedding. A childhood home. A decade of Sunday mornings. Instead of thousands of scattered photos on a phone, you have something that makes sense.
-          </p>
-          <p>
-            <strong>Capsules</strong>  let you seal a memory and set a date for it to be opened. A message for your daughter on her 18th birthday. A letter to your grandchildren. A photo with a story attached that nobody sees until the day you choose.
-          </p>
-          <p>
-            <strong>Family Collaboration</strong> means you do not have to build this alone. Invite family members to contribute. They can add missing names, upload photos you have never seen, and fill in the gaps that only they know about. The library grows together.
-          </p>
         </Body>
+
+        {/* ── Features as cards in a grid ── */}
+        <div className="mt-8 md:mt-10 xl:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          <FeatureCard number="01" title="Timelines">
+            Let you place a life in order. Milestones, dates, the moments in between. A timeline makes a life readable for the people who come after you. Your children will not have to guess what happened when or why it mattered.
+          </FeatureCard>
+          <FeatureCard number="02" title="Albums">
+            Let you group memories by theme or chapter. A wedding. A childhood home. A decade of Sunday mornings. Instead of thousands of scattered photos on a phone, you have something that makes sense.
+          </FeatureCard>
+          <FeatureCard number="03" title="Capsules">
+            Let you seal a memory and set a date for it to be opened. A message for your daughter on her 18th birthday. A letter to your grandchildren. A photo with a story attached that nobody sees until the day you choose.
+          </FeatureCard>
+          <FeatureCard number="04" title="Family Collaboration">
+            Means you do not have to build this alone. Invite family members to contribute. They can add missing names, upload photos you have never seen, and fill in the gaps that only they know about. The library grows together.
+          </FeatureCard>
+        </div>
 
         {/* ── MY HEIRLOOMS ── */}
         <div className="mt-16 md:mt-20 xl:mt-24 pt-10 md:pt-14 xl:pt-16 border-t border-[#ECE5D8]">
@@ -180,15 +267,24 @@ export default function HowItWorksContent() {
               <p>
                 Digital memories are fragile. Platforms close. Devices break. Accounts get lost. My Heirlooms lets you turn your family's library into something real. Something you can hold, hang on a wall, and pass down.
               </p>
-              <p>
-                <strong>Memory Book.</strong> A printed, hardcover book built from your family's stories, photos, and timelines. You design it in our book editor, we print it at professional quality and deliver it to your door. Three tiers available, from a single chapter to a full legacy edition.
-              </p>
-              <p>
-                <strong>Canvas Print.</strong> A meaningful photo turned into a gallery quality canvas. The kind of image that belongs on a wall, not buried in a camera roll. Museum grade print on stretched canvas.
-              </p>
-              <p>
-                <strong>Acrylic Print.</strong> A photo printed behind polished acrylic glass. Vivid colour, clean edges, and the kind of weight that makes a memory feel permanent. High definition UV print with a contemporary finish.
-              </p>
+            </Body>
+          </div>
+
+          {/* ── Products as dark cards ── */}
+          <div className="mt-8 md:mt-10 xl:mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+            <ProductCard title="Memory Book">
+              A printed, hardcover book built from your family's stories, photos, and timelines. You design it in our book editor, we print it at professional quality and deliver it to your door. Three tiers available, from a single chapter to a full legacy edition.
+            </ProductCard>
+            <ProductCard title="Canvas Print">
+              A meaningful photo turned into a gallery quality canvas. The kind of image that belongs on a wall, not buried in a camera roll. Museum grade print on stretched canvas.
+            </ProductCard>
+            <ProductCard title="Acrylic Print">
+              A photo printed behind polished acrylic glass. Vivid colour, clean edges, and the kind of weight that makes a memory feel permanent. High definition UV print with a contemporary finish.
+            </ProductCard>
+          </div>
+
+          <div className="mt-8 md:mt-10 xl:mt-12">
+            <Body>
               <p>
                 Everything you create in My Heirlooms is built from the memories already in your private library. The physical product is the final step, not the starting point.
               </p>
@@ -237,22 +333,34 @@ export default function HowItWorksContent() {
           <p>
             If a published story breaks the rules, we follow a three strike policy.
           </p>
-          <p>
-            <strong>First time:</strong> the story is removed and we send you an email explaining what happened and why. Everyone makes mistakes.
-          </p>
-          <p>
-            <strong>Second time:</strong> the story is removed, you get a final warning, and you are suspended from publishing to Our Stories for seven days.
-          </p>
-          <p>
-            <strong>Third time:</strong> you are permanently banned from Our Stories. You can no longer publish, comment, or interact with the public feed.
-          </p>
-          <p>
-            One thing that will never happen: your private library is never touched. Strikes only affect the public side. My Family is yours. We do not go near it.
-          </p>
-          <p>
-            We also have a report button on every story, so if something slips through, the community can flag it. When you open Our Stories, you should find exactly what you came for. Real memories from real families. Nothing else.
-          </p>
         </Body>
+
+        {/* ── Three-strike policy as visual steps ── */}
+        <div className="mt-8 md:mt-10 xl:mt-12">
+          <StrikeStep step="1" label="First time">
+            The story is removed and we send you an email explaining what happened and why. Everyone makes mistakes.
+          </StrikeStep>
+          <StrikeStep step="2" label="Second time">
+            The story is removed, you get a final warning, and you are suspended from publishing to Our Stories for seven days.
+          </StrikeStep>
+          <StrikeStep step="3" label="Third time" isLast>
+            You are permanently banned from Our Stories. You can no longer publish, comment, or interact with the public feed.
+          </StrikeStep>
+        </div>
+
+        <div className="mt-4 md:mt-6 xl:mt-8 p-5 md:p-6 xl:p-7" style={{ background: 'rgba(184,147,42,0.04)', borderLeft: '2px solid rgba(184,147,42,0.25)' }}>
+          <p className="text-[15px] md:text-[17px] lg:text-[18px] xl:text-[20px] 2xl:text-[22px] leading-[1.85] text-[#3D3526]">
+            <strong className="text-[#181512]">One thing that will never happen:</strong> your private library is never touched. Strikes only affect the public side. My Family is yours. We do not go near it.
+          </p>
+        </div>
+
+        <div className="mt-8 md:mt-10 xl:mt-12">
+          <Body>
+            <p>
+              We also have a report button on every story, so if something slips through, the community can flag it. When you open Our Stories, you should find exactly what you came for. Real memories from real families. Nothing else.
+            </p>
+          </Body>
+        </div>
       </div>
 
       {/* ━━━ CTA ━━━ */}
@@ -263,12 +371,12 @@ export default function HowItWorksContent() {
         <div className="flex justify-center">
           <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14" style={{ background: '#1A1612' }}>
             <p
-  className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center"
-  style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
->
-  Some memories are for everyone.<br />
-  <span className="italic text-[#C8A557]">Some are just for you.</span>
-</p>
+              className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center"
+              style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
+            >
+              Some memories are for everyone.<br />
+              <span className="italic text-[#C8A557]">Some are just for you.</span>
+            </p>
             <p className="text-[13px] md:text-[14px] xl:text-[15px] text-[#A09888] mb-6 leading-relaxed text-center">
               One side is open. The other is yours alone.
             </p>
