@@ -1,36 +1,13 @@
 import { getServerClient } from '@/lib/supabase/server';
 import FamilyHeader from './_components/FamilyHeader';
-import ActionHub from './_components/ActionHub';
-import LibrarySection from './_components/LibrarySection';
-import ActivitySection from './_components/ActivitySection';
+import MemoryFeed from './_components/MemoryFeed';
 
 export default async function DashboardHomePage() {
   const supabase = await getServerClient();
-
   const { data: auth } = await supabase.auth.getUser();
   const user = auth?.user;
   if (!user) return null;
-
   const uid = user.id;
-
-  /* ── Profile ── */
-  let { data: profile } = await supabase
-    .from('Profiles')
-    .select('full_name, home_image_0, home_image_1, home_image_2, home_image_3, home_image_4')
-    .eq('id', uid)
-    .maybeSingle();
-
-  if (!profile) {
-    const { data: inserted } = await supabase
-      .from('Profiles')
-      .insert({
-        id: uid,
-        full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-      })
-      .select('full_name, home_image_0, home_image_1, home_image_2, home_image_3, home_image_4')
-      .single();
-    profile = inserted;
-  }
 
   /* ── Family ── */
   const { data: myMembership } = await supabase
@@ -43,137 +20,144 @@ export default async function DashboardHomePage() {
   let familyName = 'My Family';
   let familyRole = 'owner';
   let familyMemberCount = 1;
+  const familyId = myMembership?.family_id || '';
 
   if (myMembership) {
     familyRole = myMembership.role;
     const { data: family } = await supabase
       .from('families')
       .select('name')
-      .eq('id', myMembership.family_id)
+      .eq('id', familyId)
       .single();
     if (family?.name) familyName = family.name;
 
     const { count } = await supabase
       .from('family_memberships')
       .select('*', { count: 'exact', head: true })
-      .eq('family_id', myMembership.family_id);
+      .eq('family_id', familyId);
     familyMemberCount = count || 1;
   }
 
-  /* ── Home images ── */
-  const homeImages = await Promise.all(
-    [0, 1, 2, 3, 4].map(async (i) => {
-      const path = profile?.[`home_image_${i}` as keyof typeof profile] as string | null;
-      if (!path) return null;
-      const { data } = await supabase.storage.from('user-media').createSignedUrl(path, 60 * 60 * 24 * 7);
-      return data?.signedUrl ?? null;
-    })
-  );
+  /* ── Family memories (root only, no tabs) ── */
+  const { data: memories } = await supabase
+    .from('family_memories')
+    .select('id, title, body, author_id, voice_note_path, prompt_id, created_at')
+    .is('parent_memory_id', null)
+    .order('created_at', { ascending: false })
+    .limit(20);
 
-  /* ── Metrics (RLS scopes to family automatically) ── */
+  const memoryIds = (memories || []).map((m) => m.id);
+  const authorIds = [...new Set((memories || []).map((m) => m.author_id))];
+
+  /* ── Batch: media, reactions, comments, tabs ── */
   const [
-    { count: lovedOnesCount },
-    { count: memoriesCount },
-    { count: timelinesCount },
-    { count: albumsCount },
-    { count: capsulesCount },
+    { data: allMedia },
+    { data: reactionRows },
+    { data: commentRows },
+    { data: tabRows },
+    { data: authorProfiles },
   ] = await Promise.all([
-    supabase.from('family_members').select('*', { count: 'exact', head: true }),
-    supabase.from('library_media').select('*', { count: 'exact', head: true }),
-    supabase.from('timelines').select('*', { count: 'exact', head: true }),
-    supabase.from('albums').select('*', { count: 'exact', head: true }),
-    supabase.from('memory_capsules').select('*', { count: 'exact', head: true }).eq('family_id', myMembership?.family_id ?? ''),
+    memoryIds.length
+      ? supabase
+          .from('family_memory_media')
+          .select('memory_id, file_path')
+          .in('memory_id', memoryIds)
+          .eq('file_type', 'image')
+          .order('display_order')
+      : { data: [] },
+    memoryIds.length
+      ? supabase.from('family_memory_reactions').select('memory_id').in('memory_id', memoryIds)
+      : { data: [] },
+    memoryIds.length
+      ? supabase.from('family_memory_comments').select('memory_id').in('memory_id', memoryIds)
+      : { data: [] },
+    memoryIds.length
+      ? supabase.from('family_memories').select('parent_memory_id').in('parent_memory_id', memoryIds)
+      : { data: [] },
+    authorIds.length
+      ? supabase.from('Profiles').select('id, full_name, profile_image_url, avatar_url').in('id', authorIds)
+      : { data: [] },
   ]);
 
-  const metrics = {
-    lovedOnes: lovedOnesCount || 0,
-    memories: memoriesCount || 0,
-    timelines: timelinesCount || 0,
-    albums: albumsCount || 0,
-    capsules: capsulesCount || 0,
-    totalCollectionItems: (lovedOnesCount || 0) + (timelinesCount || 0) + (capsulesCount || 0) + (albumsCount || 0),
-  };
+  /* ── Build maps ── */
+  const mediaMap = new Map<string, string>();
+  (allMedia || []).forEach((m: any) => {
+    if (!mediaMap.has(m.memory_id)) mediaMap.set(m.memory_id, m.file_path);
+  });
 
-  /* ── Recent activity (RLS scopes to family automatically) ── */
-  const [
-    { data: recentLovedOnes },
-    { data: recentTimelines },
-    { data: recentCapsules },
-    { data: recentAlbums },
-    { data: recentLibraryMedia },
-  ] = await Promise.all([
-    supabase.from('family_members').select('id, full_name, created_at').order('created_at', { ascending: false }).limit(5),
-    supabase.from('timelines').select('id, title, created_at').order('created_at', { ascending: false }).limit(5),
-   supabase.from('memory_capsules').select('id, title, created_at').eq('family_id', myMembership?.family_id ?? '').order('created_at', { ascending: false }).limit(5),
-    supabase.from('albums').select('id, title, created_at').order('created_at', { ascending: false }).limit(5),
-    supabase.from('library_media').select('id, file_type, created_at').order('created_at', { ascending: false }).limit(5),
-  ]);
+  const reactionMap = new Map<string, number>();
+  (reactionRows || []).forEach((r: any) => {
+    reactionMap.set(r.memory_id, (reactionMap.get(r.memory_id) || 0) + 1);
+  });
 
-  const activity = [
-    ...(recentLovedOnes || []).map((i: any) => ({ id: `family-${i.id}`, action: `Added loved one ${i.full_name}`, created_at: i.created_at })),
-    ...(recentTimelines || []).map((i: any) => ({ id: `timeline-${i.id}`, action: `Created timeline ${i.title}`, created_at: i.created_at })),
-    ...(recentCapsules || []).map((i: any) => ({ id: `capsule-${i.id}`, action: `Created capsule ${i.title}`, created_at: i.created_at })),
-    ...(recentAlbums || []).map((i: any) => ({ id: `album-${i.id}`, action: `Created album ${i.title}`, created_at: i.created_at })),
-    ...(recentLibraryMedia || []).map((i: any) => ({ id: `library-${i.id}`, action: `Uploaded ${i.file_type || 'media'} to library`, created_at: i.created_at })),
-  ]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 8);
+  const commentMap = new Map<string, number>();
+  (commentRows || []).forEach((c: any) => {
+    commentMap.set(c.memory_id, (commentMap.get(c.memory_id) || 0) + 1);
+  });
 
-  /* ── Explore stories ── */
-  const { data: exploreStories } = await supabase
-    .from('stories')
-    .select('id, slug, title, author_name')
-    .eq('status', 'published')
-    .order('published_at', { ascending: false })
-    .limit(8);
+  const tabMap = new Map<string, number>();
+  (tabRows || []).forEach((t: any) => {
+    tabMap.set(t.parent_memory_id, (tabMap.get(t.parent_memory_id) || 0) + 1);
+  });
 
-  const storyPreviews = await Promise.all(
-    (exploreStories ?? []).map(async (s) => {
-      const { count: rCount } = await supabase
-        .from('story_reactions')
-        .select('*', { count: 'exact', head: true })
-        .eq('story_id', s.id);
-      const { count: cCount } = await supabase
-        .from('story_comments')
-        .select('*', { count: 'exact', head: true })
-        .eq('story_id', s.id);
-      return {
-        slug: s.slug,
-        title: s.title,
-        author_name: s.author_name,
-        reaction_count: rCount ?? 0,
-        comment_count: cCount ?? 0,
-      };
-    })
-  );
+  /* ── Sign avatar URLs ── */
+  const avatarMap = new Map<string, string>();
+  for (const p of authorProfiles || []) {
+    const imgPath = (p as any).profile_image_url || (p as any).avatar_url;
+    if (imgPath) {
+      if (imgPath.startsWith('http')) {
+        avatarMap.set((p as any).id, imgPath);
+      } else {
+        const { data: signed } = await supabase.storage.from('user-media').createSignedUrl(imgPath, 3600);
+        if (signed?.signedUrl) avatarMap.set((p as any).id, signed.signedUrl);
+      }
+    }
+  }
 
-  /* ── Render ── */
+  /* ── Sign cover images ── */
+  const coverUrlMap = new Map<string, string>();
+  for (const [memId, filePath] of mediaMap) {
+    const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(filePath, 3600);
+    if (signed?.signedUrl) coverUrlMap.set(memId, signed.signedUrl);
+  }
+
+  /* ── Total memories count ── */
+  const { count: totalMemories } = await supabase
+    .from('family_memories')
+    .select('*', { count: 'exact', head: true })
+    .is('parent_memory_id', null);
+
+  /* ── Build feed ── */
+  const feedMemories = (memories || []).map((m) => {
+    const prof = (authorProfiles || []).find((p: any) => p.id === m.author_id) as any;
+    return {
+      id: m.id,
+      title: m.title,
+      body: m.body,
+      author_name: prof?.full_name || 'Family Member',
+      author_avatar_url: avatarMap.get(m.author_id) || null,
+      cover_url: coverUrlMap.get(m.id) || null,
+      voice_note_path: m.voice_note_path,
+      reaction_count: reactionMap.get(m.id) || 0,
+      comment_count: commentMap.get(m.id) || 0,
+      tab_count: tabMap.get(m.id) || 0,
+      created_at: m.created_at,
+    };
+  });
+
   return (
-    <div className="min-h-screen bg-white text-stone-900">
-      <div className="flex">
-        {/* Main content */}
-        <div className="flex-1 min-w-0">
-          <FamilyHeader
-            familyName={familyName}
-            familyRole={familyRole}
-            familyMemberCount={familyMemberCount}
-            totalMemories={metrics.totalCollectionItems}
-            exploreStories={storyPreviews}
-          />
-
-          <ActionHub
-            homeImages={homeImages}
-            email={user.email ?? null}
-          />
-
-          <LibrarySection metrics={metrics} />
-        </div>
-
-        {/* Recent Activity — right panel */}
-        <div className="hidden xl:block w-[240px] flex-shrink-0 border-l border-stone-200">
-          <ActivitySection activity={activity} exploreStories={storyPreviews} />
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#FCFAF7]">
+      <FamilyHeader
+        familyName={familyName}
+        familyRole={familyRole}
+        familyMemberCount={familyMemberCount}
+        totalMemories={totalMemories || 0}
+      />
+      <MemoryFeed
+        initialMemories={feedMemories}
+        familyName={familyName}
+        familyId={familyId}
+      />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 // supabase/functions/welcome-email/index.ts
+// ─────────────────────────────────────────────
 // Triggered by Database Webhook on public.Profiles INSERT
 // Sends a branded welcome email via Resend API
+// ─────────────────────────────────────────────
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -48,20 +50,23 @@ Deno.serve(async (req) => {
         email = user.email;
       }
       if (!name) {
-        name = user?.user_metadata?.full_name || user?.user_metadata?.name || null;
+        name =
+          user?.user_metadata?.full_name ||
+          user?.user_metadata?.name ||
+          null;
       }
     }
 
     if (!email) {
       console.log("No email found for user:", record.id);
-      return new Response(JSON.stringify({ skipped: true, reason: "no_email" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ skipped: true, reason: "no_email" }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     // --- Send welcome email via Resend ---
-    const greeting = name || "there";
+    const firstName = name ? name.split(" ")[0] : "there";
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -70,10 +75,10 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Ancestorii <support@ancestorii.com>",
+        from: "Dante from Ancestorii <support@ancestorii.com>",
         to: [email],
         subject: "Welcome to Ancestorii",
-        html: generateWelcomeEmail(greeting),
+        html: generateWelcomeEmail(firstName),
       }),
     });
 
@@ -93,9 +98,10 @@ Deno.serve(async (req) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// Branded HTML Email Template
-// ─────────────────────────────────────────────
+// ═════════════════════════════════════════════
+// EMAIL TEMPLATE
+// ═════════════════════════════════════════════
+
 function generateWelcomeEmail(name: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -143,39 +149,49 @@ function generateWelcomeEmail(name: string): string {
               </p>
 
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                Thank you for joining Ancestorii — a place to preserve the stories, photos, and memories that make your family who they are.
+                Thank you for joining Ancestorii &mdash; a place where your family&rsquo;s stories, voices, and memories live together, privately and permanently.
               </p>
 
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 32px 0;">
-                Here are a few things you can do to get started:
+                You&rsquo;ve just created your family library. Here&rsquo;s what you can do with it:
               </p>
 
-              <!-- Step 1 -->
+              <!-- Step 1 — Write your first memory -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
                 <tr>
                   <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">1.</td>
                   <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
-                    <strong style="color:#16120c; font-weight:600;">Add your loved ones</strong> — create profiles for the people whose stories matter most.
+                    <strong style="color:#16120c; font-weight:600;">Write your first memory</strong> &mdash; a moment, a person, a feeling you don&rsquo;t want to lose. That&rsquo;s the first entry in your family&rsquo;s private feed.
                   </td>
                 </tr>
               </table>
 
-              <!-- Step 2 -->
+              <!-- Step 2 — Ask your family a question -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
                 <tr>
                   <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">2.</td>
                   <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
-                    <strong style="color:#16120c; font-weight:600;">Upload photos &amp; memories</strong> — build albums, timelines, and memory capsules.
+                    <strong style="color:#16120c; font-weight:600;">Ask your family a question</strong> &mdash; pick from dozens of prompts and send one to someone you love. When they answer, their memory appears alongside yours.
                   </td>
                 </tr>
               </table>
 
-              <!-- Step 3 -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:38px;">
+              <!-- Step 3 — Share a story with the world -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
                 <tr>
                   <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">3.</td>
                   <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
-                    <strong style="color:#16120c; font-weight:600;">Create a Memory Book</strong> — turn your favourite photos into a beautifully printed book, delivered to your door.
+                    <strong style="color:#16120c; font-weight:600;">Share a story with the world</strong> &mdash; when you&rsquo;re ready, publish on Our Stories, our public feed where families share the moments that shaped them.
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Step 4 — Turn memories into something real -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:38px;">
+                <tr>
+                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">4.</td>
+                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
+                    <strong style="color:#16120c; font-weight:600;">Turn memories into something you can hold</strong> &mdash; create Memory Books, canvas prints, and acrylic prints from your photos, designed by you and delivered to your door.
                   </td>
                 </tr>
               </table>
@@ -184,7 +200,7 @@ function generateWelcomeEmail(name: string): string {
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
                 <tr>
                   <td align="center" style="background-color:#16120c;">
-                    <a href="https://ancestorii.com/dashboard"
+                    <a href="https://ancestorii.com/login"
                        target="_blank"
                        style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
                       Get Started
@@ -193,15 +209,33 @@ function generateWelcomeEmail(name: string): string {
                 </tr>
               </table>
 
-              <!-- Closing line -->
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">
-                Every family has a story worth keeping.
+              <!-- Closing -->
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 0 0;">
+                Ancestorii isn&rsquo;t something you use alone. It&rsquo;s built for families to contribute together &mdash; everyone adds their perspective, and the collection grows richer over time.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:22px 0 0 0; font-style:italic;">
+                Every family has a story worth keeping. Yours starts now.
               </p>
 
               <!-- Signature -->
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 0 0;">
-                — The Ancestorii Team
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">
+                &mdash; Dante
               </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; color:#9a9388; margin:0; font-style:italic;">
+                Founder, Ancestorii
+              </p>
+
+              <!-- P.S. -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:36px;">
+                <tr>
+                  <td style="border-top:1px solid #ebe4d5; padding-top:22px;">
+                    <p style="font-family:Georgia, 'Times New Roman', serif; font-size:14px; color:#7a7368; line-height:1.7; margin:0; font-style:italic;">
+                      <span style="font-style:normal; color:#ab8232; letter-spacing:2px; font-size:12px;">P.S.</span>&nbsp;&nbsp;Reply to this email any time. I read every one myself.
+                    </p>
+                  </td>
+                </tr>
+              </table>
 
             </td>
           </tr>

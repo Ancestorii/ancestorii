@@ -245,9 +245,27 @@ export async function getRecentNotifications(
 
   if (error || !data) return [];
 
+  // Enrich memory notifications with memory titles
+  const memoryTypes = ['memory_reaction', 'memory_comment', 'memory_addition', 'prompt_answered'];
+  const memoryNotifs = (data as any[]).filter(
+    (n) => memoryTypes.includes(n.type) && n.target_id && n.target_type === 'family_memory'
+  );
+  const memoryIds = [...new Set(memoryNotifs.map((n) => n.target_id))];
+
+  const memoryTitleMap = new Map<string, string>();
+  if (memoryIds.length > 0) {
+    const { data: memories } = await supabase
+      .from('family_memories')
+      .select('id, title')
+      .in('id', memoryIds);
+    if (memories) {
+      (memories as any[]).forEach((m) => memoryTitleMap.set(m.id, m.title));
+    }
+  }
+
   return (data as any[]).map((n) => ({
     ...n,
-    story_title: n.stories?.title ?? null,
+    story_title: n.stories?.title ?? memoryTitleMap.get(n.target_id) ?? null,
     stories: undefined,
   }));
 }

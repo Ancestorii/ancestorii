@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, MessageCircle, Share2, Users, ImageIcon } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Users, ImageIcon, PenLine, HelpCircle } from 'lucide-react';
 
 export default function NotificationItem({
   type,
@@ -51,9 +51,12 @@ export default function NotificationItem({
 
 function getNotificationMeta(type: string, actorName: string | null, storyTitle?: string | null) {
   const name = actorName || 'Someone';
-  const title = storyTitle ? `"${storyTitle.slice(0, 30)}${storyTitle.length > 30 ? '…' : ''}"` : 'your story';
+  const isMemoryType = ['memory_reaction', 'memory_comment', 'memory_addition'].includes(type);
+  const fallback = isMemoryType ? 'your memory' : 'your story';
+  const title = storyTitle ? `"${storyTitle.slice(0, 30)}${storyTitle.length > 30 ? '…' : ''}"` : fallback;
 
   switch (type) {
+    // ── Existing public story types ──
     case 'story_like':
       return {
         icon: <Heart size={14} className="text-[#C8A557]" strokeWidth={1.8} />,
@@ -72,6 +75,8 @@ function getNotificationMeta(type: string, actorName: string | null, storyTitle?
         bg: '#F5EDD8',
         message: `${name} shared ${title}`,
       };
+
+    // ── Existing family types ──
     case 'family_photo_added':
       return {
         icon: <ImageIcon size={14} className="text-[#7C8B6A]" strokeWidth={1.8} />,
@@ -88,8 +93,41 @@ function getNotificationMeta(type: string, actorName: string | null, storyTitle?
       return {
         icon: <Heart size={14} className="text-[#C8A557]" strokeWidth={1.8} />,
         bg: '#F5EDD8',
-        message: 'Welcome to Ancestorii! Start by adding a loved one, then build their timeline.',
+        message: 'Welcome to Ancestorii! Write your first memory, then ask your family a question.',
       };
+
+    // ── NEW: Private memory types ──
+    case 'memory_reaction':
+      return {
+        icon: <Heart size={14} className="text-[#C8A557]" strokeWidth={1.8} />,
+        bg: '#F5EDD8',
+        message: `${name} loved your memory ${title}`,
+      };
+    case 'memory_comment':
+      return {
+        icon: <MessageCircle size={14} className="text-[#8B7355]" strokeWidth={1.8} />,
+        bg: '#F0E8D8',
+        message: `${name} commented on your memory ${title}`,
+      };
+    case 'memory_addition':
+      return {
+        icon: <PenLine size={14} className="text-[#A9782F]" strokeWidth={1.8} />,
+        bg: '#F5EDD8',
+        message: `${name} added their memory to ${title}`,
+      };
+    case 'prompt_answered':
+      return {
+        icon: <HelpCircle size={14} className="text-[#A9782F]" strokeWidth={1.8} />,
+        bg: '#F5EDD8',
+        message: `${name} answered your question`,
+      };
+    case 'prompt_received':
+      return {
+        icon: <HelpCircle size={14} className="text-[#A9782F]" strokeWidth={1.8} />,
+        bg: '#F5EDD8',
+        message: `${name} asked you a question`,
+      };
+
     default:
       return {
         icon: <Heart size={14} className="text-[#9B8E7D]" strokeWidth={1.8} />,

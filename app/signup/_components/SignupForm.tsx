@@ -142,6 +142,9 @@ export default function SignupForm() {
         });
       }
 
+      // Check if this was an invite signup
+      const hadInvite = !!sessionStorage.getItem('invite_token');
+
       // Clean up sessionStorage
       sessionStorage.removeItem('family_name');
       sessionStorage.removeItem('invite_token');
@@ -149,8 +152,8 @@ export default function SignupForm() {
       // Allow auth cookies to persist
       await new Promise((res) => setTimeout(res, 200));
 
-      // Redirect to dashboard
-      router.replace('/');
+      // Invited users go straight to dashboard, new users write first memory
+      router.replace(hadInvite ? '/dashboard/home' : '/onboarding/first-memory');
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
       setLoading(false);

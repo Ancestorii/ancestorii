@@ -112,8 +112,8 @@ export default function HowItWorksContent() {
           className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
           style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
         >
-          Two spaces.<br />
-          <span className="italic text-[#A9782F]">One purpose.</span>
+          Two feeds.<br />
+          <span className="italic text-[#A9782F]">One family.</span>
         </h1>
 
         <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', width: '10rem', background: 'linear-gradient(to right, rgba(184,147,42,0.85), transparent)' }} />
@@ -123,7 +123,7 @@ export default function HowItWorksContent() {
             Ancestorii is built around a simple idea. Some memories are meant to be shared with the world. Others are meant to stay in the family.
           </p>
           <p>
-            So we gave you both. A public space called <strong>Our Stories</strong>, where families share memories openly. And a private space called <strong>My Family</strong>, where everything stays between the people you invite. Nobody else gets in.
+            So we gave you both. A public feed called <strong>Our Stories</strong>, where families share memories openly and anyone can read them. And a private feed called <strong>Our Memories</strong>, where everything stays between the people you invite. Nobody else gets in.
           </p>
           <p>
             They work side by side, but they do very different things. Here is how.
@@ -150,10 +150,10 @@ export default function HowItWorksContent() {
         <div className="mt-8 md:mt-10 xl:mt-12">
           <Body>
             <p>
-              This is the open side of Ancestorii. When you publish a story here, anyone on the platform can read it. They can like it. They can leave a comment. They can share it with someone who needs to hear it.
+              This is the open side of Ancestorii. When you publish a story here, anyone on the platform can read it. They can react to it. They can leave a comment. They can share it with someone who needs to hear it.
             </p>
             <p>
-              Think of it as a place for the stories you want to pass on beyond your own family. Your grandparents' journey to a new country. The tradition your family kept alive for decades. The recipe that started arguments every Christmas. These are the memories that connect people across families, across cultures, across generations.
+              Think of it as a place for the stories you want to pass on beyond your own family. Your grandparents&rsquo; journey to a new country. The tradition your family kept alive for decades. The recipe that started arguments every Christmas. These are the memories that connect people across families, across cultures, across generations.
             </p>
             <p>
               You decide what goes public. Nothing is ever pushed there without your say.
@@ -175,7 +175,7 @@ export default function HowItWorksContent() {
         {/* ── Rules as cards ── */}
         <div className="mt-8 md:mt-10 xl:mt-12 space-y-4 md:space-y-5">
           <RuleCard title="There is no algorithm.">
-            Stories appear in the order they are published. Nobody's memory gets buried because it did not perform well. Nobody's story gets boosted because it went viral. Every family gets the same treatment.
+            Stories appear in the order they are published. Nobody&rsquo;s memory gets buried because it did not perform well. Nobody&rsquo;s story gets boosted because it went viral. Every family gets the same treatment.
           </RuleCard>
           <RuleCard title="There are no follower counts.">
             You are not building an audience. You are not competing with anyone. There are no metrics, no vanity numbers, no pressure to perform. You share a memory because it matters to you, and that is enough.
@@ -194,7 +194,7 @@ export default function HowItWorksContent() {
         </div>
       </div>
 
-      {/* ━━━ MY FAMILY ━━━ */}
+      {/* ━━━ OUR MEMORIES ━━━ */}
       <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pt-8 md:pt-12 pb-16 md:pb-24">
 
         <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
@@ -207,16 +207,16 @@ export default function HowItWorksContent() {
           className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
           style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
         >
-          My Family
+          Our Memories
         </h2>
 
         <div className="mt-8 md:mt-10 xl:mt-12">
           <Body>
             <p>
-              This is the closed side. Your family's private space. The photos you would never post anywhere. The voice recording of your mum telling that story one more time. The dates and details that only mean something to the people who were there.
+              This is the closed side. Your family&rsquo;s private feed. When you write a memory here, only your family sees it. The photos you would never post anywhere. The voice your mum uses when she tells that story one more time. The details that only mean something to the people who were there.
             </p>
             <p>
-              Only family members you invite can see what is inside. Nobody else can browse it, search for it, or stumble into it. There is no discovery feed for private content. There is no "suggested families" feature. My Family is a locked room and the only people with a key are the ones you hand it to.
+              Only family members you invite can see what is inside. Nobody else can browse it, search for it, or stumble into it. There is no discovery feed for private content. There is no &ldquo;suggested families&rdquo; feature. Our Memories is a locked room and the only people with a key are the ones you hand it to.
             </p>
           </Body>
         </div>
@@ -228,24 +228,32 @@ export default function HowItWorksContent() {
 
         <Body>
           <p>
-            Inside My Family, you have everything you need to build a proper family archive.
+            When you sign up, you write your first memory. A moment, a person, a feeling you do not want to lose. That becomes the first entry in your family&rsquo;s feed. From there, the library grows — not because you are building content, but because you are asking the right questions.
           </p>
         </Body>
 
         {/* ── Features as cards in a grid ── */}
         <div className="mt-8 md:mt-10 xl:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-          <FeatureCard number="01" title="Timelines">
-            Let you place a life in order. Milestones, dates, the moments in between. A timeline makes a life readable for the people who come after you. Your children will not have to guess what happened when or why it mattered.
+          <FeatureCard number="01" title="The Private Feed">
+            Every memory your family writes appears here — photos, text, voice notes. Same visual feel as the public feed, but locked to your family. No algorithm deciding what you see. No strangers reading your stories. Just the people you trust, sharing the moments that matter.
           </FeatureCard>
-          <FeatureCard number="02" title="Albums">
-            Let you group memories by theme or chapter. A wedding. A childhood home. A decade of Sunday mornings. Instead of thousands of scattered photos on a phone, you have something that makes sense.
+          <FeatureCard number="02" title="Question Prompts">
+            Pick from dozens of curated questions across chapters like Growing Up, Holidays, Around the Table, and The Stories We Always Retell. Send a question to a family member. When they answer, their memory appears in your feed. They do not even need an account — they click the link, write their answer, and they are in.
           </FeatureCard>
-          <FeatureCard number="03" title="Capsules">
-            Let you seal a memory and set a date for it to be opened. A message for your daughter on her 18th birthday. A letter to your grandchildren. A photo with a story attached that nobody sees until the day you choose.
+          <FeatureCard number="03" title="Multiple Perspectives">
+            When two people remember the same moment differently, both versions live on the same page as tabs. Nicole&rsquo;s Memory. Dante&rsquo;s Memory. Maria&rsquo;s Memory. Click a tab and the entire story changes — different words, different photos, different feelings about the same moment. That is what makes a family archive feel alive.
           </FeatureCard>
-          <FeatureCard number="04" title="Family Collaboration">
-            Means you do not have to build this alone. Invite family members to contribute. They can add missing names, upload photos you have never seen, and fill in the gaps that only they know about. The library grows together.
+          <FeatureCard number="04" title="Invite &amp; Collaborate">
+            Send a question or share a link. Family members join your library and start contributing — their own memories, their own photos, their reactions and comments on yours. Everyone adds their piece. The collection grows richer because no single person holds the whole story.
           </FeatureCard>
+        </div>
+
+        <div className="mt-8 md:mt-10 xl:mt-12">
+          <Body>
+            <p>
+              You also have albums to group memories by chapter — a wedding, a childhood home, a decade of Sunday mornings — and timelines to place a life in order, so your children do not have to guess what happened when or why it mattered.
+            </p>
+          </Body>
         </div>
 
         {/* ── MY HEIRLOOMS ── */}
@@ -265,7 +273,7 @@ export default function HowItWorksContent() {
           <div className="mt-8 md:mt-10 xl:mt-12">
             <Body>
               <p>
-                Digital memories are fragile. Platforms close. Devices break. Accounts get lost. My Heirlooms lets you turn your family's library into something real. Something you can hold, hang on a wall, and pass down.
+                Digital memories are fragile. Platforms close. Devices break. Accounts get lost. My Heirlooms lets you turn your family&rsquo;s library into something real. Something you can hold, hang on a wall, and pass down.
               </p>
             </Body>
           </div>
@@ -273,7 +281,7 @@ export default function HowItWorksContent() {
           {/* ── Products as dark cards ── */}
           <div className="mt-8 md:mt-10 xl:mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
             <ProductCard title="Memory Book">
-              A printed, hardcover book built from your family's stories, photos, and timelines. You design it in our book editor, we print it at professional quality and deliver it to your door. Three tiers available, from a single chapter to a full legacy edition.
+              A printed, hardcover book built from your family&rsquo;s stories, photos, and timelines. You design it in our book editor, we print it at professional quality and deliver it to your door. Three tiers available, from a single chapter to a full legacy edition.
             </ProductCard>
             <ProductCard title="Canvas Print">
               A meaningful photo turned into a gallery quality canvas. The kind of image that belongs on a wall, not buried in a camera roll. Museum grade print on stretched canvas.
@@ -350,7 +358,7 @@ export default function HowItWorksContent() {
 
         <div className="mt-4 md:mt-6 xl:mt-8 p-5 md:p-6 xl:p-7" style={{ background: 'rgba(184,147,42,0.04)', borderLeft: '2px solid rgba(184,147,42,0.25)' }}>
           <p className="text-[15px] md:text-[17px] lg:text-[18px] xl:text-[20px] 2xl:text-[22px] leading-[1.85] text-[#3D3526]">
-            <strong className="text-[#181512]">One thing that will never happen:</strong> your private library is never touched. Strikes only affect the public side. My Family is yours. We do not go near it.
+            <strong className="text-[#181512]">One thing that will never happen:</strong> your private library is never touched. Strikes only affect the public side. Our Memories is yours. We do not go near it.
           </p>
         </div>
 
@@ -375,10 +383,10 @@ export default function HowItWorksContent() {
               style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
             >
               Some memories are for everyone.<br />
-              <span className="italic text-[#C8A557]">Some are just for you.</span>
+              <span className="italic text-[#C8A557]">Some are just for your family.</span>
             </p>
             <p className="text-[13px] md:text-[14px] xl:text-[15px] text-[#A09888] mb-6 leading-relaxed text-center">
-              One side is open. The other is yours alone.
+              Share stories with the world. Keep memories with your family. Build something that lasts.
             </p>
             <Link
               href="/signup"

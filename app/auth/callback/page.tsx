@@ -91,15 +91,26 @@ export default function AuthCallback() {
         sessionStorage.removeItem('family_name');
       }
 
-      // Check for a redirect destination (e.g. existing user logging in from /join/[token])
+      // Clean up redirect
       const postLoginRedirect = sessionStorage.getItem('post_login_redirect');
-      if (postLoginRedirect) {
-        sessionStorage.removeItem('post_login_redirect');
-        router.replace(postLoginRedirect);
-      } else if (inviteToken || joinToken) {
+      if (postLoginRedirect) sessionStorage.removeItem('post_login_redirect');
+
+      if (inviteToken || joinToken) {
+        // Invited users skip onboarding — feed already has content
         router.replace('/dashboard/home');
       } else {
-        router.replace('/');
+        // Everyone else: check onboarding
+        const { data: profile } = await supabase
+          .from('Profiles')
+          .select('onboarding_complete')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile?.onboarding_complete) {
+          router.replace('/onboarding/first-memory');
+        } else {
+          router.replace(postLoginRedirect || '/dashboard/home');
+        }
       }
     };
 

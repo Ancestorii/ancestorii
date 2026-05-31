@@ -79,7 +79,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        {/* 🟡 GOOGLE TAG MANAGER */}
+  <link rel="help" href="/llms.txt" type="text/plain" />
+
+  {/* 🟡 GOOGLE TAG MANAGER */}
         <Script id="gtm-head" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':

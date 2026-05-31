@@ -16,8 +16,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 // Drip schedule: which email to send on which day
 // ─────────────────────────────────────────────
 const DRIP_STEPS = [
-  { day: 3, step: "day_3", subject: "Who comes to mind?", template: emailDay3 },
-  { day: 7, step: "day_7", subject: "Got a photo on your phone?", template: emailDay7 },
+  { day: 3, step: "day_3", subject: "Who would you ask?", template: emailDay3 },
+  { day: 7, step: "day_7", subject: "One question. One memory.", template: emailDay7 },
   { day: 14, step: "day_14", subject: "From your phone to your shelf", template: emailDay14 },
   { day: 21, step: "day_21", subject: "Before the memories fade", template: emailDay21 },
 ];
@@ -55,14 +55,10 @@ Deno.serve(async (req) => {
 // Process a single drip step
 // ─────────────────────────────────────────────
 async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number> {
-  // Calculate the target signup date (users who signed up exactly `drip.day` days ago)
   const targetDate = new Date();
   targetDate.setDate(targetDate.getDate() - drip.day);
-  const dateStr = targetDate.toISOString().split("T")[0]; // e.g. "2026-04-19"
+  const dateStr = targetDate.toISOString().split("T")[0];
 
-  // ── Fetch users from auth.users (paginated) ──
-  // We use auth.users because Profiles.created_at was set by a backfill,
-  // not by a per-user signup trigger, so it can't be trusted for cohort dates.
   const matchedUsers: { id: string; email: string; name: string | null }[] = [];
   let page = 1;
   const perPage = 1000;
@@ -96,7 +92,6 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
 
   if (matchedUsers.length === 0) return 0;
 
-  // ── Optionally enrich with names from Profiles ──
   const userIds = matchedUsers.map((u) => u.id);
   const { data: profileRows } = await supabase
     .from("Profiles")
@@ -111,7 +106,6 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
   let sentCount = 0;
 
   for (const user of matchedUsers) {
-    // Check if this email was already sent to this user
     const { data: existing } = await supabase
       .from("onboarding_emails_log")
       .select("id")
@@ -119,12 +113,11 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
       .eq("step", drip.step)
       .maybeSingle();
 
-    if (existing) continue; // Already sent, skip
+    if (existing) continue;
 
     const fullName = nameByUserId.get(user.id) ?? user.name;
     const firstName = fullName ? fullName.split(" ")[0] : "there";
 
-    // Send the email
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -140,7 +133,6 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
     });
 
     if (res.ok) {
-      // Log that we sent it
       await supabase.from("onboarding_emails_log").insert({
         user_id: user.id,
         step: drip.step,
@@ -159,13 +151,8 @@ async function processDripStep(drip: typeof DRIP_STEPS[number]): Promise<number>
 
 // ═════════════════════════════════════════════
 // EMAIL VISUAL LAYER
-// All visual presentation lives below this line.
-// Logic above does not depend on any of this.
 // ═════════════════════════════════════════════
 
-// ─────────────────────────────────────────────
-// Email wrapper — letter-style brand chrome
-// ─────────────────────────────────────────────
 function wrapEmail(bodyContent: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -182,43 +169,20 @@ function wrapEmail(bodyContent: string): string {
     <tr>
       <td align="center" style="padding:48px 16px 56px 16px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-
-          <!-- Letterhead -->
           <tr>
             <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
-                A letter from
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
-                Ancestorii
-              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">A letter from</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">Ancestorii</p>
             </td>
           </tr>
-
-          <!-- Gold seam -->
-          <tr>
-            <td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-              ${bodyContent}
-            </td>
-          </tr>
-
-          <!-- Footer -->
+          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
+          <tr><td style="padding:48px 40px 36px 40px;">${bodyContent}</td></tr>
           <tr>
             <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
-                Ancestorii Ltd &middot; London
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
-                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
-              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;"><a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a></p>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
@@ -227,9 +191,6 @@ function wrapEmail(bodyContent: string): string {
 </html>`;
 }
 
-// ─────────────────────────────────────────────
-// Visual building blocks — shared across all emails
-// ─────────────────────────────────────────────
 function greeting(name: string): string {
   return `<p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">Hey ${name},</p>`;
 }
@@ -253,7 +214,7 @@ function ctaButton(href: string, label: string): string {
 }
 
 function signature(): string {
-  return `<p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">— Dante</p>
+  return `<p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">&mdash; Dante</p>
   <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; color:#9a9388; margin:0; font-style:italic;">Founder, Ancestorii</p>`;
 }
 
@@ -270,34 +231,34 @@ function postscript(content: string): string {
 }
 
 // ─────────────────────────────────────────────
-// DAY 3 — "Who comes to mind?"
+// DAY 3 — "Who would you ask?"
 // ─────────────────────────────────────────────
 function emailDay3(name: string): string {
   return wrapEmail(`
     ${greeting(name)}
     ${body("When you think about the people who shaped your life, someone comes to mind first. You probably thought of them just now.")}
-    ${body("That's where to start.")}
-    ${body("Add them to Ancestorii — just their name and a photo. You're not committing to anything, you're just giving them a place.", 38)}
-    ${ctaButton("https://ancestorii.com/login", "Add a Loved One")}
-    ${closingLine("The rest happens naturally from there.")}
+    ${body("What would you ask them? What's the one story you've heard a dozen times but never actually saved? What's the memory only they can tell?")}
+    ${body("Ancestorii has dozens of ready-made questions — things like <em>&ldquo;What is your earliest childhood memory?&rdquo;</em> and <em>&ldquo;What meal reminds you most of home?&rdquo;</em> Pick one, type their name and email, and send it. They don't even need an account.", 38)}
+    ${ctaButton("https://ancestorii.com/login", "Ask Someone a Question")}
+    ${closingLine("When they answer, their memory appears in your family feed alongside yours.")}
     ${signature()}
     ${postscript("If it feels strange to start, that's okay. It's supposed to feel like something.")}
   `);
 }
 
 // ─────────────────────────────────────────────
-// DAY 7 — "Got a photo on your phone?"
+// DAY 7 — "One question. One memory."
 // ─────────────────────────────────────────────
 function emailDay7(name: string): string {
   return wrapEmail(`
     ${greeting(name)}
-    ${body("You've got photos on your phone right now of people you love. Probably hundreds.")}
-    ${body("Pick one. Just one. The one that makes you feel something when you see it.")}
-    ${body("Upload it to your library. Add a line about why it matters. That's a memory preserved — not just a file backed up, but a story attached to a moment.", 38)}
-    ${ctaButton("https://ancestorii.com/login", "Upload a Memory")}
-    ${closingLine("One photo. One story. That's all it takes to start.")}
+    ${body("You've written your first memory. That's the hardest part done.")}
+    ${body("Now think about someone in your family — your mum, your nan, your uncle. What's a story only they can tell? A recipe they never wrote down? A trip they always talk about? Something they remember differently to everyone else?")}
+    ${body("Send them a question. It takes them two minutes to answer. They click the link, write what comes to mind, and their memory appears in your family feed. No app to download, no account to set up.", 38)}
+    ${ctaButton("https://ancestorii.com/login", "Send a Question")}
+    ${closingLine("What comes back might be something you never want to lose.")}
     ${signature()}
-    ${postscript("Don't know what to write? Just describe what was happening when the photo was taken. That's almost always the story.")}
+    ${postscript("Not sure what to ask? Browse the question library — there are chapters like Growing Up, Holidays, Around the Table, and The Stories We Always Retell.")}
   `);
 }
 
@@ -308,12 +269,12 @@ function emailDay14(name: string): string {
   return wrapEmail(`
     ${greeting(name)}
     ${body("There's something different about holding a photo in your hands versus seeing it on a screen. It feels more real. More permanent.")}
-    ${body("That's why we built Memory Books. You pick the photos, lay them out how you want, add your own words — and we print it as a hardcover book and post it to your door.")}
+    ${body("That's why we built Memory Books. You pick the photos from your family library, lay them out how you want, add your own words — and we print it as a hardcover book and post it to your door.")}
     ${body("It takes about 20 minutes to make. No templates, no restrictions. Your memories, your design.", 38)}
     ${ctaButton("https://ancestorii.com/login", "Create Your Book")}
     ${closingLine("Something worth holding onto.")}
     ${signature()}
-    ${postscript("Mother's Day is coming up — just so you know.")}
+    ${postscript("We also do canvas prints and acrylic prints — if there's a photo that belongs on a wall, not a phone.")}
   `);
 }
 
@@ -328,7 +289,7 @@ function emailDay21(name: string): string {
     <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
       <em style="font-style:italic; color:#16120c;">Nobody wakes up and decides to forget.</em> It just happens slowly. And by the time you notice, it's too late.
     </p>
-    ${body("Ancestorii is here whenever you're ready. No rush. But don't wait forever.", 38)}
+    ${body("Your family feed is where those memories live — not scattered across phones and group chats, but in one private place where everyone can find them. The more your family contributes, the richer it gets. But it starts with one question.", 38)}
     ${ctaButton("https://ancestorii.com/login", "Open Ancestorii")}
     ${closingLine("Every family has a story worth keeping.")}
     ${signature()}

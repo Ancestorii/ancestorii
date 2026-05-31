@@ -73,6 +73,47 @@ export default function PreserveFamilyMemoriesPage() {
         })}
       </Script>
 
+      <Script id="howto-schema-preserve" type="application/ld+json" strategy="afterInteractive">
+  {JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to preserve family memories',
+    description: 'A practical guide to capturing family memories while life is happening. Five simple ways to start today.',
+    step: [
+      {
+        '@type': 'HowToStep',
+        position: 1,
+        name: 'Pick the memory you are most afraid of losing',
+        text: 'Not the prettiest photo or the most dramatic story. The one that lives in someone\'s head right now and would disappear if they did. That is your starting point.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 2,
+        name: 'Write three sentences about it',
+        text: 'Who was there. What happened. Why it mattered. You are not writing a novel. You are leaving a note for the people who come after you. Three sentences is more than most families ever write down.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 3,
+        name: 'Ask someone to tell you a story',
+        text: 'Call your mum. Visit your grandad. Ask them about a memory they think about often. Just listen, and write it down afterwards while it is still fresh.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 4,
+        name: 'Add context to one photo',
+        text: 'Pick any photo on your phone. Write who is in it, where it was taken, and what was happening in your life at the time. That is the difference between an image and a memory.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 5,
+        name: 'Put it somewhere that lasts',
+        text: 'Not a notes app. Not a text message. Not a Google Doc that nobody will ever open again. Put it somewhere intentional, structured, and private. Somewhere your family can find it in ten years without having to search through folders.',
+      },
+    ],
+  })}
+</Script>
+
       <main className="w-full relative overflow-hidden" style={{ background: '#FFFDF8', fontFamily: "'DM Sans', sans-serif" }}>
         <PublicNav />
 

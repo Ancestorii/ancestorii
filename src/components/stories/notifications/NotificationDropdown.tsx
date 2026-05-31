@@ -9,6 +9,8 @@ import { markNotificationRead, markAllNotificationsRead } from '@/lib/stories/mu
 import type { Notification } from '@/lib/stories/types';
 import NotificationItem from './NotificationItem';
 
+const MEMORY_TYPES = ['memory_reaction', 'memory_comment', 'memory_addition', 'prompt_answered'];
+
 export default function NotificationDropdown({
   open,
   onClose,
@@ -46,7 +48,21 @@ export default function NotificationDropdown({
       onCountUpdate(notifications.filter((n) => !n.is_read && n.id !== notification.id).length);
     }
 
-    // Navigate to story if applicable
+    // ── Prompt received → navigate to answer page ──
+    if (notification.type === 'prompt_received' && notification.target_id) {
+      router.push(`/answer/${notification.target_id}`);
+      onClose();
+      return;
+    }
+
+    // ── Memory notifications → navigate to memory page ──
+    if (MEMORY_TYPES.includes(notification.type) && notification.target_id) {
+      router.push(`/dashboard/memories/${notification.target_id}`);
+      onClose();
+      return;
+    }
+
+    // ── Story notifications → navigate to story page ──
     if (notification.story_id) {
       const supabase = getBrowserClient();
       const { data: story } = await supabase

@@ -44,9 +44,20 @@ export default function LoginPage() {
 
       await new Promise((res) => setTimeout(res, 200));
 
-      const searchParams = new URLSearchParams(window.location.search);
-      const redirectTo = searchParams.get('redirect');
-      router.replace(redirectTo || '/');
+      // Check onboarding status
+      const { data: profile } = await supabase
+        .from('Profiles')
+        .select('onboarding_complete')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!profile?.onboarding_complete) {
+        router.replace('/onboarding/first-memory');
+      } else {
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectTo = searchParams.get('redirect');
+        router.replace(redirectTo || '/dashboard/home');
+      }
     } catch (err: any) {
       const message = err?.message ?? "";
 
