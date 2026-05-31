@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   }
 
   // 2. Verify the invite email matches this user
-  if (invite.email.toLowerCase() !== userEmail?.toLowerCase()) {
+  if (invite.email && invite.email.toLowerCase() !== userEmail?.toLowerCase()) {
     return NextResponse.json({ error: 'This invite is for a different email' }, { status: 403 });
   }
 
@@ -102,20 +102,48 @@ export async function POST(req: Request) {
     .eq('user_id', userId);
 
   // 7. Clean up the solo family (if it's different from the one we just joined)
-  if (soloMembership && soloMembership.family_id !== invite.family_id) {
-    // Remove solo membership
-    await admin
-      .from('family_memberships')
-      .delete()
-      .eq('family_id', soloMembership.family_id)
-      .eq('user_id', userId);
+    if (soloMembership && soloMembership.family_id !== invite.family_id) {
+      // Move any memories from solo family to the joined family
+      await admin
+        .from('family_memories')
+        .update({ family_id: invite.family_id })
+        .eq('family_id', soloMembership.family_id)
+        .eq('author_id', userId);
 
-    // Delete the empty solo family
-    await admin
-      .from('families')
-      .delete()
-      .eq('id', soloMembership.family_id);
-  }
+      // Move any media references too
+      await admin
+        .from('family_memory_media')
+        .update({ family_id: invite.family_id })
+        .eq('family_id', soloMembership.family_id)
+        .eq('user_id', userId);
+
+      // Move any comments
+      await admin
+        .from('family_memory_comments')
+        .update({ family_id: invite.family_id })
+        .eq('family_id', soloMembership.family_id)
+        .eq('user_id', userId);
+
+      // Move any reactions
+      await admin
+        .from('family_memory_reactions')
+        .update({ family_id: invite.family_id })
+        .eq('family_id', soloMembership.family_id)
+        .eq('user_id', userId);
+
+      // Remove solo membership
+      await admin
+        .from('family_memberships')
+        .delete()
+        .eq('family_id', soloMembership.family_id)
+        .eq('user_id', userId);
+
+      // Delete the now-empty solo family
+      await admin
+        .from('families')
+        .delete()
+        .eq('id', soloMembership.family_id);
+    }
 
   return NextResponse.json({ success: true, family_id: invite.family_id });
 }

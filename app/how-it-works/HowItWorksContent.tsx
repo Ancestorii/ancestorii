@@ -112,7 +112,7 @@ export default function HowItWorksContent() {
           className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
           style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
         >
-          Two feeds.<br />
+          Two sides.<br />
           <span className="italic text-[#A9782F]">One family.</span>
         </h1>
 
@@ -123,7 +123,7 @@ export default function HowItWorksContent() {
             Ancestorii is built around a simple idea. Some memories are meant to be shared with the world. Others are meant to stay in the family.
           </p>
           <p>
-            So we gave you both. A public feed called <strong>Our Stories</strong>, where families share memories openly and anyone can read them. And a private feed called <strong>Our Memories</strong>, where everything stays between the people you invite. Nobody else gets in.
+            So we gave you both. A public feed called <strong>Our Stories</strong>, where families share memories openly and anyone can read them. And a private side called <strong>My Family</strong>, where everything stays between the people you invite. Nobody else gets in.
           </p>
           <p>
             They work side by side, but they do very different things. Here is how.
@@ -207,7 +207,7 @@ export default function HowItWorksContent() {
           className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
           style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
         >
-          Our Memories
+          My Family
         </h2>
 
         <div className="mt-8 md:mt-10 xl:mt-12">
@@ -216,7 +216,7 @@ export default function HowItWorksContent() {
               This is the closed side. Your family&rsquo;s private feed. When you write a memory here, only your family sees it. The photos you would never post anywhere. The voice your mum uses when she tells that story one more time. The details that only mean something to the people who were there.
             </p>
             <p>
-              Only family members you invite can see what is inside. Nobody else can browse it, search for it, or stumble into it. There is no discovery feed for private content. There is no &ldquo;suggested families&rdquo; feature. Our Memories is a locked room and the only people with a key are the ones you hand it to.
+              Only family members you invite can see what is inside. Nobody else can browse it, search for it, or stumble into it. There is no discovery feed for private content. There is no &ldquo;suggested families&rdquo; feature. The family feed is a locked room and the only people with a key are the ones you hand it to.
             </p>
           </Body>
         </div>
@@ -358,7 +358,7 @@ export default function HowItWorksContent() {
 
         <div className="mt-4 md:mt-6 xl:mt-8 p-5 md:p-6 xl:p-7" style={{ background: 'rgba(184,147,42,0.04)', borderLeft: '2px solid rgba(184,147,42,0.25)' }}>
           <p className="text-[15px] md:text-[17px] lg:text-[18px] xl:text-[20px] 2xl:text-[22px] leading-[1.85] text-[#3D3526]">
-            <strong className="text-[#181512]">One thing that will never happen:</strong> your private library is never touched. Strikes only affect the public side. Our Memories is yours. We do not go near it.
+            <strong className="text-[#181512]">One thing that will never happen:</strong> your private library is never touched. Strikes only affect the public side. My Family is yours. We do not go near it.
           </p>
         </div>
 

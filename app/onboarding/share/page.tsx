@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Loader2,
   Send,
-  MessageCircle,
+  Share2,
 } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 
@@ -46,7 +46,6 @@ export default function ShareScreen() {
     null
   );
   const [recipientName, setRecipientName] = useState('');
-  const [recipientEmail, setRecipientEmail] = useState('');
 
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -73,7 +72,6 @@ export default function ShareScreen() {
 
       if (membership) setFamilyId(membership.family_id);
 
-      // Fetch the onboarding memory
       const { data: memoryRow } = await supabase
         .from('family_memories')
         .select('id, title, body')
@@ -135,7 +133,6 @@ export default function ShareScreen() {
     if (
       !selectedPrompt ||
       !recipientName.trim() ||
-      !recipientEmail.trim() ||
       sending
     )
       return;
@@ -143,12 +140,11 @@ export default function ShareScreen() {
     setError('');
 
     try {
-      // Create family invite for the recipient
       const { data: invite, error: inviteError } = await supabase
         .from('family_invites')
         .insert({
           family_id: familyId,
-          email: recipientEmail.trim().toLowerCase(),
+          email: '',
           invited_by: userId,
           role: 'member',
         })
@@ -157,14 +153,13 @@ export default function ShareScreen() {
 
       if (inviteError) throw inviteError;
 
-      // Create sent prompt
       const { data: sentPrompt, error: promptError } = await supabase
         .from('sent_prompts')
         .insert({
           family_id: familyId,
           sender_id: userId,
           recipient_name: recipientName.trim(),
-          recipient_email: recipientEmail.trim().toLowerCase(),
+          recipient_email: '',
           prompt_id: selectedPrompt.id,
           invite_id: invite.id,
         })
@@ -189,17 +184,30 @@ export default function ShareScreen() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleWhatsApp = () => {
-    const text = `${recipientName.trim()}, I just wrote a memory on Ancestorii and I'd love to hear yours.\n\n"${selectedPrompt?.question}"\n\n${shareUrl}`;
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(text)}`,
-      '_blank'
-    );
+  const handleShare = async () => {
+    const text = `${recipientName.trim()}, I just wrote a memory on Ancestorii and I'd love to hear yours.\n\n"${selectedPrompt?.question}"`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Ancestorii',
+          text,
+          url: shareUrl,
+        });
+      } catch {
+        // User cancelled share — that's fine
+      }
+    } else {
+      // Desktop fallback — copy to clipboard
+      await navigator.clipboard.writeText(`${text}\n\n${shareUrl}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FFFDF8]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader2 className="animate-spin text-[#B8932A]" size={24} />
       </div>
     );
@@ -207,15 +215,12 @@ export default function ShareScreen() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center px-5 sm:px-8 pt-10 sm:pt-14 md:pt-16 pb-12"
-      style={{
-        background: '#FFFDF8',
-        fontFamily: "'DM Sans', sans-serif",
-      }}
+      className="min-h-screen flex flex-col items-center bg-white px-5 sm:px-8 pt-8 sm:pt-12 pb-12"
+      style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       <Link
         href="/"
-        className="inline-block text-[34px] sm:text-[38px] tracking-[-0.03em] text-[#181512] no-underline mb-6"
+        className="inline-block text-[30px] sm:text-[34px] tracking-[-0.03em] text-[#181512] no-underline mb-6"
         style={{
           fontFamily: "'Cormorant Garamond', serif",
           fontWeight: 700,
@@ -225,32 +230,29 @@ export default function ShareScreen() {
       </Link>
 
       <div className="w-full max-w-[560px]">
-        {/* ══════════════════════════════════
+        {/* ═══════════════════════════════
             SENT STATE
-            ══════════════════════════════════ */}
+            ═══════════════════════════════ */}
         {sent ? (
-          <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10 text-center">
-            <div className="flex h-14 w-14 items-center justify-center bg-[#F0FDF4] mx-auto mb-4">
-              <Check size={24} className="text-[#22C55E]" />
-            </div>
+          <div className="border border-[#E8E2D6] bg-white px-7 py-8 sm:px-9 sm:py-10 text-center">
             <h2
-              className="text-[22px] sm:text-[26px] tracking-[-0.03em] text-[#181512] mb-2"
+              className="text-[24px] sm:text-[28px] tracking-[-0.03em] text-[#181512] mb-2"
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
                 fontWeight: 600,
               }}
             >
-              Question sent to{' '}
+              Share this with{' '}
               <span className="italic text-[#A9782F]">
                 {recipientName}
               </span>
             </h2>
             <p className="text-[13px] text-[#8A7F72] mb-6 leading-relaxed">
-              Share this link with them so they can answer and join
-              your family library.
+              Send them this link — when they answer, their memory
+              will appear alongside yours.
             </p>
 
-            <div className="flex items-center border border-[#ECE5D8] bg-[#FDFCFA] mb-4">
+            <div className="flex items-center border border-[#ECE5D8] bg-[#FAFAF7] mb-4">
               <p className="flex-1 px-3.5 py-2.5 text-[13px] text-[#4A4030] truncate">
                 {shareUrl}
               </p>
@@ -271,19 +273,19 @@ export default function ShareScreen() {
             </div>
 
             <button
-              onClick={handleWhatsApp}
+              onClick={handleShare}
               className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#ECE5D8] text-[13px] font-medium text-[#4A4030] hover:border-[#B8932A] transition-colors mb-6"
             >
-              <MessageCircle size={16} className="text-[#25D366]" />
-              Share via WhatsApp
+              <Share2 size={15} className="text-[#B8932A]" />
+              Share link
             </button>
 
             <button
               onClick={() => router.replace('/dashboard/home')}
-              className="w-full py-3 text-[13px] font-semibold tracking-[0.04em] text-[#FFFDF8] transition-all hover:shadow-lg active:scale-[0.98]"
+              className="w-full py-3.5 text-[13px] font-bold tracking-[0.06em] uppercase text-white transition-all hover:shadow-lg active:scale-[0.98]"
               style={{
-                background:
-                  'linear-gradient(135deg, #B8932A 0%, #C8A557 100%)',
+                background: 'linear-gradient(180deg, #C8A557 0%, #A88530 100%)',
+                boxShadow: '0 2px 8px rgba(184, 147, 42, 0.35), inset 0 1px 0 rgba(255,255,255,0.15)',
               }}
             >
               Go to your library
@@ -291,82 +293,72 @@ export default function ShareScreen() {
           </div>
         ) : (
           <>
-            {/* ══════════════════════════════════
-                MEMORY PREVIEW
-                ══════════════════════════════════ */}
+            {/* ═══════════════════════════════
+                THE MEMORY — HERO
+                This is the emotional centre.
+                Big photo, their words, space
+                to breathe. No ticks, no badges.
+                ═══════════════════════════════ */}
             {memory && (
-              <>
-                <h2
-                  className="text-[22px] sm:text-[26px] tracking-[-0.03em] text-[#181512] leading-[1.05] text-center mb-2"
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontWeight: 600,
-                  }}
-                >
-                  Your memory has been{' '}
-                  <span className="italic text-[#A9782F]">
-                    saved.
-                  </span>
-                </h2>
-                <p className="text-[13px] text-[#8A7F72] text-center mb-6 leading-relaxed">
-                  Beautiful. Now let&apos;s bring your family in.
-                </p>
-
-                <div className="border border-[#ECE5D8] bg-white mb-8 overflow-hidden">
-                  {memory.photo_url && (
-                    <div className="relative h-[200px] sm:h-[240px] bg-[#F0EDE8]">
-                      <Image
-                        src={memory.photo_url}
-                        alt=""
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="px-6 py-5">
-                    <p className="text-[11px] font-medium text-[#B8932A] uppercase tracking-[0.1em] mb-1.5">
-                      Your first memory
-                    </p>
-                    <h3
-                      className="text-[18px] font-semibold text-[#181512] mb-2"
-                      style={{
-                        fontFamily: "'Cormorant Garamond', serif",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {memory.title}
-                    </h3>
-                    <p className="text-[13px] text-[#8A7F72] leading-relaxed line-clamp-3">
-                      {memory.body}
-                    </p>
+              <div className="border border-[#E8E2D6] bg-white overflow-hidden mb-0">
+                {memory.photo_url && (
+                  <div className="relative w-full aspect-[16/10] bg-[#F5F0E5]">
+                    <Image
+                      src={memory.photo_url}
+                      alt=""
+                      fill
+                      className="object-cover"
+                    />
                   </div>
+                )}
+                <div className="px-7 py-7 sm:px-9 sm:py-8">
+                  <h2
+                    className="text-[22px] sm:text-[26px] tracking-[-0.03em] text-[#181512] leading-[1.15] mb-3"
+                    style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {memory.title}
+                  </h2>
+                  <p className="text-[14px] text-[#6F6255] leading-[1.7]">
+                    {memory.body}
+                  </p>
                 </div>
-              </>
+              </div>
             )}
 
-            {/* ══════════════════════════════════
-                PROMPT SYSTEM
-                ══════════════════════════════════ */}
-            <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10">
-              <h3
-                className="text-[20px] sm:text-[22px] tracking-[-0.02em] text-[#181512] mb-1"
+            {/* ═══════════════════════════════
+                EMOTIONAL BRIDGE
+                Not a separate box — a continuation.
+                The memory card's bottom border
+                merges into this section visually.
+                ═══════════════════════════════ */}
+            <div className="border border-t-0 border-[#E8E2D6] bg-white px-7 py-7 sm:px-9 sm:py-8">
+
+              {/* Gold divider — thin, warm */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-1 h-[1px] bg-[#E8E2D6]" />
+                <div className="h-[5px] w-[5px] bg-[#D4AF37]/50 rotate-45" />
+                <div className="flex-1 h-[1px] bg-[#E8E2D6]" />
+              </div>
+
+              <p
+                className="text-[20px] sm:text-[22px] tracking-[-0.02em] text-[#181512] leading-[1.2] mb-2"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
                   fontWeight: 600,
                 }}
               >
-                Ask someone a{' '}
-                <span className="italic text-[#A9782F]">
-                  question.
-                </span>
-              </h3>
+                Imagine if someone in your family{' '}
+                <span className="italic text-[#A9782F]">shared theirs.</span>
+              </p>
               <p className="text-[13px] text-[#8A7F72] mb-6 leading-relaxed">
-                Pick a question and send it to a family member.
-                When they answer, their memory appears alongside
-                yours.
+                Pick a question and send it to someone you love.
+                When they answer, their memory appears alongside yours.
               </p>
 
-              {/* Chapters */}
+              {/* Chapter pills */}
               <div className="flex flex-wrap gap-2 mb-5">
                 {chapters.map((ch) => (
                   <button
@@ -379,8 +371,8 @@ export default function ShareScreen() {
                     }}
                     className={`px-3.5 py-2 text-[12px] font-medium transition-all ${
                       selectedChapter === ch.id
-                        ? 'bg-[#B8932A] text-white'
-                        : 'border border-[#ECE5D8] text-[#4A4030] hover:border-[#B8932A] hover:text-[#B8932A]'
+                        ? 'bg-[#181512] text-white'
+                        : 'border border-[#E2DCD2] text-[#4A4030] hover:border-[#B8932A] hover:text-[#B8932A]'
                     }`}
                   >
                     {ch.name}
@@ -426,10 +418,6 @@ export default function ShareScreen() {
               {/* Recipient form */}
               {selectedPrompt && (
                 <div className="border-t border-[#ECE5D8] pt-6 space-y-4">
-                  <p className="text-[12px] font-medium text-[#B8932A] uppercase tracking-[0.08em]">
-                    Who are you asking?
-                  </p>
-
                   <div className="border border-[#ECE5D8] bg-[#FBF7EE] px-4 py-3">
                     <p className="text-[11px] text-[#8A7F72] uppercase tracking-[0.08em] mb-0.5">
                       Your question
@@ -440,7 +428,7 @@ export default function ShareScreen() {
                   </div>
 
                   <div>
-                    <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">
+                    <label className="block text-[11px] font-semibold text-[#4A4030] mb-1.5 tracking-[0.04em] uppercase">
                       Their name
                     </label>
                     <input
@@ -450,24 +438,7 @@ export default function ShareScreen() {
                         setRecipientName(e.target.value)
                       }
                       placeholder="e.g. Nan"
-                      className="w-full border border-[#E0D6C8] px-3.5 py-2.5 text-[14px] text-[#181512] placeholder-[#C0B9AE] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A]"
-                      style={{ background: '#FDFCFA' }}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">
-                      Their email
-                    </label>
-                    <input
-                      type="email"
-                      value={recipientEmail}
-                      onChange={(e) =>
-                        setRecipientEmail(e.target.value)
-                      }
-                      placeholder="nan@email.com"
-                      className="w-full border border-[#E0D6C8] px-3.5 py-2.5 text-[14px] text-[#181512] placeholder-[#C0B9AE] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A]"
-                      style={{ background: '#FDFCFA' }}
+                      className="w-full border border-[#E2DCD2] bg-[#FAFAF7] px-4 py-3 text-[14px] text-[#181512] placeholder-[#C5BEB2] focus:outline-none focus:border-[#B8932A] focus:ring-2 focus:ring-[#B8932A]/12 focus:bg-white transition-all"
                     />
                   </div>
 
@@ -483,67 +454,31 @@ export default function ShareScreen() {
                     onClick={handleSend}
                     disabled={
                       !recipientName.trim() ||
-                      !recipientEmail.trim() ||
                       sending
                     }
-                    className="w-full py-3 text-[13px] font-semibold tracking-[0.04em] text-[#FFFDF8] transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
+                    className="w-full py-3.5 text-[13px] font-bold tracking-[0.06em] uppercase text-white transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-30 flex items-center justify-center gap-2"
                     style={{
-                      background:
-                        'linear-gradient(135deg, #B8932A 0%, #C8A557 100%)',
+                      background: 'linear-gradient(180deg, #C8A557 0%, #A88530 100%)',
+                      boxShadow:
+                        recipientName.trim() && !sending
+                          ? '0 2px 8px rgba(184, 147, 42, 0.35), inset 0 1px 0 rgba(255,255,255,0.15)'
+                          : 'none',
                     }}
                   >
                     {sending ? (
-                      <Loader2
-                        size={14}
-                        className="animate-spin"
-                      />
+                      <Loader2 size={14} className="animate-spin" />
                     ) : (
                       <Send size={14} />
                     )}
-                    {sending ? 'Sending…' : 'Send Question'}
+                    {sending ? 'Creating…' : 'Get Shareable Link'}
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Secondary: generic invite link */}
-            <button
-              onClick={async () => {
-                try {
-                  const { data: invite } = await supabase
-                    .from('family_invites')
-                    .select('token')
-                    .eq('family_id', familyId)
-                    .eq('invited_by', userId)
-                    .eq('email', '')
-                    .maybeSingle();
-
-                  let token = invite?.token;
-                  if (!token) {
-                    const { data: newInvite } = await supabase
-                      .from('family_invites')
-                      .insert({ family_id: familyId, invited_by: userId, email: '', role: 'member' })
-                      .select('token')
-                      .single();
-                    token = newInvite?.token;
-                  }
-
-                  if (token) {
-                    const link = `${window.location.origin}/join/${token}`;
-                    await navigator.clipboard.writeText(link);
-                    alert('Invite link copied!');
-                  }
-                } catch {}
-              }}
-              className="w-full text-center text-[13px] text-[#8A7F72] hover:text-[#B8932A] transition-colors mt-5 py-2"
-            >
-              Or just copy an invite link
-            </button>
-
-            {/* Skip */}
             <button
               onClick={() => router.replace('/dashboard/home')}
-              className="w-full text-center text-[11px] text-[#B5AFA6] hover:text-[#8A7F72] transition-colors mt-2 py-2"
+              className="w-full text-center text-[11px] text-[#B5AFA6] hover:text-[#8A7F72] transition-colors mt-5 py-2"
             >
               I&apos;ll do this later
             </button>

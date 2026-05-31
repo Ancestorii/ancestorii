@@ -176,19 +176,28 @@ export default function AnswerForm({
         userId = user.id;
       }
 
-      // ── JOIN FAMILY (authenticated but not a member) ──
-      if (
-        authState === 'authenticated' &&
-        !isFamilyMember &&
-        inviteToken
-      ) {
-        setSubmitStep('Joining the family…');
-        await fetch('/api/accept-invite', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: inviteToken }),
-        });
-        await new Promise((res) => setTimeout(res, 300));
+      // ── JOIN FAMILY (anyone not yet a member) ──
+      if (inviteToken) {
+        const { data: memberCheck } = await supabase
+          .from('family_memberships')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('family_id', familyId)
+          .maybeSingle();
+
+        if (!memberCheck) {
+          setSubmitStep('Joining the family…');
+          const joinRes = await fetch('/api/accept-invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: inviteToken }),
+          });
+          if (!joinRes.ok) {
+            const joinData = await joinRes.json().catch(() => ({}));
+            throw new Error(joinData.error || 'Could not join the family. Please try again.');
+          }
+          await new Promise((res) => setTimeout(res, 500));
+        }
       }
 
       // ── CREATE MEMORY ──

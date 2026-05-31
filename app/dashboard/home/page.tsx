@@ -1,4 +1,6 @@
 import { getServerClient } from '@/lib/supabase/server';
+
+export const dynamic = 'force-dynamic';
 import FamilyHeader from './_components/FamilyHeader';
 import MemoryFeed from './_components/MemoryFeed';
 
@@ -101,25 +103,22 @@ export default async function DashboardHomePage() {
   });
 
   /* ── Sign avatar URLs ── */
-  const avatarMap = new Map<string, string>();
-  for (const p of authorProfiles || []) {
-    const imgPath = (p as any).profile_image_url || (p as any).avatar_url;
-    if (imgPath) {
-      if (imgPath.startsWith('http')) {
-        avatarMap.set((p as any).id, imgPath);
-      } else {
-        const { data: signed } = await supabase.storage.from('user-media').createSignedUrl(imgPath, 3600);
-        if (signed?.signedUrl) avatarMap.set((p as any).id, signed.signedUrl);
-      }
-    }
-  }
+ const avatarMap = new Map<string, string>();
+  const avatarSignOps = (authorProfiles || []).map(async (p: any) => {
+    const imgPath = p.profile_image_url || p.avatar_url;
+    if (!imgPath) return;
+    if (imgPath.startsWith('http')) { avatarMap.set(p.id, imgPath); return; }
+    const { data: signed } = await supabase.storage.from('user-media').createSignedUrl(imgPath, 3600);
+    if (signed?.signedUrl) avatarMap.set(p.id, signed.signedUrl);
+  });
 
-  /* ── Sign cover images ── */
   const coverUrlMap = new Map<string, string>();
-  for (const [memId, filePath] of mediaMap) {
+  const coverSignOps = Array.from(mediaMap).map(async ([memId, filePath]) => {
     const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(filePath, 3600);
     if (signed?.signedUrl) coverUrlMap.set(memId, signed.signedUrl);
-  }
+  });
+
+  await Promise.all([...avatarSignOps, ...coverSignOps]);
 
   /* ── Total memories count ── */
   const { count: totalMemories } = await supabase

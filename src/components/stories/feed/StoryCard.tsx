@@ -71,7 +71,7 @@ export default function StoryCard({
   return (
     <Link
       href={`/stories/${slug}`}
-      className="group block border border-[#EDE8DF] bg-white overflow-hidden transition hover:shadow-[0_6px_24px_rgba(44,36,27,0.06)]"
+     className="group flex flex-col h-full border border-[#EDE8DF] bg-white overflow-hidden transition hover:shadow-[0_6px_24px_rgba(44,36,27,0.06)]"
     >
       {/* Cover image */}
       <div className="relative w-full aspect-[16/10] overflow-hidden bg-[#FAF5EB]">
@@ -140,8 +140,8 @@ export default function StoryCard({
       </div>
 
       {/* Content */}
-      <div className="px-4 py-4 sm:px-5 sm:py-5 bg-[#FFFDF8]">
-        <div className="mb-3">
+     <div className="flex flex-col flex-1 px-4 py-4 sm:px-5 sm:py-5 bg-[#FFFDF8]">
+        <div className="mb-3 min-h-[20px]">
           {featuredLabel ? (
             <span className="text-[11px] sm:text-[12px] font-bold uppercase tracking-[0.12em] text-[#C8A557]">
               {featuredLabel}
@@ -165,7 +165,7 @@ export default function StoryCard({
         </p>
 
         {/* Author */}
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-auto pt-3 flex items-center gap-2">
          <div className="h-[28px] w-[28px] sm:h-[30px] sm:w-[30px] flex-shrink-0 rounded-full overflow-hidden border border-[#E4D2AE] bg-[#FAF5EB] flex items-center justify-center">
             {authorAvatarUrl ? (
               <Image

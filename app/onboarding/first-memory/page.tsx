@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ImagePlus, X, Loader2 } from 'lucide-react';
+import { ImagePlus, X, Loader2, Lock, Camera } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ensureDisplayableImage } from '@/lib/convertImage';
 
@@ -180,7 +180,7 @@ export default function FirstMemoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FFFDF8]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader2 className="animate-spin text-[#B8932A]" size={24} />
       </div>
     );
@@ -188,15 +188,13 @@ export default function FirstMemoryPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center px-5 sm:px-8 pt-10 sm:pt-14 md:pt-16 pb-12"
-      style={{
-        background: '#FFFDF8',
-        fontFamily: "'DM Sans', sans-serif",
-      }}
+      className="min-h-screen flex flex-col items-center bg-white px-5 sm:px-8 pt-8 sm:pt-12 pb-12"
+      style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
+      {/* ── Compact header ── */}
       <Link
         href="/"
-        className="inline-block text-[34px] sm:text-[38px] tracking-[-0.03em] text-[#181512] no-underline mb-4"
+        className="inline-block text-[30px] sm:text-[34px] tracking-[-0.03em] text-[#181512] no-underline mb-6"
         style={{
           fontFamily: "'Cormorant Garamond', serif",
           fontWeight: 700,
@@ -205,125 +203,101 @@ export default function FirstMemoryPage() {
         Ancestor<span className="text-[#C8A557]">ii</span>
       </Link>
 
-      <h2
-        className="text-[26px] sm:text-[30px] tracking-[-0.03em] text-[#181512] leading-[1.05] text-center mb-2"
-        style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontWeight: 600,
-        }}
-      >
-        Write your first{' '}
-        <span className="italic text-[#A9782F]">memory.</span>
-      </h2>
-      <p className="text-[13px] text-[#8A7F72] text-center mb-5 max-w-[380px] leading-relaxed">
-        Start {familyName} with something simple — a moment, a
-        person, a feeling you don&apos;t want to lose.
-      </p>
-
-      <div className="flex items-center justify-center gap-2 mb-8 px-4 py-2.5 bg-[#F0EDE8] rounded-full max-w-fit mx-auto">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A7F72" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span className="text-[12px] font-medium text-[#6F6255] tracking-[0.01em]">This memory is private — only your family can see it</span>
-      </div>
-
       <div className="w-full max-w-[560px]">
-        <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10 space-y-6">
-          {/* Title */}
-          <div>
-            <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">
-              Title
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Sunday mornings with Nan"
-              maxLength={200}
-              className="w-full border border-[#E0D6C8] px-3.5 py-2.5 text-[14px] text-[#181512] placeholder-[#C0B9AE] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A]"
-              style={{ background: '#FDFCFA' }}
-            />
-          </div>
 
-          {/* Body */}
-          <div>
-            <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">
-              Your memory
-            </label>
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Write a few sentences about this memory. What happened? Who was there? How did it feel?"
-              rows={6}
-              className="w-full border border-[#E0D6C8] px-3.5 py-2.5 text-[14px] text-[#181512] placeholder-[#C0B9AE] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A] resize-none leading-relaxed"
-              style={{ background: '#FDFCFA' }}
-            />
-          </div>
+        {/* ── Main card ── */}
+        <div className="border border-[#E8E2D6] bg-white overflow-hidden">
 
-          {/* Photos */}
-          <div>
-            <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">
-              Photos{' '}
-              <span className="text-[#B5AFA6] font-normal">
-                (at least one)
-              </span>
-            </label>
-
-            {photos.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
-                {photos.map((photo) => (
-                  <div
-                    key={photo.id}
-                    className="group relative aspect-square overflow-hidden bg-[#F0EDE8] border border-[#ECE5D8]"
-                  >
-                    <Image
-                      src={photo.preview}
-                      alt=""
-                      fill
-                      className="object-cover"
-                    />
-                    {!submitting && (
-                      <button
-                        onClick={() => removePhoto(photo.id)}
-                        className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center bg-white/90 text-[#8B3A32] opacity-0 group-hover:opacity-100 transition-opacity"
+          {/* ── PHOTO HERO ZONE (top of card) ── */}
+          <div className="bg-[#F5F0E5]">
+            {photos.length > 0 ? (
+              <div>
+                {/* Photo grid inside warm background */}
+                <div className="p-4">
+                  <div className={`grid gap-2 ${
+                    photos.length === 1
+                      ? 'grid-cols-1'
+                      : photos.length === 2
+                      ? 'grid-cols-2'
+                      : 'grid-cols-3'
+                  }`}>
+                    {photos.map((photo) => (
+                      <div
+                        key={photo.id}
+                        className={`group relative overflow-hidden bg-[#E8E0D0] ${
+                          photos.length === 1
+                            ? 'aspect-[16/9]'
+                            : 'aspect-square'
+                        }`}
                       >
-                        <X size={12} />
-                      </button>
-                    )}
+                        <Image
+                          src={photo.preview}
+                          alt=""
+                          fill
+                          className="object-cover"
+                        />
+                        {!submitting && (
+                          <button
+                            onClick={() => removePhoto(photo.id)}
+                            className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center bg-[#181512]/70 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
 
-            {photos.length < 10 && (
+                  {/* Add more strip */}
+                  {photos.length < 10 && (
+                    <label className="flex items-center justify-center gap-2 mt-3 py-2.5 border border-dashed border-[#C8B898] cursor-pointer hover:border-[#B8932A] transition-colors">
+                      <ImagePlus size={14} className="text-[#B8932A]" />
+                      <span className="text-[12px] font-medium text-[#6F6255]">
+                        Add more photos
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,.heic"
+                        multiple
+                        hidden
+                        disabled={processing}
+                        onChange={(e) => {
+                          if (e.target.files?.length)
+                            addPhotos(e.target.files);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Empty state — large inviting upload area */
               <label
-                className={`flex flex-col items-center justify-center border-2 border-dashed px-5 py-6 cursor-pointer transition-all ${
-                  processing
-                    ? 'border-[#B8932A] bg-[#FBF7EE]'
-                    : 'border-[#E0D6C8] bg-[#FDFCFA] hover:border-[#B8932A]'
+                className={`flex flex-col items-center justify-center py-16 sm:py-20 cursor-pointer transition-all ${
+                  processing ? '' : 'hover:bg-[#F0E9D8]'
                 }`}
               >
                 {processing ? (
                   <>
                     <Loader2
-                      size={24}
-                      className="animate-spin text-[#B8932A] mb-2"
+                      size={28}
+                      className="animate-spin text-[#B8932A] mb-3"
                     />
-                    <p className="text-[13px] font-medium text-[#B8932A]">
+                    <p className="text-[14px] font-medium text-[#B8932A]">
                       Processing…
                     </p>
                   </>
                 ) : (
                   <>
-                    <ImagePlus
-                      size={24}
-                      className="text-[#B8932A] mb-2"
-                    />
-                    <p className="text-[13px] font-medium text-[#4A4030]">
-                      {photos.length > 0
-                        ? 'Add more photos'
-                        : 'Tap to add photos'}
+                    <div className="flex items-center justify-center w-14 h-14 bg-white border border-[#D4C9B2] mb-4">
+                      <Camera size={24} className="text-[#B8932A]" />
+                    </div>
+                    <p className="text-[15px] font-semibold text-[#2A2318] mb-1">
+                      Start with a photo
                     </p>
-                    <p className="text-[11px] text-[#B5AFA6] mt-0.5">
-                      JPG, PNG, or HEIC
+                    <p className="text-[12px] text-[#9C9488]">
+                      JPG, PNG, or HEIC — up to 10
                     </p>
                   </>
                 )}
@@ -343,28 +317,90 @@ export default function FirstMemoryPage() {
             )}
           </div>
 
-          {error && (
-            <div className="border border-[#E8C4C0] bg-[#FDF6F5] px-4 py-3">
-              <p className="text-[13px] text-[#8B3A32]">{error}</p>
-            </div>
-          )}
+          {/* ── FORM SECTION ── */}
+          <div className="px-7 py-8 sm:px-9 sm:py-10">
 
-          <button
-            onClick={handleSubmit}
-            disabled={!canSubmit || submitting}
-            className="w-full py-3 text-[13px] font-semibold tracking-[0.04em] text-[#FFFDF8] transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-40"
-            style={{
-              background:
-                'linear-gradient(135deg, #B8932A 0%, #C8A557 100%)',
-            }}
-          >
-            {submitting
-              ? submitStep || 'Saving…'
-              : 'Save & Continue'}
-          </button>
+            {/* Headline inside the card */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <Lock size={10} className="text-[#C8A557]" />
+                <span className="text-[10px] font-semibold text-[#C8A557] tracking-[0.1em] uppercase">
+                  Private memory
+                </span>
+              </div>
+              <h2
+                className="text-[24px] sm:text-[28px] tracking-[-0.03em] text-[#181512] leading-[1.1] mb-2"
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontWeight: 600,
+                }}
+              >
+                Write your first{' '}
+                <span className="italic text-[#A9782F]">memory</span>
+              </h2>
+              <p className="text-[13px] text-[#8A7F72] leading-relaxed">
+                Start {familyName} with something simple — a moment you
+                don&apos;t want to lose.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {/* Title */}
+              <div>
+                <label className="block text-[11px] font-semibold text-[#4A4030] mb-1.5 tracking-[0.04em] uppercase">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Sunday mornings with Nan"
+                  maxLength={200}
+                  className="w-full border border-[#E2DCD2] bg-[#FAFAF7] px-4 py-3 text-[14px] text-[#181512] placeholder-[#C5BEB2] focus:outline-none focus:border-[#B8932A] focus:ring-2 focus:ring-[#B8932A]/12 focus:bg-white transition-all"
+                />
+              </div>
+
+              {/* Body */}
+              <div>
+                <label className="block text-[11px] font-semibold text-[#4A4030] mb-1.5 tracking-[0.04em] uppercase">
+                  Your memory
+                </label>
+                <textarea
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder="Write a few sentences about this memory. What happened? Who was there? How did it feel?"
+                  rows={5}
+                  className="w-full border border-[#E2DCD2] bg-[#FAFAF7] px-4 py-3 text-[14px] text-[#181512] placeholder-[#C5BEB2] focus:outline-none focus:border-[#B8932A] focus:ring-2 focus:ring-[#B8932A]/12 focus:bg-white transition-all resize-none leading-relaxed"
+                />
+              </div>
+
+              {error && (
+                <div className="border border-[#E8C4C0] bg-[#FDF6F5] px-4 py-3">
+                  <p className="text-[13px] text-[#8B3A32]">{error}</p>
+                </div>
+              )}
+
+              {/* Gold gradient CTA with depth */}
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit || submitting}
+                className="w-full py-3.5 text-[13px] font-bold tracking-[0.06em] uppercase text-white transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-30"
+                style={{
+                  background: 'linear-gradient(180deg, #C8A557 0%, #A88530 100%)',
+                  boxShadow: canSubmit && !submitting
+                    ? '0 2px 8px rgba(184, 147, 42, 0.35), inset 0 1px 0 rgba(255,255,255,0.15)'
+                    : 'none',
+                }}
+              >
+                {submitting
+                  ? submitStep || 'Saving…'
+                  : 'Save & Continue'}
+              </button>
+            </div>
+          </div>
         </div>
 
-        <p className="text-center text-[11px] text-[#B5AFA6] tracking-[0.04em] mt-5">
+        <p className="text-center text-[11px] text-[#B5AFA6] tracking-[0.02em] mt-5">
           This will be the first memory in {familyName}. It won&apos;t appear on the public feed.
         </p>
       </div>
