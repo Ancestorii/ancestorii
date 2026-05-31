@@ -25,11 +25,10 @@ export type MemoryComment = {
   parent_id: string | null;
 };
 
-export default async function MemoryPage({
-  params,
-}: {
-  params: { id: string };
+export default async function MemoryPage(props: {
+  params: Promise<{ id: string }>;
 }) {
+  const params = await props.params;
   const supabase = await getServerClient();
   const { data: auth } = await supabase.auth.getUser();
   const user = auth?.user;

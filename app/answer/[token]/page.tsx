@@ -3,11 +3,10 @@ import { notFound } from 'next/navigation';
 import AnswerForm from './_components/AnswerForm';
 import Link from 'next/link';
 
-export default async function AnswerPage({
-  params,
-}: {
-  params: { token: string };
+export default async function AnswerPage(props: {
+  params: Promise<{ token: string }>;
 }) {
+  const params = await props.params;
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
