@@ -115,11 +115,74 @@ export default function FirstMemoryPage() {
     setError('');
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // === DEBUG 1: Auth check ===
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('DEBUG 1 - Auth:', { userId: user?.id, authError });
       if (!user) throw new Error('Not authenticated');
 
+      // === DEBUG 2: Session check ===
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('DEBUG 2 - Session:', {
+        hasSession: !!session,
+        accessToken: session?.access_token?.slice(0, 20) + '...',
+        expiresAt: session?.expires_at,
+        sessionError,
+      });
+
+      // === DEBUG 3: Family ID check ===
+      console.log('DEBUG 3 - Family ID:', { familyId, familyIdLength: familyId.length, familyIdType: typeof familyId });
+
+      // === DEBUG 4: List all buckets ===
+      const { data: bucketList, error: bucketErr } = await supabase.storage.listBuckets();
+      console.log('DEBUG 4 - listBuckets:', { buckets: bucketList?.map(b => b.name), bucketErr });
+
+      // === DEBUG 5: Get specific bucket ===
+      const { data: bucketInfo, error: bucketInfoErr } = await supabase.storage.getBucket('memory-media');
+      console.log('DEBUG 5 - getBucket:', { bucketInfo, bucketInfoErr });
+
+      // === DEBUG 6: List files in bucket root ===
+      const { data: rootFiles, error: rootFilesErr } = await supabase.storage.from('memory-media').list();
+      console.log('DEBUG 6 - list root:', { rootFiles, rootFilesErr });
+
+      // === DEBUG 7: List files in family folder ===
+      const { data: familyFiles, error: familyFilesErr } = await supabase.storage.from('memory-media').list(familyId);
+      console.log('DEBUG 7 - list family folder:', { familyFiles, familyFilesErr });
+
+      // === DEBUG 8: Test upload with tiny blob ===
+      const testBlob = new Blob(['debug-test'], { type: 'text/plain' });
+      const testPath = familyId + '/debug-' + Date.now() + '.txt';
+      const { data: testUpData, error: testUpErr } = await supabase.storage.from('memory-media').upload(testPath, testBlob);
+      console.log('DEBUG 8 - test upload:', { testUpData, testUpErr: testUpErr ? JSON.stringify(testUpErr) : null });
+
+      // === DEBUG 9: Test upload to user-media (known working bucket) ===
+      const { data: testUp2Data, error: testUp2Err } = await supabase.storage.from('user-media').upload('debug-' + Date.now() + '.txt', testBlob);
+      console.log('DEBUG 9 - user-media test upload:', { testUp2Data, testUp2Err: testUp2Err ? JSON.stringify(testUp2Err) : null });
+
+      // === DEBUG 10: Raw fetch to storage API ===
+      const rawTestPath = `${familyId}/raw-test-${Date.now()}.txt`;
+      const rawFormData = new FormData();
+      rawFormData.append('', new Blob(['raw-test'], { type: 'text/plain' }), 'raw-test.txt');
+      const rawRes = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/memory-media/${rawTestPath}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          },
+          body: rawFormData,
+        }
+      );
+      const rawBody = await rawRes.text();
+      console.log('DEBUG 10 - raw fetch:', { status: rawRes.status, body: rawBody, headers: Object.fromEntries(rawRes.headers.entries()) });
+
+      // === DEBUG 11: Supabase client config ===
+      console.log('DEBUG 11 - env vars:', {
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        keyPrefix: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 20) + '...',
+      });
+
+      // === ACTUAL SUBMIT: Save memory ===
       setSubmitStep('Saving your memory…');
       const { data: memory, error: memoryError } = await supabase
         .from('family_memories')
@@ -133,19 +196,23 @@ export default function FirstMemoryPage() {
         .select('id')
         .single();
 
+      console.log('DEBUG 12 - memory insert:', { memoryId: memory?.id, memoryError });
       if (memoryError) throw memoryError;
 
+      // === ACTUAL SUBMIT: Upload photos ===
       for (let i = 0; i < photos.length; i++) {
-        setSubmitStep(
-          `Uploading photo ${i + 1}/${photos.length}…`
-        );
+        setSubmitStep(`Uploading photo ${i + 1}/${photos.length}…`);
 
         const ext = photos[i].file.name.split('.').pop() || 'jpg';
         const filePath = `${familyId}/${memory.id}/${Date.now()}-${i}.${ext}`;
 
-        const { error: uploadError } = await supabase.storage
+        console.log(`DEBUG 13.${i} - uploading:`, { filePath, fileSize: photos[i].file.size, fileType: photos[i].file.type });
+
+        const { data: upData, error: uploadError } = await supabase.storage
           .from('memory-media')
           .upload(filePath, photos[i].file);
+
+       console.log(`DEBUG 14.${i} - upload result:`, { upData, uploadError: uploadError ? JSON.stringify(uploadError) : null });
 
         if (uploadError) throw uploadError;
 
@@ -160,6 +227,7 @@ export default function FirstMemoryPage() {
             display_order: i,
           });
 
+        console.log(`DEBUG 15.${i} - media insert:`, { mediaError });
         if (mediaError) throw mediaError;
       }
 
@@ -171,9 +239,9 @@ export default function FirstMemoryPage() {
 
       router.replace('/onboarding/share');
     } catch (err: any) {
-      setError(
-        err?.message || 'Something went wrong. Please try again.'
-      );
+      console.error('=== FINAL ERROR ===', err);
+      console.error('Error details:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+      setError(err?.message || 'Something went wrong. Please try again.');
       setSubmitting(false);
     }
   };
