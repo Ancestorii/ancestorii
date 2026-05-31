@@ -204,7 +204,7 @@ export default function FirstMemoryPage() {
         setSubmitStep(`Uploading photo ${i + 1}/${photos.length}…`);
 
         const ext = photos[i].file.name.split('.').pop() || 'jpg';
-        const filePath = `${familyId}/${memory.id}/${Date.now()}-${i}.${ext}`;
+        const filePath = `${user.id}/${memory.id}/${Date.now()}-${i}.${ext}`;
 
         console.log(`DEBUG 13.${i} - uploading:`, { filePath, fileSize: photos[i].file.size, fileType: photos[i].file.type });
 

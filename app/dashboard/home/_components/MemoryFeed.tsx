@@ -250,7 +250,7 @@ function WriteMemoryModal({
       for (let i = 0; i < photos.length; i++) {
         setSubmitStep(`Uploading photo ${i + 1}/${photos.length}…`);
         const ext = photos[i].file.name.split('.').pop() || 'jpg';
-        const filePath = `${familyId}/${memory.id}/${Date.now()}-${i}.${ext}`;
+        const filePath = `${user.id}/${memory.id}/${Date.now()}-${i}.${ext}`;
 
         const { error: upErr } = await supabase.storage
           .from('memory-media')
