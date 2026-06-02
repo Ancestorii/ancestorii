@@ -15,11 +15,13 @@ type LibraryMediaRow = {
   file_type: string;
   file_size: number | null;
   created_at: string;
+  folder_id: string;
 };
 
 type Props = {
   open: boolean;
   onClose: () => void;
+  folderId: string;
   onUploaded: (newMedia: LibraryMediaRow) => void;
 };
 
@@ -33,7 +35,7 @@ type QueuedFile = {
 // eslint-disable-next-line no-undef
 type GlobalDragEvent = DragEvent;
 
-export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props) {
+export default function UploadLibraryDrawer({ open, onClose, folderId, onUploaded }: Props) {
   const supabase = getBrowserClient();
   const [queue, setQueue] = useState<QueuedFile[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -45,7 +47,6 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
   // ── Reset state when drawer closes ──
   useEffect(() => {
     if (!open) {
-      // Small delay so the closing animation isn't jarring
       const t = setTimeout(() => {
         setQueue((prev) => {
           prev.forEach((f) => {
@@ -149,6 +150,11 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
     if (pending.length === 0) return toast.error('No files to upload.');
     if (isUploadingRef.current) return;
 
+    if (!folderId) {
+      toast.error('No folder selected.');
+      return;
+    }
+
     isUploadingRef.current = true;
     setUploading(true);
     setUploadedCount(0);
@@ -166,7 +172,6 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
     let errCount = 0;
 
     for (const item of pending) {
-      // Mark uploading
       setQueue((prev) =>
         prev.map((f) => (f.id === item.id ? { ...f, status: 'uploading' } : f))
       );
@@ -194,6 +199,7 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
           .from('library_media')
           .insert({
             user_id: user.id,
+            folder_id: folderId,
             file_path: path,
             file_type: fileType,
             file_size: processedFile.size,
@@ -221,7 +227,6 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
       }
     }
 
-    // Done
     if (errCount === 0) {
       toast.success(
         doneCount === 1 ? 'Added to your library.' : `${doneCount} files added to your library.`
@@ -275,7 +280,6 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
         {/* ── Drop zone / Preview area ── */}
         <div className="px-6 flex-1 overflow-y-auto min-h-0">
           {!hasFiles ? (
-            /* Empty state — full drop zone */
             <div
               ref={dropRef}
               onClick={() => document.getElementById('libraryFileInput')?.click()}
@@ -301,9 +305,7 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
               />
             </div>
           ) : (
-            /* Files selected — grid + compact drop zone */
             <div className="mb-4">
-              {/* Mini drop zone / add more */}
               <div
                 ref={dropRef}
                 onClick={() => document.getElementById('libraryFileInput')?.click()}
@@ -328,7 +330,6 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
                 />
               </div>
 
-              {/* ── Progress bar (visible during upload) ── */}
               {uploading && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
@@ -355,14 +356,12 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
                 </div>
               )}
 
-              {/* ── Thumbnail grid ── */}
               <div className="grid grid-cols-4 gap-2">
                 {queue.map((item) => (
                   <div
                     key={item.id}
                     className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group"
                   >
-                    {/* Thumbnail */}
                     {item.previewUrl ? (
                       <img
                         src={item.previewUrl}
@@ -375,7 +374,6 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
                       </div>
                     )}
 
-                    {/* Status overlay */}
                     {item.status === 'uploading' && (
                       <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
                         <div className="w-6 h-6 border-2 border-[#C8A557] border-t-transparent rounded-full animate-spin" />
@@ -394,7 +392,6 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
                       </div>
                     )}
 
-                    {/* Remove button (only when pending) */}
                     {item.status === 'pending' && (
                       <button
                         type="button"
@@ -408,7 +405,6 @@ export default function UploadLibraryDrawer({ open, onClose, onUploaded }: Props
                       </button>
                     )}
 
-                    {/* Filename */}
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 pb-1 pt-4">
                       <p className="text-[10px] text-white truncate leading-tight">
                         {item.file.name}
