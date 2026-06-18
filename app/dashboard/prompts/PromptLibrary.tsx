@@ -108,13 +108,17 @@ export default function PromptLibrary({
       const name = recipientMode === 'existing' ? selectedMember!.name : recipientName.trim();
       const email = recipientMode === 'existing' ? selectedMember!.email : '';
       const isExistingMember = recipientMode === 'existing';
+      // Prompt invites must live as long as the prompt link itself (30 days), otherwise an
+      // invite expiring at the 7-day default would silently drop late answerers into a new
+      // solo family instead of joining the sender's. Write the SAME value to both rows.
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       let inviteId: string | null = null;
       if (!isExistingMember) {
-        const { data: invite, error: inviteError } = await supabase.from('family_invites').insert({ family_id: familyId, email, invited_by: userId, role: 'member' }).select('id, token').single();
+        const { data: invite, error: inviteError } = await supabase.from('family_invites').insert({ family_id: familyId, email, invited_by: userId, role: 'member', expires_at: expiresAt }).select('id, token').single();
         if (inviteError) throw inviteError;
         inviteId = invite.id;
       }
-      const { data: sentPrompt, error: promptError } = await supabase.from('sent_prompts').insert({ family_id: familyId, sender_id: userId, recipient_name: name, recipient_email: email, prompt_id: selectedPrompt!.id, invite_id: inviteId }).select('id, token').single();
+      const { data: sentPrompt, error: promptError } = await supabase.from('sent_prompts').insert({ family_id: familyId, sender_id: userId, recipient_name: name, recipient_email: email, prompt_id: selectedPrompt!.id, invite_id: inviteId, expires_at: expiresAt }).select('id, token').single();
       if (promptError) throw promptError;
       if (isExistingMember && selectedMember) {
        try { await supabase.from('notifications').insert({ user_id: selectedMember.id, type: 'prompt_received', actor_id: userId, target_id: sentPrompt.id, target_type: 'sent_prompt' }); } catch {}

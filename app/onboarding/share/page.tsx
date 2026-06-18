@@ -140,6 +140,11 @@ export default function ShareScreen() {
     setError('');
 
     try {
+      // Prompt invites must live as long as the prompt link itself (30 days), otherwise an
+      // invite expiring at the 7-day default would silently drop late answerers into a new
+      // solo family instead of joining the sender's. Write the SAME value to both rows.
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
       const { data: invite, error: inviteError } = await supabase
         .from('family_invites')
         .insert({
@@ -147,6 +152,7 @@ export default function ShareScreen() {
           email: '',
           invited_by: userId,
           role: 'member',
+          expires_at: expiresAt,
         })
         .select('id, token')
         .single();
@@ -162,6 +168,7 @@ export default function ShareScreen() {
           recipient_email: '',
           prompt_id: selectedPrompt.id,
           invite_id: invite.id,
+          expires_at: expiresAt,
         })
         .select('token')
         .single();
