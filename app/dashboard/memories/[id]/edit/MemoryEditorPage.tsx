@@ -76,6 +76,7 @@ export default function MemoryEditorPage({
   const [uploadingMediaIndex, setUploadingMediaIndex] = useState<number>(-1);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [publishError, setPublishError] = useState('');
+  const [photoLimitNotice, setPhotoLimitNotice] = useState('');
 
   const [showPreview, setShowPreview] = useState(true);
 
@@ -298,7 +299,7 @@ export default function MemoryEditorPage({
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <PhotoUploader onAdd={addMedia} currentCount={existingImages.length + media.length} />
+                <PhotoUploader onAdd={addMedia} currentCount={existingImages.length + media.length} onNotice={setPhotoLimitNotice} />
                 {existingVideoUrl && !videoFile && (
                   <div className="rounded-2xl border border-[#E8E6E1] overflow-hidden bg-white">
                     <video src={existingVideoUrl} controls playsInline preload="metadata" className="w-full max-h-[160px] bg-black" />
@@ -307,6 +308,7 @@ export default function MemoryEditorPage({
                 )}
                 {!existingVideoUrl && (<VideoUploader videoFile={videoFile} onAdd={addVideo} onRemove={removeVideo} isUploading={uploadingVideo} />)}
               </div>
+              {photoLimitNotice && (<p className="mt-2 text-[12px] text-[#A9782F]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{photoLimitNotice}</p>)}
             </Section>
 
             {/* SECTION 4 — VOICE NOTE */}
@@ -395,10 +397,10 @@ function QuillEditor({ value, onChange }: { value: string; onChange: (html: stri
   return <div ref={quillRef} />;
 }
 
-function PhotoUploader({ onAdd, currentCount }: { onAdd: (files: File[]) => void; currentCount: number }) {
+function PhotoUploader({ onAdd, currentCount, onNotice }: { onAdd: (files: File[]) => void; currentCount: number; onNotice: (msg: string) => void }) {
   const [dragOver, setDragOver] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const processFiles = async (rawFiles: FileList | File[]) => { const arr = Array.from(rawFiles).filter((f) => f.type.startsWith('image/') || f.name.toLowerCase().endsWith('.heic')); if (arr.length === 0) return; setProcessing(true); try { const converted = await Promise.all(arr.map((f) => ensureDisplayableImage(f))); onAdd(converted); } finally { setProcessing(false); } };
+  const processFiles = async (rawFiles: FileList | File[]) => { const arr = Array.from(rawFiles).filter((f) => f.type.startsWith('image/') || f.name.toLowerCase().endsWith('.heic')); if (arr.length === 0) return; onNotice(arr.length > 10 - currentCount ? "You can add up to 10 photos. The rest weren't added." : ''); setProcessing(true); try { const converted = await Promise.all(arr.map((f) => ensureDisplayableImage(f))); onAdd(converted); } finally { setProcessing(false); } };
   if (currentCount >= 10) return null;
   return (
     <label className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-200 px-5 py-8 ${processing ? 'border-[#D4A017] bg-[#FBF7EE]' : dragOver ? 'border-[#D4A017] bg-[#FBF7EE]' : 'border-[#DDD9D2] bg-[#FDFCFA] hover:border-[#D4A017]'}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files?.length) processFiles(e.dataTransfer.files); }}>

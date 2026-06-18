@@ -130,6 +130,7 @@ export default function StoryEditorPage({
   const [showPreview, setShowPreview] = useState(true);
   const [moderationFlagged, setModerationFlagged] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
+  const [photoLimitNotice, setPhotoLimitNotice] = useState('');
 
   const canPublish =
     title.trim().length > 0 &&
@@ -713,10 +714,20 @@ export default function StoryEditorPage({
                 </div>
               )}
 
+              {photoLimitNotice && (
+                <p
+                  className="mb-2 text-[12px] text-[#A9782F]"
+                  style={{ fontFamily: "'DM Sans', sans-serif" }}
+                >
+                  {photoLimitNotice}
+                </p>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <PhotoUploader
                   onAdd={addMedia}
                   currentCount={existingImages.length + media.length}
+                  onNotice={setPhotoLimitNotice}
                 />
 
                 {existingVideoUrl && !videoFile && (
@@ -1057,9 +1068,11 @@ function QuillEditor({
 function PhotoUploader({
   onAdd,
   currentCount,
+  onNotice,
 }: {
   onAdd: (files: File[]) => void;
   currentCount: number;
+  onNotice: (msg: string) => void;
 }) {
   const [dragOver, setDragOver] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -1070,6 +1083,11 @@ function PhotoUploader({
         f.type.startsWith('image/') || f.name.toLowerCase().endsWith('.heic')
     );
     if (arr.length === 0) return;
+    onNotice(
+      arr.length > 10 - currentCount
+        ? "You can add up to 10 photos. The rest weren't added."
+        : ''
+    );
     setProcessing(true);
     try {
       const converted = await Promise.all(

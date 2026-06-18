@@ -61,6 +61,7 @@ export default function AnswerForm({
   const [submitting, setSubmitting] = useState(false);
   const [submitStep, setSubmitStep] = useState('');
   const [error, setError] = useState('');
+  const [photoLimitNotice, setPhotoLimitNotice] = useState('');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -98,6 +99,11 @@ export default function AnswerForm({
       setProcessing(true);
       try {
         const remaining = 10 - photos.length;
+        setPhotoLimitNotice(
+          arr.length > remaining
+            ? "You can add up to 10 photos. The rest weren't added."
+            : ''
+        );
         const capped = arr.slice(0, remaining);
         const converted = await Promise.all(
           capped.map((f) => ensureDisplayableImage(f))
@@ -462,6 +468,9 @@ export default function AnswerForm({
                   }}
                 />
               </label>
+            )}
+            {photoLimitNotice && (
+              <p className="mt-2 text-[12px] text-[#A9782F]">{photoLimitNotice}</p>
             )}
           </div>
 

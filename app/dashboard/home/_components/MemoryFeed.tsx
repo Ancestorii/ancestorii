@@ -124,13 +124,16 @@ function WriteMemoryModal({
   const [submitting, setSubmitting] = useState(false);
   const [submitStep, setSubmitStep] = useState('');
   const [error, setError] = useState('');
+  const [photoLimitNotice, setPhotoLimitNotice] = useState('');
 
   const addPhotos = useCallback(async (files: FileList | File[]) => {
     const arr = Array.from(files).filter((f) => f.type.startsWith('image/') || f.name.toLowerCase().endsWith('.heic'));
     if (!arr.length) return;
+    const remaining = 10 - photos.length;
+    setPhotoLimitNotice(arr.length > remaining ? "You can add up to 10 photos. The rest weren't added." : '');
     setProcessing(true);
     try {
-      const converted = await Promise.all(arr.slice(0, 10 - photos.length).map((f) => ensureDisplayableImage(f)));
+      const converted = await Promise.all(arr.slice(0, remaining).map((f) => ensureDisplayableImage(f)));
       setPhotos((prev) => [...prev, ...converted.map((file) => ({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, file, preview: URL.createObjectURL(file) }))]);
     } finally { setProcessing(false); }
   }, [photos.length]);
@@ -208,6 +211,7 @@ function WriteMemoryModal({
                 <input type="file" accept="image/*,.heic" multiple hidden disabled={processing} onChange={(e) => { if (e.target.files?.length) addPhotos(e.target.files); e.target.value = ''; }} />
               </label>
             )}
+            {photoLimitNotice && <p className="mt-2 text-[12px] text-[#A9782F]">{photoLimitNotice}</p>}
           </div>
 
           {error && <div className="border border-[#E8C4C0] bg-[#FDF6F5] px-4 py-3"><p className="text-[13px] text-[#8B3A32]">{error}</p></div>}
