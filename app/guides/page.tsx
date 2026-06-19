@@ -91,8 +91,8 @@ export default function GuidesPage() {
           </div>
 
           <h1
-            className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+            className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
+            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
           >
             Practical steps for<br />
             <span className="italic text-[#A9782F]">keeping what matters.</span>
@@ -113,14 +113,14 @@ export default function GuidesPage() {
                 <div className="flex items-start gap-5 md:gap-7">
                   <span
                     className="shrink-0 text-[24px] md:text-[28px] xl:text-[32px] leading-none text-[#C8A557] mt-1"
-                    style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+                    style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
                   >
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <div>
                     <h2
                       className="text-[20px] md:text-[24px] xl:text-[28px] 2xl:text-[30px] leading-[1.2] tracking-[-0.02em] text-[#181512] group-hover:text-[#A9782F] transition"
-                      style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+                      style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
                     >
                       {guide.title}
                     </h2>
@@ -140,7 +140,7 @@ export default function GuidesPage() {
             <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14" style={{ background: '#1A1612' }}>
               <p
                 className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center"
-                style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
+                style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}
               >
                 Start with one memory.<br />
                 <span className="italic text-[#C8A557]">The rest follows.</span>

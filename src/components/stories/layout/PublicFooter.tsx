@@ -65,7 +65,7 @@ export default function PublicFooter() {
           <Link href="/">
             <span
               style={{
-                fontFamily: "'Cormorant Garamond', serif",
+                fontFamily: "'Playfair Display', serif",
                 fontWeight: 600,
                 fontSize: 'clamp(2.2rem, 2.8vw, 2.8rem)',
                 letterSpacing: '-0.03em',
@@ -78,7 +78,7 @@ export default function PublicFooter() {
 
           <p
             style={{
-              fontFamily: "'Cormorant Garamond', serif",
+              fontFamily: "'Playfair Display', serif",
               fontSize: 'clamp(1.35rem, 1.6vw, 1.65rem)',
               fontWeight: 500,
               fontStyle: 'italic',

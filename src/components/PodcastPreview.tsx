@@ -13,7 +13,7 @@ export default function PodcastPreview() {
             Moments Worth Keeping
           </p>
 
-          <h2 className="text-[2.2rem] sm:text-[3.2rem] font-semibold leading-tight text-[#0F2040]">
+          <h2 className="text-[clamp(2.2rem,5vw,3.2rem)] font-semibold leading-tight text-[#0F2040]">
             A few minutes
             <br />
             <span className="italic text-[#E5C45C]">

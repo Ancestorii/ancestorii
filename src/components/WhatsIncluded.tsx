@@ -10,7 +10,7 @@ export default function EverythingYouCanDo() {
 
         {/* HEADER */}
         <div className="text-center max-w-2xl mx-auto mb-20">
-          <h2 className="text-4xl sm:text-5xl font-serif leading-tight mb-6">
+          <h2 className="text-[clamp(2.25rem,5vw,3rem)] font-serif leading-tight mb-6">
             Build your
             <br />
             <span className="italic text-[#C9AE4A]">

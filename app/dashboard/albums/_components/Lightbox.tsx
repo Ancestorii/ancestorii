@@ -47,7 +47,7 @@ export default function Lightbox({ media, allMedia, open, onClose, onNavigate }:
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       <button onClick={onClose} style={{ ...navBtn, position: 'absolute', top: 16, right: 16, zIndex: 10 }}><X size={20} /></button>
-      <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: "'Inter', sans-serif" }}>{currentIndex + 1} / {allMedia.length}</div>
+      <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>{currentIndex + 1} / {allMedia.length}</div>
       {hasPrev && (<button onClick={(e) => { e.stopPropagation(); goPrev(); }} style={{ ...navBtn, position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}><ChevronLeft size={20} /></button>)}
       {hasNext && (<button onClick={(e) => { e.stopPropagation(); goNext(); }} style={{ ...navBtn, position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}><ChevronRight size={20} /></button>)}
       <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', maxWidth: '90vw', maxHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -58,7 +58,7 @@ export default function Lightbox({ media, allMedia, open, onClose, onNavigate }:
       {(media.caption || media.memory_date) && (
         <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 16, maxWidth: 512, textAlign: 'center', padding: '0 24px' }}>
           {media.caption && <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 16, lineHeight: 1.6, fontFamily: "'Playfair Display', Georgia, serif" }}>{media.caption}</p>}
-          {media.memory_date && <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginTop: 4, fontFamily: "'Inter', sans-serif" }}>{media.memory_date}</p>}
+          {media.memory_date && <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginTop: 4, fontFamily: "'DM Sans', sans-serif" }}>{media.memory_date}</p>}
         </div>
       )}
     </div>

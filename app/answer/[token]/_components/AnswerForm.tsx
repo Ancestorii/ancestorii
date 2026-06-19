@@ -309,9 +309,9 @@ export default function AnswerForm({
     >
       <Link
         href="/"
-        className="inline-block text-[34px] sm:text-[38px] tracking-[-0.03em] text-[#181512] no-underline mb-8"
+        className="inline-block text-[clamp(34px,4.5vw,38px)] tracking-[-0.03em] text-[#181512] no-underline mb-8"
         style={{
-          fontFamily: "'Cormorant Garamond', serif",
+          fontFamily: "'Playfair Display', serif",
           fontWeight: 700,
         }}
       >
@@ -326,9 +326,9 @@ export default function AnswerForm({
 
         {/* The question */}
         <h1
-          className="text-[24px] sm:text-[30px] tracking-[-0.03em] text-[#181512] leading-[1.15] text-center mb-2"
+          className="text-[clamp(24px,4vw,30px)] tracking-[-0.03em] text-[#181512] leading-[1.15] text-center mb-2"
           style={{
-            fontFamily: "'Cormorant Garamond', serif",
+            fontFamily: "'Playfair Display', serif",
             fontWeight: 600,
           }}
         >
@@ -359,7 +359,7 @@ export default function AnswerForm({
               <h3
                 className="text-[16px] font-semibold text-[#181512] mb-1.5"
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
+                  fontFamily: "'Playfair Display', serif",
                   fontWeight: 600,
                 }}
               >
@@ -373,7 +373,7 @@ export default function AnswerForm({
         )}
 
         {/* ── ANSWER FORM ── */}
-        <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10 space-y-6">
+        <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10 md:px-10 md:py-11 space-y-6">
           {/* Body */}
           <div>
             <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">
@@ -399,7 +399,7 @@ export default function AnswerForm({
             </label>
 
             {photos.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-3">
                 {photos.map((photo) => (
                   <div
                     key={photo.id}

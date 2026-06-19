@@ -32,7 +32,7 @@ function Body({ children }: { children: React.ReactNode }) {
 function PullQuote({ children }: { children: React.ReactNode }) {
   return (
     <blockquote className="my-12 md:my-16 xl:my-20 py-6 md:py-8 xl:py-10 border-l-[3px] border-[#B8932A] pl-6 md:pl-8 xl:pl-10">
-      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
         {children}
       </p>
     </blockquote>
@@ -55,7 +55,7 @@ function PlatformCard({ name, oneLiner, strengths, bestFor }: { name: string; on
     <div className="py-10 md:py-12 xl:py-14 border-t border-[#ECE5D8]">
       <h3
         className="text-[24px] md:text-[30px] xl:text-[36px] 2xl:text-[40px] leading-[1.1] tracking-[-0.02em] text-[#181512]"
-        style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+        style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
       >
         {name}
       </h3>
@@ -115,8 +115,8 @@ export default function ComparePage() {
           </div>
 
           <h1
-            className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+            className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
+            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
           >
             Three platforms.<br />
             <span className="italic text-[#A9782F]">Three different ideas.</span>
@@ -142,8 +142,8 @@ export default function ComparePage() {
           <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">The platforms</span>
 
           <h2
-            className="mt-4 mb-4 md:mb-6 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+            className="mt-4 mb-4 md:mb-6 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
           >
             What each one <span className="italic text-[#A9782F]">actually does.</span>
           </h2>
@@ -202,14 +202,14 @@ export default function ComparePage() {
           <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Side by side</span>
 
           <h2
-            className="mt-4 mb-10 md:mb-14 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+            className="mt-4 mb-10 md:mb-14 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
           >
             Feature <span className="italic text-[#A9782F]">comparison.</span>
           </h2>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px]">
+            <table className="w-full text-left border-collapse min-w-[480px] sm:min-w-0">
               <thead>
                 <tr>
                   <th className="pb-4 pr-4 text-[12px] md:text-[13px] tracking-[0.12em] uppercase text-[#8A7F72] font-semibold w-[22%]">Feature</th>
@@ -249,8 +249,8 @@ export default function ComparePage() {
           <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Questions</span>
 
           <h2
-            className="mt-4 mb-10 md:mb-14 xl:mb-16 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+            className="mt-4 mb-10 md:mb-14 xl:mb-16 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
           >
             Things people <span className="italic text-[#A9782F]">ask us.</span>
           </h2>
@@ -292,7 +292,7 @@ export default function ComparePage() {
             <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14" style={{ background: '#1A1612' }}>
               <p
                 className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center"
-                style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
+                style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}
               >
                 More than a book.<br />
                 <span className="italic text-[#C8A557]">A library that lasts.</span>

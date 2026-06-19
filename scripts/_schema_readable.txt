@@ -1,0 +1,960 @@
+# public schema — 81 tables exposed via PostgREST
+
+## Profiles
+  - id: uuid  [PK, required]
+  - full_name: text
+  - dob: date
+  - profile_image_url: text
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - onboarding_complete: boolean  [required]
+  - bio: text
+  - phone: text
+  - location: text
+  - role: text  [required]
+  - username: text
+  - email: text
+  - avatar_url: text
+  - plan_id: uuid  [FK→plans.id]
+  - home_image_0: text
+  - home_image_1: text
+  - home_image_2: text
+  - home_image_3: text
+  - home_image_4: text
+  - writing_assistance_enabled: boolean  [required]
+  - title: text
+
+## acrylic_orders
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - acrylic_id: uuid  [FK→acrylic_prints.id, required]
+  - tier_key: text  [required]
+  - tier_name: text  [required]
+  - price_amount: numeric  [required]
+  - price_currency: text  [required]
+  - shipping_name: text
+  - shipping_line1: text
+  - shipping_line2: text
+  - shipping_city: text
+  - shipping_state: text
+  - shipping_postal: text
+  - shipping_country: text
+  - stripe_session_id: text
+  - stripe_payment_intent: text
+  - payment_status: text  [required]
+  - image_storage_path: text
+  - image_url: text
+  - prodigi_order_id: text
+  - prodigi_status: text
+  - prodigi_tracking_url: text
+  - status: text  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - paid_at: timestamp with time zone
+  - shipped_at: timestamp with time zone
+  - shipping_email: text
+  - shipping_phone: text
+  - shipping_method: text  [required]
+
+## acrylic_print_assets
+  - id: uuid  [PK, required]
+  - acrylic_id: uuid  [FK→acrylic_prints.id, required]
+  - asset_id: uuid  [FK→library_media.id, required]
+  - slot_index: integer  [required]
+  - caption: text
+  - crop_data: jsonb  [required]
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+
+## acrylic_prints
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - title: text  [required]
+  - description: text
+  - status: text  [required]
+  - source_album_id: uuid  [FK→albums.id]
+  - tier_key: text  [required]
+  - tier_name: text  [required]
+  - price_gbp: numeric  [required]
+  - acrylic_size: text  [required]
+  - orientation: text  [required]
+  - layout_type: text  [required]
+  - prodigi_sku: text  [required]
+  - export_width_px: integer  [required]
+  - export_height_px: integer  [required]
+  - design: jsonb  [required]
+  - image_file_path: text
+  - image_status: text  [required]
+  - image_generated_at: timestamp with time zone
+  - prodigi_order_id: text
+  - prodigi_status: text
+  - tracking_number: text
+  - tracking_url: text
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - family_id: uuid  [FK→families.id]
+
+## acrylic_prints_with_asset_count
+  - id: uuid  [PK]
+  - user_id: uuid
+  - title: text
+  - description: text
+  - status: text
+  - source_album_id: uuid  [FK→albums.id]
+  - tier_key: text
+  - tier_name: text
+  - price_gbp: numeric
+  - acrylic_size: text
+  - orientation: text
+  - layout_type: text
+  - prodigi_sku: text
+  - export_width_px: integer
+  - export_height_px: integer
+  - design: jsonb
+  - image_file_path: text
+  - image_status: text
+  - image_generated_at: timestamp with time zone
+  - prodigi_order_id: text
+  - prodigi_status: text
+  - tracking_number: text
+  - tracking_url: text
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - filled_slots: integer
+
+## active_customers
+  - user_id: uuid  [FK→Profiles.id]
+
+## activity_log
+  - id: uuid  [PK, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - action: text  [required]
+  - target_type: text  [required]
+  - target_id: uuid  [required]
+  - created_at: timestamp with time zone  [required]
+
+## album_comments
+  - id: uuid  [PK, required]
+  - album_id: uuid  [FK→albums.id, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - content: text  [required]
+  - created_at: timestamp with time zone
+  - comment: text
+  - updated_at: timestamp with time zone
+
+## album_event_links
+  - id: uuid  [PK, required]
+  - album_id: uuid  [FK→albums.id, required]
+  - event_id: uuid  [required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - created_at: timestamp with time zone  [required]
+
+## album_loved_ones
+  - id: uuid  [PK, required]
+  - album_id: uuid  [FK→albums.id, required]
+  - loved_one_id: uuid  [FK→family_members.id, required]
+  - owner_id: uuid  [required]
+  - created_at: timestamp with time zone
+
+## album_media
+  - id: uuid  [PK, required]
+  - album_id: uuid  [FK→albums.id, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - file_path: text
+  - file_type: text
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone
+  - library_media_id: uuid  [FK→library_media.id]
+  - caption: text
+  - memory_date: text
+
+## album_media_comments
+  - id: uuid  [PK, required]
+  - media_id: uuid  [FK→album_media.id]
+  - user_id: uuid  [FK→Profiles.id]
+  - text: text  [required]
+  - created_at: timestamp with time zone
+
+## album_media_voice_notes
+  - id: uuid  [PK, required]
+  - media_id: uuid  [FK→album_media.id]
+  - user_id: uuid  [FK→Profiles.id]
+  - file_path: text  [required]
+  - created_at: timestamp with time zone
+
+## album_tags
+  - id: uuid  [PK, required]
+  - album_id: uuid  [FK→albums.id, required]
+  - family_member_id: uuid  [FK→family_members.id, required]
+  - created_at: timestamp with time zone
+
+## album_voice_notes
+  - id: uuid  [PK, required]
+  - album_id: uuid  [FK→albums.id, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - file_path: text  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+
+## albums
+  - id: uuid  [PK, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - title: text  [required]
+  - description: text
+  - cover_image: text
+  - visibility: text  [required]
+  - timeline_id: uuid
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - family_id: uuid  [FK→families.id]
+
+## audit_log
+  - id: uuid  [PK, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - action: text  [required]
+  - target_table: text  [required]
+  - target_id: uuid
+  - created_at: timestamp with time zone  [required]
+
+## canvas_orders
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - canvas_id: uuid  [FK→memory_canvases.id, required]
+  - tier_key: text  [required]
+  - tier_name: text  [required]
+  - price_amount: numeric  [required]
+  - price_currency: text  [required]
+  - shipping_name: text
+  - shipping_line1: text
+  - shipping_line2: text
+  - shipping_city: text
+  - shipping_state: text
+  - shipping_postal: text
+  - shipping_country: text
+  - stripe_session_id: text
+  - stripe_payment_intent: text
+  - payment_status: text  [required]
+  - image_storage_path: text
+  - image_url: text
+  - prodigi_order_id: text
+  - prodigi_status: text
+  - prodigi_tracking_url: text
+  - status: text  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - paid_at: timestamp with time zone
+  - shipped_at: timestamp with time zone
+  - shipping_email: text
+  - shipping_phone: text
+  - shipping_method: text  [required]
+
+## capsule_comments
+  - id: uuid  [PK, required]
+  - capsule_id: uuid  [FK→memory_capsules.id, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - comment: text  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+
+## capsule_loved_ones
+  - id: uuid  [PK, required]
+  - capsule_id: uuid  [FK→memory_capsules.id, required]
+  - loved_one_id: uuid  [FK→family_members.id, required]
+  - owner_id: uuid  [required]
+  - created_at: timestamp with time zone
+
+## capsule_media
+  - id: uuid  [PK, required]
+  - capsule_id: uuid  [FK→memory_capsules.id]
+  - user_id: uuid
+  - file_path: text
+  - file_type: text
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - library_media_id: uuid  [FK→library_media.id]
+
+## capsule_media_comments
+  - id: uuid  [PK, required]
+  - media_id: uuid  [FK→capsule_media.id]
+  - user_id: uuid
+  - text: text  [required]
+  - created_at: timestamp with time zone
+
+## capsule_media_voice_notes
+  - id: uuid  [PK, required]
+  - media_id: uuid  [FK→capsule_media.id]
+  - user_id: uuid
+  - file_path: text  [required]
+  - created_at: timestamp with time zone
+
+## capsule_tags
+  - id: uuid  [PK, required]
+  - capsule_id: uuid  [FK→memory_capsules.id, required]
+  - family_member_id: uuid  [FK→family_members.id, required]
+  - created_at: timestamp with time zone
+
+## capsule_voice_notes
+  - id: uuid  [PK, required]
+  - capsule_id: uuid  [FK→memory_capsules.id, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - file_path: text  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+
+## comments
+  - id: uuid  [PK, required]
+  - timeline_event_id: uuid  [required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - content: text  [required]
+  - capsule_id: uuid
+  - created_at: timestamp with time zone  [required]
+  - media_id: uuid  [FK→album_media.id]
+
+## event_tags
+  - id: uuid  [PK, required]
+  - timeline_event_id: uuid  [required]
+  - tag_id: uuid  [FK→tags.id, required]
+  - created_at: timestamp with time zone  [required]
+
+## families
+  - id: uuid  [PK, required]
+  - name: text  [required]
+  - created_by: uuid  [required]
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+
+## family_invite_links
+  - id: uuid  [PK, required]
+  - family_id: uuid  [FK→families.id, required]
+  - token: uuid  [required]
+  - created_by: uuid  [required]
+  - is_active: boolean  [required]
+  - created_at: timestamp with time zone  [required]
+
+## family_invites
+  - id: uuid  [PK, required]
+  - family_id: uuid  [FK→families.id, required]
+  - email: text  [required]
+  - token: uuid  [required]
+  - invited_by: uuid  [required]
+  - role: text  [required]
+  - expires_at: timestamp with time zone  [required]
+  - accepted_at: timestamp with time zone
+  - created_at: timestamp with time zone  [required]
+
+## family_links
+  - id: uuid  [PK, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - relative_id: uuid  [FK→Profiles.id, required]
+  - relationship: text  [required]
+  - status: text  [required]
+  - created_at: timestamp with time zone  [required]
+  - can_contribute: boolean  [required]
+  - updated_at: timestamp with time zone  [required]
+
+## family_member_timelines
+  - family_member_id: uuid  [FK→family_members.id]
+  - id: uuid  [PK]
+  - title: text
+  - description: text
+  - created_at: timestamp with time zone
+
+## family_members
+  - id: uuid  [PK, required]
+  - owner_id: uuid  [FK→Profiles.id, required]
+  - full_name: text  [required]
+  - birth_date: date
+  - death_date: date
+  - avatar_url: text
+  - notes: text
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - biography: text
+  - relationship_to_user: text
+  - story_preview: text
+  - early_years: text
+  - important_moments: text
+  - special_memories: text
+  - who_they_are: text
+  - early_years_image: text
+  - important_moments_image: text
+  - special_memories_image: text
+  - who_they_are_image: text
+  - family_id: uuid  [FK→families.id]
+
+## family_memberships
+  - id: uuid  [PK, required]
+  - family_id: uuid  [FK→families.id, required]
+  - user_id: uuid  [required]
+  - role: text  [required]
+  - joined_at: timestamp with time zone  [required]
+
+## family_memories
+  - id: uuid  [PK, required]
+  - family_id: uuid  [FK→families.id, required]
+  - author_id: uuid  [required]
+  - parent_memory_id: uuid  [FK→family_memories.id]
+  - prompt_id: uuid  [FK→memory_prompts.id]
+  - title: text  [required]
+  - body: text  [required]
+  - voice_note_path: text
+  - video_path: text
+  - is_onboarding: boolean  [required]
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+
+## family_memory_comments
+  - id: uuid  [PK, required]
+  - memory_id: uuid  [FK→family_memories.id, required]
+  - family_id: uuid  [FK→families.id, required]
+  - user_id: uuid  [required]
+  - author_name: text  [required]
+  - author_avatar_url: text
+  - content: text  [required]
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - parent_id: uuid  [FK→family_memory_comments.id]
+
+## family_memory_media
+  - id: uuid  [PK, required]
+  - memory_id: uuid  [FK→family_memories.id, required]
+  - family_id: uuid  [FK→families.id, required]
+  - user_id: uuid  [required]
+  - file_path: text  [required]
+  - file_type: text  [required]
+  - display_order: integer  [required]
+  - created_at: timestamp with time zone  [required]
+
+## family_memory_reactions
+  - id: uuid  [PK, required]
+  - memory_id: uuid  [FK→family_memories.id, required]
+  - family_id: uuid  [FK→families.id, required]
+  - user_id: uuid  [required]
+  - reaction_type: text  [required]
+  - created_at: timestamp with time zone  [required]
+
+## family_relationships
+  - id: uuid  [PK, required]
+  - member_a: uuid  [FK→family_members.id, required]
+  - member_b: uuid  [FK→family_members.id, required]
+  - role: public.relationship_role  [required]
+  - status: public.relationship_status  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - owner_id: uuid
+  - ended_at: timestamp with time zone
+  - deleted_at: timestamp with time zone
+  - family_id: uuid  [FK→families.id]
+
+## family_tree
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - family_id: uuid  [FK→families.id]
+
+## featured_stories
+  - id: uuid  [PK, required]
+  - story_id: uuid  [FK→stories.id, required]
+  - feature_type: text  [required]
+  - featured_by: uuid  [required]
+  - featured_at: timestamp with time zone  [required]
+  - created_at: timestamp with time zone  [required]
+
+## library_folders
+  - id: uuid  [PK, required]
+  - family_id: uuid  [FK→families.id]
+  - user_id: uuid  [required]
+  - name: text  [required]
+  - description: text
+  - folder_date: date
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+
+## library_media
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - file_path: text  [required]
+  - file_type: text  [required]
+  - file_size: bigint
+  - created_at: timestamp with time zone
+  - width: integer
+  - height: integer
+  - file_size_bytes: bigint
+  - rotation: integer  [required]
+  - family_id: uuid  [FK→families.id]
+  - folder_id: uuid  [FK→library_folders.id, required]
+
+## memory_book_page_assets
+  - id: uuid  [PK, required]
+  - page_id: uuid  [FK→memory_book_pages.id, required]
+  - asset_id: uuid  [FK→library_media.id, required]
+  - slot_index: integer  [required]
+  - subheading: text
+  - comment: text
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+
+## memory_book_pages
+  - id: uuid  [PK, required]
+  - book_id: uuid  [FK→memory_books.id, required]
+  - page_number: integer  [required]
+  - layout_type: text  [required]
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - show_subheading: boolean  [required]
+  - show_comment: boolean  [required]
+
+## memory_books
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - title: text  [required]
+  - description: text
+  - status: text  [required]
+  - cover_asset_id: uuid  [FK→library_media.id]
+  - source_album_id: uuid  [FK→albums.id]
+  - tier_key: text  [required]
+  - tier_name: text  [required]
+  - total_page_limit: integer  [required]
+  - content_page_limit: integer  [required]
+  - price_gbp: numeric  [required]
+  - cover_design: jsonb  [required]
+  - back_cover_design: jsonb  [required]
+  - pdf_file_path: text
+  - pdf_generated_at: timestamp with time zone
+  - prodigi_order_id: text
+  - prodigi_status: text
+  - tracking_number: text
+  - tracking_url: text
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - book_size: text  [required]
+  - back_cover_asset_id: uuid  [FK→library_media.id]
+  - spine_text: text
+  - spine_bg_colour: text  [required]
+  - spine_text_colour: text  [required]
+  - spine_file_path: text
+  - pdf_status: text  [required]
+  - family_id: uuid  [FK→families.id]
+
+## memory_books_with_page_count
+  - id: uuid  [PK]
+  - user_id: uuid
+  - title: text
+  - description: text
+  - status: text
+  - cover_asset_id: uuid  [FK→library_media.id]
+  - back_cover_asset_id: uuid  [FK→library_media.id]
+  - source_album_id: uuid  [FK→albums.id]
+  - book_size: text
+  - tier_key: text
+  - tier_name: text
+  - total_page_limit: integer
+  - content_page_limit: integer
+  - price_gbp: numeric
+  - cover_design: jsonb
+  - back_cover_design: jsonb
+  - spine_text: text
+  - spine_bg_colour: text
+  - spine_text_colour: text
+  - spine_file_path: text
+  - pdf_file_path: text
+  - pdf_status: text
+  - pdf_generated_at: timestamp with time zone
+  - prodigi_order_id: text
+  - prodigi_status: text
+  - tracking_number: text
+  - tracking_url: text
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - created_content_pages: integer
+
+## memory_canvas_assets
+  - id: uuid  [PK, required]
+  - canvas_id: uuid  [FK→memory_canvases.id, required]
+  - asset_id: uuid  [FK→library_media.id]
+  - slot_index: integer  [required]
+  - caption: text
+  - crop_data: jsonb  [required]
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+
+## memory_canvases
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - title: text  [required]
+  - description: text
+  - status: text  [required]
+  - source_album_id: uuid  [FK→albums.id]
+  - tier_key: text  [required]
+  - tier_name: text  [required]
+  - price_gbp: numeric  [required]
+  - canvas_size: text  [required]
+  - orientation: text  [required]
+  - layout_type: text  [required]
+  - wrap_type: text  [required]
+  - prodigi_sku: text  [required]
+  - export_width_px: integer  [required]
+  - export_height_px: integer  [required]
+  - design: jsonb  [required]
+  - image_file_path: text
+  - image_status: text  [required]
+  - image_generated_at: timestamp with time zone
+  - prodigi_order_id: text
+  - prodigi_status: text
+  - tracking_number: text
+  - tracking_url: text
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - family_id: uuid  [FK→families.id]
+
+## memory_canvases_with_asset_count
+  - id: uuid  [PK]
+  - user_id: uuid
+  - title: text
+  - description: text
+  - status: text
+  - source_album_id: uuid  [FK→albums.id]
+  - tier_key: text
+  - tier_name: text
+  - price_gbp: numeric
+  - canvas_size: text
+  - orientation: text
+  - layout_type: text
+  - wrap_type: text
+  - prodigi_sku: text
+  - export_width_px: integer
+  - export_height_px: integer
+  - design: jsonb
+  - image_file_path: text
+  - image_status: text
+  - image_generated_at: timestamp with time zone
+  - prodigi_order_id: text
+  - prodigi_status: text
+  - tracking_number: text
+  - tracking_url: text
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - filled_slots: integer
+
+## memory_capsules
+  - id: uuid  [PK, required]
+  - user_id: uuid  [FK→Profiles.id]
+  - title: text  [required]
+  - description: text
+  - unlock_date: timestamp with time zone  [required]
+  - is_locked: boolean
+  - is_opened: boolean
+  - opened_at: timestamp with time zone
+  - cover_image: text
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - locked_at: timestamp with time zone
+  - message: text
+  - family_id: uuid  [FK→families.id]
+
+## memory_prompt_chapters
+  - id: uuid  [PK, required]
+  - name: text  [required]
+  - description: text
+  - icon: text
+  - display_order: integer  [required]
+  - created_at: timestamp with time zone  [required]
+
+## memory_prompts
+  - id: uuid  [PK, required]
+  - chapter_id: uuid  [FK→memory_prompt_chapters.id, required]
+  - question: text  [required]
+  - display_order: integer  [required]
+  - created_at: timestamp with time zone  [required]
+
+## moderation_reviews
+  - id: uuid  [PK, required]
+  - story_id: uuid  [FK→stories.id, required]
+  - source: text  [required]
+  - passed: boolean  [required]
+  - category: text
+  - reason: text
+  - reviewed_by: uuid  [FK→Profiles.id]
+  - created_at: timestamp with time zone
+
+## moderation_strikes
+  - id: uuid  [PK, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - story_id: uuid  [FK→stories.id]
+  - strike_number: integer  [required]
+  - action_taken: text  [required]
+  - suspended_until: timestamp with time zone
+  - created_at: timestamp with time zone
+
+## notification_preferences
+  - id: uuid  [PK, required]
+  - user_id: uuid
+  - in_app: boolean
+  - email: boolean
+  - sms: boolean
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+
+## notifications
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - type: text  [required]
+  - actor_id: uuid
+  - actor_name: text
+  - story_id: uuid  [FK→stories.id]
+  - target_id: uuid
+  - target_type: text
+  - is_read: boolean  [required]
+  - created_at: timestamp with time zone  [required]
+
+## onboarding_emails_log
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - step: text  [required]
+  - sent_at: timestamp with time zone  [required]
+
+## orders
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - book_id: uuid  [FK→memory_books.id, required]
+  - tier_key: text  [required]
+  - tier_name: text  [required]
+  - price_amount: numeric  [required]
+  - price_currency: text  [required]
+  - shipping_name: text
+  - shipping_line1: text
+  - shipping_line2: text
+  - shipping_city: text
+  - shipping_state: text
+  - shipping_postal: text
+  - shipping_country: text
+  - stripe_session_id: text
+  - stripe_payment_intent: text
+  - payment_status: text  [required]
+  - pdf_storage_path: text
+  - pdf_url: text
+  - prodigi_order_id: text
+  - prodigi_status: text
+  - prodigi_tracking_url: text
+  - status: text  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - paid_at: timestamp with time zone
+  - shipped_at: timestamp with time zone
+  - shipping_email: text
+  - shipping_phone: text
+
+## plans
+  - id: uuid  [PK, required]
+  - name: text  [required]
+  - max_storage: bigint  [required]
+  - max_albums: integer
+  - max_video_length: integer
+  - max_timelines: integer
+  - max_capsules: integer
+  - max_upload_size: bigint
+  - perks: jsonb
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+
+## reactions
+  - id: uuid  [PK, required]
+  - timeline_event_id: uuid  [required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - reaction_type: text  [required]
+  - created_at: timestamp with time zone  [required]
+
+## sent_prompts
+  - id: uuid  [PK, required]
+  - family_id: uuid  [FK→families.id, required]
+  - sender_id: uuid  [required]
+  - recipient_name: text  [required]
+  - recipient_email: text
+  - recipient_phone: text
+  - prompt_id: uuid  [FK→memory_prompts.id]
+  - custom_question: text
+  - parent_memory_id: uuid  [FK→family_memories.id]
+  - response_memory_id: uuid  [FK→family_memories.id]
+  - token: uuid  [required]
+  - status: text  [required]
+  - invite_id: uuid  [FK→family_invites.id]
+  - sent_at: timestamp with time zone  [required]
+  - answered_at: timestamp with time zone
+  - expires_at: timestamp with time zone
+
+## storage_usage
+  - user_id: uuid
+  - used_bytes: numeric
+
+## stories
+  - id: uuid  [PK, required]
+  - author_id: uuid  [required]
+  - author_name: text  [required]
+  - author_avatar_url: text
+  - title: text  [required]
+  - body: text  [required]
+  - slug: text  [required]
+  - voice_note_path: text
+  - status: text  [required]
+  - published_at: timestamp with time zone
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - category: text
+  - excerpt: text
+  - moderation_reason: text
+  - moderation_category: text
+
+## story_assistance_log
+  - id: uuid  [PK, required]
+  - user_id: uuid  [required]
+  - family_id: uuid  [FK→families.id]
+  - assist_type: text  [required]
+  - model_used: text  [required]
+  - input_tokens: integer
+  - output_tokens: integer
+  - duration_ms: integer
+  - created_at: timestamp with time zone  [required]
+
+## story_bookmarks
+  - id: uuid  [PK, required]
+  - story_id: uuid  [FK→stories.id, required]
+  - user_id: uuid  [required]
+  - created_at: timestamp with time zone  [required]
+
+## story_comments
+  - id: uuid  [PK, required]
+  - story_id: uuid  [FK→stories.id, required]
+  - user_id: uuid  [required]
+  - author_name: text  [required]
+  - author_avatar_url: text
+  - content: text  [required]
+  - created_at: timestamp with time zone  [required]
+  - updated_at: timestamp with time zone  [required]
+  - parent_id: uuid  [FK→story_comments.id]
+
+## story_media
+  - id: uuid  [PK, required]
+  - story_id: uuid  [FK→stories.id, required]
+  - file_path: text  [required]
+  - file_type: text  [required]
+  - display_order: integer  [required]
+  - created_at: timestamp with time zone  [required]
+
+## story_reactions
+  - id: uuid  [PK, required]
+  - story_id: uuid  [FK→stories.id, required]
+  - user_id: uuid  [required]
+  - reaction_type: text  [required]
+  - created_at: timestamp with time zone  [required]
+
+## story_shares
+  - id: uuid  [PK, required]
+  - story_id: uuid  [FK→stories.id, required]
+  - user_id: uuid
+  - platform: text
+  - created_at: timestamp with time zone  [required]
+
+## subscription_summary
+  - user_id: uuid  [FK→Profiles.id]
+  - plan_id: uuid  [FK→plans.id]
+  - plan_name: text
+  - max_storage: bigint
+  - max_timelines: integer
+  - max_albums: integer
+  - max_capsules: integer
+  - status: text
+  - renews_at: timestamp with time zone
+  - trial_ends_at: timestamp with time zone
+  - payment_method_attached: boolean
+
+## subscriptions
+  - id: uuid  [PK, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - stripe_customer_id: text  [required]
+  - stripe_subscription_id: text  [required]
+  - status: text  [required]
+  - current_period_end: timestamp with time zone
+  - created_at: timestamp with time zone  [required]
+  - trial_ends_at: timestamp with time zone
+  - payment_method_attached: boolean  [required]
+  - updated_at: timestamp with time zone  [required]
+  - plan_id: uuid  [FK→plans.id]
+  - started_at: timestamp with time zone
+  - current_period_start: timestamp with time zone
+  - cancel_at_period_end: boolean  [required]
+  - family_id: uuid  [FK→families.id]
+
+## tags
+  - id: uuid  [PK, required]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - name: text  [required]
+  - created_at: timestamp with time zone  [required]
+
+## timeline_event_media
+  - id: uuid  [PK, required]
+  - event_id: uuid  [FK→timeline_events.id, required]
+  - file_path: text
+  - file_type: text  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - library_media_id: uuid  [FK→library_media.id]
+
+## timeline_event_media_comments
+  - id: uuid  [PK, required]
+  - media_id: uuid
+  - user_id: uuid  [FK→Profiles.id, required]
+  - comment: text  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - event_id: uuid  [FK→timeline_events.id]
+
+## timeline_event_media_voice_notes
+  - id: uuid  [PK, required]
+  - media_id: uuid  [FK→timeline_event_media.id]
+  - user_id: uuid  [FK→Profiles.id, required]
+  - file_path: text  [required]
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - event_id: uuid  [FK→timeline_events.id]
+
+## timeline_events
+  - id: uuid  [PK, required]
+  - timeline_id: uuid  [FK→timelines.id, required]
+  - title: text  [required]
+  - description: text
+  - event_date: date  [required]
+  - occurred_at: timestamp with time zone
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+
+## timeline_loved_ones
+  - id: uuid  [PK, required]
+  - timeline_id: uuid  [required]
+  - loved_one_id: uuid  [FK→family_members.id, required]
+  - owner_id: uuid  [required]
+  - created_at: timestamp with time zone
+
+## timeline_tags
+  - id: uuid  [PK, required]
+  - family_member_id: uuid  [FK→family_members.id, required]
+  - created_at: timestamp with time zone
+  - timeline_id: uuid
+
+## timelines
+  - id: uuid  [PK, required]
+  - owner_id: uuid  [FK→Profiles.id, required]
+  - title: text  [required]
+  - description: text
+  - cover_path: text
+  - created_at: timestamp with time zone
+  - updated_at: timestamp with time zone
+  - family_id: uuid  [FK→families.id]
+
+## updates
+  - id: uuid  [PK, required]
+  - user_id: uuid
+  - title: text  [required]
+  - description: text  [required]
+  - created_at: timestamp with time zone
+

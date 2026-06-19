@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# responsive screenshot artifacts (scripts/shot.mjs output)
+/scripts/shots/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

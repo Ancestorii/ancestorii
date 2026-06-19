@@ -102,8 +102,6 @@ export default function LibrarySection() {
   return (
     <section className="lib-section">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap');
-
         .lib-section {
           background: #FFFFFF;
           font-family: 'DM Sans', sans-serif;
@@ -125,7 +123,7 @@ export default function LibrarySection() {
           gap: 20px;
         }
         .lib-header-h2 {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 600;
           line-height: 0.97;
           letter-spacing: -0.02em;
@@ -161,7 +159,7 @@ export default function LibrarySection() {
           border-bottom: 2px solid rgba(26,20,16,0.2);
         }
         .lib-num {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 300;
           line-height: 0.85;
           color: #b8924a;
@@ -171,7 +169,7 @@ export default function LibrarySection() {
           margin-bottom: 14px;
         }
         .lib-title {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 400;
           line-height: 1.08;
           letter-spacing: -0.02em;
@@ -186,7 +184,7 @@ export default function LibrarySection() {
           font-size: 0.98rem;
         }
         .lib-accent {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
   font-weight: 800;
   color: #8a6b25;
@@ -226,7 +224,7 @@ export default function LibrarySection() {
           margin: 0 auto;
         }
         .lib-close-h2 {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 300;
           line-height: 0.97;
           letter-spacing: -0.02em;

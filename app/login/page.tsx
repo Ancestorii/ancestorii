@@ -132,7 +132,7 @@ export default function LoginPage() {
           <Link
             href="/"
             className="inline-block text-[32px] tracking-[-0.03em] text-[#181512] no-underline"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, lineHeight: 1 }}
+            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, lineHeight: 1 }}
           >
             Ancestor<span className="text-[#C8A557]">ii</span>
           </Link>
@@ -140,13 +140,13 @@ export default function LoginPage() {
 
         {/* Card */}
         <div
-          className="border border-[#ECE5D8] px-7 py-8 sm:px-9 sm:py-10"
+          className="border border-[#ECE5D8] px-7 py-8 sm:px-9 sm:py-10 md:px-10 md:py-11"
           style={{ background: '#FFFFFF' }}
         >
           {/* Header */}
           <h1
-            className="text-[26px] sm:text-[30px] tracking-[-0.03em] text-[#181512] mb-1.5"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, lineHeight: 1.1 }}
+            className="text-[clamp(26px,4vw,30px)] tracking-[-0.03em] text-[#181512] mb-1.5"
+            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, lineHeight: 1.1 }}
           >
             Welcome back.
           </h1>

@@ -194,7 +194,7 @@ function MobileHero() {
           style={{ background: 'rgba(255,255,255,0.25)' }}
         />
 
-        <div className="relative z-10 px-6 pt-7 pb-10">
+        <div className="relative z-10 px-6 md:px-12 pt-7 md:pt-10 pb-10 md:pb-14">
           {/* Overline */}
           <div className="flex items-center gap-2.5 mb-5">
             <div className="h-px w-4 bg-[#B8932A]" />

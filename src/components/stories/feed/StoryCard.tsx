@@ -98,7 +98,7 @@ export default function StoryCard({
           <div className="absolute inset-0 bg-[#FAF5EB] flex items-center justify-center">
             <p
               className="text-[13px] italic text-[#B8924A]"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+              style={{ fontFamily: "'Playfair Display', serif" }}
             >
               A memory worth reading
             </p>
@@ -155,7 +155,7 @@ export default function StoryCard({
 
         <h3
           className="text-[17px] sm:text-[19px] leading-[1.2] tracking-[-0.02em] text-[#1A1612] group-hover:text-[#A9782F] transition line-clamp-2"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
         >
           {title}
         </h3>

@@ -162,7 +162,7 @@ export default function PromptLibrary({
               <MessageSquarePlus className="h-5 w-5 text-[#C8A557]" strokeWidth={1.6} />
             </div>
             <div>
-              <h1 className="text-[26px] sm:text-[32px] lg:text-[36px] font-semibold text-white leading-[1.1]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+              <h1 className="text-[26px] sm:text-[32px] lg:text-[36px] font-semibold text-white leading-[1.1]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
                 Ask your family a <span className="italic text-[#C8A557]">question</span>
               </h1>
               <p className="mt-2 text-[14px] sm:text-[15px] text-[#9C9488] leading-relaxed max-w-[600px]">
@@ -178,7 +178,7 @@ export default function PromptLibrary({
       {sent ? (
         <div className="px-4 sm:px-6 lg:px-10 xl:px-14 py-10 sm:py-14">
           <div className="mx-auto max-w-[520px] border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10 text-center">
-            <h2 className="text-[22px] text-[#181512] mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="text-[22px] text-[#181512] mb-2" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Your link is <span className="italic text-[#A9782F]">ready</span>
             </h2>
             <p className="text-[13px] text-[#8A7F72] mb-6 leading-relaxed">

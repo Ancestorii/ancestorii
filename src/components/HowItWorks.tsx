@@ -49,7 +49,7 @@ export default function HowItWorks() {
             Build your family library
           </p>
 
-          <h2 className="text-[2.8rem] sm:text-[3.6rem] font-semibold leading-tight text-[#0F2040]">
+          <h2 className="text-[clamp(2.8rem,5vw,3.6rem)] font-semibold leading-tight text-[#0F2040]">
             This is how
             <br />
             memories <span className="italic text-[#E5C45C]">take shape</span>.
@@ -81,7 +81,7 @@ export default function HowItWorks() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-[1.95rem] sm:text-[2.3rem] font-semibold leading-snug text-[#0F2040] max-w-xl">
+                  <h3 className="text-[clamp(1.95rem,4vw,2.3rem)] font-semibold leading-snug text-[#0F2040] max-w-xl">
                     {item.title}
                     <br />
                     <span className="italic text-[#C9AE4A]">
@@ -121,7 +121,7 @@ export default function HowItWorks() {
             Over time, a collection forms.
           </p>
 
-          <h3 className="text-[2.3rem] sm:text-[2.9rem] font-semibold text-[#0F2040]">
+          <h3 className="text-[clamp(2.3rem,5vw,2.9rem)] font-semibold text-[#0F2040]">
             Add something{' '}
             <span className="italic text-[#E5C45C]">today</span>.
           </h3>

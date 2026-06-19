@@ -955,7 +955,7 @@ function EmptyImagePlaceholder() {
         </div>
         <p
           className="text-[15px] italic text-[#B8924A]/70"
-          style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          style={{ fontFamily: "'Playfair Display', serif" }}
         >
           A memory worth reading
         </p>
@@ -1181,7 +1181,7 @@ function AboutAuthorCard({
         <h4
           className="text-[18px] xl:text-[20px] leading-none tracking-[-0.04em] text-[#181512]"
           style={{
-            fontFamily: "'Cormorant Garamond', serif",
+            fontFamily: "'Playfair Display', serif",
             fontWeight: 600,
           }}
         >
@@ -1244,7 +1244,7 @@ function RelatedStoriesCard({ stories }: { stories: RelatedStory[] }) {
         <h4
           className="text-[18px] xl:text-[20px] leading-none tracking-[-0.04em] text-[#181512]"
           style={{
-            fontFamily: "'Cormorant Garamond', serif",
+            fontFamily: "'Playfair Display', serif",
             fontWeight: 600,
           }}
         >
@@ -1332,7 +1332,7 @@ function SidebarCTA() {
         <h4
           className="text-[18px] xl:text-[20px] leading-[1.15] tracking-[-0.04em] text-[#F7F2EA]"
           style={{
-            fontFamily: "'Cormorant Garamond', serif",
+            fontFamily: "'Playfair Display', serif",
             fontWeight: 600,
           }}
         >
@@ -1410,7 +1410,7 @@ function BottomCTABanner({ isLoggedIn }: { isLoggedIn: boolean }) {
               <h3
                 className="text-[24px] sm:text-[28px] lg:text-[32px] leading-[1.1] tracking-[-0.04em] text-[#181512]"
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
+                  fontFamily: "'Playfair Display', serif",
                   fontWeight: 600,
                 }}
               >

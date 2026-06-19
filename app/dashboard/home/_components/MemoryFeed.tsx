@@ -53,7 +53,7 @@ export default function MemoryFeed({
             </div>
             <h3
               className="text-[22px] text-[#1A1612] leading-[1.15]"
-              style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+              style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
             >
               Your family&apos;s memories{' '}
               <span className="italic text-[#A9782F]">start here.</span>
@@ -88,7 +88,7 @@ export default function MemoryFeed({
   /* ═══ FEED ═══ */
   return (
     <>
-      <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-14 py-6 sm:py-8" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <div className="w-full px-[clamp(1rem,4vw,3.5rem)] py-6 sm:py-8" style={{ fontFamily: "'DM Sans', sans-serif" }}>
         <div className="max-w-[620px] mx-auto space-y-6">
           {initialMemories.map((memory) => (
             <MemoryCard key={memory.id} memory={memory} />
@@ -171,7 +171,7 @@ function WriteMemoryModal({
       <div className="relative w-full max-w-[520px] max-h-[90vh] overflow-y-auto bg-white border border-[#EAD8B8] shadow-xl" style={{ fontFamily: "'DM Sans', sans-serif" }}>
         <div className="px-6 py-6 sm:px-8 sm:py-8 space-y-5">
           <div className="flex items-center justify-between">
-            <h3 className="text-[20px] font-semibold text-[#1A1612]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h3 className="text-[20px] font-semibold text-[#1A1612]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Write a <span className="italic text-[#A9782F]">memory</span>
             </h3>
             <button onClick={onClose} className="flex h-8 w-8 items-center justify-center hover:bg-[#F5F0E8] transition"><X size={16} className="text-[#7D6F5F]" /></button>

@@ -287,7 +287,7 @@ export default function Page() {
   if (loading) {
     return (
       <div style={{ height: '100vh', background: '#f6f1e8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ fontSize: 14, color: '#7c7469', fontFamily: "'Inter', sans-serif" }}>Loading album…</p>
+        <p style={{ fontSize: 14, color: '#7c7469', fontFamily: "'DM Sans', sans-serif" }}>Loading album…</p>
       </div>
     );
   }
@@ -297,7 +297,7 @@ export default function Page() {
       <div style={{ height: '100vh', background: '#f6f1e8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <button
           onClick={() => router.push('/dashboard/albums')}
-          style={{ padding: '12px 20px', borderRadius: 999, background: '#111', color: 'white', fontSize: 14, border: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }}
+          style={{ padding: '12px 20px', borderRadius: 999, background: '#111', color: 'white', fontSize: 14, border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
         >
           Back to albums
         </button>
@@ -334,7 +334,7 @@ export default function Page() {
         taggedPeopleNames={taggedPeople.map((p) => p.full_name)}
       />
 
-      <div style={{ height: '100vh', overflow: 'hidden', background: '#f6f1e8', display: 'flex', fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ height: '100vh', overflow: 'hidden', background: '#f6f1e8', display: 'flex', fontFamily: "'DM Sans', sans-serif" }}>
         {/* LEFT COLUMN */}
         <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
           <div className="album-scroll" data-lenis-prevent style={{ flex: 1, overflowY: 'auto' }}>

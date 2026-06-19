@@ -102,8 +102,6 @@ export default function JourneyExperience() {
   return (
     <section className="jx-section">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap');
-
         .jx-section {
           background: #FFFFFF;
           font-family: 'DM Sans', sans-serif;
@@ -129,7 +127,7 @@ export default function JourneyExperience() {
           gap: 20px;
         }
         .jx-header-h2 {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 600;
           line-height: 0.97;
           letter-spacing: -0.02em;
@@ -157,7 +155,7 @@ export default function JourneyExperience() {
           border-bottom: 2px solid rgba(26,20,16,0.2);
         }
         .jx-num {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 300;
           line-height: 0.85;
           color: #b8924a;
@@ -176,7 +174,7 @@ export default function JourneyExperience() {
           display: block;
         }
         .jx-title {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 400;
           line-height: 1.08;
           letter-spacing: -0.02em;
@@ -191,7 +189,7 @@ export default function JourneyExperience() {
           font-size: 0.98rem;
         }
         .jx-accent {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
   font-weight: 700; /* stronger for mobile */
   color: #a67c2e;
@@ -233,7 +231,7 @@ export default function JourneyExperience() {
           margin: 0 auto;
         }
         .jx-close-h2 {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 300;
           line-height: 0.97;
           letter-spacing: -0.02em;

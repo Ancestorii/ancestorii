@@ -45,7 +45,7 @@
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: system-ui, sans-serif;
+    font-family: var(--font-dmsans), system-ui, sans-serif;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
@@ -90,6 +90,8 @@
 }
 
 @theme inline {
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-dmsans), system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

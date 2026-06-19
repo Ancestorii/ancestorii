@@ -237,7 +237,7 @@ export default function PublicNav() {
 
         /* ── Logo ── */
         .pn-logo {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-weight: 700;
           /* Fluid: 28px on mobile → 42px on large */
           font-size: clamp(28px, 2.6vw, 42px);
@@ -499,7 +499,7 @@ export default function PublicNav() {
           flex-shrink: 0;
         }
         .pn-btn-login {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-weight: 600;
           font-size: clamp(15px, 1.1vw, 18px);
           color: ${INK};

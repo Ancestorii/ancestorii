@@ -19,7 +19,7 @@ function Section({ title, children, right }: { title: string; children: React.Re
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ width: 3, height: 14, borderRadius: 2, background: '#c4993d', flexShrink: 0 }} />
-          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3d2e1c', fontFamily: "'Inter', sans-serif" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3d2e1c', fontFamily: "'DM Sans', sans-serif" }}>
             {title}
           </span>
         </div>
@@ -187,7 +187,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 40px', textAlign: 'center' }}>
         <p style={{ fontSize: 28, fontStyle: 'italic', color: '#a09788', fontFamily: "'Playfair Display', Georgia, serif", margin: 0 }}>Select a memory</p>
-        <p style={{ marginTop: 8, fontSize: 14, color: '#b0a89c', fontFamily: "'Inter', sans-serif" }}>to see its story</p>
+        <p style={{ marginTop: 8, fontSize: 14, color: '#b0a89c', fontFamily: "'DM Sans', sans-serif" }}>to see its story</p>
       </div>
     );
   }
@@ -205,7 +205,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
               <span style={{
                 display: 'inline-block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
                 letterSpacing: '0.12em', color: '#926d1e', background: '#f0e6ce', padding: '4px 10px',
-                borderRadius: 6, marginBottom: 10, fontFamily: "'Inter', sans-serif",
+                borderRadius: 6, marginBottom: 10, fontFamily: "'DM Sans', sans-serif",
               }}>
                 {selectedMedia.memory_date}
               </span>
@@ -225,7 +225,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
                     color: '#1a1612', outline: 'none', fontFamily: "'Playfair Display', Georgia, serif",
                   }}
                 />
-                <p style={{ fontSize: 11, color: '#9a9084', marginTop: 6, fontFamily: "'Inter', sans-serif" }}>Enter to save · Esc to cancel</p>
+                <p style={{ fontSize: 11, color: '#9a9084', marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>Enter to save · Esc to cancel</p>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -279,7 +279,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 3, height: 14, borderRadius: 2, background: '#c4993d', flexShrink: 0 }} />
-              <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3d2e1c', fontFamily: "'Inter', sans-serif" }}>The Story</span>
+              <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3d2e1c', fontFamily: "'DM Sans', sans-serif" }}>The Story</span>
             </div>
           </div>
           {/* existing story entries */}
@@ -290,11 +290,11 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
                   padding: '14px 16px', borderRadius: 14,
                   background: '#f5f0e6', border: '1px solid #e2d9c8',
                 }}>
-                  <p style={{ fontSize: 15, lineHeight: 1.8, color: '#2e271f', margin: 0, fontFamily: "'Inter', sans-serif" }}>
+                  <p style={{ fontSize: 15, lineHeight: 1.8, color: '#2e271f', margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
                     {entry.text}
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                    <span style={{ fontSize: 11, color: '#8a8078', fontFamily: "'Inter', sans-serif" }}>
+                    <span style={{ fontSize: 11, color: '#8a8078', fontFamily: "'DM Sans', sans-serif" }}>
                       {profileName(entry.Profiles)} · {new Date(entry.created_at).toLocaleDateString()}
                     </span>
                     {entry.user_id === user?.id && (
@@ -309,7 +309,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
           )}
 
           {storyEntries.length === 0 && (
-            <p style={{ fontSize: 14, color: '#a8a096', fontStyle: 'italic', marginBottom: 14, fontFamily: "'Inter', sans-serif" }}>
+            <p style={{ fontSize: 14, color: '#a8a096', fontStyle: 'italic', marginBottom: 14, fontFamily: "'DM Sans', sans-serif" }}>
               No story yet. What do you remember about this moment?
             </p>
           )}
@@ -329,7 +329,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
               style={{
                 flex: 1, minHeight: 44, maxHeight: 180, borderRadius: 16, border: '1px solid #c4b896',
                 background: 'white', padding: '12px 16px', fontSize: 14, color: '#1e1a15',
-                outline: 'none', fontFamily: "'Inter', sans-serif",
+                outline: 'none', fontFamily: "'DM Sans', sans-serif",
                 boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
                 resize: 'none', lineHeight: 1.6, overflow: 'hidden',
               }}
@@ -364,17 +364,17 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
                 style={{
                   width: '100%', borderRadius: 14, border: '1px solid #c4b896', background: 'white',
                   padding: '12px 16px', fontSize: 14, color: '#1e1a15', outline: 'none',
-                  fontFamily: "'Inter', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  fontFamily: "'DM Sans', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 }}
               />
-              <p style={{ fontSize: 11, color: '#9a9084', marginTop: 8, fontFamily: "'Inter', sans-serif" }}>Enter to save · Esc to cancel</p>
+              <p style={{ fontSize: 11, color: '#9a9084', marginTop: 8, fontFamily: "'DM Sans', sans-serif" }}>Enter to save · Esc to cancel</p>
             </div>
           ) : (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, color: '#2e271f' }}>
               <span style={{ width: 34, height: 34, borderRadius: '50%', background: '#2c2418', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Calendar size={15} color="#d4af37" />
               </span>
-              <span style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
+              <span style={{ fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
                 {selectedMedia.memory_date || <span style={{ color: '#a8a096', fontStyle: 'italic', fontWeight: 400 }}>Not set</span>}
               </span>
             </div>
@@ -389,7 +389,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
               display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px',
               height: 34, borderRadius: 999, fontSize: 12, fontWeight: 600,
               background: '#2c2418', color: '#d4af37', border: 'none', cursor: 'pointer',
-              fontFamily: "'Inter', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+              fontFamily: "'DM Sans', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
             }}>
               <Mic size={13} />Record
             </button>
@@ -415,14 +415,14 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
                       <button onClick={() => deleteVoiceNote(v.id)} style={{ background: 'none', border: 'none', color: '#a89e90', cursor: 'pointer' }}><Trash2 size={15} /></button>
                     )}
                   </div>
-                  <p style={{ fontSize: 12, color: '#7a7168', marginTop: 8, fontWeight: 500, fontFamily: "'Inter', sans-serif" }}>
+                  <p style={{ fontSize: 12, color: '#7a7168', marginTop: 8, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>
                     {profileName(v.Profiles)} · {new Date(v.created_at).toLocaleDateString()}
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <p style={{ fontSize: 14, color: '#a8a096', fontStyle: 'italic', fontFamily: "'Inter', sans-serif" }}>
+            <p style={{ fontSize: 14, color: '#a8a096', fontStyle: 'italic', fontFamily: "'DM Sans', sans-serif" }}>
               No voice notes yet. Tap Record to preserve a voice with this memory.
             </p>
           )}
@@ -435,7 +435,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
             border: '1px solid #e8b4b4', background: '#fdf5f5',
             color: '#c0392b', fontSize: 14, fontWeight: 600, cursor: 'pointer',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            fontFamily: "'Inter', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
           }}>
             <Trash2 size={15} />Remove From Album
           </button>

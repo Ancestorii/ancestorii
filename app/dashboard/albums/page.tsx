@@ -123,11 +123,11 @@ export default function AlbumsPage() {
   return (
     <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
 
-       <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
+       <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 md:pl-16 md:pr-16 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
         {/* header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
           <div className="text-center md:text-left flex-1">
-            <h1 className="text-4xl md:text-5xl font-bold text-[#222B3A] mb-4 relative inline-block">
+            <h1 className="text-[clamp(2.25rem,4vw,3rem)] font-bold text-[#222B3A] mb-4 relative inline-block">
               <span className="relative">
                 My
                 <motion.span
@@ -184,7 +184,7 @@ export default function AlbumsPage() {
         {/* cards */}
         {!loading && !error && (albums ?? []).length > 0 && (
           <div
-            className="grid grid-cols-[repeat(auto-fill,minmax(240px,280px))] gap-6 transition-opacity duration-500"
+            className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,240px),1fr))] gap-6 transition-opacity duration-500"
             key="albums"
           >
             {(albums ?? []).map((a) => (

@@ -147,15 +147,15 @@ function TimelineCard({ media, isSelected, onClick }: { media: Media; isSelected
               <img src={media.signed_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>
             <div style={{ paddingTop: 8 }}>
-              {dateLabel && <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#4b57a5', margin: 0, fontFamily: "'Inter', sans-serif" }}>{dateLabel}</p>}
-              <p style={{ fontSize: 12, lineHeight: 1.3, color: '#2b2925', fontWeight: 600, marginTop: 2, fontFamily: "'Inter', sans-serif" }}>{media.caption || 'Untitled'}</p>
+              {dateLabel && <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#4b57a5', margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{dateLabel}</p>}
+              <p style={{ fontSize: 12, lineHeight: 1.3, color: '#2b2925', fontWeight: 600, marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{media.caption || 'Untitled'}</p>
             </div>
           </div>
         )}
         <div style={{ paddingTop: 4 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 10, color: '#9f998f', fontWeight: 500, fontFamily: "'Inter', sans-serif" }}>{yearStart}</span>
-            <span style={{ fontSize: 10, color: '#9f998f', fontWeight: 500, fontFamily: "'Inter', sans-serif" }}>{yearEnd}</span>
+            <span style={{ fontSize: 10, color: '#9f998f', fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{yearStart}</span>
+            <span style={{ fontSize: 10, color: '#9f998f', fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{yearEnd}</span>
           </div>
           <div style={{ position: 'relative', height: 20, marginBottom: 8 }}>
             <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 2, transform: 'translateY(-50%)', background: '#d9bf6b' }} />
@@ -163,7 +163,7 @@ function TimelineCard({ media, isSelected, onClick }: { media: Media; isSelected
             <div style={{ position: 'absolute', top: '50%', left: `${dotPosition}%`, transform: 'translate(-50%, -50%)', width: 18, height: 18, borderRadius: '50%', background: '#d4af37', border: '3px solid #fcfbf8', boxShadow: '0 3px 10px rgba(122,98,32,0.18)' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
-            {timelineMonths.map((m, i) => (<span key={i} style={{ fontSize: 9, color: '#9b958a', lineHeight: 1, fontFamily: "'Inter', sans-serif" }}>{m}</span>))}
+            {timelineMonths.map((m, i) => (<span key={i} style={{ fontSize: 9, color: '#9b958a', lineHeight: 1, fontFamily: "'DM Sans', sans-serif" }}>{m}</span>))}
           </div>
         </div>
       </div>
@@ -183,8 +183,8 @@ function AudioCard({ media, isSelected, onClick }: { media: Media; isSelected: b
           </div>
           <div style={{ flex: 1, minWidth: 0 }}><AudioWaveform /></div>
         </div>
-        <p style={{ fontSize: 14, fontWeight: 600, color: '#26231f', margin: 0, fontFamily: "'Inter', sans-serif" }}>{media.caption || 'Audio recording'}</p>
-        <p style={{ fontSize: 12, color: '#9a9488', marginTop: 4, fontFamily: "'Inter', sans-serif" }}>{media.memory_date || 'Voice memory'}</p>
+        <p style={{ fontSize: 14, fontWeight: 600, color: '#26231f', margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{media.caption || 'Audio recording'}</p>
+        <p style={{ fontSize: 12, color: '#9a9488', marginTop: 4, fontFamily: "'DM Sans', sans-serif" }}>{media.memory_date || 'Voice memory'}</p>
       </div>
     </div>
   );
@@ -199,7 +199,7 @@ export default function MediaGrid({ media, selectedMedia, enrichment, onSelect, 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '128px 0', textAlign: 'center' }}>
         <p style={{ fontSize: 28, fontStyle: 'italic', color: '#9d978d', marginBottom: 8, fontFamily: "'Playfair Display', Georgia, serif" }}>No memories yet</p>
-        <p style={{ fontSize: 14, color: '#8f887d', fontFamily: "'Inter', sans-serif" }}>Upload your first photo or video to begin.</p>
+        <p style={{ fontSize: 14, color: '#8f887d', fontFamily: "'DM Sans', sans-serif" }}>Upload your first photo or video to begin.</p>
       </div>
     );
   }

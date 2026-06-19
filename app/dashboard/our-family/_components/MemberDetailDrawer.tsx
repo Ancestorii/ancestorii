@@ -7,6 +7,7 @@ import {
   X,
   Crown,
   Shield,
+  ShieldCheck,
   Upload,
   Calendar,
   Image as ImageIcon,
@@ -33,11 +34,11 @@ const roleConfig = {
     border: 'border-[#E4D2AE]',
   },
   admin: {
-    label: 'Member',
-    icon: Shield,
-    bg: 'bg-[#F5F0E8]',
-    text: 'text-[#6F6255]',
-    border: 'border-[#E7DFD3]',
+    label: 'Admin',
+    icon: ShieldCheck,
+    bg: 'bg-[#F0EAF5]',
+    text: 'text-[#5B3A8A]',
+    border: 'border-[#D4C5E8]',
   },
   member: {
     label: 'Member',
@@ -153,10 +154,7 @@ export default function MemberDetailDrawer({
 
                 {/* Name + email */}
                 <div className="min-w-0 flex-1">
-                  <h3
-                    className="text-[22px] font-normal leading-tight text-[#17120E]"
-                    style={{ fontFamily: "'Cormorant Garamond', serif" }}
-                  >
+                  <h3 className="font-serif text-[22px] font-normal leading-tight text-[#17120E]">
                     {displayName}
                   </h3>
                   {member.email && (

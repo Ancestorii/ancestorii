@@ -41,6 +41,7 @@ export default function OurFamilyPage() {
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [inviteDrawerOpen, setInviteDrawerOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const loadFamily = useCallback(async () => {
     setLoading(true);
@@ -51,6 +52,8 @@ export default function OurFamilyPage() {
       setLoading(false);
       return;
     }
+
+    setCurrentUserId(uid);
 
     /* ── Get my membership ── */
     const { data: myMembership } = await supabase
@@ -241,7 +244,7 @@ export default function OurFamilyPage() {
               <MemberCard
                 key={member.user_id}
                 member={member}
-                isCurrentUser={member.role === 'owner'}
+                isCurrentUser={member.user_id === currentUserId}
                 onClick={() => setSelectedMember(member)}
               />
             ))}

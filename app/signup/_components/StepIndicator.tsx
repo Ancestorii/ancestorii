@@ -1,10 +1,10 @@
 
 export default function StepIndicator() {
   return (
-    <div className="w-full max-w-screen-xl mx-auto mb-10 px-6 lg:px-20">
+    <div className="w-full max-w-screen-xl mx-auto mb-10 px-[clamp(1.5rem,5vw,5rem)]">
       {/* Headline */}
       <div className="text-center mb-4">
-        <h2 className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-[#0F2040]">
+        <h2 className="text-[clamp(2.25rem,6vw,3.75rem)] font-extrabold tracking-tight leading-[1.1] text-[#0F2040]">
         Your story,
         <br className="sm:hidden" />{' '}
         <span className="text-[#D4AF37]">

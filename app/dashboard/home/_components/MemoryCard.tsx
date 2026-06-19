@@ -67,7 +67,7 @@ export default function MemoryCard({ memory }: { memory: FeedMemory }) {
         {/* Title */}
         <h3
           className="text-[20px] sm:text-[22px] font-semibold text-[#1A1612] leading-[1.2] mb-2"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, letterSpacing: '-0.02em' }}
+          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, letterSpacing: '-0.02em' }}
         >
           {memory.title}
         </h3>

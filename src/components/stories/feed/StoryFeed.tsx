@@ -71,7 +71,7 @@ export default function StoryFeed({
 
           <h3
             className="text-[26px] leading-[1.15] tracking-[-0.02em] text-[#1A1612]"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
           >
             The first story hasn&apos;t been{' '}
             <em className="italic text-[#A9782F]">written yet.</em>
@@ -103,8 +103,8 @@ export default function StoryFeed({
 
   return (
     <section className="w-full bg-white">
-      <div className="w-full px-6 md:px-10 lg:px-20 xl:px-28 py-8 sm:py-10">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 xl:gap-12">
+      <div className="w-full px-[clamp(1.25rem,4vw,7rem)] py-8 sm:py-10">
+        <div className="flex flex-col xl:flex-row gap-8 xl:gap-12">
 
           {/* ─── Left: header + stories ─── */}
           <div className="flex-1 min-w-0">
@@ -193,8 +193,8 @@ export default function StoryFeed({
               </div>
             )}
 
-            {/* Mobile CTA — end of feed, below lg only */}
-            <div className="lg:hidden mt-10 border border-[#2E2820] bg-[#1A1612] overflow-hidden">
+            {/* Mobile CTA — end of feed, shown until the sidebar appears at xl */}
+            <div className="xl:hidden mt-10 border border-[#2E2820] bg-[#1A1612] overflow-hidden">
               <div className="relative w-full aspect-[16/10] overflow-hidden">
                 <Image
                   src="/CTA.png"
@@ -213,7 +213,7 @@ export default function StoryFeed({
                 <h3
                   className="text-[24px] sm:text-[28px] leading-[1.05] tracking-[-0.04em] text-[#F7F2EA]"
                   style={{
-                    fontFamily: "'Cormorant Garamond', serif",
+                    fontFamily: "'Playfair Display', serif",
                     fontWeight: 600,
                   }}
                 >
@@ -243,8 +243,8 @@ export default function StoryFeed({
             </div>
           </div>
 
-          {/* ─── Right: sidebar — hidden on mobile, visible from lg ─── */}
-          <div className="hidden lg:block w-[300px] xl:w-[320px] flex-shrink-0">
+          {/* ─── Right: sidebar — hidden until xl, where there's room for it ─── */}
+          <div className="hidden xl:block w-[320px] flex-shrink-0">
             <div className="sticky top-[100px]">
               <FeedSidebar
                 isLoggedIn={isLoggedIn}

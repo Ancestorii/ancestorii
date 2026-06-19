@@ -153,7 +153,7 @@ export default function HeroCard({
                 <div className="h-10 w-10 mx-auto border border-[#D8BE8B]/40 flex items-center justify-center mb-2">
                   <Heart size={16} className="text-[#C8A557]/50" />
                 </div>
-                <p className="text-[14px] italic text-[#B8924A]/70" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                <p className="text-[14px] italic text-[#B8924A]/70" style={{ fontFamily: "'Playfair Display', serif" }}>
                   A memory worth reading
                 </p>
               </div>

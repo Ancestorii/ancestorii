@@ -227,9 +227,9 @@ export default function ShareScreen() {
     >
       <Link
         href="/"
-        className="inline-block text-[30px] sm:text-[34px] tracking-[-0.03em] text-[#181512] no-underline mb-6"
+        className="inline-block text-[clamp(30px,4vw,34px)] tracking-[-0.03em] text-[#181512] no-underline mb-6"
         style={{
-          fontFamily: "'Cormorant Garamond', serif",
+          fontFamily: "'Playfair Display', serif",
           fontWeight: 700,
         }}
       >
@@ -241,11 +241,11 @@ export default function ShareScreen() {
             SENT STATE
             ═══════════════════════════════ */}
         {sent ? (
-          <div className="border border-[#E8E2D6] bg-white px-7 py-8 sm:px-9 sm:py-10 text-center">
+          <div className="border border-[#E8E2D6] bg-white px-7 py-8 sm:px-9 sm:py-10 md:px-10 md:py-11 text-center">
             <h2
-              className="text-[24px] sm:text-[28px] tracking-[-0.03em] text-[#181512] mb-2"
+              className="text-[clamp(24px,4vw,28px)] tracking-[-0.03em] text-[#181512] mb-2"
               style={{
-                fontFamily: "'Cormorant Garamond', serif",
+                fontFamily: "'Playfair Display', serif",
                 fontWeight: 600,
               }}
             >
@@ -318,11 +318,11 @@ export default function ShareScreen() {
                     />
                   </div>
                 )}
-                <div className="px-7 py-7 sm:px-9 sm:py-8">
+                <div className="px-7 py-7 sm:px-9 sm:py-8 md:px-10 md:py-9">
                   <h2
-                    className="text-[22px] sm:text-[26px] tracking-[-0.03em] text-[#181512] leading-[1.15] mb-3"
+                    className="text-[clamp(22px,4vw,26px)] tracking-[-0.03em] text-[#181512] leading-[1.15] mb-3"
                     style={{
-                      fontFamily: "'Cormorant Garamond', serif",
+                      fontFamily: "'Playfair Display', serif",
                       fontWeight: 600,
                     }}
                   >
@@ -341,7 +341,7 @@ export default function ShareScreen() {
                 The memory card's bottom border
                 merges into this section visually.
                 ═══════════════════════════════ */}
-            <div className="border border-t-0 border-[#E8E2D6] bg-white px-7 py-7 sm:px-9 sm:py-8">
+            <div className="border border-t-0 border-[#E8E2D6] bg-white px-7 py-7 sm:px-9 sm:py-8 md:px-10 md:py-9">
 
               {/* Gold divider — thin, warm */}
               <div className="flex items-center gap-3 mb-6">
@@ -351,9 +351,9 @@ export default function ShareScreen() {
               </div>
 
               <p
-                className="text-[20px] sm:text-[22px] tracking-[-0.02em] text-[#181512] leading-[1.2] mb-2"
+                className="text-[clamp(20px,3.5vw,22px)] tracking-[-0.02em] text-[#181512] leading-[1.2] mb-2"
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
+                  fontFamily: "'Playfair Display', serif",
                   fontWeight: 600,
                 }}
               >

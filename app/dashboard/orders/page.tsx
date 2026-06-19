@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
-import { inter } from '@/lib/fonts';
 
 type Order = {
   id: string;
@@ -206,7 +205,7 @@ export default function OrdersPage() {
       style={{
         minHeight: '100vh',
         background: 'linear-gradient(180deg, #FFFFFF 0%, #FEFAF3 40%, #FAF7ED 100%)',
-        fontFamily: inter.style.fontFamily,
+        fontFamily: "'DM Sans', sans-serif",
       }}
     >
       <div
@@ -790,7 +789,7 @@ function SectionLabel({ label, count }: { label: string; count: number }) {
     >
       <span
         style={{
-          fontFamily: inter.style.fontFamily,
+          fontFamily: "'DM Sans', sans-serif",
           fontSize: 11,
           fontWeight: 700,
           letterSpacing: '0.16em',
@@ -802,7 +801,7 @@ function SectionLabel({ label, count }: { label: string; count: number }) {
       </span>
       <span
         style={{
-          fontFamily: inter.style.fontFamily,
+          fontFamily: "'DM Sans', sans-serif",
           fontSize: 11,
           fontWeight: 800,
           color: '#1A1714',

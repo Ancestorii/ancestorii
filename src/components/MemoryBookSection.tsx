@@ -7,7 +7,7 @@ import Link from 'next/link';
 function PullQuote({ children }: { children: React.ReactNode }) {
   return (
     <blockquote className="my-12 md:my-16 xl:my-20 py-6 md:py-8 xl:py-10 border-l-[3px] border-[#B8932A] pl-6 md:pl-8 xl:pl-10">
-      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
         {children}
       </p>
     </blockquote>
@@ -68,7 +68,7 @@ export default function MemoryBooksContent() {
           <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">From Screen to Shelf</span>
         </div>
 
-        <h1 className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-5 md:mb-6" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+        <h1 className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-5 md:mb-6" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
           Your photos deserve<br />
           more than <span className="italic text-[#A9782F]">a phone.</span>
         </h1>
@@ -103,7 +103,7 @@ export default function MemoryBooksContent() {
       <div className={`${px} pb-4`}>
         <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Your Book, Your Way</span>
 
-        <h2 className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-8 md:mb-10" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+        <h2 className="mt-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-8 md:mb-10" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
           Full creative control<br />
           <span className="italic text-[#A9782F]">over every page.</span>
         </h2>
@@ -128,7 +128,7 @@ export default function MemoryBooksContent() {
       <div className={`${px} pb-4`}>
         <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">How It Works</span>
 
-        <h2 className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-8 md:mb-10" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+        <h2 className="mt-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-8 md:mb-10" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
           Three steps.{' '}
           <span className="italic text-[#A9782F]">One book.</span>
         </h2>
@@ -162,7 +162,7 @@ export default function MemoryBooksContent() {
       <div className={`${px} pb-4`}>
         <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">More Than a Gift</span>
 
-        <h2 className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-8 md:mb-10" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+        <h2 className="mt-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-8 md:mb-10" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
           A gift that actually{' '}
           <span className="italic text-[#A9782F]">means something.</span>
         </h2>
@@ -185,7 +185,7 @@ export default function MemoryBooksContent() {
       <div className={`${px} pb-4`}>
         <div className="text-center mb-10 md:mb-14 xl:mb-16">
           <span className="text-[11px] md:text-[12px] xl:text-[13px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">From Our Families</span>
-          <h2 className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+          <h2 className="mt-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
             Memories <span className="italic text-[#A9782F]">finally</span> given a home.
           </h2>
           <div className="flex items-center justify-center gap-3 mt-5">
@@ -220,7 +220,7 @@ export default function MemoryBooksContent() {
       <div className={`${px} pb-4`}>
         <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Common Questions</span>
 
-        <h2 className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-8 md:mb-10" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+        <h2 className="mt-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-8 md:mb-10" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
           Questions about{' '}
           <span className="italic text-[#A9782F]">Memory Books.</span>
         </h2>
@@ -240,7 +240,7 @@ export default function MemoryBooksContent() {
         <Divider />
         <div className="flex justify-center">
           <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14" style={{ background: '#1A1612' }}>
-            <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+            <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
               Your stories deserve more than{' '}<span className="italic text-[#C8A557]">a phone screen.</span>
             </p>
             <p className="text-[13px] md:text-[14px] xl:text-[15px] text-[#A09888] mb-6 leading-relaxed text-center">Turn them into something your family can hold.</p>
@@ -272,7 +272,7 @@ function TestimonialCard({ t }: { t: { name: string; location: string; quote: st
       <div className="relative flex flex-col justify-between flex-1 p-5 md:p-6 xl:p-7" style={{ background: 'linear-gradient(160deg, #F5EDDA 0%, #EDE3CB 100%)' }}>
         <div>
           <svg width="22" height="16" viewBox="0 0 32 24" fill="#B8932A" className="mb-3 opacity-35"><path d="M0 24V14.4C0 6.08 4.48 1.12 13.44 0l1.28 3.2C9.28 4.48 7.04 8 6.72 12H12v12H0zm18.56 0V14.4C18.56 6.08 23.04 1.12 32 0l1.28 3.2c-5.44 1.28-7.68 4.8-8 8.8h5.28v12H18.56z" /></svg>
-          <blockquote className="text-[14px] md:text-[15px] xl:text-[16px] leading-[1.55] text-[#181512] italic" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+          <blockquote className="text-[14px] md:text-[15px] xl:text-[16px] leading-[1.55] text-[#181512] italic" style={{ fontFamily: "'Playfair Display', serif" }}>
             {t.quote}
           </blockquote>
         </div>

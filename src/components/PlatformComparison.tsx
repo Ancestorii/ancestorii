@@ -90,8 +90,6 @@ export default function PlatformComparison() {
       overflow: 'hidden',
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=DM+Sans:wght@300;400;500&display=swap');
-
         .pc-wrap {
           max-width: 1280px;
           margin: 0 auto;
@@ -116,7 +114,7 @@ gap: 24px;
           margin-bottom: 18px;
         }
         .pc-h2 {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 300;
           line-height: 0.95;
           letter-spacing: -0.02em;
@@ -197,7 +195,7 @@ gap: 24px;
         }
 
         .pc-verdict {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 500;
           line-height: 1.05;
           letter-spacing: -0.01em;

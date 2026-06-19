@@ -397,7 +397,7 @@ export default function ActionHub({
             </p>
           </div>
 
-          <h2 className="max-w-[500px] font-serif text-[28px] sm:text-[35px] leading-[1.08] tracking-[-0.04em] text-[#17120E]">
+          <h2 className="max-w-[500px] font-serif text-[clamp(28px,4vw,35px)] leading-[1.08] tracking-[-0.04em] text-[#17120E]">
             Build this library{' '}
             <em className="font-serif italic text-[#A9782F]">together.</em>
           </h2>
@@ -569,7 +569,7 @@ export default function ActionHub({
             </div>
           </div>
 
-          <h2 className="font-serif text-[28px] sm:text-[34px] leading-[1.12] tracking-[-0.04em] text-[#17120E]">
+          <h2 className="font-serif text-[clamp(28px,4vw,34px)] leading-[1.12] tracking-[-0.04em] text-[#17120E]">
             Your most{' '}
             <em className="italic text-[#A9782F]">meaningful</em>{' '}
             moments

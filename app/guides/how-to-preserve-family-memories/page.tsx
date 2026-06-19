@@ -24,7 +24,7 @@ function Body({ children }: { children: React.ReactNode }) {
 function PullQuote({ children }: { children: React.ReactNode }) {
   return (
     <blockquote className="my-12 md:my-16 xl:my-20 py-6 md:py-8 xl:py-10 border-l-[3px] border-[#B8932A] pl-6 md:pl-8 xl:pl-10">
-      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
         {children}
       </p>
     </blockquote>
@@ -34,7 +34,7 @@ function PullQuote({ children }: { children: React.ReactNode }) {
 function Step({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-6 md:gap-8 xl:gap-10">
-      <span className="shrink-0 text-[36px] md:text-[44px] xl:text-[52px] 2xl:text-[58px] leading-none tracking-[-0.03em] text-[#C8A557]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+      <span className="shrink-0 text-[36px] md:text-[44px] xl:text-[52px] 2xl:text-[58px] leading-none tracking-[-0.03em] text-[#C8A557]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
         {number}
       </span>
       <div>
@@ -124,7 +124,7 @@ export default function PreserveFamilyMemoriesPage() {
             <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Guide</span>
           </div>
 
-          <h1 className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+          <h1 className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
             How to preserve<br />
             <span className="italic text-[#A9782F]">family memories.</span>
           </h1>
@@ -149,7 +149,7 @@ export default function PreserveFamilyMemoriesPage() {
           <div className="mt-4 md:mt-8">
             <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
 
-            <h2 className="text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Why it feels <span className="italic text-[#A9782F]">harder than it is.</span>
             </h2>
 
@@ -172,7 +172,7 @@ export default function PreserveFamilyMemoriesPage() {
           <div className="mt-16 md:mt-20 xl:mt-24">
             <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
 
-            <h2 className="mb-12 md:mb-16 xl:mb-20 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="mb-12 md:mb-16 xl:mb-20 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Five ways to <span className="italic text-[#A9782F]">start today.</span>
             </h2>
 
@@ -214,7 +214,7 @@ export default function PreserveFamilyMemoriesPage() {
           {/* CTA */}
           <div className="mt-20 md:mt-28 xl:mt-32 flex justify-center">
             <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14" style={{ background: '#1A1612' }}>
-              <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+              <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
                 One memory today.<br /><span className="italic text-[#C8A557]">A lifetime preserved.</span>
               </p>
               <p className="text-[13px] md:text-[14px] xl:text-[15px] text-[#A09888] mb-6 leading-relaxed text-center">It takes two minutes to start.</p>

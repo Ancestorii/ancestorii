@@ -17,7 +17,7 @@ export default function StoryCTA({ isLoggedIn }: { isLoggedIn: boolean }) {
 
         <h3
           className="text-[26px] leading-[1.15] tracking-[-0.02em] text-[#17120E]"
-          style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          style={{ fontFamily: "'Playfair Display', serif" }}
         >
           Every family has a story{' '}
           <em className="italic text-[#A9782F]">worth keeping.</em>

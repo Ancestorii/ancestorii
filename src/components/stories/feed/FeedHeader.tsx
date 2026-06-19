@@ -35,7 +35,7 @@ export default function FeedHeader({
     <div className="flex flex-col gap-4 sm:gap-5 pb-6 sm:pb-7 mb-6 sm:mb-8 border-b border-[#ECE5D8]">
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 lg:gap-8">
         {/* Title block */}
-        <div className="max-w-full">
+        <div className="lg:flex-1 min-w-0 max-w-full">
           <div className="flex items-center gap-2.5 mb-2 sm:mb-3">
             <div className="h-px w-4 sm:w-5 bg-[#B8932A]" />
             <span
@@ -49,9 +49,9 @@ export default function FeedHeader({
           </div>
 
           <h1
-            className="text-[28px] sm:text-[38px] md:text-[46px] lg:text-[52px] leading-[0.92] tracking-[-0.04em] text-[#181512] whitespace-normal"
+            className="text-[clamp(28px,5vw,52px)] leading-[0.92] tracking-[-0.04em] text-[#181512] whitespace-normal"
             style={{
-              fontFamily: "'Cormorant Garamond', serif",
+              fontFamily: "'Playfair Display', serif",
               fontWeight: 600,
             }}
           >

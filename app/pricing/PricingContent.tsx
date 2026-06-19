@@ -32,7 +32,7 @@ export default function PricingPage() {
           <div className="h-px w-5 bg-[#B8932A]" />
         </div>
 
-        <h1 className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+        <h1 className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
           Share for free.<br />
           Build for <span className="italic text-[#A9782F]">£49 a year.</span>
         </h1>
@@ -49,11 +49,11 @@ export default function PricingPage() {
           {/* ── OUR STORIES ── */}
           <div className="border border-[#ECE5D8] p-7 md:p-9 xl:p-11 flex flex-col">
             <span className="text-[10px] md:text-[11px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Public</span>
-            <h2 className="mt-3 text-[24px] md:text-[28px] xl:text-[32px] tracking-[-0.03em] text-[#181512] leading-[1.05]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="mt-3 text-[24px] md:text-[28px] xl:text-[32px] tracking-[-0.03em] text-[#181512] leading-[1.05]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Our Stories
             </h2>
             <div className="mt-4 mb-6">
-              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#B8932A] leading-none" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}>Free</span>
+              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#B8932A] leading-none" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>Free</span>
               <span className="ml-2 text-[13px] text-[#8A7F72]">forever</span>
             </div>
             <div className="h-px bg-[#ECE5D8] mb-6" />
@@ -77,11 +77,11 @@ export default function PricingPage() {
           {/* ── MY FAMILY FREE ── */}
           <div className="border border-[#ECE5D8] lg:border-l-0 p-7 md:p-9 xl:p-11 flex flex-col border-t-0 lg:border-t">
             <span className="text-[10px] md:text-[11px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Private — Free</span>
-            <h2 className="mt-3 text-[24px] md:text-[28px] xl:text-[32px] tracking-[-0.03em] text-[#181512] leading-[1.05]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="mt-3 text-[24px] md:text-[28px] xl:text-[32px] tracking-[-0.03em] text-[#181512] leading-[1.05]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               My Family
             </h2>
             <div className="mt-4 mb-6">
-              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#181512] leading-none" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}>£0</span>
+              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#181512] leading-none" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>£0</span>
               <span className="ml-2 text-[13px] text-[#8A7F72]">no card needed</span>
             </div>
             <div className="h-px bg-[#ECE5D8] mb-6" />
@@ -114,11 +114,11 @@ export default function PricingPage() {
               <span className="text-[10px] md:text-[11px] tracking-[0.16em] uppercase text-[#C8A557] font-semibold">Private — Premium</span>
               <span className="text-[10px] tracking-[0.1em] uppercase text-[#181512] bg-[#C8A557] px-2.5 py-1 font-semibold">Recommended</span>
             </div>
-            <h2 className="mt-3 text-[24px] md:text-[28px] xl:text-[32px] tracking-[-0.03em] text-[#F5F1E6] leading-[1.05]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="mt-3 text-[24px] md:text-[28px] xl:text-[32px] tracking-[-0.03em] text-[#F5F1E6] leading-[1.05]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               My Family
             </h2>
             <div className="mt-4">
-              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#F5F1E6] leading-none" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}>£49</span>
+              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#F5F1E6] leading-none" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>£49</span>
               <span className="ml-2 text-[13px] text-[#F5F1E6]/35">/ year</span>
             </div>
             <div className="mt-2 mb-6 flex gap-3">
@@ -156,7 +156,7 @@ export default function PricingPage() {
       <div className={`${px} pb-16 md:pb-20 xl:pb-24`}>
         <div className="text-center mb-10 md:mb-14">
           <span className="text-[11px] md:text-[12px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Physical Products</span>
-          <h2 className="mt-3 text-[28px] sm:text-[36px] md:text-[44px] xl:text-[52px] 2xl:text-[58px] tracking-[-0.03em] text-[#181512] leading-[1]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+          <h2 className="mt-3 text-[clamp(28px,5vw,58px)] tracking-[-0.03em] text-[#181512] leading-[1]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
             My Heirlooms
           </h2>
           <p className="mt-3 text-[14px] md:text-[15px] xl:text-[16px] text-[#4A4030] max-w-[44ch] mx-auto leading-[1.7]">
@@ -164,17 +164,17 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-5 md:gap-6 xl:gap-7">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6 xl:gap-7">
           {[
             { name: 'Memory Book', price: 'From £44.99', desc: 'A hardcover book you design page by page. Three tiers available. Your stories, your photos, your layout.' },
             { name: 'Canvas Print', price: 'From £29.99', desc: 'Museum grade photo on stretched canvas. The kind of image that belongs on a wall, not buried in a camera roll.' },
             { name: 'Acrylic Print', price: 'From £39.99', desc: 'HD UV print behind polished acrylic glass. Vivid colour, clean edges, permanent weight.' },
           ].map((p) => (
             <div key={p.name} className="p-7 md:p-8 xl:p-10 flex flex-col bg-white border border-[#ECE5D8]">
-              <h3 className="text-[20px] md:text-[24px] xl:text-[28px] tracking-[-0.02em] leading-[1.1] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+              <h3 className="text-[20px] md:text-[24px] xl:text-[28px] tracking-[-0.02em] leading-[1.1] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
                 {p.name}
               </h3>
-              <p className="mt-2 text-[20px] md:text-[24px] xl:text-[28px] tracking-[-0.02em] leading-none text-[#C8A557]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+              <p className="mt-2 text-[20px] md:text-[24px] xl:text-[28px] tracking-[-0.02em] leading-none text-[#C8A557]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
                 {p.price}
               </p>
               <p className="mt-4 text-[13px] md:text-[14px] leading-[1.7] flex-1 text-[#181512]">
@@ -194,7 +194,7 @@ export default function PricingPage() {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8 md:gap-16">
             <div className="md:max-w-[40%]">
               <span className="text-[11px] md:text-[12px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Promise</span>
-              <h2 className="mt-3 text-[28px] sm:text-[34px] md:text-[40px] xl:text-[48px] tracking-[-0.03em] text-[#181512] leading-[1]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+              <h2 className="mt-3 text-[clamp(28px,4.5vw,48px)] tracking-[-0.03em] text-[#181512] leading-[1]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
                 What you will<br />
                 <span className="italic text-[#A9782F]">never pay for.</span>
               </h2>
@@ -221,7 +221,7 @@ export default function PricingPage() {
       <div className={`${px} pb-20 md:pb-32 xl:pb-40`}>
         <div className="flex justify-center">
           <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14 text-center" style={{ background: '#1A1612' }}>
-            <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+            <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
               Start with one memory.<br />
               <span className="italic text-[#C8A557]">Build from there.</span>
             </p>

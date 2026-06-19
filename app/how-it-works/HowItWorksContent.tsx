@@ -4,7 +4,7 @@ import Link from 'next/link';
 function PullQuote({ children }: { children: React.ReactNode }) {
   return (
     <blockquote className="my-12 md:my-16 xl:my-20 py-6 md:py-8 xl:py-10 border-l-[3px] border-[#B8932A] pl-6 md:pl-8 xl:pl-10 clear-both">
-      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
         {children}
       </p>
     </blockquote>
@@ -35,7 +35,7 @@ function RuleCard({ title, children }: { title: string; children: React.ReactNod
 function FeatureCard({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
   return (
     <div className="relative p-6 md:p-7 xl:p-8" style={{ background: 'rgba(184,147,42,0.03)', border: '1px solid rgba(184,147,42,0.12)' }}>
-      <span className="text-[40px] md:text-[48px] xl:text-[56px] leading-none font-semibold text-[#B8932A]/10 absolute top-4 right-5 md:top-5 md:right-6 select-none" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+      <span className="text-[40px] md:text-[48px] xl:text-[56px] leading-none font-semibold text-[#B8932A]/10 absolute top-4 right-5 md:top-5 md:right-6 select-none" style={{ fontFamily: "'Playfair Display', serif" }}>
         {number}
       </span>
       <h4 className="text-[16px] md:text-[18px] xl:text-[20px] font-semibold text-[#181512] mb-3 md:mb-4 tracking-[-0.01em]">
@@ -109,8 +109,8 @@ export default function HowItWorksContent() {
         </div>
 
         <h1
-          className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+          className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
+          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
         >
           Two sides.<br />
           <span className="italic text-[#A9782F]">One family.</span>
@@ -141,8 +141,8 @@ export default function HowItWorksContent() {
         </span>
 
         <h2
-          className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+          className="mt-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
         >
           Our Stories
         </h2>
@@ -204,8 +204,8 @@ export default function HowItWorksContent() {
         </span>
 
         <h2
-          className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+          className="mt-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
         >
           My Family
         </h2>
@@ -264,8 +264,8 @@ export default function HowItWorksContent() {
           </span>
 
           <h3
-            className="mt-4 text-[28px] sm:text-[36px] md:text-[44px] lg:text-[52px] xl:text-[60px] 2xl:text-[66px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+            className="mt-4 text-[clamp(28px,5.5vw,66px)] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
           >
             My Heirlooms
           </h3>
@@ -311,8 +311,8 @@ export default function HowItWorksContent() {
         </span>
 
         <h2
-          className="mt-4 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]"
-          style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}
+          className="mt-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
         >
           Keeping the space{' '}
           <span className="italic text-[#A9782F]">safe.</span>
@@ -380,7 +380,7 @@ export default function HowItWorksContent() {
           <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14" style={{ background: '#1A1612' }}>
             <p
               className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center"
-              style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
+              style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}
             >
               Some memories are for everyone.<br />
               <span className="italic text-[#C8A557]">Some are just for your family.</span>

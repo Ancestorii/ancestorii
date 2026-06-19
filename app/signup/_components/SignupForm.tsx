@@ -166,7 +166,7 @@ export default function SignupForm() {
       style={{ background: '#FFFDF8', fontFamily: "'DM Sans', sans-serif" }}
     >
       {/* Logo */}
-      <Link href="/" className="inline-block text-[34px] sm:text-[38px] tracking-[-0.03em] text-[#181512] no-underline mb-4" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}>
+      <Link href="/" className="inline-block text-[clamp(34px,4.5vw,38px)] tracking-[-0.03em] text-[#181512] no-underline mb-4" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
         Ancestor<span className="text-[#C8A557]">ii</span>
       </Link>
 
@@ -185,14 +185,14 @@ export default function SignupForm() {
         {/* ── Step 1 ── */}
         {step === 1 && (
           <>
-            <h2 className="text-[26px] sm:text-[30px] tracking-[-0.03em] text-[#181512] leading-[1.05] text-center mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="text-[clamp(26px,4vw,30px)] tracking-[-0.03em] text-[#181512] leading-[1.05] text-center mb-2" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Name your <span className="italic text-[#A9782F]">Family Library.</span>
             </h2>
             <p className="text-[13px] text-[#181512] text-center mb-7 leading-relaxed max-w-[340px] mx-auto">
               You&apos;ll be the owner. Invite family members to contribute memories, photos, and stories together.
             </p>
 
-            <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10">
+            <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10 md:px-10 md:py-11">
               <div className="space-y-5">
                 <div>
                   <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">Family Library Name</label>
@@ -202,7 +202,7 @@ export default function SignupForm() {
                 {familyName.trim() && (
                   <div className="border border-[#ECE5D8] bg-[#FDFCFA] px-4 py-3 text-center">
                     <p className="text-[11px] text-[#8A7F72] uppercase tracking-[0.12em] mb-0.5">Your library</p>
-                    <p className="text-[17px] font-medium text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>{familyName.trim()}</p>
+                    <p className="text-[17px] font-medium text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>{familyName.trim()}</p>
                   </div>
                 )}
 
@@ -226,12 +226,12 @@ export default function SignupForm() {
         {/* ── Step 2 ── */}
         {step === 2 && (
           <>
-            <h2 className="text-[26px] sm:text-[30px] tracking-[-0.03em] text-[#181512] leading-[1.05] text-center mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="text-[clamp(26px,4vw,30px)] tracking-[-0.03em] text-[#181512] leading-[1.05] text-center mb-2" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Create your <span className="italic text-[#A9782F]">account.</span>
             </h2>
             <p className="text-[13px] text-[#8A7F72] text-center mb-7">Almost there — just need your details.</p>
 
-            <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10">
+            <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10 md:px-10 md:py-11">
               <button type="button" onClick={() => { setStep(1); setError(''); }} className="flex items-center gap-1 text-[12px] font-medium text-[#8A7F72] hover:text-[#B8932A] transition-colors mb-5">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 Back

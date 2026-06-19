@@ -57,7 +57,7 @@ export default function PlansClient({
   if (loading) return <div className="p-6">Loading...</div>;
 
   return (
-    <div className="relative z-10 pl-8 pr-6 pt-20 pb-16 mx-auto max-w-[1700px] sm:pl-14 sm:pr-12 lg:pl-20 lg:pr-32">
+    <div className="relative z-10 pl-8 pr-6 pt-20 pb-16 mx-auto max-w-[1700px] sm:pl-14 sm:pr-12 md:pl-16 md:pr-16 lg:pl-20 lg:pr-32">
       <h1 className="mb-6 text-2xl font-semibold text-[#0f2040]">Plans &amp; Subscriptions</h1>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

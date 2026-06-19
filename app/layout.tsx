@@ -1,11 +1,25 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display, DM_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import Script from "next/script";
 import LenisProvider from "./providers/LenisProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-playfair",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-dmsans",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.ancestorii.com"),
@@ -175,7 +189,7 @@ rdt('track','PageVisit');
       </head>
 
       <body
-        className={`${inter.variable} antialiased text-gray-900 bg-transparent min-h-screen`}
+        className={`${inter.variable} ${playfair.variable} ${dmSans.variable} antialiased text-gray-900 bg-transparent min-h-screen`}
       >
         {/* 🟡 GOOGLE TAG MANAGER (noscript) */}
         <noscript>

@@ -153,7 +153,7 @@ function Message({
         href="/"
         className="inline-block text-[34px] tracking-[-0.03em] text-[#181512] no-underline mb-8"
         style={{
-          fontFamily: "'Cormorant Garamond', serif",
+          fontFamily: "'Playfair Display', serif",
           fontWeight: 700,
         }}
       >
@@ -162,7 +162,7 @@ function Message({
       <h2
         className="text-[24px] text-[#181512] mb-2 text-center"
         style={{
-          fontFamily: "'Cormorant Garamond', serif",
+          fontFamily: "'Playfair Display', serif",
           fontWeight: 600,
         }}
       >

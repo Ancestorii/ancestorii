@@ -24,7 +24,7 @@ function Body({ children }: { children: React.ReactNode }) {
 function PullQuote({ children }: { children: React.ReactNode }) {
   return (
     <blockquote className="my-12 md:my-16 xl:my-20 py-6 md:py-8 xl:py-10 border-l-[3px] border-[#B8932A] pl-6 md:pl-8 xl:pl-10">
-      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
         {children}
       </p>
     </blockquote>
@@ -36,7 +36,7 @@ function Prompt({ question, context }: { question: string; context: string }) {
     <div className="py-5 md:py-6 border-t border-[#ECE5D8]">
       <p
         className="text-[18px] md:text-[22px] xl:text-[26px] leading-[1.3] tracking-[-0.01em] text-[#181512] italic"
-        style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
+        style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}
       >
         &ldquo;{question}&rdquo;
       </p>
@@ -83,7 +83,7 @@ export default function RecordFamilyStoriesPage() {
             <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Guide</span>
           </div>
 
-          <h1 className="text-[36px] sm:text-[46px] md:text-[56px] lg:text-[66px] xl:text-[78px] 2xl:text-[90px] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+          <h1 className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
             How to record<br />
             <span className="italic text-[#A9782F]">family stories.</span>
           </h1>
@@ -108,7 +108,7 @@ export default function RecordFamilyStoriesPage() {
           <div className="mt-4 md:mt-8">
             <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
 
-            <h2 className="text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Why "tell me a story" <span className="italic text-[#A9782F]">never works.</span>
             </h2>
 
@@ -128,7 +128,7 @@ export default function RecordFamilyStoriesPage() {
           <div className="mt-16 md:mt-20 xl:mt-24">
             <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
 
-            <h2 className="mb-10 md:mb-14 text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="mb-10 md:mb-14 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Questions that <span className="italic text-[#A9782F]">open doors.</span>
             </h2>
 
@@ -149,7 +149,7 @@ export default function RecordFamilyStoriesPage() {
           <div className="mt-16 md:mt-20 xl:mt-24">
             <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
 
-            <h2 className="text-[32px] sm:text-[42px] md:text-[50px] lg:text-[58px] xl:text-[68px] 2xl:text-[76px] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600 }}>
+            <h2 className="text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
               Making it <span className="italic text-[#A9782F]">stick.</span>
             </h2>
 
@@ -179,7 +179,7 @@ export default function RecordFamilyStoriesPage() {
           {/* CTA */}
           <div className="mt-12 md:mt-20 xl:mt-24 flex justify-center">
             <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14" style={{ background: '#1A1612' }}>
-              <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}>
+              <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
                 The stories are still here.<br /><span className="italic text-[#C8A557]">Start capturing them.</span>
               </p>
               <p className="text-[13px] md:text-[14px] xl:text-[15px] text-[#A09888] mb-6 leading-relaxed text-center">One story. One question. That is all it takes.</p>

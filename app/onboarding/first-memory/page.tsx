@@ -200,9 +200,9 @@ export default function FirstMemoryPage() {
       {/* ── Compact header ── */}
       <Link
         href="/"
-        className="inline-block text-[30px] sm:text-[34px] tracking-[-0.03em] text-[#181512] no-underline mb-6"
+        className="inline-block text-[clamp(30px,4vw,34px)] tracking-[-0.03em] text-[#181512] no-underline mb-6"
         style={{
-          fontFamily: "'Cormorant Garamond', serif",
+          fontFamily: "'Playfair Display', serif",
           fontWeight: 700,
         }}
       >
@@ -225,7 +225,7 @@ export default function FirstMemoryPage() {
                       ? 'grid-cols-1'
                       : photos.length === 2
                       ? 'grid-cols-2'
-                      : 'grid-cols-3'
+                      : 'grid-cols-2 sm:grid-cols-3'
                   }`}>
                     {photos.map((photo) => (
                       <div
@@ -327,7 +327,7 @@ export default function FirstMemoryPage() {
           </div>
 
           {/* ── FORM SECTION ── */}
-          <div className="px-7 py-8 sm:px-9 sm:py-10">
+          <div className="px-7 py-8 sm:px-9 sm:py-10 md:px-10 md:py-11">
 
             {/* Headline inside the card */}
             <div className="mb-8">
@@ -338,9 +338,9 @@ export default function FirstMemoryPage() {
                 </span>
               </div>
               <h2
-                className="text-[24px] sm:text-[28px] tracking-[-0.03em] text-[#181512] leading-[1.1] mb-2"
+                className="text-[clamp(24px,4vw,28px)] tracking-[-0.03em] text-[#181512] leading-[1.1] mb-2"
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
+                  fontFamily: "'Playfair Display', serif",
                   fontWeight: 600,
                 }}
               >

@@ -6,8 +6,6 @@ export default function Security() {
   return (
     <section className="sec-section">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap');
-
         .sec-section {
           background: #FFFFFF;
           font-family: 'DM Sans', sans-serif;
@@ -40,7 +38,7 @@ export default function Security() {
           margin-bottom: 18px;
         }
         .sec-h2 {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 600;
           line-height: 0.97;
           letter-spacing: -0.02em;
@@ -66,7 +64,7 @@ export default function Security() {
           gap: 32px;
         }
         .sec-promise-h3 {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 500;
           line-height: 1.1;
           letter-spacing: -0.02em;
@@ -93,7 +91,7 @@ export default function Security() {
           gap: 40px;
         }
         .sec-list-title {
-          font-family: 'Cormorant Garamond', Georgia, serif;
+          font-family: 'Playfair Display', Georgia, serif;
           font-weight: 600;
           font-size: 1.4rem;
           margin: 0 0 20px;
