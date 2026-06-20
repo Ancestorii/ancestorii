@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
-
-const ADMIN_USER_ID = process.env.ADMIN_USER_ID!;
+import { ADMIN_USER_ID } from '@/lib/adminUser';
 
 function getAdminClient() {
   return createClient(

@@ -357,12 +357,12 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   }, [userId]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: 'local' });
     setUserEmail(null);
     setUserId(null);
     setAvatarUrl(null);
     setFullName(null);
-    router.push('/');
+    router.push('/login');
   };
 
   if (!hydrated) return null;

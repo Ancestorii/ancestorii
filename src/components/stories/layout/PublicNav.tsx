@@ -105,10 +105,10 @@ export default function PublicNav() {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: 'local' });
     setUserEmail(null);
     setProfileOpen(false);
-    router.push('/');
+    router.push('/login');
   };
 
   // ── Scroll shadow ──

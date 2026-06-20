@@ -6,6 +6,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ensureDisplayableImage } from '@/lib/convertImage';
 import ImageCropModal from '@/components/ImageCropModal';
+import { safeToast } from '@/lib/safeToast';
+import { ADMIN_USER_ID } from '@/lib/adminUser';
 import {
   Camera,
   MapPin,
@@ -113,6 +115,7 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [stories, setStories] = useState<UserStory[]>([]);
@@ -126,7 +129,10 @@ export default function ProfilePage() {
   const [featuredLoading, setFeaturedLoading] = useState(false);
   const [featuringAction, setFeaturingAction] = useState<string | null>(null);
 
-  const isAdmin = userId === 'f5d224ef-2314-418a-8d8f-44d0fb304320';
+  const isAdmin = userId === ADMIN_USER_ID;
+
+  // Max size for an uploaded profile photo (10 MB).
+  const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
 
   const FEATURE_TYPES = [
     { value: 'story_of_the_week', label: 'Story of the Week' },
@@ -244,9 +250,11 @@ export default function ProfilePage() {
           { feature_type: featureType, story_id: storyId, stories: story, featured_at: new Date().toISOString() },
         ]);
       } else {
-        alert('Failed to feature story. Check the console.');
+        safeToast.error('Could not feature that story. Please try again.');
         console.error('Feature failed:', await res.json());
       }
+    } catch {
+      safeToast.error('Could not feature that story. Please try again.');
     } finally {
       setFeaturingAction(null);
     }
@@ -263,8 +271,10 @@ export default function ProfilePage() {
       if (res.ok) {
         setFeaturedStories((prev) => prev.filter((f) => f.feature_type !== featureType));
       } else {
-        alert('Failed to remove featured story.');
+        safeToast.error('Could not remove that featured story. Please try again.');
       }
+    } catch {
+      safeToast.error('Could not remove that featured story. Please try again.');
     } finally {
       setFeaturingAction(null);
     }
@@ -280,7 +290,12 @@ export default function ProfilePage() {
       });
       if (res.ok) {
         setPendingStories((prev) => prev.filter((s) => s.id !== storyId));
+        safeToast.success(action === 'approve' ? 'Story approved and published.' : 'Story rejected.');
+      } else {
+        safeToast.error('Could not complete that action. Please try again.');
       }
+    } catch {
+      safeToast.error('Could not complete that action. Please try again.');
     } finally {
       setAdminAction(null);
     }
@@ -302,27 +317,52 @@ export default function ProfilePage() {
     })();
   }, [userId]);
 
-  // Avatar
+  // Avatar — sign the private URL, then keep re-signing before it expires
+  // so the photo never silently disappears on a long-open tab.
   useEffect(() => {
-    (async () => {
-      if (!profile?.profile_image_url) {
-        setAvatarUrl(null);
-        setAvatarLoaded(false);
-        return;
-      }
+    const path = profile?.profile_image_url;
+    if (!path) {
+      setAvatarUrl(null);
+      setAvatarLoaded(false);
+      return;
+    }
+
+    let active = true;
+    setAvatarLoaded(false);
+
+    const sign = async () => {
       const { data } = await supabase.storage
         .from('user-media')
-        .createSignedUrl(profile.profile_image_url, 3600);
-      setAvatarUrl(
-        data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null
-      );
-      setAvatarLoaded(false);
-    })();
+        .createSignedUrl(path, 3600);
+      if (active && data?.signedUrl) {
+        setAvatarUrl(`${data.signedUrl}&cb=${Date.now()}`);
+      }
+    };
+
+    sign();
+    const id = setInterval(sign, 50 * 60 * 1000); // refresh ~10 min before the 1h link expires
+
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
   }, [profile?.profile_image_url]);
+
+  // Warn before leaving with unsaved edits (browser/tab close or refresh).
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
 
   const onChange = (field: keyof Profile, value: string) => {
     if (!profile) return;
     setProfile({ ...profile, [field]: value });
+    setDirty(true);
   };
 
   const saveProfile = async () => {
@@ -336,7 +376,7 @@ export default function ProfilePage() {
       .update({
         full_name: profile.full_name,
         title: profile.title,
-        dob: profile.dob,
+        dob: profile.dob || null,
         profile_image_url: profile.profile_image_url,
         bio: profile.bio,
         phone: profile.phone,
@@ -346,10 +386,14 @@ export default function ProfilePage() {
       })
       .eq('id', userId);
 
-    if (upErr) setError(upErr.message);
-    else {
+    if (upErr) {
+      setError(upErr.message);
+      setTimeout(() => setError(null), 5000);
+    } else {
       setSuccess('Profile updated.');
+      setDirty(false);
       window.dispatchEvent(new Event('profile-updated'));
+      setTimeout(() => setSuccess(null), 4000);
     }
     setSaving(false);
   };
@@ -358,6 +402,7 @@ export default function ProfilePage() {
     if (!userId) return;
     setSaving(true);
 
+    const oldPath = profile?.profile_image_url ?? null;
     const file = await ensureDisplayableImage(rawFile);
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const path = `${userId}/avatar.${ext}`;
@@ -365,6 +410,12 @@ export default function ProfilePage() {
     await supabase.storage
       .from('user-media')
       .upload(path, file, { upsert: true });
+
+    // Remove the previous photo if it was stored under a different extension,
+    // otherwise it would linger in storage forever.
+    if (oldPath && oldPath !== path) {
+      await supabase.storage.from('user-media').remove([oldPath]);
+    }
 
     await supabase
       .from('Profiles')
@@ -458,9 +509,15 @@ export default function ProfilePage() {
                   onChange={async (e) => {
                     const f = e.target.files?.[0];
                     if (!f) return;
+                    if (f.size > MAX_AVATAR_BYTES) {
+                      safeToast.error('That image is too large. Please choose one under 10MB.');
+                      e.target.value = '';
+                      return;
+                    }
                     const displayable = await ensureDisplayableImage(f);
                     const url = URL.createObjectURL(displayable);
                     setCropSrc(url);
+                    e.target.value = '';
                   }}
                 />
               </label>
@@ -593,11 +650,12 @@ export default function ProfilePage() {
                   </p>
                 </div>
                 <button
-                  onClick={() =>
+                  onClick={() => {
                     setProfile((p) =>
                       p ? { ...p, writing_assistance_enabled: !p.writing_assistance_enabled } : p
-                    )
-                  }
+                    );
+                    setDirty(true);
+                  }}
                   className={`relative mt-1 h-[26px] w-[48px] flex-shrink-0 rounded-full transition-colors ${
                     profile?.writing_assistance_enabled !== false ? 'bg-[#C8A557]' : 'bg-[#D5CFCA]'
                   }`}

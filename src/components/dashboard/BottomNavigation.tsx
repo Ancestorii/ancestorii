@@ -159,8 +159,8 @@ const goHome = () => {};
 
              <button
   onClick={async () => {
-    await supabase.auth.signOut();
-    router.push("/");
+    await supabase.auth.signOut({ scope: 'local' });
+    router.push("/login");
   }}
   className="px-4 py-2 text-[13px] font-semibold text-red-600"
 >

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { ADMIN_USER_ID } from '@/lib/adminUser';
 
 function getAdminClient() {
   return createClient(
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
     const supabase = await getServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user || user.id !== process.env.ADMIN_USER_ID) {
+    if (!user || user.id !== ADMIN_USER_ID) {
       return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
     }
 
