@@ -166,7 +166,7 @@ rdt('track','PageVisit');
           `}
         </Script>
 
-        {/* 🟢 ORGANIZATION SCHEMA */}
+        {/* 🟢 ORGANIZATION SCHEMA (entity node) */}
         <Script
           id="org-schema"
           type="application/ld+json"
@@ -175,15 +175,43 @@ rdt('track','PageVisit');
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
+            "@id": "https://www.ancestorii.com/#organization",
             name: "Ancestorii",
+            legalName: "Ancestorii",
             url: "https://www.ancestorii.com",
             description:
-              "Ancestorii is a private living family library where stories, voices, and meaningful moments are captured while life unfolds.",
-            logo: "https://www.ancestorii.com/favicon.ico",
+              "Ancestorii is a place where families capture and keep memories together — stories, voices, photos, and timelines — and turn them into printed heirlooms.",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://www.ancestorii.com/favicon.ico",
+            },
+            founder: { "@type": "Person", name: "Dante Leon" },
+            email: "support@ancestorii.com",
             sameAs: [
-              "https://www.instagram.com/ancestorii",
-              "https://www.facebook.com/ancestorii"
+              "https://www.instagram.com/ancestorii_official/",
+              "https://www.facebook.com/profile.php?id=61586259749930",
+              // Add Wikidata, LinkedIn, Crunchbase, Product Hunt, G2, Capterra,
+              // and Trustpilot profile URLs here as you create them — each verified
+              // sameAs link strengthens how AI engines recognise Ancestorii as one
+              // distinct entity. See SEO-GROWTH-PLAYBOOK.md.
             ],
+          })}
+        </Script>
+
+        {/* 🟢 WEBSITE SCHEMA (linked to the Organization entity) */}
+        <Script
+          id="website-schema"
+          type="application/ld+json"
+          strategy="afterInteractive"
+        >
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "@id": "https://www.ancestorii.com/#website",
+            name: "Ancestorii",
+            url: "https://www.ancestorii.com",
+            inLanguage: "en-GB",
+            publisher: { "@id": "https://www.ancestorii.com/#organization" },
           })}
         </Script>
       </head>

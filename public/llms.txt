@@ -163,10 +163,11 @@ Built with Next.js (App Router), TypeScript, Tailwind CSS, Supabase (database, a
 - [How It Works](https://www.ancestorii.com/how-it-works)
 - [Memory Books](https://www.ancestorii.com/memory-books)
 - [Compare Ancestorii](https://www.ancestorii.com/compare)
+- [Best StoryWorth Alternative](https://www.ancestorii.com/compare/storyworth-alternative)
 - [Why This Exists — Founder Story](https://www.ancestorii.com/why-this-exists)
 - [Living Library](https://www.ancestorii.com/living-library)
 - [Digital Legacy](https://www.ancestorii.com/digital-legacy)
-- [Moments Worth Keeping](https://www.ancestorii.com/moments-worth-keeping)
+- [Browse Stories by Topic](https://www.ancestorii.com/stories/topics)
 - [Guides](https://www.ancestorii.com/guides)
 
 ## Guides
@@ -176,11 +177,23 @@ Built with Next.js (App Router), TypeScript, Tailwind CSS, Supabase (database, a
 - [How to Record Family Stories](https://www.ancestorii.com/guides/how-to-record-family-stories)
 - [What to Do with Old Family Photos](https://www.ancestorii.com/guides/what-to-do-with-old-family-photos)
 - [Living Library vs Digital Vault](https://www.ancestorii.com/guides/living-library-vs-digital-vault)
+- [Questions to Ask Your Parents About Their Life](https://www.ancestorii.com/guides/questions-to-ask-your-parents-about-their-life)
+- [What to Write in a Memory Book](https://www.ancestorii.com/guides/what-to-write-in-a-memory-book)
+
+## Stories by Topic
+
+- [Family](https://www.ancestorii.com/stories/topics/family)
+- [Food & Recipes](https://www.ancestorii.com/stories/topics/food-and-recipes)
+- [Childhood](https://www.ancestorii.com/stories/topics/childhood)
+- [Love](https://www.ancestorii.com/stories/topics/love)
+- [Life Lessons](https://www.ancestorii.com/stories/topics/life-lessons)
+- [Traditions](https://www.ancestorii.com/stories/topics/traditions)
+- [Travel](https://www.ancestorii.com/stories/topics/travel)
 
 ## Social
 
-- [Instagram](https://www.instagram.com/ancestorii)
-- [Facebook](https://www.facebook.com/ancestorii)
+- [Instagram](https://www.instagram.com/ancestorii_official/)
+- [Facebook](https://www.facebook.com/profile.php?id=61586259749930)
 - [Twitter / X](https://twitter.com/ancestorii)
 
 ## Legal

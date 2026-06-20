@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { TOPICS } from '@/lib/stories/topics';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.ancestorii.com';
@@ -58,9 +59,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/moments-worth-keeping`,
+      url: `${baseUrl}/guides/questions-to-ask-your-parents-about-their-life`,
       lastModified: new Date(),
-      priority: 0.6,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/guides/what-to-write-in-a-memory-book`,
+      lastModified: new Date(),
+      priority: 0.7,
     },
     {
       url: `${baseUrl}/why-this-exists`,
@@ -83,6 +89,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
     {
+      url: `${baseUrl}/compare/storyworth-alternative`,
+      lastModified: new Date(),
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/stories/topics`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/privacy-policy`,
       lastModified: new Date(),
       priority: 0.3,
@@ -93,6 +110,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.3,
     },
   ];
+
+  // Topic hub pages
+  const topicPages: MetadataRoute.Sitemap = TOPICS.map((t) => ({
+    url: `${baseUrl}/stories/topics/${t.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
 
   // Dynamic story pages
   let storyPages: MetadataRoute.Sitemap = [];
@@ -120,5 +145,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Sitemap: failed to fetch stories', error);
   }
 
-  return [...staticPages, ...storyPages];
+  return [...staticPages, ...topicPages, ...storyPages];
 }

@@ -40,6 +40,16 @@ const guides = [
     desc: 'Simple ways to capture the stories that only get told when a certain person is in the room.',
     href: '/guides/how-to-record-family-stories',
   },
+  {
+    title: 'Questions to ask your parents about their life',
+    desc: 'More than sixty questions, grouped by theme, for asking while you still can.',
+    href: '/guides/questions-to-ask-your-parents-about-their-life',
+  },
+  {
+    title: 'What to write in a memory book',
+    desc: 'How to fill the blank page so the finished book is one your family actually returns to.',
+    href: '/guides/what-to-write-in-a-memory-book',
+  },
 ];
 
 export default function GuidesPage() {

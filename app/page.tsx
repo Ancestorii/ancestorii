@@ -401,23 +401,7 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* WebSite schema */}
-      <Script
-        id="website-schema"
-        type="application/ld+json"
-        strategy="afterInteractive"
-      >
-        {JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'WebSite',
-          name: 'Ancestorii',
-          url: 'https://www.ancestorii.com',
-          description:
-            'A living family library where real families share real memories. Read their stories, share your own, and preserve what matters.',
-        })}
-      </Script>
-
-      {/* WebPage schema */}
+      {/* WebPage schema (WebSite + Organization entity nodes live in the root layout) */}
       <Script
         id="webpage-schema"
         type="application/ld+json"
@@ -430,10 +414,7 @@ export default async function HomePage() {
           description:
             'Browse real family memories — stories, voices, and moments shared by families around the world.',
           url: 'https://www.ancestorii.com/',
-          isPartOf: {
-            '@type': 'WebSite',
-            name: 'Ancestorii',
-          },
+          isPartOf: { '@id': 'https://www.ancestorii.com/#website' },
         })}
       </Script>
 

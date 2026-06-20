@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getTopicByKey } from '@/lib/stories/topics';
 import {
   ChevronRight,
   Play,
@@ -123,6 +124,10 @@ export default function StoryPageContent({
   };
 
   const categoryLabel = story.category ? CATEGORY_LABELS[story.category] : null;
+  const categoryTopic = story.category ? getTopicByKey(story.category) : null;
+  const categoryHref = categoryTopic
+    ? `/stories/topics/${categoryTopic.slug}`
+    : `/stories?category=${story.category ?? ''}`;
   const initials = story.authorName
     .split(' ')
     .map((w) => w[0])
@@ -243,7 +248,7 @@ export default function StoryPageContent({
             <>
               <ChevronRight size={12} className="text-[#D4CBC0]" />
               <Link
-                href={`/stories?category=${story.category}`}
+                href={categoryHref}
                 className="text-[#9C9488] transition-colors duration-200 hover:text-[#A9782F]"
               >
                 {categoryLabel}
