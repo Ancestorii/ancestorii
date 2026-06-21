@@ -61,7 +61,7 @@ export default function SidebarContent({
   familyMemberCount = 1,
   totalMemories = 0,
   usedStorage = 0,
-  maxStorage = 5 * 1024 ** 3,
+  maxStorage = 1 * 1024 ** 3,
 }: SidebarContentProps) {
   const pathname = usePathname();
 

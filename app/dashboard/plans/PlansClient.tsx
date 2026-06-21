@@ -153,7 +153,7 @@ export default function PlansClient({
 
         <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
           <p className="text-md text-[#000000]">
-            Choose your currency. You&apos;ll be billed yearly at the rate shown.
+            Choose your currency. You&apos;ll be billed monthly at the rate shown.
           </p>
 
           <div className="inline-flex w-full max-w-[260px] p-1 mx-auto border shadow-inner md:mx-0 rounded-xl border-slate-200 bg-slate-100">
@@ -193,7 +193,7 @@ export default function PlansClient({
                 <ul className="mt-7 space-y-3 text-sm text-[#0F2040]/82 sm:text-[15px]">
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>5GB of secure storage</span>
+                    <span>1GB of secure storage</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
@@ -201,7 +201,7 @@ export default function PlansClient({
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>1 timeline, 1 album and 1 capsule</span>
+                    <span>Unlimited timelines, albums &amp; capsules</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
@@ -256,7 +256,7 @@ export default function PlansClient({
                 <ul className="mt-7 space-y-3 text-sm text-[#0F2040]/82 sm:text-[15px]">
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>50GB of secure storage</span>
+                    <span>100GB of secure storage</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
@@ -268,7 +268,7 @@ export default function PlansClient({
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
-                    <span>Videos up to 30 minutes</span>
+                    <span>Videos up to 15 minutes</span>
                   </li>
                   <li className="flex gap-3">
                     <span className="text-[#D4AF37]">●</span>
@@ -283,10 +283,10 @@ export default function PlansClient({
 
               <div className="border-t border-[#E9DDAF] bg-[linear-gradient(180deg,rgba(255,255,255,0.45)_0%,rgba(255,249,232,0.92)_100%)] p-6 sm:p-8 md:border-l md:border-t-0">
                 <div className="text-[3rem] font-extrabold leading-none tracking-tight text-[#0F2040] sm:text-[4rem]">
-                  {currency === 'GBP' && '£49'}
-                  {currency === 'USD' && '$69'}
-                  {currency === 'EUR' && '€59'}
-                  <span className="text-base font-medium text-[#0F2040]/50"> /year</span>
+                  {currency === 'GBP' && '£3.99'}
+                  {currency === 'USD' && '$5.99'}
+                  {currency === 'EUR' && '€4.99'}
+                  <span className="text-base font-medium text-[#0F2040]/50"> /month</span>
                 </div>
 
                 <p className="mt-3 text-sm leading-relaxed text-[#0F2040]/58">

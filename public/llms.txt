@@ -40,18 +40,18 @@ Traditional storage organises by file type or date. A living library organises b
 
 ### My Family — Free Plan (Private Layer)
 - £0, no credit card needed.
-- 5GB storage.
-- 1 timeline, 1 album, 1 capsule.
+- 1GB storage.
+- Unlimited timelines, albums, and capsules.
 - 20MB max file size.
-- 1 minute video length.
+- 5 minute video length.
 - Unlimited family profiles.
 
 ### My Family — Premium Plan (Private Layer)
-- £49/year (€59/year, $69/year). Recommended.
-- 50GB storage.
+- £3.99/month (€4.99/month, $5.99/month). A single monthly plan.
+- 100GB storage.
 - Unlimited timelines, albums, and capsules.
 - 10GB max file size.
-- 30 minute video length.
+- 15 minute video length.
 - Unlimited family profiles.
 - Priority support.
 - Early access to new features.

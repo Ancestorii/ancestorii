@@ -37,7 +37,7 @@ export default function PlansLogic() {
   const [usageLoading, setUsageLoading] = useState(true);
   const [currency, setCurrency] = useState<Currency>('GBP');
 
-  const FREE_PLAN_STORAGE = 5 * 1024 ** 3;
+  const FREE_PLAN_STORAGE = 1 * 1024 ** 3;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -183,9 +183,9 @@ export default function PlansLogic() {
   };
 
   const PRICE: Record<Currency, string> = {
-    GBP: '£49 / year',
-    USD: '$69 / year',
-    EUR: '€59 / year',
+    GBP: '£3.99 / month',
+    USD: '$5.99 / month',
+    EUR: '€4.99 / month',
   };
 
   return (

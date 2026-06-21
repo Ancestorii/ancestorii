@@ -41,6 +41,30 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
+// ── Resolve a customer's email + name from a Stripe customer id ──
+// Subscription/invoice events carry no checkout session, so we read the
+// contact straight from Stripe (with invoice-provided values preferred).
+async function resolveContact(
+  stripe: Stripe,
+  customerId: string,
+  fallbackEmail?: string | null,
+  fallbackName?: string | null,
+): Promise<{ email: string | null; name: string }> {
+  if (fallbackEmail) {
+    return { email: fallbackEmail, name: fallbackName ?? "" };
+  }
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (customer && !(customer as Stripe.DeletedCustomer).deleted) {
+      const c = customer as Stripe.Customer;
+      return { email: c.email ?? null, name: c.name ?? fallbackName ?? "" };
+    }
+  } catch (err) {
+    console.error("resolveContact failed:", err);
+  }
+  return { email: null, name: fallbackName ?? "" };
+}
+
 // ── Email templates ──
 function premiumUpgradeEmail(name: string): { subject: string; html: string } {
   return {
@@ -86,7 +110,7 @@ function premiumUpgradeEmail(name: string): { subject: string; html: string } {
               </p>
 
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                Your subscription is active and will renew automatically each year. You can manage it anytime from your Plans page.
+                Your subscription is active and will renew automatically each month. You can manage it anytime from your Plans page.
               </p>
 
               <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
@@ -98,6 +122,182 @@ function premiumUpgradeEmail(name: string): { subject: string; html: string } {
                   <td align="center" style="background-color:#16120c;">
                     <a href="https://www.ancestorii.com/dashboard/home" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
                       Go to Dashboard
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">
+                — The Ancestorii Team
+              </p>
+
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
+                Ancestorii Ltd &middot; London
+              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
+                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+  };
+}
+
+function paymentFailedEmail(name: string): { subject: string; html: string } {
+  return {
+    subject: "A quick note about your Ancestorii payment",
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>A quick note about your Ancestorii payment</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
+    <tr>
+      <td align="center" style="padding:48px 16px 56px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
+
+          <tr>
+            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
+                A gentle heads up
+              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
+                Ancestorii
+              </p>
+            </td>
+          </tr>
+
+          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
+
+          <tr>
+            <td style="padding:48px 40px 36px 40px;">
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
+                Hi${name ? ` ${name}` : ''}, nothing to worry about.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
+                We tried to renew your Ancestorii Premium subscription, but your card did not go through this time. It happens often, usually an expired card or a small bank hiccup, and it is nothing to worry about.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
+                Your memories are completely safe. Nothing has been deleted, and everything you have created is exactly where you left it. This is only about the payment.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
+                To keep your subscription running, just update your card and we will take care of the rest. If you have already sorted it, you can ignore this note.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
+                <tr>
+                  <td align="center" style="background-color:#16120c;">
+                    <a href="https://www.ancestorii.com/dashboard/plans" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
+                      Update payment details
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">
+                — The Ancestorii Team
+              </p>
+
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
+                Ancestorii Ltd &middot; London
+              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
+                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+  };
+}
+
+function subscriptionCanceledEmail(name: string): { subject: string; html: string } {
+  return {
+    subject: "Your Ancestorii Premium has ended — your memories stay",
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="color-scheme" content="light only" />
+  <meta name="supported-color-schemes" content="light only" />
+  <title>Your Ancestorii Premium has ended</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
+    <tr>
+      <td align="center" style="padding:48px 16px 56px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
+
+          <tr>
+            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
+                Your library is safe
+              </p>
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
+                Ancestorii
+              </p>
+            </td>
+          </tr>
+
+          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
+
+          <tr>
+            <td style="padding:48px 40px 36px 40px;">
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
+                Thank you for being here${name ? `, ${name}` : ''}.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
+                Your Ancestorii Premium subscription has come to an end, and that is completely okay. No guilt, no hard feelings.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
+                Your memories stay. Every photo, story, voice note and timeline you have added is still here, safe and yours. You keep full access to view and revisit everything you have built. Nothing is locked away, and nothing is deleted.
+              </p>
+
+              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
+                The only thing that pauses is adding new content beyond the free limits. Whenever you are ready, you can resubscribe and pick up exactly where you left off.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
+                <tr>
+                  <td align="center" style="background-color:#16120c;">
+                    <a href="https://www.ancestorii.com/dashboard/plans" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
+                      Resubscribe anytime
                     </a>
                   </td>
                 </tr>
@@ -692,17 +892,35 @@ serve(async (req) => {
 
     // 3️⃣ invoice.payment_failed
     if (event.type === "invoice.payment_failed") {
+      const invoice = event.data.object as Stripe.Invoice;
+
       await supabase
         .from("subscriptions")
         .update({ status: "past_due" })
-        .eq("stripe_customer_id", event.data.object.customer);
+        .eq("stripe_customer_id", invoice.customer);
+
+      // ── Send the payment-failed email (front line against involuntary churn) ──
+      try {
+        const { email, name } = await resolveContact(
+          stripe,
+          invoice.customer as string,
+          invoice.customer_email,
+          invoice.customer_name,
+        );
+        if (email) {
+          const mail = paymentFailedEmail(name);
+          await sendEmail(email, mail.subject, mail.html);
+        }
+      } catch (emailErr) {
+        console.error("Payment-failed email failed:", emailErr);
+      }
 
       return new Response("Payment failed handled", { status: 200 });
     }
 
     // 4️⃣ customer.subscription.deleted
     if (event.type === "customer.subscription.deleted") {
-      const subscription = event.data.object;
+      const subscription = event.data.object as Stripe.Subscription;
 
       await supabase
         .from("subscriptions")
@@ -712,6 +930,20 @@ serve(async (req) => {
           current_period_end: new Date().toISOString(),
         })
         .eq("stripe_subscription_id", subscription.id);
+
+      // ── Send the cancellation email (a re-subscribe door, not a goodbye) ──
+      try {
+        const { email, name } = await resolveContact(
+          stripe,
+          subscription.customer as string,
+        );
+        if (email) {
+          const mail = subscriptionCanceledEmail(name);
+          await sendEmail(email, mail.subject, mail.html);
+        }
+      } catch (emailErr) {
+        console.error("Cancellation email failed:", emailErr);
+      }
 
       return new Response("Subscription canceled", { status: 200 });
     }

@@ -34,6 +34,7 @@ import {
 } from '@/lib/stories/mutations';
 
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { usePlanLimits } from '@/lib/usePlanLimits';
 import StoryAssistanceCard from '@/components/StoryAssistanceCard';
 import { useQuill } from 'react-quilljs';
 import 'quill/dist/quill.snow.css';
@@ -1381,6 +1382,9 @@ function VideoUploader({
   onRemove: () => void;
   isUploading: boolean;
 }) {
+  const { maxVideoLength } = usePlanLimits();
+  const maxSeconds = maxVideoLength ?? 300;
+  const maxMinutes = Math.round(maxSeconds / 60);
   if (videoFile) {
     return (
       <div className="relative overflow-hidden rounded-2xl border border-[#E8E6E1] bg-white">
@@ -1447,7 +1451,7 @@ function VideoUploader({
         className="mt-0.5 text-[11px] text-[#A09E96] font-medium"
         style={{ fontFamily: "'DM Sans', sans-serif" }}
       >
-        MP4, MOV, or WebM (max 5 min)
+        MP4, MOV, or WebM (max {maxMinutes} min)
       </p>
       <input
         type="file"
@@ -1460,8 +1464,8 @@ function VideoUploader({
             video.preload = 'metadata';
             video.onloadedmetadata = () => {
               URL.revokeObjectURL(video.src);
-              if (video.duration > 300) {
-                alert('Video must be 5 minutes or less.');
+              if (video.duration > maxSeconds) {
+                alert(`Video must be ${maxMinutes} minutes or less.`);
               } else {
                 onAdd(f);
               }

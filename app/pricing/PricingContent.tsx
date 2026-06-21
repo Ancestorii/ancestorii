@@ -34,7 +34,7 @@ export default function PricingPage() {
 
         <h1 className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
           Share for free.<br />
-          Build for <span className="italic text-[#A9782F]">£49 a year.</span>
+          Build for <span className="italic text-[#A9782F]">£3.99 a month.</span>
         </h1>
 
         <p className="mt-6 md:mt-8 text-[15px] md:text-[17px] xl:text-[19px] leading-[1.75] text-[#4A4030] max-w-[48ch] mx-auto">
@@ -87,12 +87,12 @@ export default function PricingPage() {
             <div className="h-px bg-[#ECE5D8] mb-6" />
             <div className="space-y-3.5 flex-1">
               {[
-                { t: '5GB storage', on: true },
-                { t: '1 timeline', on: true },
-                { t: '1 album', on: true },
-                { t: '1 capsule', on: true },
+                { t: '1GB storage', on: true },
+                { t: 'Unlimited timelines', on: true },
+                { t: 'Unlimited albums', on: true },
+                { t: 'Unlimited capsules', on: true },
                 { t: '20MB max file size', on: true },
-                { t: '1 min video length', on: true },
+                { t: '5 min video length', on: true },
                 { t: 'Unlimited family profiles', on: true },
                 { t: 'Priority support', on: false },
                 { t: 'Early access to features', on: false },
@@ -118,23 +118,23 @@ export default function PricingPage() {
               My Family
             </h2>
             <div className="mt-4">
-              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#F5F1E6] leading-none" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>£49</span>
-              <span className="ml-2 text-[13px] text-[#F5F1E6]/35">/ year</span>
+              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#F5F1E6] leading-none" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>£3.99</span>
+              <span className="ml-2 text-[13px] text-[#F5F1E6]/35">/ month</span>
             </div>
             <div className="mt-2 mb-6 flex gap-3">
-              <span className="text-[12px] text-[#F5F1E6]/25">€59 / year</span>
+              <span className="text-[12px] text-[#F5F1E6]/25">€4.99 / month</span>
               <span className="text-[12px] text-[#F5F1E6]/15">·</span>
-              <span className="text-[12px] text-[#F5F1E6]/25">$69 / year</span>
+              <span className="text-[12px] text-[#F5F1E6]/25">$5.99 / month</span>
             </div>
             <div className="h-px bg-[#F5F1E6]/10 mb-6" />
             <div className="space-y-3.5 flex-1">
               {[
-                '50GB storage',
+                '100GB storage',
                 'Unlimited timelines',
                 'Unlimited albums',
                 'Unlimited capsules',
                 '10GB max file size',
-                '30 min video length',
+                '15 min video length',
                 'Unlimited family profiles',
                 'Priority support',
                 'Early access to features',

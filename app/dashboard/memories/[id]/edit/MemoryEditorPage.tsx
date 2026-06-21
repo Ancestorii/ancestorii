@@ -23,6 +23,7 @@ import {
 
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { usePlanLimits } from '@/lib/usePlanLimits';
 import StoryAssistanceCard from '@/components/StoryAssistanceCard';
 import { useQuill } from 'react-quilljs';
 import 'quill/dist/quill.snow.css';
@@ -449,6 +450,9 @@ function VoiceNoteUploader({ voiceFile, onRecord, onRemove }: { voiceFile: File 
 }
 
 function VideoUploader({ videoFile, onAdd, onRemove, isUploading }: { videoFile: PendingMedia | null; onAdd: (file: File) => void; onRemove: () => void; isUploading: boolean }) {
+  const { maxVideoLength } = usePlanLimits();
+  const maxSeconds = maxVideoLength ?? 300;
+  const maxMinutes = Math.round(maxSeconds / 60);
   if (videoFile) {
     return (
       <div className="relative overflow-hidden rounded-2xl border border-[#E8E6E1] bg-white">
@@ -464,8 +468,8 @@ function VideoUploader({ videoFile, onAdd, onRemove, isUploading }: { videoFile:
     <label className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#DDD9D2] bg-[#FDFCFA] px-5 py-8 cursor-pointer transition-all duration-200 hover:border-[#D4A017]">
       <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FBF7EE]"><Play size={18} className="text-[#B8860B] ml-0.5" /></div>
       <p className="text-[13px] font-extrabold text-[#1A1A1A]" style={{ fontFamily: "'DM Sans', sans-serif" }}>Add Video</p>
-      <p className="mt-0.5 text-[11px] text-[#A09E96] font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>MP4, MOV, or WebM (max 5 min)</p>
-      <input type="file" accept="video/mp4,video/quicktime,video/webm" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) { const video = document.createElement('video'); video.preload = 'metadata'; video.onloadedmetadata = () => { URL.revokeObjectURL(video.src); if (video.duration > 300) { alert('Video must be 5 minutes or less.'); } else { onAdd(f); } }; video.src = URL.createObjectURL(f); } e.target.value = ''; }} />
+      <p className="mt-0.5 text-[11px] text-[#A09E96] font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>MP4, MOV, or WebM (max {maxMinutes} min)</p>
+      <input type="file" accept="video/mp4,video/quicktime,video/webm" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) { const video = document.createElement('video'); video.preload = 'metadata'; video.onloadedmetadata = () => { URL.revokeObjectURL(video.src); if (video.duration > maxSeconds) { alert(`Video must be ${maxMinutes} minutes or less.`); } else { onAdd(f); } }; video.src = URL.createObjectURL(f); } e.target.value = ''; }} />
     </label>
   );
 }

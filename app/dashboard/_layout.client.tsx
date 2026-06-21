@@ -41,7 +41,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [familyMemberCount, setFamilyMemberCount] = useState(1);
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [usedStorage, setUsedStorage] = useState(0);
-  const [maxStorage, setMaxStorage] = useState(5 * 1024 ** 3);
+  const [maxStorage, setMaxStorage] = useState(1 * 1024 ** 3);
 
 
   const router = useRouter();
