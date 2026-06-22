@@ -50,6 +50,8 @@ export type StoryComment = {
   author_avatar_url: string | null;
   author_title: string | null;
   content: string;
+  /** Signed URL of a voice-note comment, when the comment is audio instead of text. */
+  voice_note_path?: string | null;
   created_at: string;
   updated_at: string;
 };

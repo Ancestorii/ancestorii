@@ -23,7 +23,7 @@ export type FeedMemory = {
   author_name: string;
   author_avatar_url: string | null;
   cover_url: string | null;
-  voice_note_path: string | null;
+  has_voice: boolean;
   reaction_count: number;
   comment_count: number;
   tab_count: number;

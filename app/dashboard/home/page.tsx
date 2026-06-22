@@ -43,7 +43,7 @@ export default async function DashboardHomePage() {
   /* ── Family memories (root only, no tabs) ── */
   const { data: memories } = await supabase
     .from('family_memories')
-    .select('id, title, body, author_id, voice_note_path, prompt_id, created_at')
+    .select('id, title, body, author_id, prompt_id, created_at')
     .is('parent_memory_id', null)
     .order('created_at', { ascending: false })
     .limit(20);
@@ -74,7 +74,7 @@ export default async function DashboardHomePage() {
       ? supabase.from('family_memory_comments').select('memory_id').in('memory_id', memoryIds)
       : { data: [] },
     memoryIds.length
-      ? supabase.from('family_memories').select('parent_memory_id').in('parent_memory_id', memoryIds)
+      ? supabase.from('family_memories').select('id, parent_memory_id').in('parent_memory_id', memoryIds)
       : { data: [] },
     authorIds.length
       ? supabase.from('Profiles').select('id, full_name, profile_image_url, avatar_url').in('id', authorIds)
@@ -98,9 +98,24 @@ export default async function DashboardHomePage() {
   });
 
   const tabMap = new Map<string, number>();
+  const childToParent = new Map<string, string>();
   (tabRows || []).forEach((t: any) => {
     tabMap.set(t.parent_memory_id, (tabMap.get(t.parent_memory_id) || 0) + 1);
+    if (t.id && t.parent_memory_id) childToParent.set(t.id, t.parent_memory_id);
   });
+
+  /* ── Voice-note presence (root memory or any of its tabs) ── */
+  const rootsWithVoice = new Set<string>();
+  const voiceTargetIds = [...memoryIds, ...childToParent.keys()];
+  if (voiceTargetIds.length) {
+    const { data: voiceRows } = await supabase
+      .from('family_memory_voice_notes')
+      .select('memory_id')
+      .in('memory_id', voiceTargetIds);
+    const voiceIds = new Set<string>((voiceRows || []).map((v) => v.memory_id as string));
+    memoryIds.forEach((id) => { if (voiceIds.has(id)) rootsWithVoice.add(id); });
+    childToParent.forEach((parentId, childId) => { if (voiceIds.has(childId)) rootsWithVoice.add(parentId); });
+  }
 
   /* ── Sign avatar URLs ── */
  const avatarMap = new Map<string, string>();
@@ -136,7 +151,7 @@ export default async function DashboardHomePage() {
       author_name: prof?.full_name || 'Family Member',
       author_avatar_url: avatarMap.get(m.author_id) || null,
       cover_url: coverUrlMap.get(m.id) || null,
-      voice_note_path: m.voice_note_path,
+      has_voice: rootsWithVoice.has(m.id),
       reaction_count: reactionMap.get(m.id) || 0,
       comment_count: commentMap.get(m.id) || 0,
       tab_count: tabMap.get(m.id) || 0,

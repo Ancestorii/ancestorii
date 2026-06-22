@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, MessageCircle, Users } from 'lucide-react';
+import { Heart, MessageCircle, Users, Mic } from 'lucide-react';
 import type { FeedMemory } from './MemoryFeed';
 
 export default function MemoryCard({ memory }: { memory: FeedMemory }) {
@@ -92,6 +92,12 @@ export default function MemoryCard({ memory }: { memory: FeedMemory }) {
           <MessageCircle size={14} strokeWidth={1.6} className="text-[#5A87A8]" fill="#5A87A8" />
             {memory.comment_count}
           </span>
+          {memory.has_voice && (
+            <span className="flex items-center gap-1.5 text-[12px] font-medium text-[#A9782F]">
+              <Mic size={14} strokeWidth={1.8} className="text-[#A9782F]" />
+              Voice
+            </span>
+          )}
         </div>
       </div>
     </Link>

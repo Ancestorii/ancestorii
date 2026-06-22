@@ -2,6 +2,17 @@ import { getServerClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import MemoryPageContent from './MemoryPageContent';
 
+export type MemoryVoiceNote = {
+  id: string;
+  memoryId: string;
+  recorderId: string;
+  recorderName: string;
+  recorderAvatarUrl: string | null;
+  url: string;
+  createdAt: string;
+  isRecorder: boolean;
+};
+
 export type MemoryTab = {
   id: string;
   title: string;
@@ -10,7 +21,7 @@ export type MemoryTab = {
   authorAvatarUrl: string | null;
   authorId: string;
   images: { url: string }[];
-  voiceNotePath: string | null;
+  voiceNotes: MemoryVoiceNote[];
   videoPath: string | null;
   createdAt: string;
   isAuthor: boolean;
@@ -21,7 +32,8 @@ export type MemoryComment = {
   user_id: string;
   author_name: string;
   author_avatar_url: string | null;
-  content: string;
+  content: string | null;
+  voice_note_path: string | null;
   created_at: string;
   parent_id: string | null;
 };
@@ -40,7 +52,7 @@ export default async function MemoryPage(props: {
   /* ── Fetch the memory ── */
   const { data: memory } = await supabase
     .from('family_memories')
-   .select('id, family_id, author_id, parent_memory_id, prompt_id, title, body, voice_note_path, video_path, created_at')
+   .select('id, family_id, author_id, parent_memory_id, prompt_id, title, body, video_path, created_at')
     .eq('id', memoryId)
     .single();
 
@@ -65,7 +77,7 @@ export default async function MemoryPage(props: {
   /* ── Fetch child memories (tabs) ── */
   const { data: childMemories } = await supabase
     .from('family_memories')
-    .select('id, author_id, title, body, voice_note_path, video_path, created_at')
+    .select('id, author_id, title, body, video_path, created_at')
     .eq('parent_memory_id', memoryId)
     .order('created_at');
 
@@ -73,8 +85,8 @@ export default async function MemoryPage(props: {
   const allMemoryIds = allMemoryRows.map((m) => m.id);
   const allAuthorIds = [...new Set(allMemoryRows.map((m) => m.author_id))];
 
-  /* ── Batch fetch: media, profiles ── */
-  const [{ data: allMedia }, { data: authorProfiles }] = await Promise.all([
+  /* ── Batch fetch: media (images) + voice notes (keyed by memory id) ── */
+  const [{ data: allMedia }, { data: allVoiceNotes }] = await Promise.all([
     supabase
       .from('family_memory_media')
       .select('memory_id, file_path, file_type, display_order')
@@ -82,10 +94,18 @@ export default async function MemoryPage(props: {
       .eq('file_type', 'image')
       .order('display_order'),
     supabase
-      .from('Profiles')
-      .select('id, full_name, profile_image_url, avatar_url')
-      .in('id', allAuthorIds),
+      .from('family_memory_voice_notes')
+      .select('id, memory_id, user_id, file_path, created_at')
+      .in('memory_id', allMemoryIds)
+      .order('created_at'),
   ]);
+
+  /* ── Profiles for memory authors AND voice-note recorders ── */
+  const allProfileIds = [...new Set([...allAuthorIds, ...(allVoiceNotes || []).map((v) => v.user_id)])];
+  const { data: authorProfiles } = await supabase
+    .from('Profiles')
+    .select('id, full_name, profile_image_url, avatar_url')
+    .in('id', allProfileIds);
 
   /* ── Sign all URLs ── */
   const mediaByMemory = new Map<string, string[]>();
@@ -102,8 +122,8 @@ export default async function MemoryPage(props: {
   });
 
   const avatarMap = new Map<string, string>();
-  const voiceNoteUrlMap = new Map<string, string>();
   const videoUrlMap = new Map<string, string>();
+  const voiceNoteSignedMap = new Map<string, string>(); // voice note id -> signed url
 
   await Promise.all([
     ...(authorProfiles || []).map(async (p: any) => {
@@ -113,9 +133,9 @@ export default async function MemoryPage(props: {
       const { data: signed } = await supabase.storage.from('user-media').createSignedUrl(imgPath, 3600);
       if (signed?.signedUrl) avatarMap.set(p.id, signed.signedUrl);
     }),
-    ...allMemoryRows.filter((m) => m.voice_note_path).map(async (m) => {
-      const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(m.voice_note_path, 3600);
-      if (signed?.signedUrl) voiceNoteUrlMap.set(m.id, signed.signedUrl);
+    ...(allVoiceNotes || []).map(async (v) => {
+      const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(v.file_path, 3600);
+      if (signed?.signedUrl) voiceNoteSignedMap.set(v.id, signed.signedUrl);
     }),
     ...allMemoryRows.filter((m) => m.video_path).map(async (m) => {
       const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(m.video_path, 3600);
@@ -127,6 +147,25 @@ export default async function MemoryPage(props: {
   const profileMap = new Map<string, string>();
   (authorProfiles || []).forEach((p: any) => profileMap.set(p.id, p.full_name || 'Family Member'));
 
+  /* ── Group voice notes per memory (per tab) ── */
+  const voiceNotesByMemory = new Map<string, MemoryVoiceNote[]>();
+  (allVoiceNotes || []).forEach((v) => {
+    const url = voiceNoteSignedMap.get(v.id);
+    if (!url) return;
+    const note: MemoryVoiceNote = {
+      id: v.id,
+      memoryId: v.memory_id,
+      recorderId: v.user_id,
+      recorderName: profileMap.get(v.user_id) || 'Family Member',
+      recorderAvatarUrl: avatarMap.get(v.user_id) || null,
+      url,
+      createdAt: v.created_at,
+      isRecorder: v.user_id === user.id,
+    };
+    if (!voiceNotesByMemory.has(v.memory_id)) voiceNotesByMemory.set(v.memory_id, []);
+    voiceNotesByMemory.get(v.memory_id)!.push(note);
+  });
+
   const tabs: MemoryTab[] = allMemoryRows.map((m) => ({
     id: m.id,
     title: m.title,
@@ -135,7 +174,7 @@ export default async function MemoryPage(props: {
     authorAvatarUrl: avatarMap.get(m.author_id) || null,
     authorId: m.author_id,
     images: (mediaByMemory.get(m.id) || []).map((url) => ({ url })),
-    voiceNotePath: voiceNoteUrlMap.get(m.id) || null,
+    voiceNotes: voiceNotesByMemory.get(m.id) || [],
     videoPath: videoUrlMap.get(m.id) || null,
     createdAt: m.created_at,
     isAuthor: m.author_id === user.id,
@@ -157,7 +196,7 @@ export default async function MemoryPage(props: {
   /* ── Comments ── */
   const { data: commentsData } = await supabase
     .from('family_memory_comments')
-    .select('id, user_id, author_name, author_avatar_url, content, created_at, parent_id')
+    .select('id, user_id, author_name, author_avatar_url, content, voice_note_path, created_at, parent_id')
     .eq('memory_id', memoryId)
     .order('created_at');
 
@@ -168,9 +207,14 @@ export default async function MemoryPage(props: {
         const { data: signed } = await supabase.storage.from('user-media').createSignedUrl(avatarUrl, 3600);
         avatarUrl = signed?.signedUrl || null;
       }
+      let voiceUrl: string | null = null;
+      if (c.voice_note_path) {
+        const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(c.voice_note_path, 3600);
+        voiceUrl = signed?.signedUrl || null;
+      }
       return {
         id: c.id, user_id: c.user_id, author_name: c.author_name,
-        author_avatar_url: avatarUrl, content: c.content,
+        author_avatar_url: avatarUrl, content: c.content, voice_note_path: voiceUrl,
         created_at: c.created_at, parent_id: c.parent_id,
       };
     })

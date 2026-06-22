@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import type { StoryComment } from '@/lib/stories/types';
+import VoiceNotePlayer from '@/components/voice/VoiceNotePlayer';
 
 export default function CommentItem({
   authorName,
   authorAvatarUrl,
   authorTitle,
   content,
+  voiceNoteUrl,
   createdAt,
   isOwn,
   onDelete,
@@ -22,6 +24,7 @@ export default function CommentItem({
   authorAvatarUrl: string | null;
   authorTitle?: string | null;
   content: string;
+  voiceNoteUrl?: string | null;
   createdAt: string;
   isOwn?: boolean;
   onDelete?: () => void;
@@ -72,7 +75,11 @@ export default function CommentItem({
                 </div>
               )}
             </div>
-           <p className="mt-1 text-[14px] lg:text-[15px] leading-[1.75] text-[#2E2820]">{content}</p>
+           {voiceNoteUrl ? (
+              <div className="mt-2"><VoiceNotePlayer src={voiceNoteUrl} compact showDownload={false} /></div>
+            ) : (
+              <p className="mt-1 text-[14px] lg:text-[15px] leading-[1.75] text-[#2E2820]">{content}</p>
+            )}
           </div>
 
           {isTopLevel && onReply && (
@@ -138,7 +145,11 @@ function ReplyItem({ reply, isOwn, onDelete }: { reply: StoryComment; isOwn: boo
               </div>
             )}
           </div>
-          <p className="mt-0.5 text-[13px] leading-[1.7] text-[#2E2820]">{reply.content}</p>
+          {reply.voice_note_path ? (
+            <div className="mt-1.5"><VoiceNotePlayer src={reply.voice_note_path} compact showDownload={false} /></div>
+          ) : (
+            <p className="mt-0.5 text-[13px] leading-[1.7] text-[#2E2820]">{reply.content}</p>
+          )}
         </div>
       </div>
     </div>

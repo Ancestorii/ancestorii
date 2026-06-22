@@ -8,13 +8,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
-  Pause,
   Mic,
   Heart,
   MessageCircle,
   Users,
   Plus,
-  Download,
   ImagePlus,
   ImageIcon,
   X,
@@ -30,7 +28,9 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { ensureDisplayableImage } from '@/lib/convertImage';
 import CommentItem from '@/components/stories/comments/CommentItem';
 import CommentInput from '@/components/stories/comments/CommentInput';
-import type { MemoryTab, MemoryComment } from './page';
+import VoiceNotePlayer from '@/components/voice/VoiceNotePlayer';
+import VoiceRecorder from '@/components/voice/VoiceRecorder';
+import type { MemoryTab, MemoryComment, MemoryVoiceNote } from './page';
 
 type PendingPhoto = { id: string; file: File; preview: string };
 
@@ -73,7 +73,14 @@ export default function MemoryPageContent({
   const [comments, setComments] = useState(initialComments);
   const [replyingTo, setReplyingTo] = useState<{ id: string; name: string } | null>(null);
 
+  const [voiceNotesByTab, setVoiceNotesByTab] = useState<Record<string, MemoryVoiceNote[]>>(
+    () => Object.fromEntries(tabs.map((t) => [t.id, t.voiceNotes]))
+  );
+  const [addingVoiceNote, setAddingVoiceNote] = useState(false);
+  const [recordingComment, setRecordingComment] = useState(false);
+
   const activeTab = tabs[activeTabIndex] || tabs[0];
+  const activeVoiceNotes = voiceNotesByTab[activeTab.id] || [];
   const initials = activeTab.authorName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const dateLabel = activeTab.createdAt
     ? new Date(activeTab.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -132,18 +139,78 @@ export default function MemoryPageContent({
 
   const fetchComments = async () => {
     const supabase = getBrowserClient();
-    const { data } = await supabase.from('family_memory_comments').select('id, user_id, author_name, author_avatar_url, content, created_at, parent_id').eq('memory_id', memoryId).order('created_at');
+    const { data } = await supabase.from('family_memory_comments').select('id, user_id, author_name, author_avatar_url, content, voice_note_path, created_at, parent_id').eq('memory_id', memoryId).order('created_at');
     if (data) {
-      const withSignedAvatars = await Promise.all(
+      const signed = await Promise.all(
         data.map(async (c) => {
-          if (c.author_avatar_url && !c.author_avatar_url.startsWith('http')) {
-            const { data: s } = await supabase.storage.from('user-media').createSignedUrl(c.author_avatar_url, 3600);
-            return { ...c, author_avatar_url: s?.signedUrl || null };
+          let author_avatar_url = c.author_avatar_url;
+          if (author_avatar_url && !author_avatar_url.startsWith('http')) {
+            const { data: s } = await supabase.storage.from('user-media').createSignedUrl(author_avatar_url, 3600);
+            author_avatar_url = s?.signedUrl || null;
           }
-          return c;
+          let voice_note_path: string | null = null;
+          if (c.voice_note_path) {
+            const { data: s } = await supabase.storage.from('memory-media').createSignedUrl(c.voice_note_path, 3600);
+            voice_note_path = s?.signedUrl || null;
+          }
+          return { ...c, author_avatar_url, voice_note_path };
         })
       );
-      setComments(withSignedAvatars);
+      setComments(signed);
+    }
+  };
+
+  const handleVoiceComment = async (file: File) => {
+    const supabase = getBrowserClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('You must be signed in.');
+    const { data: profile } = await supabase.from('Profiles').select('full_name, profile_image_url, avatar_url').eq('id', user.id).single();
+    const avatarPath = profile?.profile_image_url || profile?.avatar_url || null;
+    const path = `${user.id}/${memoryId}/comment-voice-${Date.now()}.webm`;
+    const { error: upErr } = await supabase.storage.from('memory-media').upload(path, file, { contentType: file.type || 'audio/webm', upsert: true });
+    if (upErr) throw upErr;
+    const { error } = await supabase.from('family_memory_comments').insert({ memory_id: memoryId, family_id: familyId, user_id: user.id, author_name: profile?.full_name || 'Family Member', author_avatar_url: avatarPath, content: null, voice_note_path: path, parent_id: replyingTo?.id || null });
+    if (error) throw error;
+    const memoryAuthorId = tabs[0]?.authorId;
+    if (memoryAuthorId && memoryAuthorId !== user.id) {
+      try { await supabase.from('notifications').insert({ user_id: memoryAuthorId, type: 'memory_comment', actor_id: user.id, target_id: memoryId, target_type: 'family_memory' }); } catch {}
+    }
+    await fetchComments();
+    setReplyingTo(null);
+    setRecordingComment(false);
+  };
+
+  const handleAddVoiceNote = async (file: File) => {
+    const supabase = getBrowserClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('You must be signed in.');
+    const targetId = activeTab.id;
+    const path = `${user.id}/${targetId}/voice-${Date.now()}.webm`;
+    const { error: upErr } = await supabase.storage.from('memory-media').upload(path, file, { contentType: file.type || 'audio/webm', upsert: true });
+    if (upErr) throw upErr;
+    const { data: row, error: insErr } = await supabase.from('family_memory_voice_notes').insert({ memory_id: targetId, family_id: familyId, user_id: user.id, file_path: path }).select('id, created_at').single();
+    if (insErr) throw insErr;
+    const { data: profile } = await supabase.from('Profiles').select('full_name, profile_image_url, avatar_url').eq('id', user.id).single();
+    let avatarUrl = profile?.profile_image_url || profile?.avatar_url || null;
+    if (avatarUrl && !avatarUrl.startsWith('http')) {
+      const { data: s } = await supabase.storage.from('user-media').createSignedUrl(avatarUrl, 3600);
+      avatarUrl = s?.signedUrl || null;
+    }
+    const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(path, 3600);
+    const newNote: MemoryVoiceNote = {
+      id: row.id, memoryId: targetId, recorderId: user.id,
+      recorderName: profile?.full_name || 'Family Member', recorderAvatarUrl: avatarUrl,
+      url: signed?.signedUrl || '', createdAt: row.created_at, isRecorder: true,
+    };
+    setVoiceNotesByTab((prev) => ({ ...prev, [targetId]: [...(prev[targetId] || []), newNote] }));
+    setAddingVoiceNote(false);
+  };
+
+  const handleDeleteVoiceNote = async (noteId: string) => {
+    const supabase = getBrowserClient();
+    const { error } = await supabase.from('family_memory_voice_notes').delete().eq('id', noteId);
+    if (!error) {
+      setVoiceNotesByTab((prev) => ({ ...prev, [activeTab.id]: (prev[activeTab.id] || []).filter((n) => n.id !== noteId) }));
     }
   };
 
@@ -181,7 +248,7 @@ export default function MemoryPageContent({
   });
 
   const mapToStoryComment = (c: MemoryComment) => ({
-    id: c.id, story_id: memoryId, user_id: c.user_id, author_name: c.author_name, author_avatar_url: c.author_avatar_url, author_title: null, content: c.content, created_at: c.created_at, updated_at: c.created_at, parent_id: c.parent_id,
+    id: c.id, story_id: memoryId, user_id: c.user_id, author_name: c.author_name, author_avatar_url: c.author_avatar_url, author_title: null, content: c.content || '', voice_note_path: c.voice_note_path, created_at: c.created_at, updated_at: c.created_at, parent_id: c.parent_id,
   });
 
   return (
@@ -326,7 +393,30 @@ export default function MemoryPageContent({
                     </div>
                   </div>
                 )}
-               {activeTab.voiceNotePath && (<div className="mt-12"><VoiceNotePlayer src={activeTab.voiceNotePath} /></div>)}
+                {/* ═══ VOICE NOTES ═══ */}
+                <div className="mt-12">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Mic size={13} className="text-[#A9782F]" strokeWidth={1.8} />
+                    <span className="text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.14em] text-[#A9782F]">
+                      {activeVoiceNotes.length > 0 ? `Voice Notes · ${activeVoiceNotes.length}` : 'Voice Notes'}
+                    </span>
+                  </div>
+                  {activeVoiceNotes.length > 0 && (
+                    <div className="space-y-3 mb-4">
+                      {activeVoiceNotes.map((note) => (
+                        <MemoryVoiceNoteItem key={note.id} note={note} onDelete={() => handleDeleteVoiceNote(note.id)} />
+                      ))}
+                    </div>
+                  )}
+                  {addingVoiceNote ? (
+                    <VoiceRecorder onSubmit={handleAddVoiceNote} onCancel={() => setAddingVoiceNote(false)} allowUpload />
+                  ) : (
+                    <button onClick={() => setAddingVoiceNote(true)} className="w-full flex items-center justify-center gap-2.5 py-3.5 border-2 border-dashed border-[#DCC7A4] bg-[#FFFDF9] text-[13px] font-semibold text-[#A9782F] transition-all hover:border-[#C8A557] hover:bg-[#FBF7EE]">
+                      <Mic size={16} strokeWidth={1.8} />
+                      Add a voice note
+                    </button>
+                  )}
+                </div>
                 {tabs[0]?.authorId !== currentUserId && (
                   <div className="mt-10 pt-8 border-t border-[#F0EBE3]">
                     <button onClick={() => setShowAddModal(true)} className="w-full flex items-center justify-center gap-3 py-4 border-2 border-dashed border-[#DCC7A4] bg-[#FFFDF9] text-[14px] font-semibold text-[#A9782F] transition-all hover:border-[#C8A557] hover:bg-[#FBF7EE]"><Plus size={18} strokeWidth={1.8} />Add your memory of this moment</button>
@@ -337,13 +427,22 @@ export default function MemoryPageContent({
                   {topLevelComments.length > 0 && (
                     <div className="space-y-4">
                       {topLevelComments.map((comment) => (
-                        <CommentItem key={comment.id} authorName={comment.author_name} authorAvatarUrl={comment.author_avatar_url} content={comment.content} createdAt={comment.created_at} isOwn={currentUserId === comment.user_id} onDelete={() => handleCommentDelete(comment.id)} isTopLevel onReply={() => setReplyingTo({ id: comment.id, name: comment.author_name })} replies={(repliesByParent.get(comment.id) || []).map(mapToStoryComment)} currentUserId={currentUserId} onDeleteReply={(id) => handleCommentDelete(id)} />
+                        <CommentItem key={comment.id} authorName={comment.author_name} authorAvatarUrl={comment.author_avatar_url} content={comment.content || ''} voiceNoteUrl={comment.voice_note_path} createdAt={comment.created_at} isOwn={currentUserId === comment.user_id} onDelete={() => handleCommentDelete(comment.id)} isTopLevel onReply={() => setReplyingTo({ id: comment.id, name: comment.author_name })} replies={(repliesByParent.get(comment.id) || []).map(mapToStoryComment)} currentUserId={currentUserId} onDeleteReply={(id) => handleCommentDelete(id)} />
                       ))}
                     </div>
                   )}
                   <div className={topLevelComments.length > 0 ? 'mt-5' : ''}>
                     {replyingTo && (<div className="flex items-center justify-between mb-2 px-1"><p className="text-[12px] text-[#A9782F]">Replying to <span className="font-semibold">{replyingTo.name}</span></p><button onClick={() => setReplyingTo(null)} className="text-[11px] font-medium text-[#9B8E7D] hover:text-[#6F6255] transition">Cancel</button></div>)}
-                    <CommentInput onSubmit={handleCommentSubmit} isLoggedIn={true} />
+                    {recordingComment ? (
+                      <VoiceRecorder onSubmit={handleVoiceComment} onCancel={() => setRecordingComment(false)} compact />
+                    ) : (
+                      <div className="flex gap-2 items-center">
+                        <div className="flex-1 min-w-0"><CommentInput onSubmit={handleCommentSubmit} isLoggedIn={true} /></div>
+                        <button onClick={() => setRecordingComment(true)} className="flex h-[48px] w-[48px] flex-shrink-0 items-center justify-center rounded-[12px] border text-[#A9782F] transition hover:bg-[#FBF7EE]" style={{ borderColor: '#DCC7A4' }} aria-label="Record a voice note" title="Record a voice note">
+                          <Mic size={18} strokeWidth={1.8} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -433,30 +532,33 @@ function EmptyImagePlaceholder() {
   );
 }
 
-function VoiceNotePlayer({ src }: { src: string }) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const barCount = 48;
-  const [bars] = useState(() => Array.from({ length: barCount }, () => 0.2 + Math.random() * 0.8));
-  const toggle = () => { const el = audioRef.current; if (!el) return; playing ? el.pause() : el.play(); setPlaying(!playing); };
-  const seek = (e: React.MouseEvent<HTMLDivElement>) => { const el = audioRef.current; if (!el || !duration) return; const rect = e.currentTarget.getBoundingClientRect(); const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)); el.currentTime = pct * duration; };
-  const fmt = (s: number) => `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
-  const pPct = duration > 0 ? progress / duration : 0;
+function MemoryVoiceNoteItem({ note, onDelete }: { note: MemoryVoiceNote; onDelete: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const initials = note.recorderName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  const dateLabel = new Date(note.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <div className="border border-[#EDE8DF] bg-[#FEFDFB] transition-shadow duration-300 hover:shadow-[0_2px_12px_rgba(169,120,47,0.08)]">
-      <audio ref={audioRef} src={src} preload="metadata" onTimeUpdate={(e) => setProgress((e.target as HTMLAudioElement).currentTime)} onLoadedMetadata={(e) => setDuration((e.target as HTMLAudioElement).duration)} onEnded={() => setPlaying(false)} />
-      <div className="px-5 py-4 sm:px-6 sm:py-5">
-        <div className="flex items-center gap-2 mb-4"><Mic size={13} className="text-[#A9782F]" strokeWidth={1.8} /><span className="text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.14em] text-[#A9782F]">Voice Note</span></div>
-        <div className="flex items-center gap-4">
-          <button onClick={toggle} className="flex h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] flex-shrink-0 items-center justify-center text-white transition-transform duration-200 hover:scale-105 active:scale-95" style={{ background: 'linear-gradient(135deg, #D8BE8B 0%, #A9782F 100%)' }} aria-label={playing ? 'Pause' : 'Play'}>{playing ? <Pause size={18} strokeWidth={2.2} /> : <Play size={18} strokeWidth={2.2} className="ml-0.5" />}</button>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-end gap-[2px] h-[36px] cursor-pointer" onClick={seek} role="slider" aria-valuenow={Math.round(pPct * 100)} aria-valuemin={0} aria-valuemax={100}>{bars.map((h, i) => (<div key={i} className="flex-1 transition-colors duration-150" style={{ height: `${h * 100}%`, minWidth: '2px', backgroundColor: i / barCount <= pPct ? '#A9782F' : '#DDD6CC' }} />))}</div>
-            <div className="mt-2 flex justify-between text-[10px] sm:text-[11px] text-[#9C9488] tabular-nums"><span>{fmt(progress)}</span><span>{fmt(duration)}</span></div>
+      <div className="px-4 py-3.5 sm:px-5 sm:py-4">
+        <div className="flex items-center gap-3 mb-3">
+          <AuthorAvatar avatarUrl={note.recorderAvatarUrl} name={note.recorderName} initials={initials} size={32} />
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold text-[#1A1612] truncate">{note.recorderName}</p>
+            <p className="text-[11px] text-[#9C9488]">{dateLabel}</p>
           </div>
-          <a href={src} download className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-[#9C9488] transition-colors duration-200 hover:text-[#A9782F]" aria-label="Download voice note"><Download size={16} strokeWidth={1.6} /></a>
+          {note.isRecorder && (
+            <div className="ml-auto flex-shrink-0">
+              {confirming ? (
+                <div className="flex items-center gap-2">
+                  <button onClick={onDelete} className="text-[11px] font-semibold text-[#DC2626] hover:text-[#B91C1C] transition">Delete</button>
+                  <button onClick={() => setConfirming(false)} className="text-[11px] font-medium text-[#9B8E7D] hover:text-[#6F6255] transition">Cancel</button>
+                </div>
+              ) : (
+                <button onClick={() => setConfirming(true)} className="flex h-8 w-8 items-center justify-center text-[#9C9488] hover:text-[#DC2626] transition" aria-label="Delete voice note"><Trash2 size={14} strokeWidth={1.8} /></button>
+              )}
+            </div>
+          )}
         </div>
+        <VoiceNotePlayer src={note.url} />
       </div>
     </div>
   );
