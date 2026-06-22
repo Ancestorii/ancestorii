@@ -383,3 +383,8 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+# Invoked by the trg_convert_voice_note storage trigger (pg_net). It authenticates
+# with the x-voice-convert-secret shared secret, not a JWT.
+[functions.convert-voice-on-upload]
+verify_jwt = false
