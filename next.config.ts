@@ -19,6 +19,21 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'wekebqaooixjngznycnm.supabase.co' },
     ],
   },
+  // App-link verification files are served from public/.well-known/. Apple requires the
+  // extension-less apple-app-site-association to be returned as application/json; force it
+  // here (assetlinks.json gets it from its extension, but set it explicitly too).
+  async headers() {
+    return [
+      {
+        source: '/.well-known/apple-app-site-association',
+        headers: [{ key: 'Content-Type', value: 'application/json' }],
+      },
+      {
+        source: '/.well-known/assetlinks.json',
+        headers: [{ key: 'Content-Type', value: 'application/json' }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
