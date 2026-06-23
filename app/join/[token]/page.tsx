@@ -106,7 +106,7 @@ export default function JoinPage() {
         return;
       }
 
-      router.replace('/dashboard/home');
+      router.replace('/dashboard/our-family');
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
       setJoining(false);
@@ -157,7 +157,7 @@ export default function JoinPage() {
         console.error('Join after signup failed:', joinData.error);
       }
 
-      router.replace('/dashboard/home');
+      router.replace('/dashboard/our-family');
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
       setLoading(false);

@@ -92,7 +92,7 @@ export default function InvitePage() {
       await new Promise((res) => setTimeout(res, 200));
 
       // Redirect to dashboard
-      router.replace('/dashboard/home');
+      router.replace('/dashboard/our-family');
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
       setLoading(false);
