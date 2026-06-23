@@ -243,7 +243,7 @@ function generatePlainText(
 ${creatorName} just ${activity.action}.
 
 Head to your family library to see what's new:
-https://ancestorii.com/dashboard/home
+https://ancestorii.com/dashboard/our-family
 
 Every family has a story worth keeping.
 
@@ -311,7 +311,7 @@ function generateActivityEmail(
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
                 <tr>
                   <td align="center" style="background-color:#16120c;">
-                    <a href="https://ancestorii.com/dashboard/home" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
+                    <a href="https://ancestorii.com/dashboard/our-family" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
                       View Your Library
                     </a>
                   </td>

@@ -48,13 +48,6 @@ export default function NotificationDropdown({
       onCountUpdate(notifications.filter((n) => !n.is_read && n.id !== notification.id).length);
     }
 
-    // ── Prompt received → navigate to answer page ──
-    if (notification.type === 'prompt_received' && notification.target_id) {
-      router.push(`/answer/${notification.target_id}`);
-      onClose();
-      return;
-    }
-
     // ── Memory notifications → navigate to memory page ──
     if (MEMORY_TYPES.includes(notification.type) && notification.target_id) {
       router.push(`/dashboard/memories/${notification.target_id}`);

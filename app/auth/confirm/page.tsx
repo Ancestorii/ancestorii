@@ -17,7 +17,7 @@ useEffect(() => {
       await supabase.auth.exchangeCodeForSession(window.location.href);
 
     if (data?.session) {
-      router.replace('/dashboard/home');
+      router.replace('/dashboard/our-family');
     } else {
       router.replace('/login');
     }

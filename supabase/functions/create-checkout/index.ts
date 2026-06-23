@@ -84,7 +84,7 @@ serve(async (req) => {
         ? returnPathRaw
         : "/dashboard/plans";
 
-    const successUrl = `${SITE}/dashboard/home?success=true`;
+    const successUrl = `${SITE}/dashboard/plans?success=true`;
     const cancelUrl = `${SITE}${returnPath}?canceled=true`;
 
     const session = await stripe.checkout.sessions.create({

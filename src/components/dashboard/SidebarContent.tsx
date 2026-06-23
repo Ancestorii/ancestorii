@@ -10,7 +10,6 @@ import {
 } from '@/lib/dashboardNavigation';
 import NavItem from '@/components/dashboard/NavItem';
 import {
-  Home,
   User as UserIcon,
   Users,
   X,
@@ -98,7 +97,6 @@ export default function SidebarContent({
         {/* ─── NAVIGATION ─── */}
         <nav className="flex-1 overflow-y-auto px-[12px] pt-[28px] pb-4 sidebar-scroll" data-lenis-prevent>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <NavItem href="/dashboard/home" label="Family Feed" Icon={Home} onClick={closeDrawer} />
             <NavItem href="/dashboard/our-family" label="My Family" Icon={Users} onClick={closeDrawer} />
 
             {sections.map((section) => {

@@ -165,7 +165,7 @@ You're now part of ${familyName} on Ancestorii — a private space where your fa
 You can start exploring right away: browse what's already there, add your own photos and stories, and help build something that lasts.
 
 Head to your family library:
-https://ancestorii.com/dashboard/home
+https://ancestorii.com/dashboard/our-family
 
 Every family has a story worth keeping.
 
@@ -226,7 +226,7 @@ function generateWelcomeEmail(name: string, familyName: string): string {
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
                 <tr>
                   <td align="center" style="background-color:#16120c;">
-                    <a href="https://ancestorii.com/dashboard/home" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
+                    <a href="https://ancestorii.com/dashboard/our-family" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
                       Explore Your Library
                     </a>
                   </td>

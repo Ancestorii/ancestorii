@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { User as UserIcon, PenLine, MessageSquarePlus } from 'lucide-react';
+import { User as UserIcon, PenLine } from 'lucide-react';
 
 export default function FamilyHeader({
   familyName,
@@ -70,13 +70,6 @@ export default function FamilyHeader({
             {/* Right — CTAs */}
             <div className="flex items-center gap-3 flex-shrink-0 pb-1">
   <button
-    onClick={() => router.push('/dashboard/prompts')}
-    className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold text-[#4A4030] border border-[#DDD6C8] bg-white transition-all hover:border-[#B8932A] hover:text-[#B8932A]"
-  >
-    <MessageSquarePlus size={15} className="text-[#B8932A]" />
-    Ask a question
-  </button>
-  <button
     onClick={() => router.push('/dashboard/memories/create')}
     className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold text-white transition-all hover:shadow-lg active:scale-[0.98]"
     style={{ background: 'linear-gradient(135deg, #B8932A 0%, #C8A557 100%)' }}
@@ -109,13 +102,6 @@ export default function FamilyHeader({
           </div>
           {/* CTAs */}
           <div className="mt-3 flex items-center gap-2.5">
-            <button
-              onClick={() => router.push('/dashboard/prompts')}
-              className="flex items-center gap-1.5 px-4 py-2 text-[12px] font-semibold text-[#4A4030] border border-[#DDD6C8] bg-white transition-all hover:border-[#B8932A]"
-            >
-              <MessageSquarePlus size={14} className="text-[#B8932A]" />
-              Ask a question
-            </button>
             <button
               onClick={() => router.push('/dashboard/memories/create')}
               className="flex items-center gap-1.5 px-4 py-2 text-[12px] font-semibold text-white transition-all active:scale-[0.98]"

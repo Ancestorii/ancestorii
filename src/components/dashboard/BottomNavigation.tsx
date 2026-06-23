@@ -62,19 +62,6 @@ const goHome = () => {};
 
           <div className="flex items-center gap-0.5">
 
-            {/* HOME */}
-            <Link
-              href="/dashboard/home"
-              onClick={goHome}
-              className={`flex items-center justify-center h-9 w-9 rounded-full transition-all active:scale-90
-              ${active === 'home' ? "bg-[#0F1A2E]" : "hover:bg-black/5"}`}
-            >
-              <Home
-                className={`h-[17px] w-[17px] ${active === 'home' ? "text-[#D4AF37]" : "text-slate-700"}`}
-                strokeWidth={1.8}
-              />
-            </Link>
-
             {/* OUR FAMILY */}
             <Link
               href="/dashboard/our-family"

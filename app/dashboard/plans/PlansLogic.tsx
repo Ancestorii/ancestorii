@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast } from '@/lib/safeToast';
 import PlansClient from './PlansClient';
 
 type PlanName = 'Free' | 'Premium';
@@ -43,10 +44,14 @@ export default function PlansLogic() {
     if (typeof window === 'undefined') return;
 
     const url = new URL(window.location.href);
-    if (url.searchParams.get('success') || url.searchParams.get('canceled')) {
+    const paidSuccess = url.searchParams.get('success');
+    if (paidSuccess || url.searchParams.get('canceled')) {
       url.searchParams.delete('success');
       url.searchParams.delete('canceled');
       window.history.replaceState({}, '', url.toString());
+    }
+    if (paidSuccess) {
+      safeToast.success("Payment successful — you're on Premium.");
     }
   }, []);
 

@@ -11,5 +11,5 @@ export async function postAuthRedirect(router: {
 
   if (!session) return;
 
-  router.replace('/dashboard/home');
+  router.replace('/dashboard/our-family');
 }

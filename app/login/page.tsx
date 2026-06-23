@@ -56,7 +56,7 @@ export default function LoginPage() {
       } else {
         const searchParams = new URLSearchParams(window.location.search);
         const redirectTo = searchParams.get('redirect');
-        router.replace(redirectTo || '/dashboard/home');
+        router.replace(redirectTo || '/dashboard/our-family');
       }
     } catch (err: any) {
       const message = err?.message ?? "";

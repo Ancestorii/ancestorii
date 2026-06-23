@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     // ── Build memory URL ──
     const memoryUrl = record.response_memory_id
       ? `${SITE_URL}/dashboard/memories/${record.response_memory_id}`
-      : `${SITE_URL}/dashboard/home`;
+      : `${SITE_URL}/dashboard/our-family`;
 
     // ── Send email to sender ──
     const res = await fetch("https://api.resend.com/emails", {

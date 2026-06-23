@@ -97,7 +97,7 @@ export default function AuthCallback() {
 
       if (inviteToken || joinToken) {
         // Invited users skip onboarding — feed already has content
-        router.replace('/dashboard/home');
+        router.replace('/dashboard/our-family');
       } else {
         // Everyone else: check onboarding
         const { data: profile } = await supabase
@@ -109,7 +109,7 @@ export default function AuthCallback() {
         if (!profile?.onboarding_complete) {
           router.replace('/onboarding/first-memory');
         } else {
-          router.replace(postLoginRedirect || '/dashboard/home');
+          router.replace(postLoginRedirect || '/dashboard/our-family');
         }
       }
     };

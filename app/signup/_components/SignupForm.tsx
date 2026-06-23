@@ -153,7 +153,7 @@ export default function SignupForm() {
       await new Promise((res) => setTimeout(res, 200));
 
       // Invited users go straight to dashboard, new users write first memory
-      router.replace(hadInvite ? '/dashboard/home' : '/onboarding/first-memory');
+      router.replace(hadInvite ? '/dashboard/our-family' : '/onboarding/first-memory');
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
       setLoading(false);

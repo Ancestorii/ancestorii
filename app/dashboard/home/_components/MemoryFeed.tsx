@@ -59,7 +59,7 @@ export default function MemoryFeed({
               <span className="italic text-[#A9782F]">start here.</span>
             </h3>
             <p className="mt-3 text-[14px] text-[#7D6F5F] leading-relaxed">
-              Write a memory or send a question to a family member.
+              Write a memory to get started.
             </p>
             <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
               <button
@@ -68,12 +68,6 @@ export default function MemoryFeed({
                 style={{ background: 'linear-gradient(135deg, #B8932A 0%, #C8A557 100%)' }}
               >
                 Write a memory
-              </button>
-              <button
-                onClick={() => router.push('/dashboard/prompts')}
-                className="px-5 py-2.5 text-[13px] font-semibold text-[#4A4030] border border-[#ECE5D8] transition-all hover:border-[#B8932A]"
-              >
-                Ask a question
               </button>
             </div>
           </div>

@@ -256,7 +256,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     if (!hydrated) return;
     if (typeof window !== 'undefined') {
       const path = window.location.pathname;
-      if (path === '/dashboard') router.replace('/dashboard/home');
+      if (path === '/dashboard') router.replace('/dashboard/our-family');
     }
   }, [router, hydrated]);
 
