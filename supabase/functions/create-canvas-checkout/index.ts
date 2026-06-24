@@ -305,7 +305,7 @@ serve(async (req) => {
           },
         });
         rewardCouponId = coupon.id;
-      } catch (_mintErr) {
+      } catch {
         await supabase.rpc("release_reward_code", { p_code: rewardCode, p_order_ref: order.id });
         await supabase.from("canvas_orders").delete().eq("id", order.id);
         throw new Error("Could not apply reward discount");

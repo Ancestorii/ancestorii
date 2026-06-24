@@ -307,7 +307,7 @@ serve(async (req) => {
           },
         });
         rewardCouponId = coupon.id;
-      } catch (_mintErr) {
+      } catch {
         // Roll the redemption back so the code is reusable, then drop the order.
         await supabase.rpc("release_reward_code", { p_code: rewardCode, p_order_ref: order.id });
         await supabase.from("orders").delete().eq("id", order.id);
