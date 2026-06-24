@@ -752,7 +752,7 @@ export default function CreateBookDrawer({
                 <ul className="mt-4 space-y-1.5 pl-4 text-xs leading-relaxed text-[#7A6520] list-disc">
   <li>Printed hardcover with matte finish</li>
   <li>200gsm premium gloss pages</li>
-  <li className="font-semibold text-[#14213D]">Free worldwide shipping</li>
+  <li className="font-semibold text-[#14213D]">Standard or Express shipping at checkout</li>
 </ul>
               </div>
             </div>

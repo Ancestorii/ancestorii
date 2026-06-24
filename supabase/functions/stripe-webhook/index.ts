@@ -65,6 +65,46 @@ async function resolveContact(
   return { email: null, name: fallbackName ?? "" };
 }
 
+// ── Derive the SELECTED shipping method + the real amounts from the session ──
+// Every order now charges shipping, so the old `amount_total > 0 → Express` inference
+// is wrong. Read the actual chosen shipping rate's display_name (Standard vs Express)
+// by expanding shipping_cost.shipping_rate, with an amount-based fallback only if the
+// expand fails. Also returns what was actually charged (total) and the shipping fee.
+async function deriveShippingInfo(
+  stripe: Stripe,
+  session: Stripe.Checkout.Session,
+): Promise<{ method: string; shippingAmount: number | null; amountCharged: number | null }> {
+  let displayName = "";
+  let shippingMinor = session.shipping_cost?.amount_total ?? null;
+  let totalMinor = session.amount_total ?? null;
+
+  try {
+    const full = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ["shipping_cost.shipping_rate"],
+    });
+    const rate = full.shipping_cost?.shipping_rate;
+    if (rate && typeof rate !== "string") {
+      displayName = (rate.display_name ?? "").toLowerCase();
+    }
+    if (full.shipping_cost?.amount_total != null) shippingMinor = full.shipping_cost.amount_total;
+    if (full.amount_total != null) totalMinor = full.amount_total;
+  } catch (err) {
+    console.error("deriveShippingInfo: session retrieve failed, falling back to amount:", err);
+  }
+
+  let method: string;
+  if (displayName.includes("express")) method = "Express";
+  else if (displayName.includes("standard")) method = "Standard";
+  // Fallback: Standard rates are 499/599/599, Express 899/1099/999 — split at 800 minor units.
+  else method = (shippingMinor ?? 0) >= 800 ? "Express" : "Standard";
+
+  return {
+    method,
+    shippingAmount: shippingMinor != null ? shippingMinor / 100 : null,
+    amountCharged: totalMinor != null ? totalMinor / 100 : null,
+  };
+}
+
 // ── Email templates ──
 function premiumUpgradeEmail(name: string): { subject: string; html: string } {
   return {
@@ -330,7 +370,11 @@ function subscriptionCanceledEmail(name: string): { subject: string; html: strin
   };
 }
 
-function bookOrderEmail(name: string, bookTitle: string, tierName: string): { subject: string; html: string } {
+function bookOrderEmail(name: string, bookTitle: string, tierName: string, shippingMethod?: string): { subject: string; html: string } {
+  const isExpress = shippingMethod === "Express";
+  const deliveryLine = isExpress
+    ? "Shipped directly to your door via Express delivery (5–7 working days)."
+    : "Shipped directly to your door via Standard delivery (10–14 working days).";
   return {
     subject: `Your memory book order is confirmed`,
     html: `<!DOCTYPE html>
@@ -408,7 +452,7 @@ function bookOrderEmail(name: string, bookTitle: string, tierName: string): { su
                 <tr>
                   <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">4.</td>
                   <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
-                    Shipped directly to your door — free worldwide.
+                    ${deliveryLine}
                   </td>
                 </tr>
               </table>
@@ -525,6 +569,9 @@ serve(async (req) => {
         const shipping = session.shipping_details ?? session.customer_details;
         const address = shipping?.address;
 
+        // Read the SELECTED shipping method + actual amounts charged.
+        const bookShip = await deriveShippingInfo(stripe, session);
+
         await supabase
           .from("orders")
           .update({
@@ -541,6 +588,9 @@ serve(async (req) => {
             shipping_country: address?.country ?? null,
             shipping_email: session.customer_details?.email ?? null,
             shipping_phone: session.customer_details?.phone ?? null,
+            shipping_method: bookShip.method,
+            shipping_amount: bookShip.shippingAmount,
+            amount_charged: bookShip.amountCharged,
           })
           .eq("id", orderId);
 
@@ -565,7 +615,8 @@ serve(async (req) => {
             const email = bookOrderEmail(
               customerName,
               bookData?.title ?? "Memory Book",
-              bookData?.tier_name ?? "Memory Book"
+              bookData?.tier_name ?? "Memory Book",
+              bookShip.method
             );
 
             await sendEmail(customerEmail, email.subject, email.html);
@@ -650,11 +701,16 @@ serve(async (req) => {
           .update({ status: "ordered" })
           .eq("id", canvasId);
 
-        // Store shipping method from Stripe checkout selection
-        const canvasShippingMethod = (session.shipping_cost?.amount_total ?? 0) > 0 ? 'Express' : 'Standard';
+        // Store the SELECTED shipping method + actual amounts from Stripe checkout.
+        const canvasShip = await deriveShippingInfo(stripe, session);
+        const canvasShippingMethod = canvasShip.method;
         await supabase
           .from("canvas_orders")
-          .update({ shipping_method: canvasShippingMethod })
+          .update({
+            shipping_method: canvasShippingMethod,
+            shipping_amount: canvasShip.shippingAmount,
+            amount_charged: canvasShip.amountCharged,
+          })
           .eq("id", orderId);
 
         // ── SEND CANVAS ORDER EMAIL ──
@@ -758,11 +814,16 @@ serve(async (req) => {
           .update({ status: "ordered" })
           .eq("id", acrylicId);
 
-        // Store shipping method from Stripe checkout selection
-        const acrylicShippingMethod = (session.shipping_cost?.amount_total ?? 0) > 0 ? 'Express' : 'Standard';
+        // Store the SELECTED shipping method + actual amounts from Stripe checkout.
+        const acrylicShip = await deriveShippingInfo(stripe, session);
+        const acrylicShippingMethod = acrylicShip.method;
         await supabase
           .from("acrylic_orders")
-          .update({ shipping_method: acrylicShippingMethod })
+          .update({
+            shipping_method: acrylicShippingMethod,
+            shipping_amount: acrylicShip.shippingAmount,
+            amount_charged: acrylicShip.amountCharged,
+          })
           .eq("id", orderId);
 
         // ── SEND ACRYLIC ORDER EMAIL ──
@@ -870,6 +931,49 @@ serve(async (req) => {
       return new Response("Checkout handled", { status: 200 });
     }
 
+    // 1️⃣b checkout.session.expired — abandoned print checkout.
+    // A redeemed reward code is consumed BEFORE payment, so an abandoned/expired
+    // session would otherwise burn a single-use code forever. Release it back to
+    // 'issued' and cancel the dangling unpaid order. (expired and completed are
+    // mutually exclusive for a given session, so this never frees a paid order.)
+    // NOTE: requires the webhook endpoint to be subscribed to checkout.session.expired.
+    if (event.type === "checkout.session.expired") {
+      const session = event.data.object;
+      const type = session.metadata?.type;
+      const orderId = session.metadata?.order_id;
+      const rewardCode = session.metadata?.reward_code;
+
+      const tableByType: Record<string, string> = {
+        book_order: "orders",
+        canvas_order: "canvas_orders",
+        acrylic_order: "acrylic_orders",
+      };
+      const table = type ? tableByType[type] : undefined;
+
+      if (table && orderId) {
+        const { data: ord } = await supabase
+          .from(table)
+          .select("payment_status")
+          .eq("id", orderId)
+          .maybeSingle();
+
+        if (ord && ord.payment_status !== "paid") {
+          if (rewardCode) {
+            await supabase.rpc("release_reward_code", {
+              p_code: rewardCode,
+              p_order_ref: orderId,
+            });
+          }
+          await supabase
+            .from(table)
+            .update({ status: "cancelled" })
+            .eq("id", orderId);
+        }
+      }
+
+      return new Response("Session expired handled", { status: 200 });
+    }
+
     // 2️⃣ invoice.paid
     if (event.type === "invoice.paid") {
       const invoice = event.data.object;
@@ -965,7 +1069,7 @@ function canvasOrderEmail(name: string, canvasTitle: string, tierName: string, s
   const isExpress = shippingMethod === 'Express';
   const deliveryLine = isExpress
     ? "Shipped directly to your door via Express delivery (5–7 working days)."
-    : "Shipped directly to your door — free Standard delivery (10–14 working days).";
+    : "Shipped directly to your door via Standard delivery (10–14 working days).";
 
   return {
     subject: `Your memory canvas order is confirmed`,
@@ -985,7 +1089,7 @@ function acrylicOrderEmail(name: string, acrylicTitle: string, tierName: string,
   const isExpress = shippingMethod === 'Express';
   const deliveryLine = isExpress
     ? "Shipped directly to your door via Express delivery (5–7 working days)."
-    : "Shipped directly to your door — free Standard delivery (10–14 working days).";
+    : "Shipped directly to your door via Standard delivery (10–14 working days).";
 
   return {
     subject: `Your acrylic print order is confirmed`,

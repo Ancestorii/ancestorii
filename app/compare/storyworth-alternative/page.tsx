@@ -9,7 +9,7 @@ const SITE = 'https://www.ancestorii.com';
 export const metadata: Metadata = {
   title: 'The Best StoryWorth Alternative for 2026 | Ancestorii',
   description:
-    'Looking for a StoryWorth alternative? See how Ancestorii compares — a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, free worldwide delivery.',
+    'Looking for a StoryWorth alternative? See how Ancestorii compares — a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, ships worldwide.',
   alternates: { canonical: `${SITE}/compare/storyworth-alternative` },
   robots: { index: true, follow: true },
   openGraph: {
@@ -66,7 +66,7 @@ const FAQ = [
   },
   {
     q: 'Is there a StoryWorth alternative in the UK?',
-    a: 'Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide for free. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii uses no prompts at all, so you write and record freely at your own pace.',
+    a: 'Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii uses no prompts at all, so you write and record freely at your own pace.',
   },
   {
     q: 'How is Ancestorii different from StoryWorth?',
@@ -207,7 +207,7 @@ export default function StoryworthAlternativePage() {
                 <TableRow feature="Canvas and acrylic prints" ancestorii="Yes" storyworth="No" />
                 <TableRow feature="Free plan" ancestorii="Yes — free forever" storyworth="No" />
                 <TableRow feature="Built in / pricing" ancestorii="United Kingdom, in pounds" storyworth="United States, in dollars" />
-                <TableRow feature="Worldwide shipping" ancestorii="Free worldwide" storyworth="Free US, extra internationally" />
+                <TableRow feature="Worldwide shipping" ancestorii="Ships worldwide" storyworth="Free US, extra internationally" />
               </tbody>
             </table>
             <div className="border-t border-[#ECE5D8]" />

@@ -97,7 +97,7 @@ export default function ComparePage() {
             { '@type': 'Question', name: 'What is the difference between Ancestorii and StoryWorth?', acceptedAnswer: { '@type': 'Answer', text: 'StoryWorth sends weekly email prompts to one storyteller over a year, then compiles responses into a printed book. Ancestorii is a living digital library with two layers — a public story feed and a private family space — plus printed Memory Books, Canvas Prints, and Acrylic Prints.' } },
             { '@type': 'Question', name: 'What is the difference between Ancestorii and Remento?', acceptedAnswer: { '@type': 'Answer', text: 'Remento captures voice and video recordings and uses AI to transcribe them into a printed book. Ancestorii combines a persistent digital library with physical heirlooms and gives full creative control over every page of the Memory Book.' } },
             { '@type': 'Question', name: 'Which platform gives the most creative control over the book?', acceptedAnswer: { '@type': 'Answer', text: 'Ancestorii. Both StoryWorth and Remento auto-compile books. Ancestorii gives you a visual page editor where you design every spread yourself.' } },
-            { '@type': 'Question', name: 'Is Ancestorii a good StoryWorth alternative in the UK?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Ancestorii is built in the UK and ships worldwide with free delivery. StoryWorth is US-based and charges in dollars.' } },
+            { '@type': 'Question', name: 'Is Ancestorii a good StoryWorth alternative in the UK?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Ancestorii is built in the UK and ships worldwide. StoryWorth is US-based and charges in dollars.' } },
             { '@type': 'Question', name: 'Do StoryWorth or Remento offer a digital library?', acceptedAnswer: { '@type': 'Answer', text: 'No. Both platforms end with a printed book. Ancestorii is a living library that continues to grow after any book is printed.' } },
           ],
         })}
@@ -180,7 +180,7 @@ export default function ComparePage() {
               'Not built around one storyteller or one year. Your whole family contributes. Timelines, albums, stories, and voice recordings grow together over time.',
               'My Heirlooms lets you turn your library into physical keepsakes. Memory Books designed page by page in a visual editor. Canvas Prints. Acrylic Prints. Things you hold, frame, and pass down.',
               'No prompts. No AI rewriting your words. You write what you want, when you want, in your own voice.',
-              'Built in the UK. Free worldwide delivery on all physical products.',
+              'Built in the UK. Worldwide delivery on all physical products.',
             ]}
             bestFor="Families who want more than a book. A private digital library that grows with every generation, a public space to share stories with the world, and physical heirlooms whenever you are ready."
           />
@@ -233,7 +233,7 @@ export default function ComparePage() {
                 <TableRow feature="Continues after the book" ancestorii="Yes — library keeps growing" storyworth="No" remento="No" />
                 <TableRow feature="Algorithm or follower counts" ancestorii="No — stories shown in order" storyworth="N/A" remento="N/A" />
                 <TableRow feature="Religion and politics" ancestorii="Not allowed on public feed" storyworth="N/A" remento="N/A" />
-                <TableRow feature="Worldwide shipping" ancestorii="Free worldwide" storyworth="Free US, extra internationally" remento="Free US, extra internationally" />
+                <TableRow feature="Worldwide shipping" ancestorii="Ships worldwide" storyworth="Free US, extra internationally" remento="Free US, extra internationally" />
                 <TableRow feature="Built in" ancestorii="United Kingdom" storyworth="United States" remento="United States" />
               </tbody>
             </table>
@@ -278,7 +278,7 @@ export default function ComparePage() {
             </p>
             <p>
               <strong>Is Ancestorii a good alternative to StoryWorth in the UK?</strong><br />
-              Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide for free. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii does not use prompts at all — you write and record freely at your own pace.
+              Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii does not use prompts at all — you write and record freely at your own pace.
             </p>
           </Body>
         </div>
