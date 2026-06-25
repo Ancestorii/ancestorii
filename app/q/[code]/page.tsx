@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /q/[code] — STORE REDIRECT ONLY.
@@ -13,12 +14,9 @@ import { redirect } from 'next/navigation';
 // app directly. So this route only ever runs for people WITHOUT the app — exactly the
 // people who need the store.
 //
-// ⚠️ FILL AT LAUNCH — the app is not published yet, so these are placeholders:
-//   APPSTORE_URL  → the real App Store listing once the iOS app is live.
-//   PLAYSTORE_URL → confirm the final package id; this assumes com.ancestorii.app.
+// Store links live in ONE place: src/lib/store-links.ts (@/lib/store-links). Fill the
+// App Store id there at launch — this page and /m/[code] both import it.
 // ─────────────────────────────────────────────────────────────────────────────
-const APPSTORE_URL = 'https://apps.apple.com/app/idREPLACE_WITH_APP_STORE_NUMERIC_ID';
-const PLAYSTORE_URL = 'https://play.google.com/store/apps/details?id=com.ancestorii.app';
 
 // Device detection runs per request; never cache the redirect.
 export const dynamic = 'force-dynamic';
