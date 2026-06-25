@@ -304,7 +304,7 @@ export default function LibraryPickerModal({
 
   return (
     <div
-      className={`fixed inset-0 z-[95] flex items-center justify-center transition-opacity duration-200 ${
+      className={`fixed inset-0 z-[1200] flex items-center justify-center transition-opacity duration-200 ${
         open ? 'opacity-100' : 'opacity-0'
       }`}
     >

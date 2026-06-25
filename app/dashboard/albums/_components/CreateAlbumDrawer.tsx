@@ -156,7 +156,7 @@ export default function CreateAlbumDrawer({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="fixed inset-0 bg-[#0B0C10]/70 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 bg-[#0B0C10]/70 backdrop-blur-sm flex items-center justify-center z-[200]"
         >
           {uploading && (
             <div className="fixed top-0 left-0 w-full h-[3px] overflow-hidden">

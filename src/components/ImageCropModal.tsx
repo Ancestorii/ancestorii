@@ -36,7 +36,7 @@ export default function ImageCropModal({ imageSrc, onConfirm, onCancel }: Props)
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[1300] flex items-center justify-center">
       {/* Overlay */}
       <div className="absolute inset-0 bg-[#16120C]/80" onClick={onCancel} />
 

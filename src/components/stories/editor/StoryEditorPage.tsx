@@ -388,7 +388,7 @@ export default function StoryEditorPage({
           MODERATION FEEDBACK
           ═══════════════════════════════════════════════════════ */}
       {moderationFlagged && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-5">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm px-5">
           <div className="bg-white rounded-2xl p-8 max-w-[440px] w-full shadow-[0_24px_80px_rgba(0,0,0,0.2)] text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FBF7EE] mx-auto mb-5">
               <Eye size={24} className="text-[#B8860B]" />
@@ -421,7 +421,7 @@ export default function StoryEditorPage({
       )}
 
       {moderationError && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-5">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm px-5">
           <div className="bg-white rounded-2xl p-8 max-w-[440px] w-full shadow-[0_24px_80px_rgba(0,0,0,0.2)] text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEF2F2] mx-auto mb-5">
               <X size={24} className="text-[#EF4444]" />

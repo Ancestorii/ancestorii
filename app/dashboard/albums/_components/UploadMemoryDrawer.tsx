@@ -247,7 +247,7 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[200] flex items-center justify-center transition-opacity duration-300 ${
         open ? 'bg-black/40 opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       style={{ willChange: 'opacity' }}

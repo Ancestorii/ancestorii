@@ -221,7 +221,7 @@ export default function CreateAcrylicDrawer({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center px-4"
           style={{
             background: 'rgba(10, 13, 20, 0.6)',
             backdropFilter: 'blur(12px)',

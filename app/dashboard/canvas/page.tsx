@@ -368,7 +368,7 @@ export default function CanvasPage() {
 
         {/* ── Delete confirmation modal ── */}
         {confirmDelete && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fadeIn">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-xl p-6 w-[90%] max-w-sm text-center">
               <h3 className="text-lg font-semibold text-[#1F2837] mb-3">
                 Delete &ldquo;{confirmDelete.title}&rdquo;?

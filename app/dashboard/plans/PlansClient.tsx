@@ -329,7 +329,7 @@ export default function PlansClient({
       </section>
 
       {showPlanChangeInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
           <div className="relative w-full max-w-md p-8 text-center bg-white shadow-2xl rounded-2xl">
             <h2 className="mb-3 text-xl font-semibold text-[#0F2040]">
               Managing your Ancestorii subscription

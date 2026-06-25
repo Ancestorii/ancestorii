@@ -722,7 +722,7 @@ function prevMedia() {
 
       {/* -------- Confirm Seal Modal -------- */}
       {confirmSeal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200]">
           <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-xl">
             <h3 className="text-lg font-semibold text-[#1F2837] mb-3">
               Seal this Capsule?

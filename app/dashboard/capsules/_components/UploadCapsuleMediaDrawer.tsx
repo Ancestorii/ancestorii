@@ -167,7 +167,7 @@ onUploaded({
   // ✅ Instead of returning null, just hide the modal visually
   return (
     <div
-      className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[200] backdrop-blur-sm flex items-center justify-center transition-opacity duration-300 ${
         open ? 'bg-black/40 opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       onClick={onClose}
