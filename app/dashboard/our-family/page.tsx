@@ -36,6 +36,7 @@ export default function OurFamilyPage() {
   const [loading, setLoading] = useState(true);
   const [familyName, setFamilyName] = useState('My Family');
   const [familyId, setFamilyId] = useState<string | null>(null);
+  const [isVerifiedFamily, setIsVerifiedFamily] = useState(false);
   const [myRole, setMyRole] = useState<string>('member');
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
@@ -79,6 +80,19 @@ export default function OurFamilyPage() {
       .single();
 
     if (family?.name) setFamilyName(family.name);
+
+    /* ── Verified-family badge: earned the t5 cosmetic reward tier ──
+       Show iff a family_reward_claims row exists for this family with
+       tier_key 't5'. The claim is a fire-once latch (never retracted), and
+       t5 is cosmetic so it stays 'earned' permanently — presence is enough. */
+    const { data: t5Claim } = await supabase
+      .from('family_reward_claims')
+      .select('tier_key')
+      .eq('family_id', myMembership.family_id)
+      .eq('tier_key', 't5')
+      .maybeSingle();
+
+    setIsVerifiedFamily(!!t5Claim);
 
     /* ── All members with profiles ── */
     const { data: memberships } = await supabase
@@ -214,6 +228,7 @@ export default function OurFamilyPage() {
     <div className="min-h-screen bg-white text-[#17120E]">
       <OurFamilyHeader
         familyName={familyName}
+        isVerified={isVerifiedFamily}
         memberCount={members.length}
         myRole={myRole}
         canInvite={isOwnerOrAdmin}

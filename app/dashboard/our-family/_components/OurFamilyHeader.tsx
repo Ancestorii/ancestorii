@@ -3,9 +3,11 @@
 // with:
 import { useState, useRef, useEffect } from 'react';
 import { Users, UserPlus, Pencil } from 'lucide-react';
+import { FamilyVerifiedBadge } from '@/components/ui/FamilyVerifiedBadge';
 
 export default function OurFamilyHeader({
   familyName,
+  isVerified = false,
   memberCount,
   myRole,
   canInvite,
@@ -13,6 +15,7 @@ export default function OurFamilyHeader({
   onRename,
 }: {
   familyName: string;
+  isVerified?: boolean;
   memberCount: number;
   myRole: string;
   canInvite: boolean;
@@ -88,6 +91,9 @@ export default function OurFamilyHeader({
                     }}
                   >
                     {familyName}
+                    {isVerified && (
+                      <FamilyVerifiedBadge className="ml-[0.25em] inline-block h-[0.66em] w-[0.66em] align-middle" />
+                    )}
                   </h1>
                   {isOwner && (
                     <button
