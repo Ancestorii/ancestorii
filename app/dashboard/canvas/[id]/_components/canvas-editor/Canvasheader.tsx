@@ -6,6 +6,7 @@ import { inter } from '@/lib/fonts';
 import { CANVAS_COLORS } from './Canvaseditor';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
+import RewardCodeField from '@/components/dashboard/RewardCodeField';
 
 export default function CanvasHeader({
   title,
@@ -25,6 +26,7 @@ export default function CanvasHeader({
   const router = useRouter();
   const supabase = getBrowserClient();
   const [ordering, setOrdering] = useState(false);
+  const [rewardCode, setRewardCode] = useState<string | null>(null);
 
   const handleOrder = async () => {
     if (ordering) return;
@@ -66,6 +68,7 @@ export default function CanvasHeader({
             tier_key: tierKey,
             canvas_id: canvasId,
             currency,
+            reward_code: rewardCode ?? undefined,
           }),
           cache: 'no-store',
           mode: 'cors',
@@ -225,6 +228,8 @@ export default function CanvasHeader({
         >
           Preview
         </button>
+
+        <RewardCodeField product="canvas" tierKey={tierKey} onChange={setRewardCode} />
 
         <button
           type="button"

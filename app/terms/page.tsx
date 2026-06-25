@@ -457,8 +457,9 @@ export default function TermsPage() {
                 All physical product prices are displayed inclusive of the product
                 cost. Shipping costs and any applicable taxes are calculated at
                 checkout. Prices are displayed in GBP, USD, or EUR depending on
-                your detected location and may vary by currency. Delivery is free
-                worldwide for all physical products.
+                your detected location and may vary by currency. Shipping is
+                charged in addition to the product price and varies by the delivery
+                method you choose at checkout.
               </p>
               <p>
                 Once a physical product order has been submitted to our fulfilment

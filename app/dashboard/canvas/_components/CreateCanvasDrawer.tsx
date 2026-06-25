@@ -664,7 +664,7 @@ export default function CreateCanvasDrawer({
                   <li>400gsm gallery-grade canvas</li>
                   <li>Imagewrap finish</li>
                   <li className="font-semibold text-[#14213D]">
-                    {activeTier.key === 'heritage' ? 'Free UK shipping' : 'Free worldwide shipping'}
+                    {activeTier.key === 'heritage' ? 'UK shipping at checkout' : 'Worldwide shipping at checkout'}
                   </li>
                 </ul>
               </div>

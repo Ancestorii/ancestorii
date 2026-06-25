@@ -6,6 +6,7 @@ import { inter } from '@/lib/fonts';
 import { BOOK_CANVAS_COLORS } from './BookCanvas';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
+import RewardCodeField from '@/components/dashboard/RewardCodeField';
 
 const EXPORT_MESSAGES = [
   'Gathering your memories…',
@@ -44,6 +45,7 @@ export default function BookCanvasHeader({
   const [ordering, setOrdering] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [rewardCode, setRewardCode] = useState<string | null>(null);
 
   // ── Cycle through messages during export ──
   useEffect(() => {
@@ -127,6 +129,7 @@ export default function BookCanvasHeader({
             tier_key: tierKey,
             book_id: bookId,
             currency,
+            reward_code: rewardCode ?? undefined,
           }),
           cache: 'no-store',
           mode: 'cors',
@@ -325,6 +328,8 @@ export default function BookCanvasHeader({
             </svg>
             Download PDF
           </button>
+
+          <RewardCodeField product="book" tierKey={tierKey} onChange={setRewardCode} />
 
           {/* Order Book */}
           <button

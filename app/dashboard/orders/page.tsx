@@ -19,6 +19,10 @@ type Order = {
   created_at: string;
   paid_at: string | null;
   shipped_at: string | null;
+  amount_charged?: number | null;
+  shipping_amount?: number | null;
+  shipping_method?: string | null;
+  reward_code?: string | null;
   book_title?: string;
 };
 
@@ -38,6 +42,10 @@ type CanvasOrder = {
   created_at: string;
   paid_at: string | null;
   shipped_at: string | null;
+  amount_charged?: number | null;
+  shipping_amount?: number | null;
+  shipping_method?: string | null;
+  reward_code?: string | null;
   canvas_title?: string;
 };
 
@@ -57,6 +65,10 @@ type AcrylicOrder = {
   created_at: string;
   paid_at: string | null;
   shipped_at: string | null;
+  amount_charged?: number | null;
+  shipping_amount?: number | null;
+  shipping_method?: string | null;
+  reward_code?: string | null;
   acrylic_title?: string;
 };
 
@@ -378,12 +390,7 @@ export default function OrdersPage() {
                         color: '#6B6358',
                       }}
                     >
-                      <div>
-                        <span style={{ fontWeight: 600, color: '#1A1714' }}>
-                          {CURRENCY_SYMBOL[order.price_currency] || '£'}
-                          {Number(order.price_amount).toFixed(2)}
-                        </span>
-                      </div>
+                      <PaidLine order={order} />
 
                       {order.shipping_city && (
                         <div>
@@ -512,11 +519,7 @@ export default function OrdersPage() {
                     </div>
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, fontSize: 13, color: '#6B6358' }}>
-                      <div>
-                        <span style={{ fontWeight: 600, color: '#1A1714' }}>
-                          {CURRENCY_SYMBOL[order.price_currency] || '£'}{Number(order.price_amount).toFixed(2)}
-                        </span>
-                      </div>
+                      <PaidLine order={order} />
                       {order.shipping_city && (
                         <div>Shipping to <span style={{ fontWeight: 600, color: '#1A1714' }}>{order.shipping_city}, {order.shipping_country}</span></div>
                       )}
@@ -599,11 +602,7 @@ export default function OrdersPage() {
                     </div>
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, fontSize: 13, color: '#6B6358' }}>
-                      <div>
-                        <span style={{ fontWeight: 600, color: '#1A1714' }}>
-                          {CURRENCY_SYMBOL[order.price_currency] || '£'}{Number(order.price_amount).toFixed(2)}
-                        </span>
-                      </div>
+                      <PaidLine order={order} />
                       {order.shipping_city && (
                         <div>Shipping to <span style={{ fontWeight: 600, color: '#1A1714' }}>{order.shipping_city}, {order.shipping_country}</span></div>
                       )}
@@ -773,6 +772,59 @@ export default function OrdersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// ── Amount paid + reward + shipping (shared across book/canvas/acrylic cards) ──
+function PaidLine({
+  order,
+}: {
+  order: {
+    price_currency: string;
+    price_amount: number;
+    amount_charged?: number | null;
+    shipping_amount?: number | null;
+    shipping_method?: string | null;
+    reward_code?: string | null;
+  };
+}) {
+  const sym = CURRENCY_SYMBOL[order.price_currency] || '£';
+  // amount_charged is what the customer actually paid (after any reward discount,
+  // incl. shipping). Falls back to the list price for orders placed before this shipped.
+  const paid = order.amount_charged ?? order.price_amount;
+
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontWeight: 600, color: '#1A1714' }}>
+          {sym}{Number(paid).toFixed(2)}
+        </span>
+        {order.reward_code && (
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#A9842E',
+              background: '#FBF6EA',
+              border: '1px solid rgba(212, 175, 55, 0.35)',
+              borderRadius: 6,
+              padding: '2px 8px',
+            }}
+          >
+            Reward {order.reward_code}
+          </span>
+        )}
+      </div>
+
+      {order.shipping_method && (
+        <div>
+          {order.shipping_method} shipping
+          {order.shipping_amount != null
+            ? ` ${sym}${Number(order.shipping_amount).toFixed(2)}`
+            : ''}
+        </div>
+      )}
+    </>
   );
 }
 

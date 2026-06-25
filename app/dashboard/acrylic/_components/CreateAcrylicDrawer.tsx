@@ -634,7 +634,7 @@ export default function CreateAcrylicDrawer({
                   <li>Vibrant colour depth</li>
                   <li>Float-mount included</li>
                   <li className="font-semibold text-[#14213D]">
-                    Free worldwide shipping
+                    Standard or Express shipping at checkout
                   </li>
                 </ul>
               </div>
