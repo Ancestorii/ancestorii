@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "com.ancestorii.app",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_RELEASE_SHA256_FINGERPRINT"
+        "EE:E4:A5:78:F4:26:CD:24:30:8C:35:BF:D8:E3:BB:60:7C:07:37:8A:71:93:2C:6E:0D:3C:AE:EE:55:C4:28:BC",
+        "D9:D7:CA:FB:A9:FF:DF:FB:2E:F7:8C:2E:39:55:4C:AC:15:B5:0F:C1:68:EA:E1:4E:FA:08:E3:36:76:C9:53:9D"
       ]
     }
   }
