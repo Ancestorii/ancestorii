@@ -204,11 +204,11 @@ export default function TermsPage() {
             {/* 3 */}
             <Section number="3" title="Account Registration &amp; Security">
               <p>
-                You may register using an email address and password or, on the
-                website, through a supported third-party authentication provider
-                such as Google. You are responsible for maintaining the
-                confidentiality of your login credentials and for all activity that
-                occurs under your account.
+                You register using an email address and password. If you already
+                have an account, you can, on the website, also sign in using a
+                supported third-party authentication provider such as Google. You
+                are responsible for maintaining the confidentiality of your login
+                credentials and for all activity that occurs under your account.
               </p>
               <p>
                 You agree to provide accurate, current information during

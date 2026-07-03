@@ -167,9 +167,10 @@ export default function PrivacyPolicyPage() {
               <p>
                 <strong className="text-[#1A1612]">Account information:</strong>{' '}
                 your full name, family name, email address, and authentication
-                credentials (a password, or — on the website — a supported
-                third-party sign-in such as Google, from which we receive your
-                name, email address, and profile photo). At signup we may also
+                credentials (a password; if you already have an account, you can
+                also sign in on the website with a supported third-party provider
+                such as Google, from which we receive your name, email address,
+                and profile photo). At signup we may also
                 record a promotional code and a newsletter opt-in preference, and
                 we store your account creation date. You may optionally provide a
                 phone number, date of birth, biography, title, location, and a

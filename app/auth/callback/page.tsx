@@ -53,24 +53,9 @@ export default function AuthCallback() {
         sessionStorage.removeItem('invite_token');
       }
 
-      // Handle join token (Google OAuth from /join/[token] page)
-      const joinToken = sessionStorage.getItem('join_token');
-      if (joinToken && !inviteToken) {
-        try {
-          await fetch('/api/join-via-link', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: joinToken }),
-          });
-        } catch {
-          // Non-critical — user ends up in their own family
-        }
-        sessionStorage.removeItem('join_token');
-      }
-
       // Update family name from sessionStorage (set during step 1 of signup)
       const familyName = sessionStorage.getItem('family_name');
-      if (familyName && !inviteToken && !joinToken) {
+      if (familyName && !inviteToken) {
         try {
           const { data: membership } = await supabase
             .from('family_memberships')
@@ -95,7 +80,7 @@ export default function AuthCallback() {
       const postLoginRedirect = sessionStorage.getItem('post_login_redirect');
       if (postLoginRedirect) sessionStorage.removeItem('post_login_redirect');
 
-      if (inviteToken || joinToken) {
+      if (inviteToken) {
         // Invited users skip onboarding — feed already has content
         router.replace('/dashboard/our-family');
       } else {

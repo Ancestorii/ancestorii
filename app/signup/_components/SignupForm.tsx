@@ -56,20 +56,6 @@ export default function SignupForm() {
     setStep(2);
   };
 
-  // Google signup
-  const handleGoogleSignup = async () => {
-    setError('');
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) {
-      setError(error.message);
-    }
-  };
-
   // Email signup
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,13 +222,6 @@ export default function SignupForm() {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 Back
               </button>
-
-              <button type="button" onClick={handleGoogleSignup} className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 border border-[#E0D6C8] text-[13px] font-medium text-[#3D3526] transition-all duration-200 hover:border-[#B8932A] hover:text-[#181512] active:scale-[0.98]">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5"><path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.1-6.1C34.6 2.4 29.7 0 24 0 14.6 0 6.4 5.8 2.6 14.2l7.5 5.8C12.1 13.2 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4H24v7.6h12.6c-.3 2-1.6 5-4.4 7l6.8 5.3c4-3.7 7.1-9.2 7.1-15.9z"/><path fill="#FBBC05" d="M10.1 28c-1-3-1-6.2 0-9.2l-7.5-5.8C.9 16.3 0 20 0 24c0 4 1 7.7 2.6 11l7.5-5.8z"/><path fill="#34A853" d="M24 48c6.5 0 12-2.1 16-5.8l-6.8-5.3c-1.9 1.3-4.5 2.2-9.2 2.2-6.4 0-11.9-3.7-13.9-8.5l-7.5 5.8C6.4 42.2 14.6 48 24 48z"/></svg>
-                Continue with Google
-              </button>
-
-              <div className="flex items-center gap-3 my-5"><div className="flex-1 h-px bg-[#ECE5D8]" /><span className="text-[11px] tracking-[0.08em] uppercase text-[#B5AFA6] font-medium">or</span><div className="flex-1 h-px bg-[#ECE5D8]" /></div>
 
               <form onSubmit={onSubmit} noValidate className="space-y-5">
                 <div>
