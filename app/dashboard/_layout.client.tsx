@@ -157,14 +157,12 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
       setMaxStorage(matchedPlan.max_storage);
     }
 
-    const { data: storageRow } = await supabase
-      .from('storage_usage')
-      .select('used_bytes')
-      .eq('user_id', uid)
-      .maybeSingle();
+    // Family-wide storage (shared pool), matching the plans page. get_total_storage_used
+    // is family-scoped: it sums storage across every member sharing this user's family_id.
+    const { data: totalBytes } = await supabase.rpc('get_total_storage_used', { uid });
 
-    if (storageRow?.used_bytes) {
-      setUsedStorage(storageRow.used_bytes);
+    if (totalBytes != null) {
+      setUsedStorage(Number(totalBytes));
     }
     // Fetch family data
     const { data: membership } = await supabase

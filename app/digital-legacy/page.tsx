@@ -272,7 +272,7 @@ export default function DigitalLegacyPage() {
               >
                 START FOR FREE
               </Link>
-              <p className="mt-3 text-[11px] xl:text-[12px] text-[#6F6255] tracking-[0.04em] text-center">
+              <p className="mt-3 text-[11px] xl:text-[12px] text-[#B0A48C] tracking-[0.04em] text-center">
                 Free forever · No credit card · Takes 2 minutes
               </p>
             </div>

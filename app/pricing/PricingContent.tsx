@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import StoreBadges from '@/components/StoreBadges';
 
 const px = "px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%]";
 
@@ -39,6 +40,9 @@ export default function PricingPage() {
 
         <p className="mt-6 md:mt-8 text-[15px] md:text-[17px] xl:text-[19px] leading-[1.75] text-[#4A4030] max-w-[48ch] mx-auto">
           Our Stories is free for everyone. My Family starts free and grows with you. No hidden fees. No tricks. No ads.
+        </p>
+        <p className="mt-4 text-[15px] md:text-[17px] leading-[1.7] text-[#181512] font-semibold max-w-[48ch] mx-auto">
+          £3.99 per family, not per person. One payment covers your whole family.
         </p>
       </div>
 
@@ -119,13 +123,16 @@ export default function PricingPage() {
             </h2>
             <div className="mt-4">
               <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#F5F1E6] leading-none" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>£3.99</span>
-              <span className="ml-2 text-[13px] text-[#F5F1E6]/35">/ month</span>
+              <span className="ml-2 text-[13px] text-white">/ month</span>
             </div>
-            <div className="mt-2 mb-6 flex gap-3">
-              <span className="text-[12px] text-[#F5F1E6]/25">€4.99 / month</span>
-              <span className="text-[12px] text-[#F5F1E6]/15">·</span>
-              <span className="text-[12px] text-[#F5F1E6]/25">$5.99 / month</span>
+            <div className="mt-2 flex gap-3">
+              <span className="text-[12px] text-white">€4.99 / month</span>
+              <span className="text-[12px] text-[#F5F1E6]/40">·</span>
+              <span className="text-[12px] text-white">$5.99 / month</span>
             </div>
+            <p className="mt-3 mb-6 text-[13px] leading-[1.6] text-[#C8A557]">
+              Per family, not per person. One payment covers your whole family.
+            </p>
             <div className="h-px bg-[#F5F1E6]/10 mb-6" />
             <div className="space-y-3.5 flex-1">
               {[
@@ -229,7 +236,17 @@ export default function PricingPage() {
             <Link href="/signup" prefetch className="block w-full px-8 py-3.5 xl:py-4 text-[13px] xl:text-[14px] font-semibold tracking-[0.06em] text-[#1A1612] transition hover:opacity-90" style={{ background: 'linear-gradient(135deg, #C8A557 0%, #D4AF37 100%)' }}>
               START FOR FREE
             </Link>
-            <p className="mt-3 text-[11px] xl:text-[12px] text-[#6F6255] tracking-[0.04em]">No credit card required · Takes 2 minutes</p>
+            <p className="mt-3 text-[11px] xl:text-[12px] text-[#B0A48C] tracking-[0.04em]">No credit card required · Takes 2 minutes</p>
+
+            <div className="mt-8 pt-6 border-t border-white/10 text-left">
+              <p className="text-[14px] md:text-[15px] leading-relaxed text-[#F5F1E6]">
+                You create and share memories in the app. You upgrade and order keepsakes here on the website.
+              </p>
+              <p className="mt-3 text-[13px] md:text-[14px] leading-relaxed text-[#A09888]">
+                Already using the Ancestorii app? This is the same account. Log in with the same email and password you use in the app.
+              </p>
+              <StoreBadges theme="dark" className="mt-5 justify-center" />
+            </div>
           </div>
         </div>
       </div>

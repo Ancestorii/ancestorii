@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
+import StoreBadges from '@/components/StoreBadges';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /m/[code] — MEMORY SHARE STORE REDIRECT (twin of /q/[code]).
@@ -101,7 +102,7 @@ export default async function MemoryShareRedirect({
         </h1>
         <p className="mt-4 text-base leading-relaxed text-[#f5f1e6]/80">
           {preview
-            ? `“${preview.title}” from ${preview.family_name}. Memories open in the Ancestorii app — install it on your phone, then your code opens it.`
+            ? `“${preview.title}” from ${preview.family_name}. Memories open in the Ancestorii app. Install it on your phone, then your code opens it.`
             : 'Memories open in the Ancestorii app. Install it on your phone, then enter your code to open it.'}
         </p>
 
@@ -115,20 +116,7 @@ export default async function MemoryShareRedirect({
           <p className="mt-2 text-xs text-[#f5f1e6]/60">Open it on your phone in the app</p>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3">
-          <a
-            href={APPSTORE_URL}
-            className="rounded-full bg-[#D4AF37] px-6 py-3.5 text-base font-semibold text-[#0F2040] transition hover:bg-[#c8a557]"
-          >
-            Download on the App Store
-          </a>
-          <a
-            href={PLAYSTORE_URL}
-            className="rounded-full border border-[#D4AF37] px-6 py-3.5 text-base font-semibold text-[#D4AF37] transition hover:bg-[#D4AF37]/10"
-          >
-            Get it on Google Play
-          </a>
-        </div>
+        <StoreBadges theme="dark" className="mt-8 justify-center" />
       </div>
     </main>
   );

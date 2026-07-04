@@ -21,8 +21,8 @@ export default function PricingPage() {
           '@context': 'https://schema.org',
           '@type': 'SoftwareApplication',
           name: 'Ancestorii',
-          applicationCategory: 'WebApplication',
-          operatingSystem: 'All',
+          applicationCategory: 'LifestyleApplication',
+          operatingSystem: 'iOS, Web',
           url: 'https://www.ancestorii.com',
           description:
             'Ancestorii is a private family library where you can build timelines, albums and capsules to preserve memories for future generations.',

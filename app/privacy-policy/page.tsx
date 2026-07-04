@@ -38,7 +38,7 @@ function PartBanner({
         >
           {label}
         </h2>
-        <p className="mt-3 text-[14px]" style={{ color: 'rgba(245,241,230,0.6)' }}>
+        <p className="mt-3 text-[14px]" style={{ color: 'rgba(245,241,230,0.82)' }}>
           {children}
         </p>
       </div>

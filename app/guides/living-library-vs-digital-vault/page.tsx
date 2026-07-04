@@ -179,7 +179,7 @@ export default function LivingLibraryVsVaultPage() {
               <Link href="/signup" prefetch className="block w-full px-8 py-3.5 xl:py-4 text-[13px] xl:text-[14px] font-semibold tracking-[0.06em] text-[#1A1612] text-center transition hover:opacity-90" style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #C8A557 0%, #D4AF37 100%)' }}>
                 START FOR FREE
               </Link>
-              <p className="mt-3 text-[11px] xl:text-[12px] text-[#6F6255] tracking-[0.04em] text-center">Free forever · No credit card · Takes 2 minutes</p>
+              <p className="mt-3 text-[11px] xl:text-[12px] text-[#B0A48C] tracking-[0.04em] text-center">Free forever · No credit card · Takes 2 minutes</p>
             </div>
           </div>
         </div>

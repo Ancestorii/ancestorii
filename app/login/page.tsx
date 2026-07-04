@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getBrowserClient } from "@/lib/supabase/browser";
+import StoreBadges from "@/components/StoreBadges";
 
 export default function LoginPage() {
   const supabase = getBrowserClient();
@@ -128,7 +129,7 @@ export default function LoginPage() {
       <div className="w-full max-w-[420px]">
 
         {/* Logo */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-6">
           <Link
             href="/"
             className="inline-block text-[32px] tracking-[-0.03em] text-[#181512] no-underline"
@@ -136,6 +137,14 @@ export default function LoginPage() {
           >
             Ancestor<span className="text-[#C8A557]">ii</span>
           </Link>
+        </div>
+
+        {/* Same account as the app — most people logging in come from the app */}
+        <div className="mb-8 text-center">
+          <p className="text-[14px] leading-relaxed text-[#3D3526]">
+            <span className="font-semibold text-[#181512]">Already using the Ancestorii app?</span> Log in here with the same email and password. It is the same account.
+          </p>
+          <StoreBadges theme="light" className="mt-4 justify-center" />
         </div>
 
         {/* Card */}
@@ -150,7 +159,7 @@ export default function LoginPage() {
           >
             Welcome back.
           </h1>
-          <p className="text-[13px] sm:text-[14px] text-[#8A7F72] mb-7 leading-relaxed">
+          <p className="text-[13px] sm:text-[14px] text-[#5A4F3C] mb-7 leading-relaxed">
             Continue building your family library.
           </p>
 
@@ -172,7 +181,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-[#ECE5D8]" />
-            <span className="text-[11px] tracking-[0.08em] uppercase text-[#B5AFA6] font-medium">or</span>
+            <span className="text-[11px] tracking-[0.08em] uppercase text-[#8A7C63] font-medium">or</span>
             <div className="flex-1 h-px bg-[#ECE5D8]" />
           </div>
 
@@ -213,7 +222,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[12px] font-medium text-[#8A7F72] hover:text-[#B8932A] transition-colors duration-200"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[12px] font-medium text-[#5A4F3C] hover:text-[#B8932A] transition-colors duration-200"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -225,7 +234,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={sendReset}
                 disabled={resetBusy}
-                className="text-[12px] font-medium text-[#8A7F72] hover:text-[#B8932A] transition-colors duration-200"
+                className="text-[12px] font-medium text-[#5A4F3C] hover:text-[#B8932A] transition-colors duration-200"
               >
                 {resetBusy ? "Sending…" : "Forgot password?"}
               </button>
@@ -273,14 +282,12 @@ export default function LoginPage() {
             </Link>
             <Link
               href="/"
-              className="text-[12px] sm:text-[13px] text-[#8A7F72] hover:text-[#4A4030] transition-colors duration-200 no-underline"
+              className="text-[12px] sm:text-[13px] text-[#5A4F3C] hover:text-[#4A4030] transition-colors duration-200 no-underline"
             >
               Back to stories
             </Link>
           </div>
         </div>
-
-        {/* Trust line */}
       </div>
     </div>
   );

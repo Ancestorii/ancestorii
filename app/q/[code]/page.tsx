@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
+import StoreBadges from '@/components/StoreBadges';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /q/[code] — STORE REDIRECT ONLY.
@@ -63,20 +64,7 @@ export default async function QStoreRedirect({
           <p className="mt-2 text-xs text-[#f5f1e6]/60">Valid for 7 days</p>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3">
-          <a
-            href={APPSTORE_URL}
-            className="rounded-full bg-[#D4AF37] px-6 py-3.5 text-base font-semibold text-[#0F2040] transition hover:bg-[#c8a557]"
-          >
-            Download on the App Store
-          </a>
-          <a
-            href={PLAYSTORE_URL}
-            className="rounded-full border border-[#D4AF37] px-6 py-3.5 text-base font-semibold text-[#D4AF37] transition hover:bg-[#D4AF37]/10"
-          >
-            Get it on Google Play
-          </a>
-        </div>
+        <StoreBadges theme="dark" className="mt-8 justify-center" />
       </div>
     </main>
   );

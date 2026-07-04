@@ -145,6 +145,9 @@ export default function StoryworthAlternativePage() {
             <p>
               But many families want something the book model cannot give them. A space the whole family can add to. Something that keeps going after the twelve months are up. Stories in their own words rather than answers to set prompts. That is the gap Ancestorii was built to fill.
             </p>
+            <p>
+              There is also a free Ancestorii app for your phone, so the whole family can add photos, stories, and voices from anywhere. It is on iPhone now, with Android coming soon.
+            </p>
           </Body>
         </div>
 
@@ -198,6 +201,7 @@ export default function StoryworthAlternativePage() {
               <tbody>
                 <TableRow feature="Core concept" ancestorii="Living library + public stories + heirlooms" storyworth="Weekly prompts → one printed book" />
                 <TableRow feature="Who contributes" ancestorii="The whole family" storyworth="One storyteller per subscription" />
+                <TableRow feature="Family app on your phone" ancestorii="Yes, free on iPhone. Android coming soon" storyworth="Storyteller app only" />
                 <TableRow feature="Continues after the book" ancestorii="Yes — the library keeps growing" storyworth="No — ends after a year" />
                 <TableRow feature="Prompt system" ancestorii="None — write freely" storyworth="500+ fixed email prompts" />
                 <TableRow feature="Private family space" ancestorii="Yes — invite only" storyworth="No" />
@@ -248,7 +252,7 @@ export default function StoryworthAlternativePage() {
               <Link href="/signup" prefetch className="block w-full px-8 py-3.5 xl:py-4 text-[13px] xl:text-[14px] font-semibold tracking-[0.06em] text-[#1A1612] text-center transition hover:opacity-90" style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #C8A557 0%, #D4AF37 100%)' }}>
                 START FOR FREE
               </Link>
-              <p className="mt-3 text-[11px] xl:text-[12px] text-[#6F6255] tracking-[0.04em] text-center">Free forever · No credit card · Takes 2 minutes</p>
+              <p className="mt-3 text-[11px] xl:text-[12px] text-[#B0A48C] tracking-[0.04em] text-center">Free forever · No credit card · Takes 2 minutes</p>
             </div>
           </div>
         </div>

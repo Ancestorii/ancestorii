@@ -51,7 +51,7 @@ export default function PlansLogic() {
       window.history.replaceState({}, '', url.toString());
     }
     if (paidSuccess) {
-      safeToast.success("Payment successful — you're on Premium.");
+      safeToast.success("Payment successful. You're on Premium.");
     }
   }, []);
 
@@ -86,15 +86,17 @@ export default function PlansLogic() {
         sub = (subRows ?? null) as SubscriptionRow | null;
         setSubscription(sub);
 
-        const { data: usageRow, error: usageErr } = await supabase
-          .from('storage_usage')
-          .select('used_bytes')
-          .eq('user_id', uid)
-          .maybeSingle();
+        // Storage is the FAMILY-WIDE shared pool, not this user's uploads alone.
+        // get_total_storage_used(uid) is family-scoped: it sums storage across every
+        // member who shares this user's family_id (see the RPC definition).
+        const { data: totalBytes, error: usageErr } = await supabase.rpc(
+          'get_total_storage_used',
+          { uid }
+        );
 
         if (usageErr) console.warn('Usage error:', usageErr.message);
 
-        setUsage((usageRow ?? null) as UsageRow | null);
+        setUsage({ used_bytes: Number(totalBytes ?? 0) });
         setUsageLoading(false);
       }
 
@@ -119,13 +121,11 @@ export default function PlansLogic() {
     if (!subscription?.user_id) return;
 
     const interval = setInterval(async () => {
-      const { data } = await supabase
-        .from('storage_usage')
-        .select('used_bytes')
-        .eq('user_id', subscription.user_id)
-        .maybeSingle();
+      const { data } = await supabase.rpc('get_total_storage_used', {
+        uid: subscription.user_id,
+      });
 
-      setUsage({ used_bytes: data?.used_bytes ?? 0 });
+      setUsage({ used_bytes: Number(data ?? 0) });
       setUsageLoading(false);
     }, 15000);
 
@@ -143,7 +143,7 @@ export default function PlansLogic() {
   }
 
   const formatDate = (iso: string | null | undefined) =>
-    iso ? new Date(iso).toLocaleDateString() : '—';
+    iso ? new Date(iso).toLocaleDateString() : '';
 
   const handleUpgrade = async (planName: PlanName) => {
     try {

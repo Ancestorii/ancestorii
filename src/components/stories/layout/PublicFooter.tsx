@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import StoreBadges from '@/components/StoreBadges';
 
 const SECTIONS = [
   {
@@ -108,6 +109,35 @@ export default function PublicFooter() {
                 <circle cx="17.5" cy="6.5" r="1" />
               </svg>
             </a>
+          </div>
+
+          {/* App badges — the app and the website are one account */}
+          <div className="mt-8">
+            <p
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: 'clamp(12px, 0.85vw, 14px)',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: '#C8A557',
+                marginBottom: 14,
+              }}
+            >
+              Get the app
+            </p>
+            <StoreBadges theme="dark" />
+            <p
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 'clamp(12px, 0.8vw, 13.5px)',
+                color: '#FFFFFF',
+                marginTop: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              Same account as the website. Log in with the same email and password you use in the app.
+            </p>
           </div>
         </div>
 

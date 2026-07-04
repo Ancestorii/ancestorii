@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import StoreBadges from '@/components/StoreBadges';
 
 /* ─── Pull quote ─── */
 function PullQuote({ children }: { children: React.ReactNode }) {
@@ -48,17 +49,19 @@ function FeatureCard({ number, title, children }: { number: string; title: strin
   );
 }
 
-/* ─── Product card (for My Heirlooms) ─── */
+/* ─── Product card (for My Heirlooms) — white matted frame, dark text ─── */
 function ProductCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="relative p-6 md:p-7 xl:p-8 flex flex-col" style={{ background: '#1A1612' }}>
-      <div className="mb-4 md:mb-5" style={{ height: '2px', width: '2rem', background: 'linear-gradient(to right, #C8A557, transparent)' }} />
-      <h4 className="text-[17px] md:text-[19px] xl:text-[21px] font-semibold text-white mb-3 md:mb-4 tracking-[-0.01em]">
-        {title}
-      </h4>
-      <p className="text-[14px] md:text-[15px] xl:text-[16px] 2xl:text-[17px] leading-[1.8] text-white">
-        {children}
-      </p>
+    <div className="relative flex flex-col bg-white p-2.5" style={{ border: '1px solid #E7DEC7' }}>
+      <div className="flex flex-1 flex-col p-5 md:p-6 xl:p-7" style={{ border: '1px solid #1A1612' }}>
+        <div className="mb-4 md:mb-5" style={{ height: '2px', width: '2rem', background: 'linear-gradient(to right, #C8A557, transparent)' }} />
+        <h4 className="text-[18px] md:text-[20px] xl:text-[22px] text-[#181512] mb-3 md:mb-4 tracking-[-0.01em]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
+          {title}
+        </h4>
+        <p className="text-[14px] md:text-[15px] xl:text-[16px] 2xl:text-[17px] leading-[1.8] text-[#3D3526]">
+          {children}
+        </p>
+      </div>
     </div>
   );
 }
@@ -129,6 +132,60 @@ export default function HowItWorksContent() {
             They work side by side, but they do very different things. Here is how.
           </p>
         </Body>
+      </div>
+
+      {/* ━━━ ONE PRODUCT, ONE LOGIN ━━━ */}
+      <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pt-8 md:pt-12 pb-16 md:pb-24">
+
+        <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
+
+        <span className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">
+          The app and the website
+        </span>
+
+        <h2
+          className="mt-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]"
+          style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
+        >
+          One product. <span className="italic text-[#A9782F]">One login.</span>
+        </h2>
+
+        <div className="mt-8 md:mt-10 xl:mt-12">
+          <Body>
+            <p>
+              Ancestorii is one product with one account. There is a phone app and there is this website. You log in to both with the same email and password. What your family adds in one place is there in the other.
+            </p>
+          </Body>
+        </div>
+
+        <div className="mt-8 md:mt-10 xl:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          <div className="relative p-6 md:p-7 xl:p-8" style={{ background: 'rgba(184,147,42,0.03)', border: '1px solid rgba(184,147,42,0.12)' }}>
+            <h4 className="text-[16px] md:text-[18px] xl:text-[20px] font-semibold text-[#181512] mb-3 md:mb-4 tracking-[-0.01em]">
+              In the app
+            </h4>
+            <p className="text-[14px] md:text-[16px] xl:text-[17px] 2xl:text-[18px] leading-[1.8] text-[#3D3526]">
+              Your family writes and shares stories, adds photos and voice notes, answers questions, and earns rewards as your library grows. The app is on iPhone now. Android is coming soon.
+            </p>
+          </div>
+          <div className="relative p-6 md:p-7 xl:p-8" style={{ background: 'rgba(184,147,42,0.03)', border: '1px solid rgba(184,147,42,0.12)' }}>
+            <h4 className="text-[16px] md:text-[18px] xl:text-[20px] font-semibold text-[#181512] mb-3 md:mb-4 tracking-[-0.01em]">
+              On the website
+            </h4>
+            <p className="text-[14px] md:text-[16px] xl:text-[17px] 2xl:text-[18px] leading-[1.8] text-[#3D3526]">
+              You upgrade your plan, redeem the rewards your family has earned, and order printed keepsakes: Memory Books, Canvas Prints, and Acrylic Prints.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 md:mt-10 xl:mt-12">
+          <Body>
+            <p>
+              One family. One account. Two places to use it.
+            </p>
+          </Body>
+        </div>
+
+        <StoreBadges theme="light" className="mt-8 md:mt-10" />
       </div>
 
       {/* ━━━ OUR STORIES ━━━ */}
@@ -228,7 +285,7 @@ export default function HowItWorksContent() {
 
         <Body>
           <p>
-            When you sign up, you write your first memory. A moment, a person, a feeling you do not want to lose. That becomes the first entry in your family&rsquo;s feed. From there, the library grows — not because you are building content, but because you are asking the right questions.
+            Your family writes memories in the app. A moment, a person, a feeling you do not want to lose. Each one becomes an entry in your family&rsquo;s feed. From there the library grows, not because you are building content, but because you are asking the right questions.
           </p>
         </Body>
 
@@ -396,9 +453,10 @@ export default function HowItWorksContent() {
             >
               START FOR FREE
             </Link>
-            <p className="mt-3 text-[11px] xl:text-[12px] text-[#6F6255] tracking-[0.04em] text-center">
+            <p className="mt-3 text-[11px] xl:text-[12px] text-[#B0A48C] tracking-[0.04em] text-center">
               Free forever · No credit card · Takes 2 minutes
             </p>
+            <StoreBadges theme="dark" className="mt-6 justify-center" />
           </div>
         </div>
       </div>
