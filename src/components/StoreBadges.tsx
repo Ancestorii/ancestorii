@@ -1,4 +1,4 @@
-import { APPSTORE_URL } from '@/lib/store-links';
+import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
 
 // Shared app store badges, fed by the single source of truth in src/lib/store-links.ts.
 //
@@ -10,16 +10,22 @@ import { APPSTORE_URL } from '@/lib/store-links';
 //   theme="light" → white / gold / light background → black badge  (public/badges/black.svg)
 //   theme="dark"  → dark background                 → white badge  (public/badges/white.svg)
 //
-// Android is not published yet, so it stays a plain, non clickable "Android coming soon"
-// label — no fake Google Play badge.
+// Android uses the OFFICIAL Google Play "Get it on Google Play" badge (public/badges/google.svg),
+// wrapped in a link to the Play Store. It is a single full-colour badge that reads on any
+// background, so — unlike the Apple badge — it does NOT switch by theme. Rendered at its
+// natural aspect ratio, never recoloured or stretched. Per Google's guideline the Play badge
+// is shown at the SAME height as the Apple badge (never smaller) so the two line up.
 type Props = {
   theme?: 'light' | 'dark';
   className?: string;
 };
 
+// Both badges share one on-screen height so they align and satisfy Google's rule that the
+// Play badge be equal to or larger than the Apple badge when shown side by side.
+const BADGE_HEIGHT = 44;
+
 export default function StoreBadges({ theme = 'light', className = '' }: Props) {
-  const badgeSrc = theme === 'dark' ? '/badges/white.svg' : '/badges/black.svg';
-  const androidColor = theme === 'dark' ? '#f5f1e6' : '#5A4F3C';
+  const appleBadgeSrc = theme === 'dark' ? '/badges/white.svg' : '/badges/black.svg';
 
   return (
     <div className={`flex flex-wrap items-center gap-4 ${className}`}>
@@ -27,17 +33,24 @@ export default function StoreBadges({ theme = 'light', className = '' }: Props) 
         {/* Official Apple badge — natural aspect ratio, not recoloured or stretched. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={badgeSrc}
+          src={appleBadgeSrc}
           alt="Download Ancestorii on the App Store"
           width={132}
-          height={44}
-          style={{ height: 44, width: 'auto', display: 'block' }}
+          height={BADGE_HEIGHT}
+          style={{ height: BADGE_HEIGHT, width: 'auto', display: 'block' }}
         />
       </a>
-      {/* Android not published yet — plain text label, not a fake Google Play badge. */}
-      <span aria-disabled="true" className="text-sm font-medium" style={{ color: androidColor }}>
-        Android coming soon
-      </span>
+      <a href={PLAYSTORE_URL} target="_blank" rel="noopener noreferrer" className="inline-block">
+        {/* Official Google Play badge — full colour, same height as Apple, natural aspect ratio. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/badges/google.svg"
+          alt="Get Ancestorii on Google Play"
+          width={148}
+          height={BADGE_HEIGHT}
+          style={{ height: BADGE_HEIGHT, width: 'auto', display: 'block' }}
+        />
+      </a>
     </div>
   );
 }

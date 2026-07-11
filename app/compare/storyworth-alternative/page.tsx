@@ -146,7 +146,7 @@ export default function StoryworthAlternativePage() {
               But many families want something the book model cannot give them. A space the whole family can add to. Something that keeps going after the twelve months are up. Stories in their own words rather than answers to set prompts. That is the gap Ancestorii was built to fill.
             </p>
             <p>
-              There is also a free Ancestorii app for your phone, so the whole family can add photos, stories, and voices from anywhere. It is on iPhone now, with Android coming soon.
+              There is also a free Ancestorii app for your phone, so the whole family can add photos, stories, and voices from anywhere. It is on iPhone and Android.
             </p>
           </Body>
         </div>
@@ -201,7 +201,7 @@ export default function StoryworthAlternativePage() {
               <tbody>
                 <TableRow feature="Core concept" ancestorii="Living library + public stories + heirlooms" storyworth="Weekly prompts → one printed book" />
                 <TableRow feature="Who contributes" ancestorii="The whole family" storyworth="One storyteller per subscription" />
-                <TableRow feature="Family app on your phone" ancestorii="Yes, free on iPhone. Android coming soon" storyworth="Storyteller app only" />
+                <TableRow feature="Family app on your phone" ancestorii="Yes, free on iPhone and Android" storyworth="Storyteller app only" />
                 <TableRow feature="Continues after the book" ancestorii="Yes — the library keeps growing" storyworth="No — ends after a year" />
                 <TableRow feature="Prompt system" ancestorii="None — write freely" storyworth="500+ fixed email prompts" />
                 <TableRow feature="Private family space" ancestorii="Yes — invite only" storyworth="No" />

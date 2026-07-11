@@ -180,7 +180,7 @@ export default function ComparePage() {
               'Not built around one storyteller or one year. Your whole family contributes. Timelines, albums, stories, and voice recordings grow together over time.',
               'My Heirlooms lets you turn your library into physical keepsakes. Memory Books designed page by page in a visual editor. Canvas Prints. Acrylic Prints. Things you hold, frame, and pass down.',
               'No prompts. No AI rewriting your words. You write what you want, when you want, in your own voice.',
-              'There is a free Ancestorii app for your phone, so the whole family can add photos, stories, and voices from anywhere. It is on iPhone now, with Android coming soon.',
+              'There is a free Ancestorii app for your phone, so the whole family can add photos, stories, and voices from anywhere. It is on iPhone and Android.',
               'Built in the UK. Worldwide delivery on all physical products.',
             ]}
             bestFor="Families who want more than a book. A private digital library that grows with every generation, a public space to share stories with the world, and physical heirlooms whenever you are ready."
@@ -229,7 +229,7 @@ export default function ComparePage() {
                 <TableRow feature="Acrylic prints" ancestorii="Yes" storyworth="No" remento="No" />
                 <TableRow feature="Voice recordings" ancestorii="Yes — stored in library" storyworth="Yes — phone recording" remento="Yes — voice and video" />
                 <TableRow feature="Who contributes" ancestorii="Whole family" storyworth="One storyteller" remento="One storyteller" />
-                <TableRow feature="Family app on your phone" ancestorii="Yes, free on iPhone. Android coming soon" storyworth="Storyteller app only" remento="Storyteller app only" />
+                <TableRow feature="Family app on your phone" ancestorii="Yes, free on iPhone and Android" storyworth="Storyteller app only" remento="Storyteller app only" />
                 <TableRow feature="Prompt system" ancestorii="No — write freely" storyworth="500+ email prompts" remento="Weekly prompts" />
                 <TableRow feature="AI rewrites your words" ancestorii="No" storyworth="No" remento="Yes" />
                 <TableRow feature="Continues after the book" ancestorii="Yes — library keeps growing" storyworth="No" remento="No" />

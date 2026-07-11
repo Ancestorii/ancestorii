@@ -164,7 +164,7 @@ export default function HowItWorksContent() {
               In the app
             </h4>
             <p className="text-[14px] md:text-[16px] xl:text-[17px] 2xl:text-[18px] leading-[1.8] text-[#3D3526]">
-              Your family writes and shares stories, adds photos and voice notes, answers questions, and earns rewards as your library grows. The app is on iPhone now. Android is coming soon.
+              Your family writes and shares stories, adds photos and voice notes, answers questions, and earns rewards as your library grows. The app is on iPhone and Android.
             </p>
           </div>
           <div className="relative p-6 md:p-7 xl:p-8" style={{ background: 'rgba(184,147,42,0.03)', border: '1px solid rgba(184,147,42,0.12)' }}>
