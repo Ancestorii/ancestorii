@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-04",
+  "title": "Design System: Ancestorii",
+  "extensions": {
+    "colorMeta": {
+      "background": { "role": "neutral", "displayName": "White", "canonical": "#FFFFFF", "tonalRamp": ["#1A1A1A", "#333333", "#4D4D4D", "#666666", "#808080", "#B3B3B3", "#E6E6E6", "#FFFFFF"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#1A1A1A", "tonalRamp": ["#1A1A1A", "#333333", "#4D4D4D", "#666666", "#808080", "#B3B3B3", "#E6E6E6", "#F5F5F5"] },
+      "ink-secondary": { "role": "neutral", "displayName": "Ink Secondary", "canonical": "#333333", "tonalRamp": ["#1A1A1A", "#333333", "#4D4D4D", "#666666", "#808080", "#999999", "#CCCCCC", "#F0F0F0"] },
+      "gold": { "role": "primary", "displayName": "Signal Gold", "canonical": "#C8A557", "tonalRamp": ["#3D3116", "#5E4B22", "#7E652E", "#A9842E", "#C8A557", "#D6BC7E", "#E4D2A6", "#F2E9CF"] },
+      "gold-deep": { "role": "primary", "displayName": "Deep Gold", "canonical": "#A9842E", "tonalRamp": ["#2E2410", "#463719", "#6B5323", "#8A6B28", "#A9842E", "#C29F52", "#D9BE86", "#EEDDB8"] },
+      "secondary": { "role": "secondary", "displayName": "Periwinkle", "canonical": "#4F60D4", "tonalRamp": ["#171B33", "#232A57", "#33407F", "#4150C0", "#4F60D4", "#7C8AE0", "#ABB4EC", "#D7DBF7"] },
+      "surface-periwinkle": { "role": "neutral", "displayName": "Periwinkle Wash", "canonical": "#ECEEFC", "tonalRamp": ["#2E3C93", "#4150C0", "#4F60D4", "#8593E4", "#B4BCEF", "#D3D9F8", "#ECEEFC", "#F7F8FE"] },
+      "surface-cool": { "role": "neutral", "displayName": "Cool Neutral Wash", "canonical": "#F4F6FB", "tonalRamp": ["#2B3550", "#46557E", "#6B7BA6", "#9AA6C4", "#C3CBDD", "#E0E5EF", "#F4F6FB", "#FBFCFE"] },
+      "like": { "role": "tertiary", "displayName": "Like Red", "canonical": "#D2483F", "tonalRamp": ["#4A1815", "#7A2822", "#A5352E", "#D2483F", "#DE6B63", "#E88E88", "#F1B2AE", "#F9D8D6"] },
+      "comment": { "role": "tertiary", "displayName": "Comment Blue", "canonical": "#1D4E89", "tonalRamp": ["#0A1B30", "#12314F", "#17406E", "#1D4E89", "#3E6BA3", "#6389BB", "#9AB2D3", "#CBD9EA"] },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "#E6E6E6", "tonalRamp": ["#1A1A1A", "#4D4D4D", "#808080", "#B3B3B3", "#CCCCCC", "#E6E6E6", "#F2F2F2", "#FFFFFF"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Playfair Display Bold. Wordmark, hero questions, the single biggest statement on a page." },
+      "headline": { "displayName": "Headline", "purpose": "Playfair Display Bold. Page titles." },
+      "title": { "displayName": "Title", "purpose": "Playfair Display Bold. Section headings and pulled-out story-moment emphasis." },
+      "body": { "displayName": "Body", "purpose": "DM Sans 400. All running text, UI copy, inputs. Measure capped 65–75ch." },
+      "label": { "displayName": "Label", "purpose": "DM Sans 600, sentence case. Buttons, nav, labels, meta, chips. Never all-caps tracked." }
+    },
+    "shadows": [
+      { "name": "overlay-soft", "value": "0 8px 28px rgba(26, 26, 26, 0.10)", "purpose": "Dropdowns, popovers, menus lifting off the white page." },
+      { "name": "modal-lift", "value": "0 16px 48px rgba(26, 26, 26, 0.14)", "purpose": "Dialogs and sheets over a scrim." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default easing for state transitions and reveals. No bounce, no elastic." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Hover / focus / press feedback on controls." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The sanctioned gold call to action. Gold fill, ink text (never white on gold). One primary per view.",
+      "html": "<button class=\"ds-btn-primary\">Add a memory</button>",
+      "css": ".ds-btn-primary { background: #C8A557; color: #1A1A1A; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 600; font-size: 0.875rem; padding: 14px 28px; border: none; border-radius: 10px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1); } .ds-btn-primary:hover { background: #A9842E; } .ds-btn-primary:focus-visible { outline: 2px solid #A9842E; outline-offset: 2px; }"
+    },
+    {
+      "name": "Emphasis Button (Dark)",
+      "kind": "button",
+      "refersTo": "button-emphasis",
+      "description": "Maximal-contrast ink action for dense app UI where a gold button would repeat and lose its rarity. Use gold OR dark per view, not both.",
+      "html": "<button class=\"ds-btn-emphasis\">Save story</button>",
+      "css": ".ds-btn-emphasis { background: #1A1A1A; color: #FFFFFF; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 600; font-size: 0.875rem; padding: 14px 28px; border: none; border-radius: 10px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1); } .ds-btn-emphasis:hover { background: #333333; } .ds-btn-emphasis:focus-visible { outline: 2px solid #C8A557; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary CTA (Periwinkle)",
+      "kind": "button",
+      "refersTo": "button-periwinkle",
+      "description": "The cool secondary call to action. Periwinkle fill, white text (5.3:1). Supports gold; never out-shouts it on a brand surface.",
+      "html": "<button class=\"ds-btn-periwinkle\">See the story</button>",
+      "css": ".ds-btn-periwinkle { background: #4F60D4; color: #FFFFFF; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 600; font-size: 0.875rem; padding: 14px 28px; border: none; border-radius: 10px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1); } .ds-btn-periwinkle:hover { background: #4150C0; } .ds-btn-periwinkle:focus-visible { outline: 2px solid #4F60D4; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "White ground, ink text, deep-gold hairline. The quiet alternative to primary. Never a thick coloured side-stripe.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { background: #FFFFFF; color: #1A1A1A; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 600; font-size: 0.875rem; padding: 13px 27px; border: 1px solid #A9842E; border-radius: 10px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1), border-color 150ms; } .ds-btn-secondary:hover { background: rgba(200,165,87,0.06); border-color: #C8A557; } .ds-btn-secondary:focus-visible { outline: 2px solid #A9842E; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "White field, neutral hairline, gold focus. Placeholder must clear 4.5:1 on white.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Ask Mum a question\" />",
+      "css": ".ds-input { background: #FFFFFF; color: #1A1A1A; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 400; font-size: 1rem; line-height: 1.6; padding: 12px 14px; border: 1px solid #E6E6E6; border-radius: 10px; width: 100%; box-sizing: border-box; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: #666666; } .ds-input:focus { outline: none; border-color: #C8A557; box-shadow: 0 0 0 2px rgba(200,165,87,0.35); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "White surface, hairline separation, no resting shadow. Never nested.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card-title\">Sunday at Nan's</h3><p class=\"ds-card-body\">The reason we still make the pie this way.</p></article>",
+      "css": ".ds-card { background: #FFFFFF; border: 1px solid #E6E6E6; border-radius: 14px; padding: 24px; } .ds-card-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 1.5rem; line-height: 1.2; color: #1A1A1A; margin: 0 0 8px; } .ds-card-body { font-family: 'DM Sans', system-ui, sans-serif; font-weight: 400; font-size: 1rem; line-height: 1.6; color: #333333; margin: 0; }"
+    },
+    {
+      "name": "Highlight Panel",
+      "kind": "custom",
+      "refersTo": "panel-highlight",
+      "description": "A cool tinted surface for grouping and depth. Periwinkle wash ground; ink text clears AA (~15:1). Demonstrates the modern-SaaS layering.",
+      "html": "<section class=\"ds-panel-highlight\"><h3 class=\"ds-panel-title\">This week in your family</h3><p class=\"ds-panel-body\">Three new memories, two voices, one recipe.</p></section>",
+      "css": ".ds-panel-highlight { background: #ECEEFC; border-radius: 14px; padding: 24px; } .ds-panel-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 1.5rem; line-height: 1.2; color: #1A1A1A; margin: 0 0 8px; } .ds-panel-body { font-family: 'DM Sans', system-ui, sans-serif; font-weight: 400; font-size: 1rem; line-height: 1.6; color: #333333; margin: 0; }"
+    },
+    {
+      "name": "Nav Link",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "DM Sans 600, ink default. Active state in deep gold with an underline — never colour alone.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link ds-nav-link--active\" href=\"#\">My Family</a><a class=\"ds-nav-link\" href=\"#\">Our Stories</a></nav>",
+      "css": ".ds-nav { display: flex; gap: 24px; } .ds-nav-link { font-family: 'DM Sans', system-ui, sans-serif; font-weight: 600; font-size: 0.875rem; color: #1A1A1A; text-decoration: none; padding-bottom: 4px; border-bottom: 2px solid transparent; transition: color 150ms, border-color 150ms; } .ds-nav-link:hover { color: #A9842E; } .ds-nav-link--active { color: #A9842E; border-bottom-color: #C8A557; }"
+    },
+    {
+      "name": "Like Affordance",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The like/heart control. Like Red (#D2483F) appears here and nowhere else.",
+      "html": "<button class=\"ds-like\" aria-pressed=\"true\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.49 4.04 3 5.5l7 7Z\"/></svg><span>128</span></button>",
+      "css": ".ds-like { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 500; font-size: 0.875rem; color: #1A1A1A; } .ds-like svg { color: #1A1A1A; transition: color 150ms, transform 150ms cubic-bezier(0.25,1,0.5,1); } .ds-like[aria-pressed=\"true\"] svg { color: #D2483F; } .ds-like:hover svg { transform: scale(1.1); }"
+    },
+    {
+      "name": "Comment Affordance",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The comment control. Comment Blue (#1D4E89) appears here and nowhere else.",
+      "html": "<button class=\"ds-comment\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z\"/></svg><span>24</span></button>",
+      "css": ".ds-comment { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 500; font-size: 0.875rem; color: #1A1A1A; } .ds-comment svg { color: #1A1A1A; transition: color 150ms; } .ds-comment:hover svg, .ds-comment:focus-visible svg { color: #1D4E89; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Bright Gallery",
+    "overview": "The interface is a bright, white-grounded gallery — but a gallery with rooms, not a single blank plane. White dominates and grounds everything; the family's photographs, voices, and stories are what hang on the walls, and they supply all the warmth (the literal expression of the brand's first principle, warmth in the words, not the walls). Where a page needs depth, structure, or a place to group things, sections and panels step back onto clean, pale, cool tinted surfaces — the modern-SaaS layering of a product like Lattice — so the eye reads zones and hierarchy instead of one flat sheet. Colour is disciplined: gold (#C8A557 / #A9842E) is the thin frame, a rare accent that never becomes a large fill; periwinkle (#4F60D4) is the confident cool second voice for secondary CTAs, chips, and chart accents; depth comes from pale cool tints on surfaces (#ECEEFC, #F4F6FB), never from warmth. The cool-versus-warm line is the whole game — a pale cool tint reads modern and is welcome; the same lightness turned warm (cream, parchment, sepia) is the heirloom cliché this system rejects. No dark mode, ever. Playfair Display (bold) carries weight and voice; DM Sans is everywhere else. Contrast is high by doctrine. Motion is a fresh web decision: responsive, restrained, ease-out, reduced-motion honoured.",
+    "keyCharacteristics": [
+      "White grounds and dominates; pale cool tints (#ECEEFC, #F4F6FB) create depth and zones on surfaces. No dark mode; no warm/cream/sepia tints.",
+      "Gold (#C8A557 / #A9842E) is the rare primary accent — never a fill larger than a control. Periwinkle (#4F60D4) is the cool secondary/structural accent.",
+      "High-contrast neutrals: #1A1A1A primary text, #333333-or-darker secondary. No muddy mid greys.",
+      "Two typefaces only: Playfair Display (bold) for display; DM Sans for everything else.",
+      "Warmth comes from copy and real family photography, never from the palette."
+    ],
+    "rules": [
+      { "name": "The Frame, Not The Wall Rule", "body": "Gold frames; it never paints. Permitted on controls and lines (buttons, active states, links, hairlines, icons); forbidden as any fill larger than a control or as a background wash. Large surfaces may still carry colour — but only as a pale cool tint (#ECEEFC / #F4F6FB), never as gold. If a gold area is bigger than a button, it is wrong.", "section": "colors" },
+      { "name": "The Cool-Not-Warm Rule", "body": "Pale surface tints must be cool (periwinkle/blue family). A pale cool tint reads modern and is welcome; the same lightness turned warm — cream, parchment, sepia — is the heirloom look and is banned. Same lightness, opposite feel: cool passes, warm fails. This is the line that lets depth exist safely.", "section": "colors" },
+      { "name": "The Gold-Leads Rule", "body": "Gold is the primary brand accent; periwinkle (#4F60D4) is the secondary, structural voice. When both could apply, gold carries the primary action and brand moments and periwinkle supports. Never let periwinkle out-shout gold on a brand surface.", "section": "colors" },
+      { "name": "The Two Golds Rule", "body": "#C8A557 and #A9842E are the only golds. No lighter, washed, or brown/sepia golds; no gold gradients that muddy toward brown. There is no third gold.", "section": "colors" },
+      { "name": "The Reserved Colour Rule", "body": "#D2483F means like. #1D4E89 means comment. Neither appears anywhere else, ever.", "section": "colors" },
+      { "name": "The Two Voices Rule", "body": "Playfair for weight and voice; DM Sans for everything functional. No third typeface in the web UI. Inter is removed from UI surfaces but stays in the print/PDF pipeline.", "section": "typography" },
+      { "name": "The Sentence-Case Rule", "body": "Labels and buttons are sentence case. No all-caps tracked eyebrows above sections.", "section": "typography" },
+      { "name": "The Flat-Gallery Rule", "body": "Content sits flat, separated by hairlines or a step onto a cool tint. A surface earns a shadow only by floating (overlay/modal). If a resting card has a drop shadow, remove it and use a hairline or a tint.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep white dominant as the ground, and use pale cool tints (#ECEEFC / #F4F6FB) deliberately on sections, cards, and panels to build depth and zones — for structure, not everywhere.",
+      "Do reach for periwinkle (#4F60D4) as the cool secondary accent (secondary CTAs, chips, illustration, chart accents); keep gold the primary.",
+      "Do use gold only as a small accent (buttons, active states, links, hairlines, icons), and only the two locked values #C8A557 and #A9842E.",
+      "Do set primary text to #1A1A1A and secondary text to #333333 or darker; keep body contrast high.",
+      "Do put Ink text on gold buttons; reserve white text for the dark Ink button and the periwinkle CTA.",
+      "Do let warmth come from copy and real family photography.",
+      "Do honour prefers-reduced-motion, meet WCAG AA cleanly, and keep tap targets generous."
+    ],
+    "donts": [
+      "Don't use any warm off-white, cream, parchment, or sepia ground or tint, or a dark-mode/.dark theme. No literal heirloom styling — no cream/parchment grounds, muddy or washed-out gold, ornate filigree, or low-contrast sepia tones. Pale cool tints on surfaces are the exception and are encouraged.",
+      "Don't fill a section, hero, or any area larger than a control with gold, or use gold gradients that muddy toward brown/sepia. Large surfaces may carry a pale cool tint instead — never gold.",
+      "Don't use #D2483F or #1D4E89 anywhere except the like and comment affordances respectively.",
+      "Don't ship muddy low-contrast mid greys for text; never place a grey background behind content. Pale cool tints are not greys and are allowed as surfaces.",
+      "Don't look like a dated genealogy tool, a morbid memorial/funeral-home site, craft-store scrapbook kitsch, or a dark Jarvis/sci-fi dashboard with neon or black glass.",
+      "Don't introduce a third typeface into the web UI, and don't touch Inter, colours, or layout logic in the print/PDF/Prodigi pipeline (Memory Books, Canvases, Acrylic Prints).",
+      "Don't port the mobile app's motion timings or its green washes, or any warm/heirloom treatment, to the web. The web periwinkle #4F60D4 / #ECEEFC is a fresh, deliberate web token — not a port of the mobile washes."
+    ]
+  }
+}
