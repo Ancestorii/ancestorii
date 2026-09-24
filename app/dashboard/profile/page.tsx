@@ -225,12 +225,13 @@ export default function ProfilePage() {
     if (!isAdmin || activeTab !== 'admin') return;
     (async () => {
       setPendingLoading(true);
-      const { data } = await supabase
-        .from('stories')
-        .select('id, title, slug, status, author_name, category, moderation_reason, moderation_category, created_at')
-        .in('status', ['pending_review', 'rejected'])
-        .order('created_at', { ascending: false });
-      setPendingStories(data ?? []);
+      try {
+        const res = await fetch('/api/admin/moderate');
+        const json = res.ok ? await res.json() : { stories: [] };
+        setPendingStories(json.stories ?? []);
+      } catch {
+        setPendingStories([]);
+      }
       setPendingLoading(false);
     })();
   }, [isAdmin, activeTab]);

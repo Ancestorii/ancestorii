@@ -10,6 +10,29 @@ function getAdminClient() {
   );
 }
 
+// Stories awaiting review. Read with the service role because the stories
+// RLS policy only exposes non-published rows to their own author.
+export async function GET() {
+  const supabase = await getServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || user.id !== ADMIN_USER_ID) {
+    return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
+  }
+
+  const { data, error } = await getAdminClient()
+    .from('stories')
+    .select('id, title, slug, status, author_name, category, moderation_reason, moderation_category, created_at')
+    .in('status', ['pending_review', 'rejected'])
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ stories: data ?? [] });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await getServerClient();
