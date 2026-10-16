@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const plainBody = story.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   const description = plainBody.length > 160 ? plainBody.slice(0, 157).trim() + '…' : plainBody;
 
-  let ogImageUrl = '/og-image.jpg';
+  let ogImageUrl = '/og-default.jpg';
   const { data: media } = await supabase
     .from('story_media')
     .select('file_path, file_type')

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     siteName: "Ancestorii",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-default.jpg",
         width: 1200,
         height: 630,
         alt: "Ancestorii — Our Roots",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     title: "Our Roots — Why Ancestorii Exists",
     description:
       "The personal story behind Ancestorii. Built by one person who could not stop thinking about how much families lose when nobody writes things down.",
-    images: ["/og-image.jpg"],
+    images: ["/og-default.jpg"],
     creator: "@ancestorii",
   },
   robots: {

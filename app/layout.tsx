@@ -62,10 +62,10 @@ export const metadata: Metadata = {
       "Capture stories, voices, and meaningful moments in a private space designed to grow with your family over time.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-default.jpg",
         width: 1200,
         height: 630,
-        alt: "Ancestorii Living Family Library",
+        alt: "Ancestorii — Your family's greatest stories. Told together.",
       },
     ],
   },
@@ -75,13 +75,11 @@ export const metadata: Metadata = {
     title: "Ancestorii — Your Family Library",
     description:
       "A private space to capture and grow your family story in real time.",
-    images: ["/og-image.jpg"],
+    images: ["/og-default.jpg"],
     creator: "@ancestorii",
   },
 
-  icons: {
-    icon: "/favicon.ico",
-  },
+  // Icons come from app/favicon.ico, app/icon.png and app/apple-icon.png (see scripts/brand).
 
   robots: {
     index: true,
@@ -183,7 +181,7 @@ rdt('track','PageVisit');
               "Ancestorii is a place where families capture and keep memories together — stories, voices, photos, and timelines — and turn them into printed heirlooms.",
             logo: {
               "@type": "ImageObject",
-              url: "https://www.ancestorii.com/favicon.ico",
+              url: "https://www.ancestorii.com/logo.png",
             },
             founder: { "@type": "Person", name: "Dante Leon" },
             email: "support@ancestorii.com",

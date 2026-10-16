@@ -30,7 +30,7 @@ export const metadata: Metadata = {
       'A living family library instead of a one year prompt service. See how Ancestorii compares to StoryWorth.',
     url: `${SITE}/compare/storyworth-alternative`,
     siteName: 'Ancestorii',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Ancestorii, a StoryWorth alternative' }],
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii, a StoryWorth alternative' }],
     locale: 'en_GB',
     type: 'website',
   },
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'The Best StoryWorth Alternative | Ancestorii',
     description: 'A living family library instead of a one year prompt service.',
-    images: ['/og-image.jpg'],
+    images: ['/og-default.jpg'],
     creator: '@ancestorii',
   },
 };

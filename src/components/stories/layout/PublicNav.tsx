@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import NotificationBell from '@/components/stories/notifications/NotificationBell';
+import { Logo } from '@/components/landing/LandingBits';
 
 // ── Palette ────────────────────────────────────────────────────
 const GOLD = '#C8A557';
@@ -234,21 +235,6 @@ export default function PublicNav() {
           justify-content: space-between;
           gap: clamp(16px, 3vw, 48px);
         }
-
-        /* ── Logo ── */
-        .pn-logo {
-          font-family: 'Playfair Display', serif;
-          font-weight: 700;
-          /* Fluid: 28px on mobile → 42px on large */
-          font-size: clamp(28px, 2.6vw, 42px);
-          letter-spacing: -0.03em;
-          color: ${INK};
-          text-decoration: none;
-          line-height: 1;
-          flex-shrink: 0;
-          user-select: none;
-        }
-        .pn-logo-accent { color: ${GOLD}; }
 
         /* ── Nav links ── */
         .pn-links {
@@ -675,10 +661,7 @@ export default function PublicNav() {
       <div className={`pn-root ${scrolled ? 'scrolled' : ''}`}>
         <div className="pn-inner">
 
-          {/* Logo */}
-          <Link href="/" className="pn-logo">
-            Ancestor<span className="pn-logo-accent">ii</span>
-          </Link>
+          <Logo href="/" />
 
           {/* Centre links */}
           <nav className="pn-links">

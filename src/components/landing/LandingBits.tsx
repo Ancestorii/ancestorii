@@ -1,21 +1,29 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { jakarta } from './fonts';
 import styles from './landing.module.css';
 
-// Temporary Ancestorii mark from the Claude Design file: four rounded squares
-// in the landing palette. Replaces the old gold "A" until the final logo is chosen.
-export function LogoMark() {
+// The Ancestorii mark: two i's, pink and blue dots on ink stems. Drawn to the exact
+// geometry of the master icon (scripts/brand/ancestorii-icon.png).
+export function LogoMark({ className = '' }: { className?: string }) {
   return (
-    <span className={styles.logoMark} aria-hidden="true">
-      <span />
-      <span />
-      <span />
-      <span />
-    </span>
+    <svg
+      className={`${styles.logoMark} ${className}`}
+      viewBox="0 0 19 30"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle cx="4" cy="4" r="4" fill="#FF2D87" />
+      <rect y="10" width="8" height="20" rx="4" fill="#0A0A0F" />
+      <circle cx="15" cy="11" r="4" fill="#2B4BFF" />
+      <rect x="11" y="17" width="8" height="13" rx="4" fill="#0A0A0F" />
+    </svg>
   );
 }
 
+// The font class keeps the wordmark in Plus Jakarta Sans outside the landing too (dashboard, onboarding).
 export function Logo({ href }: { href?: string }) {
+  const className = `${styles.logo} ${jakarta.className}`;
   const content = (
     <>
       <LogoMark />
@@ -23,10 +31,10 @@ export function Logo({ href }: { href?: string }) {
     </>
   );
 
-  if (!href) return <div className={styles.logo}>{content}</div>;
+  if (!href) return <div className={className}>{content}</div>;
 
   return (
-    <Link href={href} className={styles.logo} aria-label="Ancestorii home">
+    <Link href={href} className={className} aria-label="Ancestorii home">
       {content}
     </Link>
   );

@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import { ImagePlus, X, Loader2, Lock, Camera } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { Logo } from '@/components/landing/LandingBits';
 
 type PendingPhoto = { id: string; file: File; preview: string };
 
@@ -198,16 +198,9 @@ export default function FirstMemoryPage() {
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       {/* ── Compact header ── */}
-      <Link
-        href="/"
-        className="inline-block text-[clamp(30px,4vw,34px)] tracking-[-0.03em] text-[#181512] no-underline mb-6"
-        style={{
-          fontFamily: "'Playfair Display', serif",
-          fontWeight: 700,
-        }}
-      >
-        Ancestor<span className="text-[#C8A557]">ii</span>
-      </Link>
+      <div className="mb-6">
+        <Logo href="/" />
+      </div>
 
       <div className="w-full max-w-[560px]">
 

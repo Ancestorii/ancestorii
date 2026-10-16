@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: 'Ancestorii',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-default.jpg',
         width: 1200,
         height: 630,
         alt: 'Ancestorii — Stories from Real Families',
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: 'Our Stories — Real Stories from Real Families',
     description:
       'Real memories from real families. Read their stories, share your own, and be part of something that lasts.',
-    images: ['/og-image.jpg'],
+    images: ['/og-default.jpg'],
     creator: '@ancestorii',
   },
   alternates: {

@@ -23,11 +23,11 @@ export const metadata: Metadata = {
     description: 'Compare the three leading family memory platforms side by side.',
     url: 'https://www.ancestorii.com/compare',
     siteName: 'Ancestorii',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Ancestorii vs StoryWorth vs Remento comparison' }],
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii vs StoryWorth vs Remento comparison' }],
     locale: 'en_GB',
     type: 'website',
   },
-  twitter: { card: 'summary_large_image', title: 'Ancestorii vs StoryWorth vs Remento', description: 'An honest comparison of the three leading family memory platforms.', images: ['/og-image.jpg'] },
+  twitter: { card: 'summary_large_image', title: 'Ancestorii vs StoryWorth vs Remento', description: 'An honest comparison of the three leading family memory platforms.', images: ['/og-default.jpg'] },
 };
 
 const FEATURES = [

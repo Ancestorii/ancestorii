@@ -26,7 +26,7 @@ export const metadata: Metadata = {
       'Explore real family stories by topic. Real memories from real families, kept and told together.',
     url: `${SITE}/stories/topics`,
     siteName: 'Ancestorii',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Browse family stories by topic' }],
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Browse family stories by topic' }],
     locale: 'en_GB',
   },
   robots: { index: true, follow: true },

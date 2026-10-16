@@ -291,10 +291,11 @@ export async function exportTimelinePdf(
   // ---------- Draw helpers ----------
   const drawWatermark = (page: any) => {
     if (!logoImage) return;
-    const targetW = 120;
-    const scale = targetW / logoImage.width;
-    const w = targetW;
-    const h = logoImage.height * scale;
+    // logo.png is the square app icon, so size it by height.
+    const targetH = 40;
+    const scale = targetH / logoImage.height;
+    const w = logoImage.width * scale;
+    const h = targetH;
 
     const x = MARGIN;
     const y = MARGIN; // bottom-left area

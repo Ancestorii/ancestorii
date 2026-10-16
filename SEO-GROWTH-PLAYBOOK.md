@@ -134,7 +134,7 @@ Be useful first. Self-promotion that reads as spam is worse than silence.
 - **Internal linking** now flows: footer → topics index → topic hubs → stories,
   and each story's category breadcrumb → its topic hub. Keep new content linked
   in from at least one existing page; orphan pages underperform.
-- **Per-page OG images** are still partly fallback to the default `/og-image.jpg`.
+- **Per-page OG images** are still partly fallback to the default `/og-default.jpg`.
   Custom OG images per guide/comparison would lift social and AI link previews
   (nice-to-have, not urgent).
 
