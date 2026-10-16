@@ -1,0 +1,912 @@
+/* ============================================================
+   Shared building blocks for Ancestorii's public pages.
+   Same palette, type and shapes as the landing page
+   (src/components/landing/landing.module.css). Everything here
+   sits inside SiteShell or AuthShell, which put the landing root
+   class on the page and so provide its tokens:
+   --c0 pink, --c1 blue, --c2 orange, --c3 aqua, --ink, --hover,
+   --hairline-ring, and Plus Jakarta Sans.
+   Text is always ink (or white on ink and on pink/blue);
+   hierarchy comes from size and weight, never from greys.
+   ============================================================ */
+
+/* ── Page frame ───────────────────────────────────────────── */
+
+.main {
+  position: relative;
+  z-index: 1;
+  padding-bottom: clamp(64px, 8vw, 100px);
+}
+
+.narrow {
+  width: min(760px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+/* ── Page hero (a smaller cousin of the landing hero) ─────── */
+
+.hero {
+  position: relative;
+  padding-top: clamp(24px, 3.5vw, 48px);
+}
+
+.heroInner {
+  width: min(1000px, calc(100% - 48px));
+  margin: 0 auto;
+  text-align: center;
+}
+
+.heroLeft .heroInner {
+  width: min(1240px, calc(100% - 48px));
+  text-align: left;
+}
+
+.heroTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.heroLeft .heroTop {
+  justify-content: flex-start;
+}
+
+.heroTitle {
+  margin: 0 auto;
+  font-size: clamp(44px, 6.2vw, 96px);
+  line-height: 0.96;
+  letter-spacing: -0.055em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.heroTitleMd {
+  font-size: clamp(40px, 5vw, 76px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.heroLeft .heroTitle {
+  margin: 0;
+  max-width: 16ch;
+}
+
+.heroLead {
+  margin: 24px auto 0;
+  max-width: 34em;
+  font-size: clamp(17px, 1.5vw, 20px);
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.heroLeft .heroLead {
+  margin-left: 0;
+}
+
+.heroActions {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.heroLeft .heroActions {
+  justify-content: flex-start;
+}
+
+@media (max-width: 359px) {
+  .heroTitle {
+    font-size: 40px;
+  }
+}
+
+/* Coloured words inside headings. The gradient (landing .gradientText) is kept
+   for the one hero phrase; other headings take a single solid colour. */
+.accentPink {
+  color: var(--c0);
+}
+
+.accentBlue {
+  color: var(--c1);
+}
+
+/* ── Sections ─────────────────────────────────────────────── */
+
+.section {
+  position: relative;
+  padding-top: clamp(64px, 8vw, 110px);
+}
+
+.sectionSm {
+  position: relative;
+  padding-top: clamp(40px, 5vw, 64px);
+}
+
+.sectionBody {
+  margin-top: clamp(32px, 4vw, 52px);
+}
+
+.h3 {
+  margin: 0;
+  font-size: clamp(24px, 2.2vw, 32px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+/* ── Grids ────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+.grid2,
+.grid3 {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 999px) {
+  .grid3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 649px) {
+  .grid2,
+  .grid3 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+/* ── Cards ────────────────────────────────────────────────── */
+
+/* White card with the landing's hairline ring (steps, reviews, story cards). */
+.card {
+  position: relative;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+  padding: 26px 24px 24px;
+}
+
+@media (min-width: 1100px) {
+  .card {
+    border-radius: 30px;
+    padding: 32px 32px 30px;
+  }
+}
+
+/* Solid colour card (quote cards, question pills). Set --card and --fg;
+   pink, blue and ink take white text, orange and aqua take ink text. */
+.colorCard {
+  position: relative;
+  border-radius: 26px;
+  padding: 26px 24px 24px;
+  background: var(--card, var(--c0));
+  color: var(--fg, #fff);
+  box-shadow: 0 30px 60px -30px rgba(10, 10, 15, 0.5);
+}
+
+@media (min-width: 1100px) {
+  .colorCard {
+    border-radius: 30px;
+    padding: 32px 32px 30px;
+  }
+}
+
+/* The one dark card on a page (dark is used sparingly). */
+.inkCard {
+  position: relative;
+  border-radius: 30px;
+  padding: 32px 30px 30px;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 40px 70px -40px rgba(10, 10, 15, 0.6);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: clamp(21px, 1.8vw, 26px);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.cardText {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* Small uppercase label with a coloured square (set --dot). */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--dot, var(--c0));
+}
+
+/* Square icon tile. Set --tile and --tile-fg (ink on orange and aqua). */
+.iconTile {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 18px;
+  background: var(--tile, var(--c0));
+  color: var(--tile-fg, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Coloured dot list, e.g. "Free to start · No credit card · Two minutes". */
+.dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.dotsCenter {
+  justify-content: center;
+}
+
+.dots li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dots li::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--c0);
+}
+
+.dots li:nth-child(4n + 2)::before { background: var(--c1); }
+.dots li:nth-child(4n + 3)::before { background: var(--c3); }
+.dots li:nth-child(4n + 4)::before { background: var(--c2); }
+
+/* ── Photos ───────────────────────────────────────────────── */
+
+/* A real photo in a solid colour frame, like the hero ring cards. Set --card. */
+.photoFrame {
+  position: relative;
+  padding: 8px;
+  border-radius: 26px;
+  background: var(--card, var(--c0));
+  box-shadow: 0 30px 60px -30px rgba(10, 10, 15, 0.5);
+}
+
+.photoFrameInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 19px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* ── Long-form text (guides, articles, legal) ─────────────── */
+
+.prose {
+  font-size: clamp(17px, 1.35vw, 19px);
+  line-height: 1.72;
+  font-weight: 500;
+}
+
+.prose > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.prose > * + * {
+  margin-top: 1.05em;
+}
+
+.prose p,
+.prose li {
+  text-wrap: pretty;
+}
+
+.prose strong,
+.prose b {
+  font-weight: 800;
+}
+
+.prose a {
+  font-weight: 700;
+  color: var(--c1);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.prose h2 {
+  margin-top: 2.1em;
+  font-size: clamp(28px, 2.8vw, 40px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.prose h3 {
+  margin-top: 1.7em;
+  font-size: clamp(20px, 1.7vw, 24px);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.prose h2 + *,
+.prose h3 + * {
+  margin-top: 0.6em;
+}
+
+.prose ul,
+.prose ol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+  padding: 0;
+  list-style: none;
+}
+
+.prose li {
+  position: relative;
+  padding-left: 1.5em;
+}
+
+.prose ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0.15em;
+  top: 0.6em;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 3px;
+  background: var(--c0);
+}
+
+.prose ol {
+  counter-reset: prose-ol;
+}
+
+.prose ol > li {
+  counter-increment: prose-ol;
+}
+
+.prose ol > li::before {
+  content: counter(prose-ol) '.';
+  position: absolute;
+  left: 0;
+  font-weight: 800;
+  color: var(--c1);
+}
+
+.prose hr {
+  height: 1.5px;
+  border: 0;
+  margin: 2.2em 0;
+  background: rgba(10, 10, 15, 0.1);
+}
+
+/* Opening paragraph of an article: bigger and bolder, like the story page. */
+.proseLead {
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+
+/* Pull quote: big pink quote mark, heavy text (accent words in blue). */
+.pullQuote {
+  display: flex;
+  gap: 16px;
+  margin: clamp(40px, 5vw, 64px) 0;
+}
+
+.prose > .pullQuote {
+  margin: clamp(40px, 5vw, 64px) 0;
+}
+
+.pullQuoteMark {
+  flex: none;
+  font-size: 96px;
+  line-height: 0.8;
+  font-weight: 800;
+  color: var(--c0);
+}
+
+.pullQuoteText {
+  margin: 0;
+  font-size: clamp(26px, 2.6vw, 38px);
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+@media (max-width: 599px) {
+  .pullQuote {
+    gap: 10px;
+  }
+
+  .pullQuoteMark {
+    font-size: 72px;
+  }
+}
+
+/* ── Breadcrumbs ──────────────────────────────────────────── */
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.crumbs li {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.crumbs li + li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--c0);
+}
+
+.crumbs a {
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.crumbs [aria-current='page'] {
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .crumbs a:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* ── Questions and answers ────────────────────────────────── */
+
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faqItem {
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+  transition: box-shadow 0.25s ease;
+}
+
+.faqItem[open] {
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+}
+
+.faqQ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 18px 24px;
+  list-style: none;
+  cursor: pointer;
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+.faqQ::-webkit-details-marker {
+  display: none;
+}
+
+.faqQ::marker {
+  content: '';
+}
+
+.faqIcon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--ink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.faqItem[open] .faqIcon {
+  transform: rotate(45deg);
+  background: var(--c0);
+}
+
+.faqA {
+  padding: 0 24px 22px;
+  font-size: 16.5px;
+  line-height: 1.65;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.faqA > * {
+  margin: 0;
+}
+
+.faqA > * + * {
+  margin-top: 0.8em;
+}
+
+.faqA a {
+  font-weight: 700;
+  color: var(--c1);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* ── Tables ───────────────────────────────────────────────── */
+
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.35);
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.table th,
+.table td {
+  padding: 16px 20px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 1.5px solid rgba(10, 10, 15, 0.1);
+}
+
+.table tbody th {
+  font-weight: 800;
+}
+
+.table td {
+  font-weight: 600;
+}
+
+.table tbody tr + tr > * {
+  border-top: 1.5px solid rgba(10, 10, 15, 0.06);
+}
+
+/* ── Forms ────────────────────────────────────────────────── */
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 1.5px solid rgba(10, 10, 15, 0.14);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input,
+.select {
+  height: 58px;
+  padding: 0 18px;
+}
+
+.textarea {
+  min-height: 120px;
+  padding: 14px 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.label + .input,
+.label + .textarea,
+.label + .select {
+  margin-top: 8px;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: rgba(10, 10, 15, 0.42);
+  font-weight: 500;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+.inputError,
+.inputError:focus {
+  border-color: #e0004d;
+}
+
+.fieldError {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e0004d;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.check input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex: none;
+  accent-color: var(--c0);
+  cursor: pointer;
+}
+
+.check a {
+  font-weight: 800;
+  color: var(--c1);
+}
+
+/* Messages under a form. */
+.notice,
+.noticeError {
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.notice {
+  background: #e8fbf6;
+}
+
+.noticeError {
+  background: #ffe3ef;
+}
+
+/* ── Buttons (for <button>; links use the landing's ArrowLink / btnOutline / btnGhost) ── */
+
+/* Full-width ink submit button with the pink arrow tile (Log In / Sign Up design). */
+.btnSubmit {
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 11px 0 26px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 22px 40px -22px rgba(10, 10, 15, 0.7);
+  transition: transform 0.2s ease;
+}
+
+.btnSubmitTile {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--c0);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  transition: transform 0.2s ease;
+}
+
+.btnSubmit:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.btnSubmit:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* Outline button for <button> elements (same look as the landing's btnOutline). */
+.btnLine {
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 24px;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Round pill buttons (story actions: like, share, small actions). */
+.pill,
+.pillSoft {
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pill {
+  background: var(--ink);
+  color: #fff;
+}
+
+.pillSoft {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.14);
+}
+
+.pill:disabled,
+.pillSoft:disabled,
+.btnLine:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+@media (hover: hover) {
+  .btnSubmit:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+
+  .btnSubmit:not(:disabled):hover .btnSubmitTile {
+    transform: translateX(2px);
+  }
+
+  .btnLine:not(:disabled):hover {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .pillSoft:not(:disabled):hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+}
+
+/* Plain text link inside running copy (blue, underlined). */
+.textLink {
+  font-weight: 800;
+  color: var(--c1);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* ── Closing call to action ───────────────────────────────── */
+
+/* The landing's dark slab ends each page; main supplies the space before the footer. */
+.ctaEnd {
+  padding-bottom: 0;
+}
+
+.ctaNote {
+  margin: 18px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Reduced motion is handled by the landing root class (it shortens every transition). */

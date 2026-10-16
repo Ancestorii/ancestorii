@@ -1,8 +1,7 @@
-import PublicNav from '@/components/stories/layout/PublicNav';
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import SiteShell from '@/components/site/SiteShell';
 import HowItWorksContent from './HowItWorksContent';
-import PublicFooter from '@/components/stories/layout/PublicFooter';
 
 export const metadata: Metadata = {
   title: 'How It Works | Ancestorii',
@@ -26,11 +25,9 @@ export default function HowItWorksPage() {
         })}
       </Script>
 
-      <main className="bg-[#FFFDF6] text-[#0F2040]">
-        <PublicNav />
+      <SiteShell>
         <HowItWorksContent />
-        <PublicFooter />
-      </main>
+      </SiteShell>
     </>
   );
 }

@@ -2,8 +2,7 @@ import { getServerClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import PublicNav from '@/components/stories/layout/PublicNav';
-import PublicFooter from '@/components/stories/layout/PublicFooter';
+import SiteShell from '@/components/site/SiteShell';
 import StoryPageContent from '@/components/stories/detail/StoryPageContent';
 import { getStoryComments } from '@/lib/stories/queries';
 
@@ -306,9 +305,7 @@ export default async function StoryPage({ params }: Props) {
         })}
       </Script>
 
-      <div className="min-h-screen flex flex-col bg-white">
-        <PublicNav />
-        <main className="flex-1">
+      <SiteShell isLoggedIn={isLoggedIn} storiesBar>
           <StoryPageContent
             story={{
               id: story.id,
@@ -336,9 +333,7 @@ export default async function StoryPage({ params }: Props) {
             relatedStories={relatedStories}
             initialComments={initialComments}
           />
-        </main>
-        <PublicFooter />
-      </div>
+      </SiteShell>
     </>
   );
 }

@@ -1,11 +1,12 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import styles from './signup.module.css';
 
 const SignupForm = dynamic(() => import('./SignupForm'), {
   ssr: false,
   loading: () => (
-    <div className="w-full max-w-md h-[420px] rounded-2xl bg-white border border-[#d4af37]/30 shadow-md" />
+    <div className={styles.placeholder} aria-hidden="true" />
   ),
 });
 

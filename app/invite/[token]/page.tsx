@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import AuthShell from '@/components/site/AuthShell';
+import { Accent, ArrowLink, SubmitButton } from '@/components/site/SiteBits';
+import { FAMILY_CARDS } from '@/components/site/utility/familyCards';
+import landing from '@/components/landing/landing.module.css';
+import auth from '@/components/site/auth.module.css';
+import site from '@/components/site/site.module.css';
+import styles from '@/components/site/utility/account.module.css';
 
 interface InviteDetails {
   valid: boolean;
@@ -93,6 +100,7 @@ export default function InvitePage() {
 
       // Redirect to dashboard
       router.replace('/dashboard/our-family');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- unchanged handler
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
       setLoading(false);
@@ -102,147 +110,145 @@ export default function InvitePage() {
   // ── Loading state ──
   if (loadingInvite) {
     return (
-      <main className="min-h-screen bg-[#fffdf7] flex items-center justify-center px-6">
-        <div className="w-full max-w-md mx-auto bg-white border border-[#d4af37]/30 rounded-2xl shadow-md p-6 text-center">
-          <p className="text-[#0f2040]/60">Loading your invitation…</p>
+      <AuthShell variant="signup" cards={FAMILY_CARDS}>
+        <div className={styles.loading} role="status">
+          <span className={styles.spinner} aria-hidden="true" />
+          <p className={styles.loadingText}>Loading your invitation…</p>
         </div>
-      </main>
+      </AuthShell>
     );
   }
 
   // ── Invalid/expired invite ──
   if (inviteError) {
     return (
-      <main className="min-h-screen bg-[#fffdf7] flex items-center justify-center px-6">
-        <div className="w-full max-w-md mx-auto bg-white border border-[#d4af37]/30 rounded-2xl shadow-md p-6 text-center">
-          <h1 className="text-2xl font-extrabold text-[#0f2040] mb-4">
-            Invitation Unavailable
-          </h1>
-          <p className="text-[#0f2040]/70 mb-6">{inviteError}</p>
-          <Link
-            href="/signup"
-            className="inline-block bg-[#d4af37] px-6 py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition"
-          >
-            Create your own account
-          </Link>
-        </div>
-      </main>
+      <AuthShell variant="signup" cards={FAMILY_CARDS}>
+        <h1 className={`${auth.title} ${styles.title}`}>
+          Invitation <Accent tone="pink">Unavailable</Accent>
+        </h1>
+        <p className={auth.intro}>{inviteError}</p>
+        <ArrowLink href="/signup" className={`${landing.btnShadow} ${styles.blockLink}`}>
+          Create your own account
+        </ArrowLink>
+      </AuthShell>
     );
   }
 
   // ── Valid invite — show signup form ──
   return (
-    <main className="min-h-screen bg-[#fffdf7] flex flex-col items-center justify-center px-6 py-16">
+    <AuthShell variant="signup" cards={FAMILY_CARDS}>
       {/* Headline */}
-      <div className="w-full max-w-screen-xl mx-auto mb-10 px-[clamp(1.5rem,5vw,5rem)] text-center">
-        <h2 className="text-[clamp(2.25rem,6vw,3.75rem)] font-extrabold tracking-tight leading-[1.1] text-[#0F2040]">
-          You&apos;re invited to join
-          <br />
-          <span className="text-[#D4AF37]">{invite!.familyName}</span>
-        </h2>
-        <p className="text-sm sm:text-base text-[#0F2040]/80 mt-3">
-          {invite!.inviterName} wants you to help preserve your family&apos;s memories.
-        </p>
-      </div>
+      <h2 className={`${auth.title} ${styles.title}`}>
+        You&apos;re invited to join
+        <br />
+        <Accent tone="pink">{invite!.familyName}</Accent>
+      </h2>
+      <p className={auth.intro}>
+        {invite!.inviterName} wants you to help preserve your family&apos;s memories.
+      </p>
 
       {/* Signup form */}
-      <div className="w-full max-w-md mx-auto bg-white border border-[#d4af37]/30 rounded-2xl shadow-md p-6 pb-10">
-        <h1 className="text-3xl font-extrabold text-[#0f2040] text-center mb-4">
-          Create your account
-        </h1>
+      <h1 className={styles.formTitle}>Create your account</h1>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-5">
-          <div>
-            <label className="block font-semibold text-sm mb-1">Full Name</label>
+      <form onSubmit={onSubmit} className={styles.form}>
+        <div>
+          <label htmlFor="invite-full-name" className={site.label}>
+            Full Name
+          </label>
+          <input
+            id="invite-full-name"
+            required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className={site.input}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="invite-email" className={site.label}>
+            Email
+          </label>
+          <input
+            id="invite-email"
+            type="email"
+            value={invite!.email}
+            disabled
+            className={`${site.input} ${styles.locked}`}
+          />
+          <p className={styles.hint}>
+            This is the email the invite was sent to
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="invite-password" className={site.label}>
+            Password
+          </label>
+          <div className={styles.passwordWrap}>
             <input
+              id="invite-password"
               required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full p-2.5 rounded-lg border focus:ring-[#d4af37]"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`${site.input} ${styles.passwordInput}`}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className={styles.toggle}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
           </div>
 
-          <div>
-            <label className="block font-semibold text-sm mb-1">Email</label>
-            <input
-              type="email"
-              value={invite!.email}
-              disabled
-              className="w-full p-2.5 rounded-lg border bg-gray-50 text-gray-500 cursor-not-allowed"
-            />
-            <p className="text-xs text-[#0f2040]/50 mt-1">
-              This is the email the invite was sent to
-            </p>
-          </div>
-
-          <div>
-            <label className="block font-semibold text-sm mb-1">Password</label>
-            <div className="relative">
-              <input
-                required
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-2.5 pr-12 rounded-lg border focus:ring-[#d4af37]"
+          {password && (
+            <div className={styles.meter}>
+              <div
+                className={`${styles.meterBar} ${
+                  strength === 'weak'
+                    ? styles.meterWeak
+                    : strength === 'medium'
+                    ? styles.meterMedium
+                    : styles.meterStrong
+                }`}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#0F2040]/70 hover:text-[#D4AF37]"
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
             </div>
+          )}
+        </div>
 
-            {password && (
-              <div className="mt-2 h-2 bg-gray-200 rounded-full">
-                <div
-                  className={`h-2 rounded-full transition-all ${
-                    strength === 'weak'
-                      ? 'bg-red-500 w-1/3'
-                      : strength === 'medium'
-                      ? 'bg-yellow-500 w-2/3'
-                      : 'bg-green-500 w-full'
-                  }`}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-start gap-3 text-xs sm:text-sm">
-            <input
-              type="checkbox"
-              checked={agree}
-              onChange={() => setAgree(!agree)}
-              required
-            />
+        <label className={`${site.check} ${styles.agree}`}>
+          <input
+            type="checkbox"
+            checked={agree}
+            onChange={() => setAgree(!agree)}
+            required
+          />
+          <span>
             I agree to the{' '}
-            <Link href="/terms" className="underline text-[#d4af37]">
+            <Link href="/terms">
               Terms
             </Link>{' '}
             and{' '}
-            <Link href="/privacy-policy" className="underline text-[#d4af37]">
+            <Link href="/privacy-policy">
               Privacy Policy
             </Link>
-          </div>
+          </span>
+        </label>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className={site.noticeError} role="alert">{error}</p>}
 
-          <button
-            disabled={loading}
-            className="w-full bg-[#d4af37] text-white py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition"
-          >
-            {loading ? 'Joining family…' : `Join ${invite!.familyName}`}
-          </button>
-        </form>
+        <SubmitButton disabled={loading}>
+          {loading ? 'Joining family…' : `Join ${invite!.familyName}`}
+        </SubmitButton>
+      </form>
 
-        <p className="text-center text-sm mt-5">
-          Already have an account?{' '}
-          <Link href="/login" className="font-semibold text-[#0f2040]">
-            Log in
-          </Link>
-        </p>
-      </div>
-    </main>
+      <p className={auth.switch}>
+        Already have an account?{' '}
+        <Link href="/login">
+          Log in
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

@@ -1,0 +1,190 @@
+/* ============================================================
+   Form details shared by the account screens (Log In, Sign Up,
+   Reset password and the sign-in / confirm status screens).
+   Follows the Claude Design "Ancestorii Log In" and "Sign Up"
+   files. Everything sits inside AuthShell, which provides the
+   landing tokens (--c0..--c3, --ink, --hover) and the typeface.
+   ============================================================ */
+
+/* The first control under the title and intro sits 32px below them, as in the design. */
+.formStart {
+  margin-top: 32px;
+}
+
+/* A label with an action on the right ("Password" + "Forgot password?").
+   The row is 44px tall so the action is a full touch target. */
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  margin-top: 8px;
+}
+
+.labelRow + .pwWrap {
+  margin-top: -3px;
+}
+
+/* Text-only button in blue ("Forgot password?"). */
+.linkButton {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c1);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.linkButton:disabled {
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .linkButton:not(:disabled):hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* Password input with the Show / Hide button inside it. */
+.pwWrap {
+  position: relative;
+  margin-top: 8px;
+}
+
+.pwWrap > input {
+  padding-right: 84px;
+}
+
+.toggle {
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--hover);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .toggle:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+}
+
+/* Spacing for site.notice / site.noticeError under a form.
+   pre-line keeps the line breaks some messages carry. */
+.notice {
+  margin-top: 18px;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+}
+
+/* Space above the full-width submit button. */
+.submit {
+  margin-top: 28px;
+}
+
+/* Disabled or busy ("Logging in…", or Update Password before six characters): the button
+   keeps its ink fill and white label instead of fading to grey; only the arrow tile changes,
+   from the pink fill to a white outline, until the button can be used. */
+button.submit:disabled {
+  opacity: 1;
+}
+
+button.submit:disabled > span[aria-hidden='true'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+/* A link on its own line ("Create a free account"): a 44px tall touch target
+   that leaves the line height alone. */
+.tapLink {
+  display: inline-block;
+  padding: 13px 0;
+  margin: -13px 0;
+}
+
+/* Status screens ("Signing you in…", "Confirming your email"):
+   a smaller cousin of the account title, for longer messages. */
+.statusTitle {
+  margin: 0;
+  font-size: clamp(36px, 3.6vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+/* The logo's four squares, pulsing in turn while a status screen waits. */
+.loader {
+  display: inline-grid;
+  grid-template-columns: 14px 14px;
+  gap: 4px;
+  margin-top: 30px;
+}
+
+.loader > span {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  animation: loaderPulse 1.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Clockwise from the top left: pink, orange, aqua, blue. */
+.loader > span:nth-child(1) {
+  background: var(--c0);
+}
+
+.loader > span:nth-child(2) {
+  background: var(--c2);
+  animation-delay: 0.15s;
+}
+
+.loader > span:nth-child(3) {
+  background: var(--c1);
+  animation-delay: 0.45s;
+}
+
+.loader > span:nth-child(4) {
+  background: var(--c3);
+  animation-delay: 0.3s;
+}
+
+@keyframes loaderPulse {
+  0%,
+  60%,
+  100% {
+    transform: scale(1);
+  }
+
+  30% {
+    transform: scale(0.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader > span {
+    animation: none;
+  }
+}

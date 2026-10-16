@@ -1,0 +1,82 @@
+/* ============================================================
+   /rewards: the app's "Redeem at ancestorii.com" handoff page.
+   Sits inside SiteShell, so the landing tokens (--c0 pink, --c1 blue,
+   --c2 orange, --c3 aqua, --ink, --hairline-ring) and Plus Jakarta
+   Sans are already set. No prices and no upgrade button on this page:
+   the only action is the neutral log in.
+   ============================================================ */
+
+/* Two balanced lines: "Redeem your" / "app rewards". */
+.hero .title {
+  max-width: 11ch;
+}
+
+.lead {
+  margin: 30px auto 0;
+  max-width: 34em;
+  font-size: clamp(17px, 1.5vw, 20px);
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+.lead p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.lead p + p {
+  margin-top: 12px;
+}
+
+/* ── How redemption works: the landing's step cards, four across ── */
+
+.steps {
+  margin: clamp(32px, 4vw, 52px) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* Four across leaves narrower cards, so the colour panels are a little shorter. */
+@media (min-width: 1100px) {
+  .steps .panel {
+    height: 210px;
+  }
+}
+
+.stepText {
+  margin: 10px 0 0;
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+@media (max-width: 1099px) {
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Below 900px the landing turns each step into a full-width card. */
+@media (max-width: 899px) {
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Tablet: the panel sits beside the text, and these steps are only two lines long. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .steps .panel {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 599px) {
+  .steps {
+    gap: 16px;
+  }
+}

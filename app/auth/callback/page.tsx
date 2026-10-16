@@ -5,6 +5,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import AuthShell from '@/components/site/AuthShell';
+import AuthLoader from '@/components/site/auth/AuthLoader';
+import forms from '@/components/site/auth/authForms.module.css';
 
 export default function AuthCallback() {
   const supabase = getBrowserClient();
@@ -103,8 +106,9 @@ export default function AuthCallback() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fffdf7]">
-      <p className="text-[#0f2040]/60">Signing you in…</p>
-    </div>
+    <AuthShell>
+      <h1 className={forms.statusTitle}>Signing you in…</h1>
+      <AuthLoader />
+    </AuthShell>
   );
 }

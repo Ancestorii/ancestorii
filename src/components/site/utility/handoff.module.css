@@ -1,0 +1,89 @@
+/* ============================================================
+   App hand-off pages (/q/[code] and /m/[code]) on desktop: the
+   code to enter in the app, on a solid colour card like the hero's
+   quote cards, then the store badges. Inside SiteShell, so the
+   landing tokens apply.
+   ============================================================ */
+
+.section {
+  position: relative;
+  padding-top: clamp(40px, 5vw, 64px);
+}
+
+/* Long names or titles from the share preview wrap instead of overflowing. */
+.wrapAny {
+  overflow-wrap: anywhere;
+}
+
+/* The code card: set --card (pink or blue, white text). */
+.codeCard {
+  position: relative;
+  padding: 30px 26px 28px;
+  border-radius: 30px;
+  background: var(--card, var(--c1));
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 40px 70px -36px rgba(10, 10, 15, 0.6);
+  rotate: -2deg;
+  /* A size container, so the code below can scale itself to fit on one line. */
+  container-type: inline-size;
+}
+
+.blue {
+  --card: var(--c1);
+}
+
+.pink {
+  --card: var(--c0);
+}
+
+.codeLabel {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* The code itself, on a white tile like the landing's step tiles. */
+.code {
+  margin: 18px 0 0;
+  padding: clamp(22px, 3vw, 30px) 16px;
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  font-size: clamp(34px, 4.6vw, 56px);
+  /* Keep the whole code on one line, whatever its length (--chars, set by the page):
+     real codes run about 0.7-0.8em per character at this weight and tracking, so 0.9em
+     leaves room for wide letters inside the tile's 16px padding. Browsers without
+     container units keep the size above. */
+  font-size: clamp(20px, calc((100cqi - 32px) / (var(--chars, 9) * 0.9)), 56px);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  /* Balances the space letter-spacing leaves after the last character. */
+  text-indent: 0.08em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  box-shadow: 0 24px 40px -24px rgba(10, 10, 15, 0.55);
+}
+
+.codeNote {
+  margin: 18px 0 0;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.badges {
+  justify-content: center;
+  margin-top: clamp(36px, 4vw, 48px);
+}
+
+@media (max-width: 599px) {
+  .codeCard {
+    padding: 26px 20px 24px;
+    border-radius: 26px;
+    rotate: -1.5deg;
+  }
+}

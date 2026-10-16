@@ -6,6 +6,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import AuthShell from '@/components/site/AuthShell';
+import { Accent, ArrowLink, SubmitButton } from '@/components/site/SiteBits';
+import { FAMILY_CARDS } from '@/components/site/utility/familyCards';
+import landing from '@/components/landing/landing.module.css';
+import auth from '@/components/site/auth.module.css';
+import site from '@/components/site/site.module.css';
+import styles from '@/components/site/utility/account.module.css';
 
 interface LinkDetails {
   valid: boolean;
@@ -107,6 +114,7 @@ export default function JoinPage() {
       }
 
       router.replace('/dashboard/our-family');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- unchanged handler
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
       setJoining(false);
@@ -158,6 +166,7 @@ export default function JoinPage() {
       }
 
       router.replace('/dashboard/our-family');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- unchanged handler
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
       setLoading(false);
@@ -167,206 +176,190 @@ export default function JoinPage() {
   // ── Loading state ──
   if (loadingLink || checkingAuth) {
     return (
-      <main className="min-h-screen bg-[#fffdf7] flex items-center justify-center px-6">
-        <div className="w-full max-w-md mx-auto bg-white border border-[#d4af37]/30 rounded-2xl shadow-md p-6 text-center">
-          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-[3px] border-[#E1C99D] border-t-[#C8A557]" />
-          <p className="text-[#0f2040]/60">Loading your invitation…</p>
+      <AuthShell variant="signup" cards={FAMILY_CARDS}>
+        <div className={styles.loading} role="status">
+          <span className={styles.spinner} aria-hidden="true" />
+          <p className={styles.loadingText}>Loading your invitation…</p>
         </div>
-      </main>
+      </AuthShell>
     );
   }
 
   // ── Invalid/deactivated link ──
   if (linkError) {
     return (
-      <main className="min-h-screen bg-[#fffdf7] flex items-center justify-center px-6">
-        <div className="w-full max-w-md mx-auto bg-white border border-[#d4af37]/30 rounded-2xl shadow-md p-6 text-center">
-          <h1 className="text-2xl font-extrabold text-[#0f2040] mb-4">
-            Link Unavailable
-          </h1>
-          <p className="text-[#0f2040]/70 mb-6">{linkError}</p>
-          <Link
-            href="/signup"
-            className="inline-block bg-[#d4af37] px-6 py-3 rounded-full font-semibold text-white shadow-md hover:shadow-lg transition"
-          >
-            Create your own library
-          </Link>
-        </div>
-      </main>
+      <AuthShell variant="signup" cards={FAMILY_CARDS}>
+        <h1 className={`${auth.title} ${styles.title}`}>
+          Link <Accent tone="pink">Unavailable</Accent>
+        </h1>
+        <p className={auth.intro}>{linkError}</p>
+        <ArrowLink href="/signup" className={`${landing.btnShadow} ${styles.blockLink}`}>
+          Create your own library
+        </ArrowLink>
+      </AuthShell>
     );
   }
 
   // ── Logged-in user: show join button ──
   if (isLoggedIn) {
     return (
-      <main className="min-h-screen bg-[#fffdf7] flex flex-col items-center justify-center px-6 py-16">
-        <div className="w-full max-w-screen-xl mx-auto mb-10 px-[clamp(1.5rem,5vw,5rem)] text-center">
-          <h2 className="text-[clamp(2.25rem,6vw,3.75rem)] font-extrabold tracking-tight leading-[1.1] text-[#0F2040]">
-            You&apos;ve been invited to
-            <br />
-            <span className="text-[#D4AF37]">{linkDetails!.familyName}</span>
-          </h2>
-          <p className="text-sm sm:text-base text-[#0F2040]/80 mt-3">
-            {linkDetails!.creatorName} wants you to help preserve your family&apos;s memories.
-          </p>
-        </div>
+      <AuthShell variant="signup" cards={FAMILY_CARDS}>
+        <h2 className={`${auth.title} ${styles.title}`}>
+          You&apos;ve been invited to
+          <br />
+          <Accent tone="pink">{linkDetails!.familyName}</Accent>
+        </h2>
+        <p className={auth.intro}>
+          {linkDetails!.creatorName} wants you to help preserve your family&apos;s memories.
+        </p>
 
-        <div className="w-full max-w-md mx-auto bg-white border border-[#d4af37]/30 rounded-2xl shadow-md p-6 pb-10 text-center">
-          <h3 className="text-2xl font-extrabold text-[#0f2040] mb-3">
-            Join this library
-          </h3>
-          <p className="text-[#0f2040]/70 mb-6">
-            You&apos;ll be able to view and contribute to everything in{' '}
-            <span className="font-semibold">{linkDetails!.familyName}</span>.
-          </p>
+        <h1 className={styles.formTitle}>
+          Join this library
+        </h1>
+        <p className={styles.formLead}>
+          You&apos;ll be able to view and contribute to everything in{' '}
+          <span className={styles.strong}>{linkDetails!.familyName}</span>.
+        </p>
 
-          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        {error && <p className={`${site.noticeError} ${styles.errorGap}`} role="alert">{error}</p>}
 
-          <button
-            onClick={handleJoin}
-            disabled={joining}
-            className="w-full bg-[#d4af37] text-white py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition disabled:opacity-50"
-          >
-            {joining ? 'Joining…' : `Join ${linkDetails!.familyName}`}
-          </button>
+        <SubmitButton
+          type="button"
+          onClick={handleJoin}
+          disabled={joining}
+          className={styles.action}
+        >
+          {joining ? 'Joining…' : `Join ${linkDetails!.familyName}`}
+        </SubmitButton>
 
-          <p className="text-center text-sm mt-5 text-[#0f2040]/60">
-            Wrong account?{' '}
-            <Link href="/login" className="font-semibold text-[#0f2040]">
-              Switch account
-            </Link>
-          </p>
-        </div>
-      </main>
+        <p className={auth.switch}>
+          Wrong account?{' '}
+          <Link href="/login">
+            Switch account
+          </Link>
+        </p>
+      </AuthShell>
     );
   }
 
   // ── Not logged in: show signup form ──
   return (
-    <main className="min-h-screen bg-[#fffdf7] flex flex-col items-center justify-center px-6 py-16">
+    <AuthShell variant="signup" cards={FAMILY_CARDS}>
       {/* Headline */}
-      <div className="w-full max-w-screen-xl mx-auto mb-10 px-[clamp(1.5rem,5vw,5rem)] text-center">
-        <h2 className="text-[clamp(2.25rem,6vw,3.75rem)] font-extrabold tracking-tight leading-[1.1] text-[#0F2040]">
-          You&apos;ve been invited to
-          <br />
-          <span className="text-[#D4AF37]">{linkDetails!.familyName}</span>
-        </h2>
-        <p className="text-sm sm:text-base text-[#0F2040]/80 mt-3">
-          {linkDetails!.creatorName} wants you to help preserve your family&apos;s memories.
-        </p>
-      </div>
+      <h2 className={`${auth.title} ${styles.title}`}>
+        You&apos;ve been invited to
+        <br />
+        <Accent tone="pink">{linkDetails!.familyName}</Accent>
+      </h2>
+      <p className={auth.intro}>
+        {linkDetails!.creatorName} wants you to help preserve your family&apos;s memories.
+      </p>
 
       {/* Signup form */}
-      <div className="w-full max-w-md mx-auto bg-white border border-[#d4af37]/30 rounded-2xl shadow-md p-6 pb-8">
-        <h1 className="text-3xl font-extrabold text-[#0f2040] text-center mb-2">
-          Create your account
-        </h1>
-        <p className="text-center text-sm text-[#0f2040]/60 mb-6">
-          Sign up to join {linkDetails!.familyName}
-        </p>
+      <h1 className={styles.formTitle}>
+        Create your account
+      </h1>
+      <p className={styles.formLead}>
+        Sign up to join {linkDetails!.familyName}
+      </p>
 
-        {/* Email signup form */}
-        <form onSubmit={onSubmit} noValidate className="space-y-5">
-          <div>
-            <label className="block font-semibold text-sm mb-1 text-[#0f2040]">Full Name</label>
+      {/* Email signup form */}
+      <form onSubmit={onSubmit} noValidate className={styles.form}>
+        <div>
+          <label htmlFor="join-full-name" className={site.label}>Full Name</label>
+          <input
+            id="join-full-name"
+            required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className={site.input}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="join-email" className={site.label}>Email</label>
+          <input
+            id="join-email"
+            required
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={site.input}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="join-password" className={site.label}>Password</label>
+          <div className={styles.passwordWrap}>
             <input
+              id="join-password"
               required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full p-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`${site.input} ${styles.passwordInput}`}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className={styles.toggle}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
           </div>
 
-          <div>
-            <label className="block font-semibold text-sm mb-1 text-[#0f2040]">Email</label>
-            <input
-              required
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]"
-            />
-          </div>
-
-          <div>
-            <label className="block font-semibold text-sm mb-1 text-[#0f2040]">Password</label>
-            <div className="relative">
-              <input
-                required
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-2.5 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]"
+          {password && (
+            <div className={styles.meter}>
+              <div
+                className={`${styles.meterBar} ${
+                  strength === 'weak'
+                    ? styles.meterWeak
+                    : strength === 'medium'
+                    ? styles.meterMedium
+                    : styles.meterStrong
+                }`}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#0F2040]/70 hover:text-[#D4AF37]"
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
             </div>
+          )}
+        </div>
 
-            {password && (
-              <div className="mt-2 h-2 bg-gray-200 rounded-full">
-                <div
-                  className={`h-2 rounded-full transition-all ${
-                    strength === 'weak'
-                      ? 'bg-red-500 w-1/3'
-                      : strength === 'medium'
-                      ? 'bg-yellow-500 w-2/3'
-                      : 'bg-green-500 w-full'
-                  }`}
-                />
-              </div>
-            )}
-          </div>
+        <label className={`${site.check} ${styles.agree}`}>
+          <input
+            type="checkbox"
+            checked={agree}
+            onChange={() => setAgree(!agree)}
+            required
+          />
+          <span>
+            I agree to the{' '}
+            <Link href="/terms">
+              Terms
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy-policy">
+              Privacy Policy
+            </Link>
+          </span>
+        </label>
 
-          <div className="flex items-start gap-3 text-xs sm:text-sm">
-            <input
-              type="checkbox"
-              checked={agree}
-              onChange={() => setAgree(!agree)}
-              required
-              className="mt-0.5"
-            />
-            <span className="text-[#0f2040]/70">
-              I agree to the{' '}
-              <Link href="/terms" className="underline text-[#d4af37]">
-                Terms
-              </Link>{' '}
-              and{' '}
-              <Link href="/privacy-policy" className="underline text-[#d4af37]">
-                Privacy Policy
-              </Link>
-            </span>
-          </div>
+        {error && <p className={site.noticeError} role="alert">{error}</p>}
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+        <SubmitButton disabled={loading}>
+          {loading ? 'Creating account…' : `Join ${linkDetails!.familyName}`}
+        </SubmitButton>
+      </form>
 
-          <button
-            disabled={loading}
-            className="w-full bg-[#d4af37] text-white py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition disabled:opacity-50"
-          >
-            {loading ? 'Creating account…' : `Join ${linkDetails!.familyName}`}
-          </button>
-        </form>
-
-        <p className="text-center text-sm mt-5 text-[#0f2040]/60">
-          Already have an account?{' '}
-          <Link
-            href={`/login?redirect=/join/${token}`}
-            className="font-semibold text-[#0f2040]"
-          >
-            Log in
-          </Link>
-        </p>
-      </div>
+      <p className={auth.switch}>
+        Already have an account?{' '}
+        <Link href={`/login?redirect=/join/${token}`}>
+          Log in
+        </Link>
+      </p>
 
       {/* Free reassurance */}
-      <p className="text-center text-sm font-semibold text-[#0F2040] mt-6">
-        Completely free. <span className="text-[#D4AF37]">No payment details required.</span>
+      <p className={styles.reassure}>
+        Completely free. <Accent tone="blue">No payment details required.</Accent>
       </p>
-    </main>
+    </AuthShell>
   );
 }

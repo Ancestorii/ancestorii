@@ -1,0 +1,23 @@
+/* One of the landing's four solid colours per Our Stories topic.
+   Sets --tone (the colour) and --tone-fg (the text that sits on it):
+   white on pink and blue, ink on orange and aqua. */
+
+.tone0 {
+  --tone: var(--c0);
+  --tone-fg: #fff;
+}
+
+.tone1 {
+  --tone: var(--c1);
+  --tone-fg: #fff;
+}
+
+.tone2 {
+  --tone: var(--c2);
+  --tone-fg: var(--ink);
+}
+
+.tone3 {
+  --tone: var(--c3);
+  --tone-fg: var(--ink);
+}

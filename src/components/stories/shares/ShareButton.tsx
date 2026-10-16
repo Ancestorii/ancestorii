@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Share2, Check } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { logShare } from '@/lib/stories/mutations';
+import styles from '@/components/stories/detail/storyPage.module.css';
 
 export default function ShareButton({
   storyId,
@@ -36,8 +37,8 @@ export default function ShareButton({
           body: JSON.stringify({ story_id: storyId, type: 'story_share' }),
         }).catch(() => {});
         return;
-      } catch (err: any) {
-        if (err?.name === 'AbortError') return;
+      } catch (err: unknown) {
+        if ((err as { name?: string } | null)?.name === 'AbortError') return;
       }
     }
 
@@ -59,18 +60,18 @@ export default function ShareButton({
 
   return (
     <button
+      type="button"
       onClick={handleShare}
-      className="flex items-center gap-2 rounded-[12px] border px-4 py-2.5 text-[14px] font-semibold text-[#6F6255] transition hover:bg-[#FAF4EA]"
-      style={{ borderColor: '#DCC7A4' }}
+      className={`${styles.pill} ${copied ? styles.pillDone : styles.pillInk}`}
     >
       {copied ? (
         <>
-          <Check size={18} strokeWidth={1.8} className="text-emerald-600" />
-          <span className="text-emerald-600">Copied!</span>
+          <Check size={18} strokeWidth={2.6} aria-hidden="true" />
+          <span>Copied!</span>
         </>
       ) : (
         <>
-          <Share2 size={18} strokeWidth={1.8} />
+          <Share2 size={18} strokeWidth={2.2} aria-hidden="true" />
           <span>Share</span>
         </>
       )}

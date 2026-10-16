@@ -4,12 +4,15 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, MessageCircle, Play, ArrowRight } from 'lucide-react';
+import feed from '@/components/site/stories-browse/feed.module.css';
 
 const CATEGORY_LABELS: Record<string, string> = {
   family: 'Family', food_and_recipes: 'Food & Recipes', childhood: 'Childhood',
   love: 'Love', life_lessons: 'Life Lessons', traditions: 'Traditions', travel: 'Travel',
 };
 
+// The lead story as the landing's featured card: the photo in a pink frame with a white
+// badge, the words in white on pink beside it (below it on phones).
 export default function HeroCard({
  slug, title, body, excerpt, authorName, authorAvatarUrl, authorTitle, coverUrl,
   voiceNotePath, voiceNoteDuration, coverType, category, reactionCount,
@@ -37,134 +40,98 @@ export default function HeroCard({
   };
 
   return (
-    <Link href={`/stories/${slug}`} className="group block border border-[#EDE8DF] overflow-hidden">
-      <div className={`flex flex-col lg:flex-row ${isPortrait ? 'lg:min-h-[460px]' : 'lg:min-h-[400px]'}`}>
-
-        {/* ── Content — takes 2/3 on desktop ── */}
-        <div className="flex-1 flex flex-col justify-center px-6 sm:px-8 lg:px-12 xl:px-14 2xl:px-16 py-8 sm:py-10 lg:py-12 bg-white order-last lg:order-first">
-
-          {/* Overline */}
-          <div className="flex items-center gap-2.5 mb-5">
-            <span
-              className="text-[11px] sm:text-[12px] lg:text-[13px] xl:text-[14px] font-bold uppercase tracking-[0.14em] text-[#C8A557]"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
-            >
-              {overlineLabel
-                ? overlineLabel
-                : (!activeCategory || activeCategory === 'all')
-                  ? 'Latest Story'
-                  : `Latest in ${CATEGORY_LABELS[activeCategory] || activeCategory}`
-              }
+    <Link
+      href={`/stories/${slug}`}
+      className={`${feed.featured} ${isPortrait ? feed.featuredPortrait : ''}`}
+    >
+      {/* ── Photo ── */}
+      <div className={feed.featuredMedia}>
+        {coverUrl && coverType === 'video' ? (
+          <video
+            src={coverUrl}
+            muted
+            playsInline
+            preload="metadata"
+            className={feed.coverVideo}
+          />
+        ) : coverUrl ? (
+          <Image
+            src={coverUrl} alt="" fill priority
+            sizes="(max-width: 767px) 100vw, (max-width: 1279px) 54vw, 470px"
+            className={`${feed.cover} ${feed.featuredCover} ${imageLoaded ? feed.coverShown : feed.coverHidden}`}
+            onLoadingComplete={handleImageLoad}
+          />
+        ) : (
+          <div className={`${feed.fallback} ${feed.fallbackLight}`}>
+            <span className={feed.fallbackMark} aria-hidden="true">
+              “
             </span>
-            {category && CATEGORY_LABELS[category] && (
-              <>
-                <span className="text-[#D4CBC0]">·</span>
-                <span className="text-[11px] sm:text-[12px] lg:text-[13px] xl:text-[14px] font-medium uppercase tracking-[0.1em] text-[#9C9488]">
-                  {CATEGORY_LABELS[category]}
-                </span>
-              </>
+            <p className={feed.fallbackText}>A memory worth reading</p>
+          </div>
+        )}
+
+        {/* Overline */}
+        <span className={feed.featuredBadge}>
+          {overlineLabel
+            ? overlineLabel
+            : (!activeCategory || activeCategory === 'all')
+              ? 'Latest Story'
+              : `Latest in ${CATEGORY_LABELS[activeCategory] || activeCategory}`
+          }
+          {category && CATEGORY_LABELS[category] && (
+            <> · {CATEGORY_LABELS[category]}</>
+          )}
+        </span>
+
+        {voiceNotePath && (
+          <span className={`${feed.voice} ${feed.voiceTop}`}>
+            <span className={feed.voicePlay}>
+              <Play size={10} fill="currentColor" aria-hidden="true" />
+            </span>
+            {voiceNoteDuration && <span className={feed.voiceTime}>{voiceNoteDuration}</span>}
+          </span>
+        )}
+      </div>
+
+      {/* ── Words ── */}
+      <div className={feed.featuredBody}>
+        <h2 className={feed.featuredTitle}>{title}</h2>
+
+        <p className={feed.featuredExcerpt}>{preview}</p>
+
+        {/* Author */}
+        <div className={feed.featuredAuthor}>
+          <div className={feed.featuredAvatar}>
+            {authorAvatarUrl ? (
+              <Image src={authorAvatarUrl} alt="" width={48} height={48} />
+            ) : (
+              <span>{initials}</span>
             )}
           </div>
-
-          {/* Title — newspaper scale */}
-          <h2
-  className="text-[28px] sm:text-[36px] md:text-[42px] lg:text-[48px] xl:text-[54px] 2xl:text-[60px] leading-[1.0] tracking-[-0.04em] text-[#1A1612]"
-  style={{
-    fontFamily: "'DM Sans', sans-serif",
-    fontWeight: 600,
-  }}
->
-  {title}
-</h2>
-
-          {/* Preview — bigger, more lines */}
-          <p
-            className="mt-4 sm:mt-5 text-[15px] sm:text-[16px] lg:text-[17px] xl:text-[18px] 2xl:text-[19px] leading-[1.8] text-[#6F6255] line-clamp-4"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
-            {preview}
-          </p>
-
-          {/* Author */}
-          <div className="mt-6 lg:mt-8 flex items-center gap-3">
-            <div className="h-[40px] w-[40px] sm:h-[44px] sm:w-[44px] lg:h-[48px] lg:w-[48px] flex-shrink-0 rounded-full overflow-hidden border-[1.5px] border-[#E4D2AE] bg-[#FAF5EB] flex items-center justify-center">
-              {authorAvatarUrl ? (
-                <Image src={authorAvatarUrl} alt="" width={48} height={48} className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-[11px] lg:text-[13px] font-bold text-[#A9782F]">{initials}</span>
-              )}
-            </div>
-            <div>
-              <span className="text-[14px] sm:text-[15px] lg:text-[16px] xl:text-[17px] font-semibold text-[#1A1612] block">{authorName}</span>
-              {authorTitle && (
-                <span className="block text-[12px] sm:text-[13px] lg:text-[14px] text-[#A9782F]">{authorTitle}</span>
-              )}
-              {timeAgo && (
-                <span className="block text-[12px] sm:text-[13px] lg:text-[14px] text-[#9C9488]">{timeAgo}</span>
-              )}
-            </div>
-          </div>
-
-          {/* Stats + CTA */}
-          <div className="mt-6 lg:mt-8 pt-5 border-t border-[#F0EBE3] flex items-center justify-between">
-            <div className="flex items-center gap-5">
-              <span className="flex items-center gap-2 text-[14px] lg:text-[15px] xl:text-[16px] font-medium text-[#1A1612]">
-                <Heart size={18} strokeWidth={1.6} className="text-[#D94F4F]" fill="#D94F4F" />{reactionCount}
-              </span>
-              <span className="flex items-center gap-2 text-[14px] lg:text-[15px] xl:text-[16px] font-medium text-[#1A1612]">
-                <MessageCircle size={18} strokeWidth={1.6} className="text-[#5A87A8]" fill="#5A87A8" />{commentCount}
-              </span>
-            </div>
-            <span
-              className="flex items-center gap-2 text-[14px] lg:text-[15px] xl:text-[16px] font-bold text-[#A9782F] group-hover:gap-3 transition-all"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
-            >
-              Read story <ArrowRight size={16} />
-            </span>
+          <div className={feed.authorText}>
+            <span className={feed.authorName}>{authorName}</span>
+            {authorTitle && (
+              <span className={feed.authorMeta}>{authorTitle}</span>
+            )}
+            {timeAgo && (
+              <span className={feed.authorMeta}>{timeAgo}</span>
+            )}
           </div>
         </div>
 
-        {/* ── Image — takes 1/3 on desktop ── */}
-        <div
-          className={`relative overflow-hidden bg-[#F5F0E8] order-first lg:order-last flex-shrink-0 ${
-            isPortrait
-              ? 'w-full lg:w-[33%] aspect-[3/4] sm:aspect-[4/5] lg:aspect-auto'
-              : 'w-full lg:w-[33%] aspect-[16/10] lg:aspect-auto'
-          }`}
-        >
-          {coverUrl && coverType === 'video' ? (
-            <video
-              src={coverUrl}
-              muted
-              playsInline
-              preload="metadata"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : coverUrl ? (
-            <Image
-              src={coverUrl} alt="" fill priority
-              sizes="(max-width: 1024px) 100vw, 33vw"
-              className={`object-cover transition-all duration-700 group-hover:scale-[1.02] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-              onLoadingComplete={handleImageLoad}
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[#FAF5EB] to-[#E8DCC8] flex items-center justify-center">
-              <div className="text-center">
-                <div className="h-10 w-10 mx-auto border border-[#D8BE8B]/40 flex items-center justify-center mb-2">
-                  <Heart size={16} className="text-[#C8A557]/50" />
-                </div>
-                <p className="text-[14px] italic text-[#B8924A]/70" style={{ fontFamily: "'Playfair Display', serif" }}>
-                  A memory worth reading
-                </p>
-              </div>
-            </div>
-          )}
-          {voiceNotePath && (
-            <div className="absolute top-4 right-4 flex items-center gap-2 bg-[#1A1612]/80 backdrop-blur-sm px-3 py-2">
-              <Play size={10} className="text-[#C8A557]" fill="#C8A557" />
-              {voiceNoteDuration && <span className="text-[11px] text-white font-medium tabular-nums">{voiceNoteDuration}</span>}
-            </div>
-          )}
+        {/* Stats + CTA */}
+        <div className={feed.featuredMeta}>
+          <div className={feed.stats}>
+            <span className={feed.stat}>
+              <Heart size={18} strokeWidth={2} fill="currentColor" aria-hidden="true" />{reactionCount}
+            </span>
+            <span className={feed.stat}>
+              <MessageCircle size={18} strokeWidth={2} fill="currentColor" aria-hidden="true" />{commentCount}
+            </span>
+          </div>
+          <span className={feed.readMore}>
+            Read story <ArrowRight size={16} strokeWidth={2.6} aria-hidden="true" />
+          </span>
         </div>
       </div>
     </Link>

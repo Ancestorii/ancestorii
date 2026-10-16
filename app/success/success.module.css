@@ -1,0 +1,282 @@
+/* ============================================================
+   /success (after a Premium checkout). Sits inside SiteShell, so
+   the landing tokens apply: --c0 pink, --c1 blue, --c2 orange,
+   --c3 aqua, --ink, --hover, --hairline-ring.
+   ============================================================ */
+
+/* "We have emailed your confirmation" chip under the greeting. */
+.sent {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 11px 18px 11px 13px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 16px 30px -22px rgba(10, 10, 15, 0.5);
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 700;
+  text-align: left;
+}
+
+.sent::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--c3);
+}
+
+/* On phones the line wraps: a rounded card instead of a stretched pill. */
+@media (max-width: 599px) {
+  .sent {
+    align-items: flex-start;
+    border-radius: 18px;
+  }
+
+  .sent::before {
+    margin-top: 5px;
+  }
+}
+
+/* Section label: the landing's black pill, centred. */
+.kicker {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+/* ── Everything your family now has ─────────────────────── */
+
+.features {
+  margin: clamp(28px, 4vw, 44px) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* First feature: a full-width blue panel with the landing's tilted white tile. */
+.featureLead {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: clamp(22px, 4vw, 44px);
+  padding: clamp(26px, 4vw, 44px);
+  border-radius: 30px;
+  background: var(--c1);
+  color: #fff;
+  box-shadow: 0 40px 70px -40px rgba(10, 10, 15, 0.55);
+}
+
+.leadTile {
+  width: clamp(88px, 9vw, 116px);
+  height: clamp(88px, 9vw, 116px);
+  flex: none;
+  border-radius: 30px;
+  background: #fff;
+  color: var(--c1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 26px 40px -22px rgba(10, 10, 15, 0.55);
+  rotate: -4deg;
+}
+
+.leadText {
+  min-width: 0;
+  font-size: clamp(30px, 3.6vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* The rest: white cards with the hairline ring and a coloured tile. */
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 22px 22px 20px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+}
+
+.tile {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 18px;
+  background: var(--tile);
+  color: var(--tile-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  rotate: -4deg;
+}
+
+.feature:nth-child(odd) .tile {
+  rotate: 4deg;
+}
+
+.featureText {
+  min-width: 0;
+  font-size: 17px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+/* Tile colours: white symbols on pink and blue, ink on orange and aqua. */
+.pink {
+  --tile: var(--c0);
+  --tile-fg: #fff;
+}
+
+.blue {
+  --tile: var(--c1);
+  --tile-fg: #fff;
+}
+
+.orange {
+  --tile: var(--c2);
+  --tile-fg: var(--ink);
+}
+
+.aqua {
+  --tile: var(--c3);
+  --tile-fg: var(--ink);
+}
+
+@media (min-width: 1100px) {
+  .feature {
+    padding: 26px 26px 26px 24px;
+    border-radius: 30px;
+  }
+
+  .featureText {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 999px) {
+  .features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 599px) {
+  .features {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .featureLead {
+    flex-direction: column;
+    align-items: flex-start;
+    border-radius: 26px;
+  }
+
+  .leadTile svg {
+    width: 44px;
+    height: 44px;
+  }
+
+  .feature {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .tile {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+  }
+}
+
+/* ── Two doors: the website and the app ────────────────── */
+
+.doors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* Both doors share one shape (the white card and the page's one ink card). */
+.doors > .door {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 28px 20px 24px;
+  border-radius: 26px;
+}
+
+/* 24px sides keep both store badges on one line in the ink card from 760px up. */
+@media (min-width: 600px) {
+  .doors > .door {
+    padding: 30px 24px 28px;
+  }
+}
+
+.dotPink {
+  --dot: var(--c0);
+}
+
+.dotAqua {
+  --dot: var(--c3);
+}
+
+.door .doorText {
+  margin: 16px 0 0;
+  max-width: 30em;
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.doorAction {
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+@media (min-width: 1100px) {
+  .doors > .door {
+    padding: 40px;
+    border-radius: 30px;
+  }
+}
+
+@media (max-width: 759px) {
+  .doors {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+/* ── Priority support ──────────────────────────────────── */
+
+.support {
+  text-align: center;
+}
+
+.supportText {
+  margin: 22px auto 0;
+  max-width: 34em;
+  font-size: clamp(18px, 1.6vw, 21px);
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.nowrap {
+  white-space: nowrap;
+}

@@ -1,26 +1,39 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import SiteShell from "@/components/site/SiteShell";
+import { Accent, PageHero } from "@/components/site/SiteBits";
+import { CardRow } from "@/components/site/utility/CardRow";
+import { ROW_CARDS } from "@/components/site/utility/familyCards";
+import landing from "@/components/landing/landing.module.css";
+import styles from "./cancel.module.css";
 
 export default function CancelPage() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-[#fff9ee] text-[#0F2040] px-6 text-center">
-      <h1 className="text-3xl font-extrabold mb-4">
-        Payment cancelled
-      </h1>
-
-      <p className="text-lg text-[#0F2040]/70 mb-8">
-        No charges were made. You can choose a plan anytime.
-      </p>
-
-      <button
-        onClick={() => router.push("/signup")}
-        className="px-6 py-3 rounded-full bg-[#D4AF37] text-[#0F2040] font-semibold"
+    <SiteShell>
+      <PageHero
+        title={
+          <>
+            Payment <Accent>cancelled</Accent>
+          </>
+        }
+        lead={<>No charges were made. You can choose a plan anytime.</>}
       >
-        Back to plans
-      </button>
-    </main>
+        {/* Ink button with the arrow tile, like the landing hero's main button. */}
+        <button
+          onClick={() => router.push("/signup")}
+          className={`${landing.btnPrimary} ${landing.btnShadow} ${styles.button}`}
+        >
+          Back to plans
+          <span className={landing.arrowTile} aria-hidden="true">
+            →
+          </span>
+        </button>
+      </PageHero>
+
+      <CardRow cards={ROW_CARDS} />
+    </SiteShell>
   );
 }

@@ -1,27 +1,31 @@
-import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
+import {
+  FileUp,
+  HardDrive,
+  Headset,
+  Infinity as InfinityIcon,
+  Percent,
+  Sparkles,
+  Video,
+} from "lucide-react";
 import StoreBadges from "@/components/StoreBadges";
+import SiteShell from "@/components/site/SiteShell";
+import { Accent, ArrowLink, Eyebrow, PageHero } from "@/components/site/SiteBits";
+import landing from "@/components/landing/landing.module.css";
+import site from "@/components/site/site.module.css";
+import styles from "./success.module.css";
 
 // Public post-upgrade success page. A completed Premium checkout lands here
 // (create-checkout success_url points to /success). Most people arrive from the
 // mobile app: tapped Manage plan, logged into the website, upgraded.
 //
-// Design intent: a warm reception, not a brochure. ONE colour world for the whole
-// page: pure white #FFFFFF surface, navy #0F2040 text, gold #B8932A / #A9782F
-// accents. No alternating colour bands, no cards, no boxes. Sections flow on the
-// same surface, separated only by hairline gold rules. The greeting is visible
-// immediately on mobile, never pushed below an empty viewport.
+// Design intent: a warm reception, not a brochure, in the landing page's language
+// (SiteShell: white ground, the four colours plus ink, Plus Jakarta Sans). The greeting
+// is the hero, visible immediately on mobile, never pushed below an empty viewport.
 //
 // It shows NO price and NO buy or upgrade button, because whoever reaches it has
-// already paid, so it stays a safe general page. StoreBadges uses theme="light"
-// here: black Apple badge for full contrast on the white surface.
-
-const SERIF = { fontFamily: "'Playfair Display', serif" } as const;
-
-const WHITE = "#FFFFFF";
-const NAVY = "#0F2040";
-const GOLD = "#B8932A";
-const GOLD_DEEP = "#A9782F";
-const RULE = "rgba(184, 147, 42, 0.35)";
+// already paid, so it stays a safe general page. The app door is the page's one ink
+// card, so StoreBadges uses theme="dark" there: white Apple badge for full contrast.
 
 const FEATURES = [
   "100GB storage for your whole family",
@@ -33,172 +37,108 @@ const FEATURES = [
   "Early access to new features",
 ];
 
+// A symbol and colour for each feature above, in the same order (presentation only).
+const FEATURE_LOOK: { Icon: LucideIcon; tone: "pink" | "blue" | "orange" | "aqua" }[] = [
+  { Icon: HardDrive, tone: "blue" },
+  { Icon: Video, tone: "pink" },
+  { Icon: FileUp, tone: "aqua" },
+  { Icon: InfinityIcon, tone: "orange" },
+  { Icon: Percent, tone: "blue" },
+  { Icon: Headset, tone: "pink" },
+  { Icon: Sparkles, tone: "aqua" },
+];
+
 export default function SuccessPage() {
   return (
-    <main
-      className="min-h-screen"
-      style={{ background: WHITE, fontFamily: "'DM Sans', sans-serif" }}
-    >
-      <div className="mx-auto w-full max-w-[880px] px-6 sm:px-8">
+    <SiteShell>
+      {/* ── The greeting · centred, on screen immediately ── */}
+      <PageHero
+        eyebrow={<>Premium confirmed</>}
+        eyebrowDot="var(--c3)"
+        title={
+          <>
+            Welcome to the <Accent>Premium</Accent> family.
+          </>
+        }
+        lead={<>Your whole family is now on Premium. One payment covers everyone.</>}
+      >
+        <p className={styles.sent}>We have emailed your confirmation to your inbox.</p>
+      </PageHero>
 
-        {/* ── The greeting · centred, on screen immediately ── */}
-        <section className="flex min-h-[72svh] flex-col items-center justify-center py-20 text-center md:min-h-[76svh]">
-          <div className="flex items-center gap-3">
-            <span className="h-px w-8" style={{ background: GOLD }} />
-            <span
-              className="text-[11px] font-semibold uppercase tracking-[0.26em] md:text-[12px]"
-              style={{ color: GOLD }}
-            >
-              Premium confirmed
-            </span>
-            <span className="h-px w-8" style={{ background: GOLD }} />
-          </div>
-
-          <h1
-            className="mt-7 max-w-[14ch] text-[clamp(40px,8vw,92px)] leading-[1.02] tracking-[-0.02em]"
-            style={{ ...SERIF, fontWeight: 600, color: NAVY }}
-          >
-            Welcome to the{" "}
-            <span className="italic" style={{ color: GOLD_DEEP }}>
-              Premium
-            </span>{" "}
-            family.
-          </h1>
-
-          <p
-            className="mt-7 max-w-[40ch] text-[clamp(16px,2vw,20px)] leading-[1.65]"
-            style={{ color: NAVY }}
-          >
-            Your whole family is now on Premium. One payment covers everyone.
+      {/* ── What your family now has ── */}
+      <section className={site.section}>
+        <div className={landing.wrap}>
+          <p className={styles.kicker}>
+            <Eyebrow dot="var(--c0)">Everything your family now has</Eyebrow>
           </p>
 
-          <p className="mt-4 text-[14px] md:text-[15px]" style={{ color: GOLD }}>
-            We have emailed your confirmation to your inbox.
-          </p>
-        </section>
+          <ul className={styles.features}>
+            {FEATURES.map((f, i) => {
+              const { Icon, tone } = FEATURE_LOOK[i % FEATURE_LOOK.length];
+              return (
+                <li key={f} className={i === 0 ? styles.featureLead : styles.feature}>
+                  <span
+                    className={`${i === 0 ? styles.leadTile : styles.tile} ${styles[tone]}`}
+                    aria-hidden="true"
+                  >
+                    <Icon size={i === 0 ? 52 : 26} strokeWidth={2.5} />
+                  </span>
+                  <span className={i === 0 ? styles.leadText : styles.featureText}>{f}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>
 
-        {/* ── What your family now has · same surface, gold ruled list ── */}
-        <section className="pb-20 md:pb-24">
-          <p
-            className="mb-8 text-center text-[11px] font-semibold uppercase tracking-[0.26em]"
-            style={{ color: GOLD }}
-          >
-            Everything your family now has
-          </p>
-
-          <div className="grid md:grid-cols-2 md:gap-x-14">
-            {FEATURES.map((f, i) => (
-              <div
-                key={f}
-                className={`flex items-center gap-4 py-4 md:py-5 ${
-                  i === 0 ? "md:col-span-2 justify-center" : ""
-                }`}
-                style={{ borderTop: `1px solid ${RULE}` }}
-              >
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke={GOLD}
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="flex-shrink-0"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                <span
-                  className={
-                    i === 0
-                      ? "text-[clamp(17px,2.2vw,22px)] font-semibold"
-                      : "text-[15px] md:text-[17px]"
-                  }
-                  style={{ color: NAVY }}
-                >
-                  {f}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── The way back · two doors, one room ── */}
-        <section
-          className="grid gap-12 py-16 text-center md:grid-cols-2 md:gap-8 md:py-20"
-          style={{ borderTop: `1px solid ${RULE}` }}
-        >
-          <div className="flex flex-col items-center">
-            <p
-              className="text-[11px] font-semibold uppercase tracking-[0.26em]"
-              style={{ color: GOLD }}
-            >
-              On the website
-            </p>
-            <p className="mt-4 max-w-[34ch] text-[15px] leading-[1.7]" style={{ color: NAVY }}>
+      {/* ── The way back · two doors, one room ── */}
+      <section className={site.section}>
+        <div className={`${landing.wrap} ${styles.doors}`}>
+          <div className={`${site.card} ${styles.door}`}>
+            <p className={`${site.tag} ${styles.dotPink}`}>On the website</p>
+            <p className={styles.doorText}>
               Pick up right where you left off in your dashboard.
             </p>
-            <Link
-              href="/dashboard/home"
-              className="mt-7 inline-flex items-center justify-center rounded-full px-10 py-4 text-[15px] font-semibold transition hover:opacity-90"
-              style={{ background: NAVY, color: WHITE }}
-            >
-              Back to the website
-            </Link>
+            <div className={styles.doorAction}>
+              <ArrowLink href="/dashboard/home" className={landing.btnShadow}>
+                Back to the website
+              </ArrowLink>
+            </div>
           </div>
 
-          <div className="flex flex-col items-center">
-            <p
-              className="text-[11px] font-semibold uppercase tracking-[0.26em]"
-              style={{ color: GOLD }}
-            >
-              In the app
-            </p>
-            <p className="mt-4 max-w-[36ch] text-[15px] leading-[1.7]" style={{ color: NAVY }}>
+          <div className={`${site.inkCard} ${styles.door}`}>
+            <p className={`${site.tag} ${styles.dotAqua}`}>In the app</p>
+            <p className={styles.doorText}>
               Head back to the Ancestorii app to see your Premium plan. If it still shows Free,
               close the app fully and reopen it.
             </p>
-            {/* White surface, so theme="light": black Apple badge for full contrast. */}
-            <StoreBadges theme="light" className="mt-7 justify-center" />
+            <div className={styles.doorAction}>
+              {/* Ink card, so theme="dark": white Apple badge for full contrast. */}
+              <StoreBadges theme="dark" />
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── Priority support · the sign off ── */}
-        <section
-          className="py-14 text-center md:py-16"
-          style={{ borderTop: `1px solid ${RULE}` }}
-        >
-          <p
-            className="text-[11px] font-semibold uppercase tracking-[0.26em]"
-            style={{ color: GOLD }}
-          >
-            Priority support
+      {/* ── Priority support · the sign off ── */}
+      <section className={site.section}>
+        <div className={`${site.narrow} ${styles.support}`}>
+          <p className={styles.kicker}>
+            <Eyebrow dot="var(--c1)">Priority support</Eyebrow>
           </p>
-          <p
-            className="mx-auto mt-5 max-w-[52ch] text-[15px] leading-[1.8] md:text-[16px]"
-            style={{ color: NAVY }}
-          >
+          <p className={styles.supportText}>
             You are on Premium, so you get priority support. Email{" "}
-            <a
-              href="mailto:support@ancestorii.com"
-              className="font-semibold underline underline-offset-4 transition hover:opacity-80"
-              style={{ color: GOLD_DEEP }}
-            >
+            <a href="mailto:support@ancestorii.com" className={site.textLink}>
               support@ancestorii.com
             </a>{" "}
             or call{" "}
-            <a
-              href="tel:03301332268"
-              className="font-semibold underline underline-offset-4 transition hover:opacity-80"
-              style={{ color: GOLD_DEEP }}
-            >
+            <a href="tel:03301332268" className={`${site.textLink} ${styles.nowrap}`}>
               0330 133 2268
             </a>
             , 9am to 6pm Monday to Saturday.
           </p>
-        </section>
-
-      </div>
-    </main>
+        </div>
+      </section>
+    </SiteShell>
   );
 }

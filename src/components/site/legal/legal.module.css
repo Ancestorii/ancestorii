@@ -1,0 +1,508 @@
+/* ============================================================
+   Legal pages (privacy policy, terms, delete account) in the
+   landing page's language: pure white, ink text, the four solid
+   colours, Plus Jakarta Sans. Sits inside SiteShell, which puts
+   the landing root class (and so its tokens) on the page.
+   ============================================================ */
+
+/* ── Layout: reading column, plus a sticky side column on wide screens ── */
+
+.body {
+  position: relative;
+  padding-top: clamp(40px, 5.5vw, 80px);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: clamp(56px, 7vw, 88px);
+}
+
+.article {
+  min-width: 0;
+  max-width: 760px;
+  overflow-wrap: break-word;
+}
+
+.aside {
+  min-width: 0;
+  max-width: 760px;
+}
+
+/* The table of contents only appears beside the text. */
+.asideToc {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 760px) minmax(240px, 300px);
+    justify-content: space-between;
+    column-gap: 48px;
+  }
+
+  .asideToc {
+    display: block;
+  }
+}
+
+/* ── Rhythm inside the article ────────────────────────────── */
+
+.article > * + * {
+  margin-top: clamp(44px, 5vw, 64px);
+}
+
+.article > .part {
+  margin-top: clamp(64px, 7vw, 96px);
+}
+
+.article > .part + * {
+  margin-top: clamp(44px, 5vw, 60px);
+}
+
+/* Short opening paragraph: a touch bigger and bolder, like an article lead. */
+.introLead > p:first-child {
+  font-size: clamp(19px, 1.65vw, 23px);
+  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+@media (max-width: 599px) {
+  .introLead > p:first-child {
+    font-size: 19px;
+    font-weight: 600;
+  }
+}
+
+/* ── Numbered sections ────────────────────────────────────── */
+
+.section {
+  scroll-margin-top: 32px;
+}
+
+.sectionTitle {
+  display: flex;
+  gap: 0.3em;
+  margin: 0;
+  font-size: clamp(25px, 2.3vw, 32px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.sectionNum {
+  flex: none;
+  color: var(--c0);
+  font-variant-numeric: tabular-nums;
+}
+
+.sectionName {
+  min-width: 0;
+  text-wrap: balance;
+}
+
+.sectionBody {
+  margin-top: 18px;
+}
+
+/* ── Part banners: the landing's step card on its side ────── */
+
+.part {
+  display: grid;
+  grid-template-columns: minmax(160px, 32%) minmax(0, 1fr);
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 30px 60px -40px rgba(10, 10, 15, 0.4);
+  overflow: hidden;
+  scroll-margin-top: 32px;
+}
+
+.partPanel {
+  min-height: 200px;
+  margin: 10px;
+  border-radius: 22px;
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.partTile {
+  width: 104px;
+  height: 104px;
+  border-radius: 30px;
+  background: #fff;
+  color: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 24px 40px -24px rgba(10, 10, 15, 0.55);
+  box-shadow: 0 26px 40px -22px color-mix(in srgb, var(--panel) 35%, var(--ink));
+  transform: rotate(var(--tilt));
+}
+
+.partBody {
+  align-self: center;
+  min-width: 0;
+  padding: 26px 32px 28px 18px;
+}
+
+.partLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.partLabel::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--panel);
+}
+
+.partTitle {
+  margin: 12px 0 0;
+  font-size: clamp(27px, 2.7vw, 38px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.partText {
+  margin: 12px 0 0;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+@media (max-width: 599px) {
+  .part {
+    grid-template-columns: minmax(0, 1fr);
+    border-radius: 26px;
+  }
+
+  .partPanel {
+    min-height: 150px;
+  }
+
+  .partTile {
+    width: 88px;
+    height: 88px;
+    border-radius: 26px;
+  }
+
+  .partTile svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .partBody {
+    padding: 18px 24px 26px;
+  }
+}
+
+/* ── Table of contents (wide screens) ─────────────────────── */
+
+/* The white card is the nav itself. The list scrolls inside it and fades out at both
+   edges (as the landing's topic row and marquee do), so entries passing under the
+   edges dissolve instead of being sliced in half. At rest the fades only cover padding. */
+.toc {
+  position: sticky;
+  top: 28px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+}
+
+.tocScroll {
+  max-height: calc(100vh - 56px);
+  max-height: calc(100dvh - 56px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 12px;
+  border-radius: 26px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(10, 10, 15, 0.22) transparent;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 18px, #000 calc(100% - 18px), transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 18px, #000 calc(100% - 18px), transparent);
+}
+
+.tocGroup + .tocGroup {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1.5px solid rgba(10, 10, 15, 0.08);
+}
+
+.tocPart {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease;
+}
+
+.tocPart::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--dot, var(--c0));
+}
+
+.tocList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tocLink {
+  display: flex;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tocNum {
+  flex: none;
+  min-width: 1.75em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tocActive {
+  background: var(--ink);
+  color: #fff;
+}
+
+.tocActive .tocNum {
+  color: var(--c0);
+}
+
+@media (hover: hover) {
+  .tocLink:not(.tocActive):hover,
+  .tocPart:hover {
+    background: var(--hover);
+  }
+}
+
+/* ── Closing note under the text ──────────────────────────── */
+
+.endNote {
+  padding-top: 28px;
+  border-top: 1.5px solid rgba(10, 10, 15, 0.1);
+}
+
+.endNote p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+/* ── Delete account: the four steps as small step cards ───── */
+/* Doubled classes keep these ahead of the prose list styles. */
+
+.steps.steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 26px;
+  margin-bottom: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps .step {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  min-height: 108px;
+  padding: 8px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+}
+
+.steps .step::before {
+  content: none;
+}
+
+.stepPanel {
+  align-self: stretch;
+  min-height: 92px;
+  border-radius: 17px;
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepTile {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16px 26px -16px rgba(10, 10, 15, 0.55);
+  box-shadow: 0 16px 26px -14px color-mix(in srgb, var(--panel) 35%, var(--ink));
+  transform: rotate(var(--tilt));
+}
+
+.stepBody {
+  min-width: 0;
+  padding: 10px 12px 10px 18px;
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.stepNum {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.steps + p {
+  margin-top: 26px;
+}
+
+@media (max-width: 599px) {
+  .steps.steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .steps .step {
+    grid-template-columns: 84px minmax(0, 1fr);
+    min-height: 96px;
+  }
+
+  .stepPanel {
+    min-height: 80px;
+  }
+}
+
+/* ── Delete account: contact card beside (or under) the text ── */
+
+.contact {
+  position: relative;
+  padding: 26px 26px 24px;
+  border-radius: 26px;
+  background: var(--c1);
+  color: #fff;
+  box-shadow: 0 30px 60px -30px rgba(10, 10, 15, 0.5);
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 1100px) {
+  .contact {
+    position: sticky;
+    top: 28px;
+    border-radius: 30px;
+  }
+}
+
+/* Tablet: the card runs the full column, so the tile sits beside the lines. */
+@media (min-width: 600px) and (max-width: 1099px) {
+  .contact {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 24px;
+    align-items: start;
+    padding: 28px 32px 26px 28px;
+  }
+
+  .contact > * {
+    grid-column: 2;
+  }
+
+  .contact > .contactTile {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+  }
+
+  .contact > .contactTitle {
+    margin-top: 4px;
+  }
+}
+
+.contactTile {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: #fff;
+  color: var(--c1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 18px 30px -16px rgba(10, 10, 15, 0.55);
+  box-shadow: 0 18px 30px -14px color-mix(in srgb, var(--c1) 35%, var(--ink));
+  transform: rotate(-4deg);
+}
+
+.contactTitle {
+  margin: 22px 0 0;
+  font-size: clamp(23px, 2vw, 27px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.contactText {
+  margin: 10px 0 0;
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.contactText a {
+  color: #fff;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* The landing's focus ring is blue; on the blue card it needs to be white. */
+.contact.contact a:focus-visible {
+  outline-color: #fff;
+}
+
+.contactNote {
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+}

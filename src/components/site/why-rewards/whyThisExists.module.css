@@ -1,0 +1,270 @@
+/* ============================================================
+   /why-this-exists: the founder's letter, in the landing's language.
+   Sits inside SiteShell, so the landing tokens (--c0 pink, --c1 blue,
+   --c2 orange, --c3 aqua, --ink, --hairline-ring) and Plus Jakarta
+   Sans are already set. Text is ink; hierarchy comes from size and
+   weight. Real family photos sit in solid colour frames.
+   ============================================================ */
+
+.letter {
+  position: relative;
+}
+
+/* ── Hero ─────────────────────────────────────────────────── */
+
+/* A little wider than the default page hero so "I was scared of forgetting."
+   holds one line on desktop, like the landing's "story worth sharing." */
+.hero .heroInner {
+  width: min(1180px, calc(100% - 48px));
+}
+
+.hero .title {
+  font-size: clamp(42px, 6vw, 92px);
+  overflow-wrap: break-word;
+}
+
+.byline {
+  margin: 28px auto 0;
+  font-size: clamp(16px, 1.4vw, 19px);
+  line-height: 1.5;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+/* ── The letter: one generous gap between every block ─────── */
+
+.flow {
+  display: flex;
+  flex-direction: column;
+  row-gap: clamp(72px, 9vw, 136px);
+  margin-top: clamp(56px, 7vw, 104px);
+}
+
+/* Reading column for the passages without a photo. */
+.column {
+  width: min(720px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+/* Short lines that land a thought, set bigger and heavier. */
+.beat {
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+/* Balanced, so a two-line beat never leaves a word or two hanging on its own
+   (needs to outrank the shared `.prose p { text-wrap: pretty }`). */
+.flow .beat {
+  text-wrap: balance;
+}
+
+/* ── Photo + text rows (photo side alternates) ────────────── */
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-areas: 'text photo';
+  align-items: start;
+  column-gap: clamp(48px, 7vw, 112px);
+}
+
+.rowFlip {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  grid-template-areas: 'photo text';
+}
+
+/* Centred against the photo when the photo is the taller of the two (the portrait). */
+.rowText {
+  grid-area: text;
+  align-self: center;
+  min-width: 0;
+}
+
+/* The photo rides along beside a long passage. */
+.photo {
+  grid-area: photo;
+  position: sticky;
+  top: 40px;
+  margin: 0;
+  transform: rotate(2deg);
+}
+
+.photoLeft {
+  transform: rotate(-2deg);
+}
+
+.photoPortrait {
+  width: min(100%, 440px);
+  justify-self: center;
+}
+
+/* Caption: a white chip stuck over the bottom edge of the frame, on the side
+   nearest the text. It wraps rather than cutting the caption short. */
+.caption {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: fit-content;
+  max-width: calc(100% - 40px);
+  margin: -24px 0 0 20px;
+  padding: 10px 16px 10px 12px;
+  border-radius: 16px;
+  background: white;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+  text-wrap: pretty;
+  box-shadow: 0 12px 26px -14px rgba(10, 10, 15, 0.5);
+}
+
+.photoLeft .caption {
+  margin-left: auto;
+  margin-right: 20px;
+}
+
+.captionDot {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: 4px;
+  border-radius: 3px;
+  background: var(--card);
+}
+
+/* ── Pull quotes: big, centred, pink mark, second half in blue ── */
+
+.quote {
+  max-width: 1060px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.quoteMark {
+  display: block;
+  height: 0.4em;
+  font-size: clamp(96px, 10vw, 150px);
+  line-height: 0.75;
+  font-weight: 800;
+  color: var(--c0);
+}
+
+.quoteText {
+  margin: clamp(12px, 1.5vw, 20px) 0 0;
+  font-size: clamp(30px, 4vw, 58px);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+/* ── Sign-off ─────────────────────────────────────────────── */
+
+.signoff {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px 32px;
+  padding-top: 36px;
+  border-top: 1.5px solid rgba(10, 10, 15, 0.1);
+}
+
+.signName {
+  margin: 0;
+  font-size: clamp(30px, 3vw, 42px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+}
+
+.signRole {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.share svg {
+  flex: none;
+}
+
+/* ── Closing slab ─────────────────────────────────────────── */
+
+/* "Free forever · No credit card · Takes 2 minutes" as the shared coloured-dot list. */
+.ctaNote {
+  margin-top: 22px;
+}
+
+/* ── Tablet and phone: photo above its passage ────────────── */
+
+@media (max-width: 899px) {
+  .row,
+  .rowFlip {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'photo'
+      'text';
+    row-gap: 48px;
+  }
+
+  .photo {
+    position: static;
+    width: min(100%, 560px);
+    justify-self: end;
+    transform: rotate(1.5deg);
+  }
+
+  .photoLeft {
+    justify-self: start;
+    transform: rotate(-1.5deg);
+  }
+
+  .photoPortrait {
+    width: min(100%, 420px);
+  }
+}
+
+@media (max-width: 599px) {
+  .row,
+  .rowFlip {
+    row-gap: 40px;
+  }
+
+  .photo {
+    width: 100%;
+    transform: rotate(1deg);
+  }
+
+  .photoLeft {
+    transform: rotate(-1deg);
+  }
+
+  .photoPortrait {
+    width: min(100%, 360px);
+    justify-self: center;
+  }
+
+  .caption {
+    max-width: calc(100% - 28px);
+    margin-left: 14px;
+    font-size: 13px;
+  }
+
+  .photoLeft .caption {
+    margin-right: 14px;
+  }
+
+  .signoff {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .share {
+    width: 100%;
+  }
+}

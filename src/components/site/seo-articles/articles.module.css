@@ -1,0 +1,619 @@
+/* ============================================================
+   One article look for the SEO explainers and comparison pages:
+   /digital-legacy, /living-library, /compare and
+   /compare/storyworth-alternative.
+   Everything sits inside SiteShell, so the landing tokens apply:
+   --c0 pink, --c1 blue, --c2 orange, --c3 aqua, --ink,
+   --hairline-ring, and Plus Jakarta Sans.
+   Text is ink, or white on ink/pink/blue; hierarchy comes from
+   size and weight, never from greys.
+   ============================================================ */
+
+/* ── Colour tones (set on a card, tile or row) ────────────── */
+
+.pink {
+  --tone: var(--c0);
+  --tone-fg: #fff;
+}
+
+.blue {
+  --tone: var(--c1);
+  --tone-fg: #fff;
+}
+
+.orange {
+  --tone: var(--c2);
+  --tone-fg: var(--ink);
+}
+
+.aqua {
+  --tone: var(--c3);
+  --tone-fg: var(--ink);
+}
+
+/* ── Hero follow-on: more intro paragraphs and the button under PageHero ── */
+
+/* Breadcrumb links get a full 44px tap area on phones. */
+@media (max-width: 699px) {
+  .heroWrap nav[aria-label='Breadcrumb'] a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Small phones: slightly tighter separators so the trail stays on one line at 360px. */
+@media (max-width: 389px) {
+  .heroWrap nav[aria-label='Breadcrumb'] ol {
+    column-gap: 8px;
+  }
+
+  .heroWrap nav[aria-label='Breadcrumb'] li {
+    gap: 8px;
+  }
+}
+
+.heroMore {
+  width: min(1240px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.heroPara {
+  margin: 16px 0 0;
+  max-width: 34em;
+  font-size: clamp(17px, 1.5vw, 20px);
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.heroActions {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ── Section heads ────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.title {
+  overflow-wrap: break-word;
+}
+
+/* ── Split sections: heading (or photo) on the left, reading column on the right ── */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+}
+
+.splitAside {
+  min-width: 0;
+}
+
+.splitBody {
+  min-width: 0;
+  max-width: 760px;
+}
+
+/* Article reading size: a touch larger than the shared prose so lines stay near 75 characters. */
+.splitBody .reading {
+  font-size: clamp(17px, 1.5vw, 19.5px);
+}
+
+@media (min-width: 1100px) {
+  .split {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 8fr);
+    column-gap: clamp(56px, 6vw, 88px);
+    align-items: start;
+  }
+
+  .splitAside {
+    position: sticky;
+    top: 32px;
+  }
+
+  .splitBodyOnly {
+    grid-column: 2;
+  }
+}
+
+/* ── Photo beside the reading column ──────────────────────── */
+
+.photoAside {
+  max-width: 460px;
+}
+
+/* Stacked (tablet and phone): centre the photo over the 760px reading column below it,
+   so it does not sit beside an empty column. */
+@media (max-width: 1099px) {
+  .photoAside {
+    margin-left: max(0px, calc((min(100%, 760px) - 460px) / 2));
+  }
+}
+
+.photoTilt {
+  transform: rotate(-2deg);
+}
+
+.photoCaption {
+  margin: 22px 0 0;
+  max-width: 24em;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+/* ── Stand-alone pull quote between sections ──────────────── */
+
+.quoteBlock > blockquote {
+  margin: 0;
+  max-width: 1080px;
+  gap: clamp(12px, 1.6vw, 22px);
+}
+
+.quoteBlock > blockquote > span {
+  font-size: clamp(76px, 8.4vw, 132px);
+}
+
+.quoteBlock > blockquote > p {
+  font-size: clamp(30px, 4vw, 54px);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+}
+
+/* ── Closing slab (ClosingCta) ────────────────────────────── */
+
+/* The pages' closing titles are two short lines (kept as written, with a break between);
+   a little more room than the landing's 12ch lets each line stay whole on desktop. */
+.ctaWide h2 {
+  max-width: 20ch;
+}
+
+.ctaWide p {
+  text-wrap: balance;
+}
+
+/* ── Questions (FaqList) ──────────────────────────────────── */
+
+/* The landing root only rings links and buttons; give the question rows the same ring. */
+.faqWrap summary:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+  border-radius: 22px;
+}
+
+/* ── Comparison tables (site.tableWrap + site.table) ──────── */
+
+/* While a table scrolls sideways (phones), a soft ink shadow sits on the wrapper's right
+   edge; a white cover that scrolls with the content hides it once the end is reached. */
+div.tableScroll {
+  background-color: #fff;
+  background-image:
+    linear-gradient(to left, #fff 35%, rgba(255, 255, 255, 0)),
+    linear-gradient(to left, rgba(10, 10, 15, 0.14), rgba(10, 10, 15, 0));
+  background-position: right center, right center;
+  background-size: 44px 100%, 18px 100%;
+  background-repeat: no-repeat;
+  background-attachment: local, scroll;
+}
+
+div.tableScroll:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+table.cmp {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+table.cmp th,
+table.cmp td {
+  overflow-wrap: break-word;
+}
+
+/* Phones scroll the wider tables sideways (feature names stay pinned); from 700px they fit. */
+table.cmpWide {
+  min-width: 680px;
+}
+
+table.cmpMid {
+  min-width: 520px;
+}
+
+table.cmpFit {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+table.cmpFit thead th {
+  white-space: normal;
+}
+
+@media (min-width: 700px) {
+  table.cmpWide,
+  table.cmpMid {
+    min-width: 0;
+  }
+}
+
+table.cmp thead th.hlHead {
+  background: var(--ink);
+  color: #fff;
+}
+
+table.cmp td.hl {
+  font-weight: 800;
+}
+
+/* Feature names: a column of row headers that stays in view while the table
+   scrolls sideways on phones. */
+table.cmp .rowHead,
+table.cmp thead th.cornerHead {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: 23%;
+  background: #fff;
+  box-shadow: inset -1.5px 0 0 rgba(10, 10, 15, 0.08);
+}
+
+/* Living library: what plain storage does, struck through in pink. */
+.struck {
+  text-decoration-line: line-through;
+  text-decoration-color: var(--c0);
+  text-decoration-thickness: 2px;
+}
+
+.cellCheck {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cellTick {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  margin-top: -1px;
+  border-radius: 8px;
+  background: var(--c3);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 699px) {
+  table.cmp th,
+  table.cmp td {
+    padding: 14px;
+    font-size: 14px;
+  }
+
+  table.cmp thead th {
+    font-size: 12px;
+  }
+
+  table.cmp .rowHead,
+  table.cmp thead th.cornerHead {
+    width: 120px;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 999px) {
+  table.cmp th,
+  table.cmp td {
+    padding: 15px 16px;
+    font-size: 14.5px;
+  }
+}
+
+@media (max-width: 599px) {
+  .cellTick {
+    display: none;
+  }
+}
+
+.tableNote {
+  margin: 22px 0 0;
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+/* ── Platform cards (/compare) ────────────────────────────── */
+
+.platforms {
+  display: grid;
+  gap: 20px;
+}
+
+.platform {
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+}
+
+/* Ancestorii's own card sits in a solid pink frame, like the landing's featured story. */
+.platformFeatured {
+  padding: 8px;
+  border-radius: 36px;
+  background: var(--c0);
+  box-shadow: 0 40px 70px -40px rgba(10, 10, 15, 0.5);
+}
+
+.platformInner {
+  display: grid;
+  gap: 26px 64px;
+  padding: 28px 24px 26px;
+  border-radius: 28px;
+  background: #fff;
+}
+
+.platformName {
+  margin: 0;
+  font-size: clamp(34px, 3.4vw, 50px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  overflow-wrap: break-word;
+}
+
+.platformLine {
+  margin: 14px 0 0;
+  max-width: 24em;
+  font-size: clamp(18px, 1.5vw, 21px);
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+.bestFor {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1.5px solid rgba(10, 10, 15, 0.1);
+}
+
+.bestForText {
+  margin: 12px 0 0;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.points li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 16.5px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.points li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.58em;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--tone, var(--c0));
+}
+
+@media (min-width: 1000px) {
+  .platformInner {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    padding: 40px 44px 40px;
+  }
+
+  .platformFeatured .platformInner {
+    padding: 36px 40px;
+  }
+
+  .points {
+    padding-top: 6px;
+  }
+}
+
+/* ── Numbered colour-panel cards (/living-library) ────────── */
+
+.panels {
+  display: grid;
+  gap: 20px;
+}
+
+.panel {
+  display: grid;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 30px 60px -40px rgba(10, 10, 15, 0.4);
+  overflow: hidden;
+}
+
+.panelSwatch {
+  height: 168px;
+  margin: 10px 10px 0;
+  border-radius: 22px;
+  background: var(--tone);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panelTile {
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  background: #fff;
+  color: var(--tone);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 24px 40px -24px rgba(10, 10, 15, 0.55);
+  box-shadow: 0 26px 40px -22px color-mix(in srgb, var(--tone) 35%, var(--ink));
+  transform: rotate(var(--tilt, -3deg));
+}
+
+.panelBody {
+  padding: 24px 24px 28px;
+}
+
+.panelNum {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.panelTitle {
+  margin: 8px 0 0;
+  font-size: clamp(22px, 2vw, 26px);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.panelText {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+@media (min-width: 600px) {
+  .panel {
+    grid-template-columns: minmax(0, 36%) minmax(0, 1fr);
+  }
+
+  .panelSwatch {
+    height: auto;
+    min-height: 220px;
+    margin: 10px;
+  }
+
+  .panelBody {
+    align-self: center;
+    padding: 26px 30px 28px 20px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Check list (/living-library "Who this is for") ───────── */
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 22px 18px 18px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 18px 40px -34px rgba(10, 10, 15, 0.45);
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.checkTile {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  margin-top: -2px;
+  border-radius: 11px;
+  background: var(--tone);
+  color: var(--tone-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(var(--tilt, -3deg));
+}
+
+.checks + .reading {
+  margin-top: clamp(32px, 4vw, 44px);
+}
+
+/* ── Reason cards (/compare/storyworth-alternative) ───────── */
+
+.reasons {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.reason {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.reasonTile {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: 20px;
+  background: var(--tone);
+  color: var(--tone-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 34px -22px rgba(10, 10, 15, 0.6);
+  transform: rotate(var(--tilt, -3deg));
+}
+
+.reasonTitle {
+  margin-top: 24px;
+}
+
+@media (max-width: 649px) {
+  .reasons {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .reasonTile {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+  }
+}

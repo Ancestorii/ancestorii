@@ -1,0 +1,237 @@
+/* ============================================================
+   Sign Up: the Claude Design "Ancestorii Sign Up" layout around
+   the existing two-step flow (name the family library, then the
+   account details). Sits inside AuthShell, which provides the
+   landing tokens (--c0..--c3, --ink, --hover) and the typeface.
+   ============================================================ */
+
+/* "Free to start · No credit card · Two minutes" under the intro. */
+.dots {
+  margin-top: 18px;
+}
+
+/* The steps start 30px under the header, like the design's first control. */
+.flow {
+  margin-top: 30px;
+}
+
+/* Space held while the form script loads, so the page does not jump. */
+.placeholder {
+  margin-top: 30px;
+  min-height: 400px;
+}
+
+/* ── Step indicator: a two-part bar (current step in pink), Back beside it on step 2 ── */
+
+.stepTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-left: -12px;
+  padding: 0 14px 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .back:hover {
+    background: var(--hover);
+  }
+}
+
+.steps {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.step {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(10, 10, 15, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.stepActive {
+  background: var(--c0);
+}
+
+/* ── Step heading ─────────────────────────────────────────── */
+
+.stepTitle {
+  margin: 22px 0 0;
+  font-size: clamp(26px, 2.4vw, 32px);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.stepText {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* ── Fields ───────────────────────────────────────────────── */
+
+.field {
+  margin-top: 18px;
+}
+
+.firstField {
+  margin-top: 24px;
+}
+
+.optional {
+  font-weight: 500;
+}
+
+/* Live preview of the library name: a solid blue card, like the landing's colour cards. */
+.preview {
+  margin-top: 14px;
+  padding: 16px 20px 18px;
+  border-radius: 20px;
+  background: var(--c1);
+  color: #fff;
+  box-shadow: 0 24px 44px -28px rgba(10, 10, 15, 0.55);
+}
+
+.previewLabel {
+  --dot: var(--c3);
+}
+
+.previewName {
+  margin: 8px 0 0;
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+/* "Use name@example.com instead" under the email field. */
+.suggest {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c1);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+/* ── Password strength: four bars, pink, orange, blue, aqua ── */
+
+.meter {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.meterBars {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.meterBar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(10, 10, 15, 0.1);
+  transition: background-color 0.25s ease;
+}
+
+.meter[data-score='1'] .meterBar:nth-child(-n + 1) {
+  background: var(--c0);
+}
+
+.meter[data-score='2'] .meterBar:nth-child(-n + 2) {
+  background: var(--c2);
+}
+
+.meter[data-score='3'] .meterBar:nth-child(-n + 3) {
+  background: var(--c1);
+}
+
+.meter[data-score='4'] .meterBar {
+  background: var(--c3);
+}
+
+.meterLabel {
+  width: 64px;
+  flex: none;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* ── Checkboxes: the whole row is the touch target ────────── */
+
+.checks {
+  margin-top: 10px;
+}
+
+.check {
+  padding: 11px 0;
+}
+
+/* ── StepIndicator (headline block, kept for reuse) ───────── */
+
+.indicator {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.indicatorTitle {
+  margin: 0;
+  font-size: clamp(36px, 6vw, 60px);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.indicatorText {
+  margin: 16px 0 0;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.indicatorFree {
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 800;
+}

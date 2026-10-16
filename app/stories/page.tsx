@@ -1,6 +1,5 @@
 import { getServerClient } from '@/lib/supabase/server';
-import PublicNav from '@/components/stories/layout/PublicNav';
-import PublicFooter from '@/components/stories/layout/PublicFooter';
+import SiteShell from '@/components/site/SiteShell';
 import ExploreFeed from '@/components/stories/feed/ExploreFeed';
 import Script from 'next/script';
 import type { Metadata } from 'next';
@@ -168,6 +167,7 @@ export default async function StoriesPage() {
     .select('feature_type, story_id, stories(id, slug, title, body, excerpt, author_id, author_name, author_avatar_url, voice_note_path, category, published_at)')
     .order('featured_at', { ascending: false });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const featuredStoryIds = (featuredRows ?? []).map((f: any) => f.stories?.id).filter(Boolean);
 
   const { data: featuredMedia } = featuredStoryIds.length
@@ -186,6 +186,7 @@ export default async function StoriesPage() {
     ? await supabase.from('story_comments').select('story_id').in('story_id', featuredStoryIds)
     : { data: [] };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const featuredAuthorIds = [...new Set((featuredRows ?? []).map((f: any) => f.stories?.author_id).filter(Boolean))];
   const { data: featuredAuthorProfiles } = featuredAuthorIds.length
     ? await supabase.from('Profiles').select('id, profile_image_url, title').in('id', featuredAuthorIds)
@@ -228,6 +229,7 @@ export default async function StoriesPage() {
     featuredCommentMap.set(c.story_id, (featuredCommentMap.get(c.story_id) ?? 0) + 1);
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const featuredStories = (featuredRows ?? []).filter((f: any) => f.stories).map((f: any) => {
     const s = f.stories;
     const media = featuredMediaMap.get(s.id) ?? [];
@@ -419,21 +421,17 @@ export default async function StoriesPage() {
         })}
       </Script>
 
-      <div className="min-h-screen flex flex-col bg-white">
-        <PublicNav />
-        <main className="flex-1">
-          <ExploreFeed
-            initialStories={feedStories}
-            featuredStories={featuredStories}
-            trendingStories={trendingStories}
-            popularTopics={popularTopics}
-            isLoggedIn={isLoggedIn}
-            pageSize={PAGE_SIZE}
-            userName={userName}
-          />
-        </main>
-        <PublicFooter />
-      </div>
+      <SiteShell isLoggedIn={isLoggedIn} storiesBar>
+        <ExploreFeed
+          initialStories={feedStories}
+          featuredStories={featuredStories}
+          trendingStories={trendingStories}
+          popularTopics={popularTopics}
+          isLoggedIn={isLoggedIn}
+          pageSize={PAGE_SIZE}
+          userName={userName}
+        />
+      </SiteShell>
     </>
   );
 }

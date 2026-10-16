@@ -2,9 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
-import CategoryTabs from '@/components/stories/feed/CategoryTabs';
 import StoryFeed, { type FeedStory } from '@/components/stories/feed/StoryFeed';
 import type { TrendingStory, PopularTopic } from '@/components/stories/feed/FeedSidebar';
+import feed from '@/components/site/stories-browse/feed.module.css';
 
 type StoryMediaRow = {
   story_id: string;
@@ -127,7 +127,7 @@ export default function ExploreFeed({
         });
       }
 
-      let results = data.map((s) => {
+      const results = data.map((s) => {
         const storyMedia = mediaByStory.get(s.id) ?? [];
         const coverMedia = storyMedia.find((m) => m.file_type?.startsWith('image/') || m.file_type?.startsWith('video/'));
         const publicUrl = coverMedia
@@ -203,8 +203,8 @@ export default function ExploreFeed({
   }, [fetchStories, activeCategory, sortBy, stories.length, pageSize]);
 
   return (
-    <div className={isFiltering ? 'opacity-60 transition-opacity pointer-events-none' : ''}>
-      <CategoryTabs active={activeCategory} onChange={handleCategoryChange} />
+    <div className={isFiltering ? feed.filtering : ''}>
+      {/* The topic pills sit under the hero, inside StoryFeed (onCategoryChange below). */}
       <StoryFeed
         stories={stories}
         featuredStories={featuredStories}

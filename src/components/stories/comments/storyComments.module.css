@@ -1,0 +1,388 @@
+/* ============================================================
+   Comments on the public story page (CommentSection,
+   StoryCommentItem, StoryCommentInput). Inside SiteShell, so the
+   landing tokens (--c0..--c3, --ink, --hover) are available.
+   ============================================================ */
+
+.heading {
+  margin: 0;
+  font-size: clamp(30px, 3vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  word-spacing: 0.08em;
+  font-weight: 800;
+}
+
+.list {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.composer {
+  margin-top: 24px;
+}
+
+.composerSpaced {
+  margin-top: 32px;
+}
+
+/* "Replying to …" above the box, with the landing's small colour square */
+.replying {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+
+.replyingText {
+  margin: 0;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.replyingText::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 9px;
+  border-radius: 3px;
+  background: var(--c1);
+  vertical-align: 1px;
+}
+
+.replyingName {
+  font-weight: 800;
+}
+
+/* Small text button (Reply, Cancel, Delete) */
+.textBtn {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.confirmDelete {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--c0);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .textBtn:hover {
+    background: var(--hover);
+  }
+
+  /* Delete shows on hover or keyboard focus, as before; touch screens always see it. */
+  .reveal {
+    opacity: 0;
+  }
+
+  .row:hover .reveal,
+  .reveal:focus-visible {
+    opacity: 1;
+  }
+}
+
+/* ── One comment ── */
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--av);
+  color: var(--av-fg);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.avatarPhoto {
+  background: #fff;
+  box-shadow: 0 0 0 2.5px #fff, 0 0 0 4.5px var(--av);
+}
+
+.avatarSm {
+  width: 32px;
+  height: 32px;
+  font-size: 11px;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Avatar colours, picked from the author's name. */
+.tone0 {
+  --av: var(--c1);
+  --av-fg: #fff;
+}
+
+.tone1 {
+  --av: var(--c0);
+  --av-fg: #fff;
+}
+
+.tone2 {
+  --av: var(--c3);
+  --av-fg: var(--ink);
+}
+
+.tone3 {
+  --av: var(--c2);
+  --av-fg: var(--ink);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.who {
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.name {
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.date {
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.role {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.controls {
+  flex: none;
+  margin-top: -6px;
+}
+
+.confirm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.text {
+  margin: 6px 0 0;
+  font-size: 17px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.voice {
+  margin-top: 10px;
+}
+
+.replyBtn {
+  margin: 4px 0 0 -10px;
+}
+
+/* Replies sit under the comment, lined up with its text. */
+.replies {
+  margin: 16px 0 0 58px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.replies .name {
+  font-size: 14px;
+}
+
+.replies .date,
+.replies .role {
+  font-size: 12px;
+}
+
+.replies .text {
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.replies .row {
+  gap: 12px;
+}
+
+@media (max-width: 599px) {
+  .replies {
+    margin-left: 26px;
+  }
+}
+
+/* ── Writing a comment ── */
+
+.inputRow {
+  display: flex;
+  gap: 10px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 58px;
+  padding: 0 18px;
+  border: 1.5px solid rgba(10, 10, 15, 0.14);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input::placeholder {
+  color: rgba(10, 10, 15, 0.42);
+  font-weight: 500;
+}
+
+.input:focus {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+.send {
+  width: 58px;
+  height: 58px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--ink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.send:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.send:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  animation: commentSpin 0.8s linear infinite;
+}
+
+@keyframes commentSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Signed-out prompt in place of the box */
+.loginPrompt {
+  width: 100%;
+  min-height: 58px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.14);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+@media (hover: hover) {
+  .loginPrompt:hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+
+  .send:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* Phones and touch screens: 44px tap targets for Reply, Delete and Cancel.
+   Last in the file so it wins over the base rules above. */
+@media (max-width: 599px), (pointer: coarse) {
+  .textBtn,
+  .confirmDelete {
+    min-height: 44px;
+  }
+
+  .controls {
+    margin-top: -11px;
+  }
+
+  .replyBtn {
+    margin-top: 0;
+  }
+}

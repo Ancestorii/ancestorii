@@ -1,5 +1,4 @@
-import PublicNav from '@/components/stories/layout/PublicNav';
-import PublicFooter from '@/components/stories/layout/PublicFooter';
+import SiteShell from '@/components/site/SiteShell';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import PricingContent from './PricingContent';
@@ -58,11 +57,9 @@ export default function PricingPage() {
         })}
       </Script>
 
-      <main className="min-h-screen bg-[#FFFDF6] text-[#0F2040]">
-        <PublicNav />
+      <SiteShell>
         <PricingContent />
-        <PublicFooter />
-      </main>
+      </SiteShell>
     </>
   );
 }

@@ -1,0 +1,214 @@
+/* ============================================================
+   Invite and join screens. These sit inside AuthShell (the Log In
+   and Sign Up frame), so the landing tokens and Plus Jakarta Sans
+   apply. Fields use the shared site.module.css inputs; this file
+   only adds what those screens need on top.
+   ============================================================ */
+
+/* Family names come from people's own words: let a long one wrap, never overflow. */
+.title {
+  overflow-wrap: anywhere;
+}
+
+/* The invitation headline carries the family's name, so it runs a size below "Welcome back." */
+h2.title {
+  font-size: clamp(36px, 3.5vw, 50px);
+  line-height: 1.02;
+}
+
+/* The form's own heading, under the invitation headline. */
+.formTitle {
+  margin: 36px 0 0;
+  padding-top: 28px;
+  border-top: 1.5px solid rgba(10, 10, 15, 0.1);
+  font-size: clamp(22px, 2vw, 26px);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.formLead {
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.strong {
+  font-weight: 800;
+}
+
+.form {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* The invited email is fixed: a soft filled field, text still ink. */
+.locked,
+.locked:disabled {
+  border-color: transparent;
+  background: var(--hover);
+  color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+/* Password field with the Show / Hide button inside it. */
+.passwordWrap {
+  position: relative;
+  margin-top: 8px;
+}
+
+.passwordInput {
+  padding-right: 92px;
+}
+
+.toggle {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  min-width: 68px;
+  height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--hover);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  translate: 0 -50%;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .toggle:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+}
+
+/* Password strength: pink, then orange, then aqua. */
+.meter {
+  margin-top: 10px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(10, 10, 15, 0.08);
+  overflow: hidden;
+}
+
+.meterBar {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.meterWeak {
+  width: 33.333%;
+  background: var(--c0);
+}
+
+.meterMedium {
+  width: 66.666%;
+  background: var(--c2);
+}
+
+.meterStrong {
+  width: 100%;
+  background: var(--c3);
+}
+
+/* Terms checkbox row: the whole label is the target (at least 44px tall, without
+   adding visible space), links underlined. */
+.agree {
+  padding: 12px 0;
+  margin: -8px 0;
+}
+
+.agree input {
+  margin-top: 1px;
+}
+
+.agree input:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 2px;
+}
+
+.agree a {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* "Completely free. No payment details required." */
+.reassure {
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+.errorGap {
+  margin-top: 20px;
+}
+
+.action {
+  margin-top: 24px;
+}
+
+/* A link styled like the full-width form button (ArrowLink stretched). */
+a.blockLink {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 32px;
+}
+
+/* Loading the invitation. */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  border: 3px solid rgba(10, 10, 15, 0.1);
+  border-top-color: var(--c0);
+  animation: spin 0.8s linear infinite;
+}
+
+.loadingText {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

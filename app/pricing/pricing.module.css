@@ -1,0 +1,645 @@
+/* ============================================================
+   /pricing, in the landing page's language: the plans (two white
+   cards and the one ink card), the heirlooms on colour panels, the
+   "never pay for" promise and the closing slab.
+   Sits inside SiteShell, which provides the tokens (--c0 pink,
+   --c1 blue, --c2 orange, --c3 aqua, --ink, --hairline-ring) and
+   Plus Jakarta Sans.
+   ============================================================ */
+
+/* Solid colour tones for tiles and pills: white marks on pink and
+   blue, ink marks on orange and aqua. */
+.pink {
+  --tone: var(--c0);
+  --tone-fg: #fff;
+}
+
+.blue {
+  --tone: var(--c1);
+  --tone-fg: #fff;
+}
+
+.orange {
+  --tone: var(--c2);
+  --tone-fg: var(--ink);
+}
+
+.aqua {
+  --tone: var(--c3);
+  --tone-fg: var(--ink);
+}
+
+/* Keeps the hero's price phrase on one line (it fits from 320px up). */
+.nowrap {
+  white-space: nowrap;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Hero: the "per family" line under the lead ───────────── */
+
+.perFamily {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 100%;
+  margin: 0;
+  padding: 8px 24px 8px 8px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 22px 40px -28px rgba(10, 10, 15, 0.5);
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 700;
+  text-align: left;
+  text-wrap: pretty;
+}
+
+.perFamilyTile {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 14px;
+  background: var(--tone);
+  color: var(--tone-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-6deg);
+}
+
+@media (max-width: 759px) {
+  .perFamily {
+    border-radius: 24px;
+    padding: 12px 18px 12px 12px;
+    font-size: 16px;
+  }
+}
+
+/* ── Plans ────────────────────────────────────────────────── */
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* White card with the landing's hairline ring. */
+.plan {
+  --rule: rgba(10, 10, 15, 0.1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 30px 28px 28px;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 30px 60px -40px rgba(10, 10, 15, 0.4);
+}
+
+/* The page's one dark card: the recommended plan. */
+.planInk {
+  --rule: rgba(255, 255, 255, 0.16);
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 40px 70px -36px rgba(10, 10, 15, 0.65);
+}
+
+.planTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+  min-height: 30px;
+}
+
+.recommended {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px 7px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.recommended::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--c0);
+}
+
+/* Three columns: a tilted pink sticker on the card's top edge, so the plan names line up. */
+@media (min-width: 1024px) {
+  .recommended {
+    position: absolute;
+    top: -15px;
+    right: 26px;
+    padding: 8px 14px 8px 11px;
+    background: var(--c0);
+    color: #fff;
+    box-shadow: 0 14px 26px -14px rgba(10, 10, 15, 0.6);
+    transform: rotate(3deg);
+  }
+
+  .recommended::before {
+    background: #fff;
+  }
+}
+
+.planName {
+  margin: 18px 0 0;
+  font-size: clamp(28px, 2.5vw, 34px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.price {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.priceBig {
+  font-size: clamp(56px, 5.2vw, 76px);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+  font-weight: 800;
+}
+
+.priceUnit {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.currencies {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.currency {
+  padding: 7px 13px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.planNote {
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.features {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 26px 0 0;
+  padding: 26px 0 0;
+  list-style: none;
+  border-top: 1.5px solid var(--rule);
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* Small solid colour check tile; an outlined tile with a cross when not included. */
+.tick {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--tone);
+  color: var(--tone-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tickOff {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.2);
+}
+
+.plan .planCta {
+  width: 100%;
+  margin-top: 28px;
+  font-size: 16px;
+}
+
+/* The ink card's white ArrowLink: label left, arrow tile right. In narrow cards the
+   label wraps onto two balanced lines inside the same button height. */
+.plan .planCtaArrow {
+  justify-content: space-between;
+  gap: 12px;
+  padding-left: 22px;
+  line-height: 1.2;
+  text-align: left;
+  text-wrap: balance;
+}
+
+@media (max-width: 1023px) {
+  .plans {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Tablet: each plan is one wide card, details and button on the left, features on the
+   right. The button follows the price, so a long feature list never leaves a gap above it. */
+@media (min-width: 720px) and (max-width: 1023px) {
+  .plan {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'head features'
+      'cta features';
+    padding: 34px;
+  }
+
+  .planHead {
+    grid-area: head;
+    padding-right: 34px;
+  }
+
+  .features {
+    grid-area: features;
+    margin: 0;
+    padding: 0 0 0 34px;
+    border-top: 0;
+    border-left: 1.5px solid var(--rule);
+  }
+
+  .plan .planCta {
+    grid-area: cta;
+    align-self: start;
+    width: calc(100% - 34px);
+  }
+}
+
+@media (max-width: 639px) {
+  .plans {
+    gap: 16px;
+  }
+
+  .plan {
+    padding: 26px 20px 20px;
+    border-radius: 26px;
+  }
+
+  .plan .planCta {
+    margin-top: 26px;
+  }
+
+  .plan .planCtaArrow {
+    padding-left: 20px;
+  }
+}
+
+/* ── Heirlooms ────────────────────────────────────────────── */
+
+.headTop {
+  margin-bottom: 22px;
+}
+
+.products {
+  margin-top: clamp(36px, 4vw, 52px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* The landing's step card: a solid colour panel with a tilted white icon tile. */
+.product {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 30px 60px -40px rgba(10, 10, 15, 0.4);
+  overflow: hidden;
+}
+
+.productPanel {
+  height: 210px;
+  margin: 10px 10px 0;
+  border-radius: 22px;
+  background: var(--tone);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.productTile {
+  width: 108px;
+  height: 108px;
+  border-radius: 30px;
+  background: #fff;
+  color: var(--tone);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 24px 40px -24px rgba(10, 10, 15, 0.55);
+  box-shadow: 0 26px 40px -22px color-mix(in srgb, var(--tone) 35%, var(--ink));
+  transform: rotate(var(--tilt));
+}
+
+.productBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 26px 28px 22px;
+}
+
+.productName {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+
+.productPrice {
+  margin: 12px 0 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--tone);
+  color: var(--tone-fg);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.productDesc {
+  flex: 1;
+  margin: 14px 0 0;
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.productLink {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .productLink:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+@media (max-width: 899px) {
+  .products {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .product {
+    display: grid;
+    grid-template-columns: 40% minmax(0, 1fr);
+  }
+
+  .productPanel {
+    height: auto;
+    min-height: 230px;
+    margin: 10px;
+  }
+
+  .productBody {
+    align-self: center;
+  }
+}
+
+@media (max-width: 599px) {
+  .products {
+    gap: 16px;
+  }
+
+  .product {
+    border-radius: 26px;
+  }
+
+  .productPanel {
+    height: 168px;
+  }
+
+  .productTile {
+    width: 96px;
+    height: 96px;
+    border-radius: 28px;
+  }
+
+  .productTile svg {
+    width: 46px;
+    height: 46px;
+  }
+
+  .productBody {
+    padding: 24px 24px 20px;
+  }
+}
+
+/* ── What you will never pay for ──────────────────────────── */
+
+.promise {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 40px 64px;
+  align-items: center;
+}
+
+.promiseTitle {
+  margin-top: 22px;
+}
+
+.promiseList {
+  margin: 0;
+  padding: 6px 30px;
+  list-style: none;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 30px 60px -40px rgba(10, 10, 15, 0.4);
+}
+
+.promiseItem {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 0;
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.45;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.promiseItem + .promiseItem {
+  border-top: 1.5px solid rgba(10, 10, 15, 0.08);
+}
+
+.promiseTile {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 16px;
+  background: var(--tone);
+  color: var(--tone-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(var(--tilt));
+}
+
+@media (max-width: 999px) {
+  .promise {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 599px) {
+  .promiseList {
+    padding: 4px 20px;
+    border-radius: 26px;
+  }
+
+  .promiseItem {
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 0;
+  }
+
+  .promiseTile {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+}
+
+/* ── Closing slab ─────────────────────────────────────────── */
+
+/* The landing caps its closing title at 12ch; this one is two sentences. */
+.slab .ctaTitle {
+  max-width: 15em;
+}
+
+.ctaLine {
+  display: block;
+}
+
+.ctaNote {
+  margin-top: 20px;
+}
+
+/* The app line and store badges, under a hairline at the foot of the slab. */
+.app {
+  position: relative;
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px 48px;
+  padding-top: 36px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.16);
+  text-align: left;
+}
+
+.appText {
+  flex: 1 1 440px;
+  min-width: 0;
+  max-width: 680px;
+}
+
+.appLead {
+  margin: 0;
+  font-size: clamp(17px, 1.5vw, 20px);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+.appSub {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.appBadges {
+  flex: none;
+  column-gap: 12px;
+}
+
+@media (max-width: 899px) {
+  .app {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .appText {
+    flex: none;
+  }
+
+  .appBadges {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 599px) {
+  .app {
+    padding-top: 28px;
+  }
+}

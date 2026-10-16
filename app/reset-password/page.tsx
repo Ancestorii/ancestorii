@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
+import AuthShell from '@/components/site/AuthShell';
+import { SubmitButton } from '@/components/site/SiteBits';
+import auth from '@/components/site/auth.module.css';
+import site from '@/components/site/site.module.css';
+import forms from '@/components/site/auth/authForms.module.css';
 
 export default function ResetPasswordPage() {
   const supabase = getBrowserClient();
@@ -23,7 +28,7 @@ export default function ResetPasswordPage() {
 
     (async () => {
       // first attempt
-      let { data } = await supabase.auth.getSession();
+      const { data } = await supabase.auth.getSession();
 
       if (data.session) {
         setReady(true);
@@ -61,48 +66,54 @@ export default function ResetPasswordPage() {
   /* 🔴 EXPIRED LINK UI */
   if (linkExpired) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm text-center">
-          <h1 className="text-xl font-semibold mb-3">Link expired</h1>
-          <p className="text-sm text-gray-600 mb-6">
-            This password reset link is invalid or has expired.
-            Please request a new one.
-          </p>
-          <a
-            href="/login"
-            className="block w-full bg-[#E6C26E] py-2 rounded-xl font-semibold"
-          >
-            Back to login
-          </a>
-        </div>
-      </div>
+      <AuthShell>
+        <h1 className={auth.title}>
+          Link <span className={site.accentPink}>expired.</span>
+        </h1>
+        <p className={auth.intro}>
+          This password reset link is invalid or has expired.
+          Please request a new one.
+        </p>
+        <a href="/login" className={`${site.btnSubmit} ${forms.submit}`}>
+          <span>Back to login</span>
+          <span className={site.btnSubmitTile} aria-hidden="true">
+            →
+          </span>
+        </a>
+      </AuthShell>
     );
   }
 
-  if (!ready) return null;
+  /* While the recovery session is checked: the frame, with the form to follow. */
+  if (!ready) return <AuthShell>{null}</AuthShell>;
 
   /* ✅ NORMAL RESET FLOW */
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
-        <h1 className="text-xl font-semibold mb-4">Set new password</h1>
+    <AuthShell>
+      <h1 className={auth.title}>
+        Set new <span className={site.accentPink}>password.</span>
+      </h1>
 
-        <input
-          type="password"
-          placeholder="New password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border rounded-xl p-2 mb-4"
-        />
+      <label htmlFor="new-password" className={`${site.label} ${forms.formStart}`}>
+        New password
+      </label>
+      <input
+        id="new-password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        autoComplete="new-password"
+        className={site.input}
+      />
 
-        <button
-          onClick={updatePassword}
-          disabled={loading || password.length < 6}
-          className="w-full bg-[#E6C26E] py-2 rounded-xl font-semibold"
-        >
-          {loading ? 'Updating...' : 'Update Password'}
-        </button>
-      </div>
-    </div>
+      <SubmitButton
+        type="button"
+        onClick={updatePassword}
+        disabled={loading || password.length < 6}
+        className={forms.submit}
+      >
+        {loading ? 'Updating...' : 'Update Password'}
+      </SubmitButton>
+    </AuthShell>
   );
 }

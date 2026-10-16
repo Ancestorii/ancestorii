@@ -3,9 +3,14 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Script from 'next/script';
-import PublicNav from '@/components/stories/layout/PublicNav';
-import PublicFooter from '@/components/stories/layout/PublicFooter';
+import SiteShell from '@/components/site/SiteShell';
+import { Accent, Eyebrow } from '@/components/site/SiteBits';
 import StoryCard from '@/components/stories/feed/StoryCard';
+import TopicsCta from '@/components/site/stories-browse/TopicsCta';
+import { toneClass, topicToneClass } from '@/components/site/stories-browse/topicTone';
+import landing from '@/components/landing/landing.module.css';
+import site from '@/components/site/site.module.css';
+import topicsCss from '@/components/site/stories-browse/topics.module.css';
 import { TOPICS, getTopicBySlug } from '@/lib/stories/topics';
 
 const SITE = 'https://www.ancestorii.com';
@@ -210,54 +215,40 @@ export default async function TopicPage({ params }: Props) {
         })}
       </Script>
 
-      <main
-        className="w-full relative overflow-hidden"
-        style={{ background: '#FFFDF8', fontFamily: "'DM Sans', sans-serif" }}
-      >
-        <PublicNav />
-
+      <SiteShell storiesBar>
         {/* HERO */}
-        <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pt-16 sm:pt-20 md:pt-28 lg:pt-36 xl:pt-44 pb-12 md:pb-16">
-          <div className="flex items-center gap-2.5 mb-5 md:mb-6 xl:mb-8">
-            <div className="h-px w-5 xl:w-6 bg-[#B8932A]" />
-            <Link
-              href="/stories/topics"
-              className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold hover:text-[#A9782F] transition"
-            >
-              Stories by topic
-            </Link>
+        <section className={topicsCss.hero}>
+          <div className={topicsCss.heroInner}>
+            <div className={site.heroTop}>
+              <Link
+                href="/stories/topics"
+                className={`${landing.badge} ${topicsCss.dotPink} ${topicsCss.badgeLink}`}
+              >
+                <span className={landing.badgeDot} />
+                Stories by topic
+              </Link>
+            </div>
+
+            <h1 className={site.heroTitle}>
+              {topic.heading}
+              <br />
+              <span className={topicsCss.heroAccent}>
+                <Accent>{topic.headingAccent}</Accent>
+              </span>
+            </h1>
+
+            <div className={topicsCss.intro}>
+              <p>{topic.intro}</p>
+              <p>{topic.secondary}</p>
+            </div>
           </div>
-
-          <h1
-            className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6"
-            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
-          >
-            {topic.heading}
-            <br />
-            <span className="italic text-[#A9782F]">{topic.headingAccent}</span>
-          </h1>
-
-          <div
-            className="mb-8 md:mb-10 xl:mb-12"
-            style={{
-              height: '1px',
-              width: '10rem',
-              background: 'linear-gradient(to right, rgba(184,147,42,0.85), transparent)',
-            }}
-          />
-
-          <div className="space-y-5 md:space-y-6 text-[15px] md:text-[17px] lg:text-[18px] xl:text-[20px] 2xl:text-[22px] leading-[1.85] text-[#3D3526] max-w-[46ch]">
-            <p>{topic.intro}</p>
-            <p>{topic.secondary}</p>
-          </div>
-        </div>
+        </section>
 
         {/* STORIES */}
-        <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pb-16 md:pb-24">
-          {feedStories.length > 0 ? (
-            <>
-              <div className="mb-8 md:mb-10" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+        <section className={site.sectionSm}>
+          <div className={landing.wrap}>
+            {feedStories.length > 0 ? (
+              <div className={topicsCss.storyGrid}>
                 {feedStories.map((s) => (
                   <StoryCard
                     key={s.id}
@@ -281,106 +272,68 @@ export default async function TopicPage({ params }: Props) {
                   />
                 ))}
               </div>
-            </>
-          ) : (
-            <div className="border-t border-[#ECE5D8] pt-12 md:pt-16">
-              <p
-                className="text-[20px] md:text-[24px] xl:text-[28px] leading-[1.3] text-[#181512] max-w-[28ch]"
-                style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}
-              >
-                No {topic.navLabel.toLowerCase()} stories yet.{' '}
-                <span className="italic text-[#A9782F]">Yours could be the first.</span>
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* STORY STARTERS */}
-        <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pb-16 md:pb-24">
-          <div className="mb-10 md:mb-14" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
-          <span className="text-[11px] md:text-[12px] xl:text-[13px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">
-            Worth sharing
-          </span>
-          <h2
-            className="mt-4 mb-8 md:mb-12 text-[clamp(28px,5vw,60px)] leading-[1.0] tracking-[-0.03em] text-[#181512]"
-            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
-          >
-            Memories that <span className="italic text-[#A9782F]">belong here.</span>
-          </h2>
-          <div className="space-y-6 md:space-y-8">
-            {topic.prompts.map((p, i) => (
-              <div key={i} className="flex gap-5 md:gap-7">
-                <span
-                  className="shrink-0 text-[24px] md:text-[30px] leading-none text-[#C8A557] mt-1"
-                  style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
-                >
-                  {String(i + 1).padStart(2, '0')}
+            ) : (
+              <div className={`${topicsCss.empty} ${topicToneClass(topic.key)}`}>
+                <span className={topicsCss.emptyMark} aria-hidden="true">
+                  “
                 </span>
-                <p className="text-[16px] md:text-[19px] xl:text-[21px] leading-[1.6] text-[#3D3526] max-w-[40ch]">
-                  {p}
+                <p className={topicsCss.emptyText}>
+                  No {topic.navLabel.toLowerCase()} stories yet.{' '}
+                  <Accent tone="pink">Yours could be the first.</Accent>
                 </p>
               </div>
-            ))}
+            )}
           </div>
-        </div>
+        </section>
+
+        {/* STORY STARTERS */}
+        <section className={site.section}>
+          <div className={landing.wrap}>
+            <div className={topicsCss.startersHead}>
+              <Eyebrow dot="var(--c3)">Worth sharing</Eyebrow>
+              <h2 className={`${landing.h2} ${topicsCss.startersTitle}`}>
+                Memories that <Accent tone="blue">belong here.</Accent>
+              </h2>
+            </div>
+            <ul className={topicsCss.prompts}>
+              {topic.prompts.map((p, i) => (
+                <li key={i} className={`${topicsCss.prompt} ${toneClass(i)}`}>
+                  {p}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
 
         {/* OTHER TOPICS */}
-        <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pb-16 md:pb-24">
-          <div className="mb-8 md:mb-10" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
-          <span className="text-[11px] md:text-[12px] xl:text-[13px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">
-            Explore more
-          </span>
-          <div className="mt-6 flex flex-wrap gap-3">
-            {otherTopics.map((t) => (
-              <Link
-                key={t.slug}
-                href={`/stories/topics/${t.slug}`}
-                className="px-5 py-2.5 border border-[#E4D2AE] text-[14px] md:text-[15px] text-[#3D3526] hover:bg-[#FAF5EB] hover:text-[#A9782F] transition"
-              >
-                {t.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pb-20 md:pb-32 xl:pb-40">
-          <div className="flex justify-center">
-            <div
-              className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14"
-              style={{ background: '#1A1612' }}
-            >
-              <p
-                className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center"
-                style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}
-              >
-                Add your {topic.navLabel.toLowerCase()} story.
-                <br />
-                <span className="italic text-[#C8A557]">Keep it for good.</span>
-              </p>
-              <p className="text-[13px] md:text-[14px] xl:text-[15px] text-[#A09888] mb-6 leading-relaxed text-center">
-                Two minutes. Your words. A memory that stays.
-              </p>
-              <Link
-                href="/signup"
-                prefetch
-                className="block w-full px-8 py-3.5 xl:py-4 text-[13px] xl:text-[14px] font-semibold tracking-[0.06em] text-[#1A1612] text-center transition hover:opacity-90"
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  background: 'linear-gradient(135deg, #C8A557 0%, #D4AF37 100%)',
-                }}
-              >
-                START FOR FREE
-              </Link>
-              <p className="mt-3 text-[11px] xl:text-[12px] text-[#B0A48C] tracking-[0.04em] text-center">
-                Free forever · No credit card · Takes 2 minutes
-              </p>
+        <section className={site.section}>
+          <div className={`${landing.wrap} ${topicsCss.explore}`}>
+            <Eyebrow dot="var(--c1)">Explore more</Eyebrow>
+            <div className={topicsCss.pills}>
+              {otherTopics.map((t) => (
+                <Link
+                  key={t.slug}
+                  href={`/stories/topics/${t.slug}`}
+                  className={landing.topic}
+                >
+                  {t.label}
+                </Link>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        <PublicFooter />
-      </main>
+        {/* CTA */}
+        <TopicsCta
+          title={
+            <>
+              Add your {topic.navLabel.toLowerCase()} story.
+              <br />
+              <span className={topicsCss.ctaAccent}>Keep it for good.</span>
+            </>
+          }
+        />
+      </SiteShell>
     </>
   );
 }

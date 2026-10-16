@@ -1,255 +1,325 @@
 'use client';
 
 import Link from 'next/link';
+import type { CSSProperties } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import {
+  BookOpen,
+  Check,
+  Eye,
+  Gem,
+  Heart,
+  Image as ImageIcon,
+  LifeBuoy,
+  Lock,
+  ShieldCheck,
+  Users,
+  X,
+} from 'lucide-react';
 import StoreBadges from '@/components/StoreBadges';
+import { Accent, ArrowLink, DotList, Eyebrow, PageHero, SectionHead } from '@/components/site/SiteBits';
+import landing from '@/components/landing/landing.module.css';
+import site from '@/components/site/site.module.css';
+import css from './pricing.module.css';
 
-const px = "px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%]";
+const OUR_STORIES_FEATURES = [
+  'Read stories from families everywhere',
+  'Like, comment, and share memories',
+  'Publish your own stories publicly',
+  'No algorithms or follower counts',
+];
 
-function Check() {
+const MY_FAMILY_FREE_FEATURES = [
+  { t: '1GB storage', on: true },
+  { t: 'Unlimited timelines', on: true },
+  { t: 'Unlimited albums', on: true },
+  { t: 'Unlimited capsules', on: true },
+  { t: '20MB max file size', on: true },
+  { t: '5 min video length', on: true },
+  { t: 'Unlimited family profiles', on: true },
+  { t: 'Priority support', on: false },
+  { t: 'Early access to features', on: false },
+  { t: '10% off heirlooms', on: false },
+];
+
+const MY_FAMILY_PREMIUM_FEATURES = [
+  '100GB storage',
+  'Unlimited timelines',
+  'Unlimited albums',
+  'Unlimited capsules',
+  '10GB max file size',
+  '15 min video length',
+  'Unlimited family profiles',
+  'Priority support',
+  'Early access to features',
+  '10% off all heirlooms',
+];
+
+// Each heirloom on a solid colour panel with its symbol, like the landing's steps.
+const HEIRLOOMS: { name: string; price: string; desc: string; Icon: LucideIcon; tone: string; tilt: string }[] = [
+  { name: 'Memory Book', price: 'From £44.99', desc: 'A hardcover book you design page by page. Three tiers available. Your stories, your photos, your layout.', Icon: BookOpen, tone: css.orange, tilt: '-4deg' },
+  { name: 'Canvas Print', price: 'From £29.99', desc: 'Museum grade photo on stretched canvas. The kind of image that belongs on a wall, not buried in a camera roll.', Icon: ImageIcon, tone: css.blue, tilt: '3deg' },
+  { name: 'Acrylic Print', price: 'From £39.99', desc: 'HD UV print behind polished acrylic glass. Vivid colour, clean edges, permanent weight.', Icon: Gem, tone: css.aqua, tilt: '-3deg' },
+];
+
+const NEVER_PAY_FOR: { line: string; Icon: LucideIcon; tone: string; tilt: string }[] = [
+  { line: 'Reading, liking, commenting, and sharing on Our Stories.', Icon: Heart, tone: css.pink, tilt: '-5deg' },
+  { line: 'Accessing your private library after downgrading. Your memories stay.', Icon: Lock, tone: css.blue, tilt: '4deg' },
+  { line: 'Viewing everything you have built, even on the free plan.', Icon: Eye, tone: css.aqua, tilt: '-4deg' },
+  { line: 'Your data. We do not sell it, rent it, or show you ads.', Icon: ShieldCheck, tone: css.orange, tilt: '5deg' },
+  { line: 'Support. Premium gets priority, but everyone gets help.', Icon: LifeBuoy, tone: css.pink, tilt: '-3deg' },
+];
+
+function Tick({ tone }: { tone: string }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8932A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-[3px]">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
+    <span className={`${css.tick} ${tone}`} aria-hidden="true">
+      <Check size={14} strokeWidth={3.4} />
+    </span>
   );
 }
 
 function Cross() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C0B9AE" strokeWidth="2" strokeLinecap="round" className="flex-shrink-0 mt-[4px]">
-      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
+    <span className={`${css.tick} ${css.tickOff}`} aria-hidden="true">
+      <X size={13} strokeWidth={3} />
+    </span>
   );
 }
 
 export default function PricingPage() {
   return (
-    <div style={{ background: '#FFFDF8', fontFamily: "'DM Sans', sans-serif" }}>
-
+    <>
       {/* ━━━ HERO ━━━ */}
-      <div className={`${px} pt-16 sm:pt-20 md:pt-28 lg:pt-36 xl:pt-44 pb-16 md:pb-20 xl:pb-24 text-center`}>
-        <div className="flex items-center justify-center gap-2.5 mb-5 md:mb-6">
-          <div className="h-px w-5 bg-[#B8932A]" />
-          <span className="text-[11px] md:text-[12px] xl:text-[13px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Pricing</span>
-          <div className="h-px w-5 bg-[#B8932A]" />
-        </div>
-
-        <h1 className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-          Share for free.<br />
-          Build for <span className="italic text-[#A9782F]">£3.99 a month.</span>
-        </h1>
-
-        <p className="mt-6 md:mt-8 text-[15px] md:text-[17px] xl:text-[19px] leading-[1.75] text-[#4A4030] max-w-[48ch] mx-auto">
-          Our Stories is free for everyone. My Family starts free and grows with you. No hidden fees. No tricks. No ads.
+      <PageHero
+        eyebrow="Pricing"
+        eyebrowDot="var(--c3)"
+        title={
+          <>
+            Share for free.
+            <br />
+            Build for{' '}
+            <span className={css.nowrap}>
+              <Accent>£3.99 a month.</Accent>
+            </span>
+          </>
+        }
+        lead={
+          <>
+            Our Stories is free for everyone. My Family starts free and grows with you. No hidden fees. No
+            tricks. No ads.
+          </>
+        }
+      >
+        <p className={css.perFamily}>
+          <span className={`${css.perFamilyTile} ${css.aqua}`} aria-hidden="true">
+            <Users size={21} strokeWidth={2.6} />
+          </span>
+          <span>£3.99 per family, not per person. One payment covers your whole family.</span>
         </p>
-        <p className="mt-4 text-[15px] md:text-[17px] leading-[1.7] text-[#181512] font-semibold max-w-[48ch] mx-auto">
-          £3.99 per family, not per person. One payment covers your whole family.
-        </p>
-      </div>
+      </PageHero>
 
       {/* ━━━ TIER CARDS ━━━ */}
-      <div className={`${px} pb-16 md:pb-20 xl:pb-24`}>
-        <div className="grid lg:grid-cols-3 gap-0">
-
+      <section className={site.sectionSm}>
+        <div className={`${landing.wrap} ${css.plans}`}>
           {/* ── OUR STORIES ── */}
-          <div className="border border-[#ECE5D8] p-7 md:p-9 xl:p-11 flex flex-col">
-            <span className="text-[10px] md:text-[11px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Public</span>
-            <h2 className="mt-3 text-[24px] md:text-[28px] xl:text-[32px] tracking-[-0.03em] text-[#181512] leading-[1.05]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-              Our Stories
-            </h2>
-            <div className="mt-4 mb-6">
-              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#B8932A] leading-none" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>Free</span>
-              <span className="ml-2 text-[13px] text-[#8A7F72]">forever</span>
+          <article className={css.plan}>
+            <div className={css.planHead}>
+              <div className={css.planTop}>
+                <span className={site.tag} style={{ '--dot': 'var(--c0)' } as CSSProperties}>
+                  Public
+                </span>
+              </div>
+              <h2 className={css.planName}>Our Stories</h2>
+              <div className={css.price}>
+                <span className={css.priceBig}>Free</span>
+                <span className={css.priceUnit}>forever</span>
+              </div>
             </div>
-            <div className="h-px bg-[#ECE5D8] mb-6" />
-            <div className="space-y-3.5 flex-1">
-              {[
-                'Read stories from families everywhere',
-                'Like, comment, and share memories',
-                'Publish your own stories publicly',
-                'No algorithms or follower counts',
-              ].map((t, i) => (
-                <div key={i} className="flex gap-3 text-[13px] md:text-[14px] xl:text-[15px] text-[#3D3526] leading-[1.6]">
-                  <Check />{t}
-                </div>
+            <ul className={css.features}>
+              {OUR_STORIES_FEATURES.map((t, i) => (
+                <li key={i} className={css.feature}>
+                  <Tick tone={css.pink} />
+                  <span>{t}</span>
+                </li>
               ))}
-            </div>
-            <Link href="/signup" className="mt-8 md:mt-10 flex items-center justify-center w-full py-3.5 text-[13px] font-semibold text-[#181512] border border-[#ECE5D8] transition hover:border-[#B8932A] hover:bg-[#FFFBF0] tracking-[0.03em]">
+            </ul>
+            <Link href="/signup" className={`${landing.btnOutline} ${css.planCta}`}>
               Get started
             </Link>
-          </div>
+          </article>
 
           {/* ── MY FAMILY FREE ── */}
-          <div className="border border-[#ECE5D8] lg:border-l-0 p-7 md:p-9 xl:p-11 flex flex-col border-t-0 lg:border-t">
-            <span className="text-[10px] md:text-[11px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Private — Free</span>
-            <h2 className="mt-3 text-[24px] md:text-[28px] xl:text-[32px] tracking-[-0.03em] text-[#181512] leading-[1.05]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-              My Family
-            </h2>
-            <div className="mt-4 mb-6">
-              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#181512] leading-none" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>£0</span>
-              <span className="ml-2 text-[13px] text-[#8A7F72]">no card needed</span>
+          <article className={css.plan}>
+            <div className={css.planHead}>
+              <div className={css.planTop}>
+                <span className={site.tag} style={{ '--dot': 'var(--c1)' } as CSSProperties}>
+                  Private — Free
+                </span>
+              </div>
+              <h2 className={css.planName}>My Family</h2>
+              <div className={css.price}>
+                <span className={css.priceBig}>£0</span>
+                <span className={css.priceUnit}>no card needed</span>
+              </div>
             </div>
-            <div className="h-px bg-[#ECE5D8] mb-6" />
-            <div className="space-y-3.5 flex-1">
-              {[
-                { t: '1GB storage', on: true },
-                { t: 'Unlimited timelines', on: true },
-                { t: 'Unlimited albums', on: true },
-                { t: 'Unlimited capsules', on: true },
-                { t: '20MB max file size', on: true },
-                { t: '5 min video length', on: true },
-                { t: 'Unlimited family profiles', on: true },
-                { t: 'Priority support', on: false },
-                { t: 'Early access to features', on: false },
-                { t: '10% off heirlooms', on: false },
-              ].map((f, i) => (
-                <div key={i} className={`flex gap-3 text-[13px] md:text-[14px] xl:text-[15px] leading-[1.6] ${f.on ? 'text-[#3D3526]' : 'text-[#C0B9AE]'}`}>
-                  {f.on ? <Check /> : <Cross />}{f.t}
-                </div>
+            <ul className={css.features}>
+              {MY_FAMILY_FREE_FEATURES.map((f, i) => (
+                <li key={i} className={css.feature}>
+                  {f.on ? <Tick tone={css.blue} /> : <Cross />}
+                  <span>
+                    {!f.on && <span className={css.srOnly}>Not included: </span>}
+                    {f.t}
+                  </span>
+                </li>
               ))}
-            </div>
-            <Link href="/signup" className="mt-8 md:mt-10 flex items-center justify-center w-full py-3.5 text-[13px] font-semibold text-[#181512] border border-[#ECE5D8] transition hover:border-[#B8932A] hover:bg-[#FFFBF0] tracking-[0.03em]">
+            </ul>
+            <Link href="/signup" className={`${landing.btnOutline} ${css.planCta}`}>
               Start for free
             </Link>
-          </div>
+          </article>
 
           {/* ── MY FAMILY PREMIUM ── */}
-          <div className="border-2 border-[#181512] bg-[#181512] p-7 md:p-9 xl:p-11 flex flex-col text-[#F5F1E6]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] md:text-[11px] tracking-[0.16em] uppercase text-[#C8A557] font-semibold">Private — Premium</span>
-              <span className="text-[10px] tracking-[0.1em] uppercase text-[#181512] bg-[#C8A557] px-2.5 py-1 font-semibold">Recommended</span>
+          <article className={`${css.plan} ${css.planInk}`}>
+            <div className={css.planHead}>
+              <div className={css.planTop}>
+                <span className={site.tag} style={{ '--dot': 'var(--c3)' } as CSSProperties}>
+                  Private — Premium
+                </span>
+                <span className={css.recommended}>Recommended</span>
+              </div>
+              <h2 className={css.planName}>My Family</h2>
+              <div className={css.price}>
+                <span className={css.priceBig}>£3.99</span>
+                <span className={css.priceUnit}>/ month</span>
+              </div>
+              <div className={css.currencies}>
+                <span className={css.currency}>€4.99 / month</span>
+                <span className={css.currency}>$5.99 / month</span>
+              </div>
+              <p className={css.planNote}>
+                Per family, not per person. One payment covers your whole family.
+              </p>
             </div>
-            <h2 className="mt-3 text-[24px] md:text-[28px] xl:text-[32px] tracking-[-0.03em] text-[#F5F1E6] leading-[1.05]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-              My Family
-            </h2>
-            <div className="mt-4">
-              <span className="text-[36px] md:text-[42px] xl:text-[48px] tracking-[-0.04em] text-[#F5F1E6] leading-none" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>£3.99</span>
-              <span className="ml-2 text-[13px] text-white">/ month</span>
-            </div>
-            <div className="mt-2 flex gap-3">
-              <span className="text-[12px] text-white">€4.99 / month</span>
-              <span className="text-[12px] text-[#F5F1E6]/40">·</span>
-              <span className="text-[12px] text-white">$5.99 / month</span>
-            </div>
-            <p className="mt-3 mb-6 text-[13px] leading-[1.6] text-[#C8A557]">
-              Per family, not per person. One payment covers your whole family.
-            </p>
-            <div className="h-px bg-[#F5F1E6]/10 mb-6" />
-            <div className="space-y-3.5 flex-1">
-              {[
-                '100GB storage',
-                'Unlimited timelines',
-                'Unlimited albums',
-                'Unlimited capsules',
-                '10GB max file size',
-                '15 min video length',
-                'Unlimited family profiles',
-                'Priority support',
-                'Early access to features',
-                '10% off all heirlooms',
-              ].map((t, i) => (
-                <div key={i} className="flex gap-3 text-[13px] md:text-[14px] xl:text-[15px] text-[#F5F1E6]/80 leading-[1.6]">
-                  <Check />{t}
-                </div>
+            <ul className={css.features}>
+              {MY_FAMILY_PREMIUM_FEATURES.map((t, i) => (
+                <li key={i} className={css.feature}>
+                  <Tick tone={css.aqua} />
+                  <span>{t}</span>
+                </li>
               ))}
-            </div>
-            <Link href="/signup" className="mt-8 md:mt-10 flex items-center justify-center w-full py-3.5 text-[13px] font-semibold text-[#181512] transition hover:opacity-90 tracking-[0.03em]" style={{ background: 'linear-gradient(135deg, #C8A557 0%, #D4AF37 100%)' }}>
+            </ul>
+            <ArrowLink href="/signup" className={`${landing.btnLight} ${css.planCta} ${css.planCtaArrow}`}>
               Start free, upgrade anytime
-            </Link>
-          </div>
+            </ArrowLink>
+          </article>
         </div>
-      </div>
+      </section>
 
       {/* ━━━ HEIRLOOMS ━━━ */}
-      <div className={`${px} pb-16 md:pb-20 xl:pb-24`}>
-        <div className="text-center mb-10 md:mb-14">
-          <span className="text-[11px] md:text-[12px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Physical Products</span>
-          <h2 className="mt-3 text-[clamp(28px,5vw,58px)] tracking-[-0.03em] text-[#181512] leading-[1]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-            My Heirlooms
-          </h2>
-          <p className="mt-3 text-[14px] md:text-[15px] xl:text-[16px] text-[#4A4030] max-w-[44ch] mx-auto leading-[1.7]">
-            Pay per product. No subscription required. Premium members save 10% on every order.
-          </p>
-        </div>
+      <section className={site.section}>
+        <div className={landing.wrap}>
+          <div className={css.headTop}>
+            <Eyebrow dot="var(--c2)">Physical Products</Eyebrow>
+          </div>
+          <SectionHead
+            title="My Heirlooms"
+            lead={<>Pay per product. No subscription required. Premium members save 10% on every order.</>}
+          />
 
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6 xl:gap-7">
-          {[
-            { name: 'Memory Book', price: 'From £44.99', desc: 'A hardcover book you design page by page. Three tiers available. Your stories, your photos, your layout.' },
-            { name: 'Canvas Print', price: 'From £29.99', desc: 'Museum grade photo on stretched canvas. The kind of image that belongs on a wall, not buried in a camera roll.' },
-            { name: 'Acrylic Print', price: 'From £39.99', desc: 'HD UV print behind polished acrylic glass. Vivid colour, clean edges, permanent weight.' },
-          ].map((p) => (
-            <div key={p.name} className="p-7 md:p-8 xl:p-10 flex flex-col bg-white border border-[#ECE5D8]">
-              <h3 className="text-[20px] md:text-[24px] xl:text-[28px] tracking-[-0.02em] leading-[1.1] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-                {p.name}
-              </h3>
-              <p className="mt-2 text-[20px] md:text-[24px] xl:text-[28px] tracking-[-0.02em] leading-none text-[#C8A557]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-                {p.price}
-              </p>
-              <p className="mt-4 text-[13px] md:text-[14px] leading-[1.7] flex-1 text-[#181512]">
-                {p.desc}
-              </p>
-              <Link href={p.name === 'Memory Book' ? '/memory-books' : '/signup'} className="mt-6 inline-flex items-center text-[12px] md:text-[13px] font-medium tracking-[0.04em] transition text-[#B8932A] hover:text-[#96751E]">
-                Learn more →
-              </Link>
-            </div>
-          ))}
+          <div className={css.products}>
+            {HEIRLOOMS.map((p) => (
+              <article
+                key={p.name}
+                className={`${css.product} ${p.tone}`}
+                style={{ '--tilt': p.tilt } as CSSProperties}
+              >
+                <div className={css.productPanel} aria-hidden="true">
+                  <div className={css.productTile}>
+                    <p.Icon size={54} strokeWidth={2.4} />
+                  </div>
+                </div>
+                <div className={css.productBody}>
+                  <h3 className={css.productName}>{p.name}</h3>
+                  <p className={css.productPrice}>{p.price}</p>
+                  <p className={css.productDesc}>{p.desc}</p>
+                  <Link
+                    href={p.name === 'Memory Book' ? '/memory-books' : '/signup'}
+                    className={css.productLink}
+                  >
+                    Learn more <span className={landing.arrowGlyph}>→</span>
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* ━━━ ALWAYS FREE ━━━ */}
-      <div className={`${px} pb-16 md:pb-20 xl:pb-24`}>
-        <div className="bg-[#FAF5EB] p-8 md:p-12 xl:p-16">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8 md:gap-16">
-            <div className="md:max-w-[40%]">
-              <span className="text-[11px] md:text-[12px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold">Promise</span>
-              <h2 className="mt-3 text-[clamp(28px,4.5vw,48px)] tracking-[-0.03em] text-[#181512] leading-[1]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-                What you will<br />
-                <span className="italic text-[#A9782F]">never pay for.</span>
-              </h2>
-            </div>
-            <div className="flex-1 space-y-4 md:space-y-5 text-[14px] md:text-[16px] xl:text-[17px] leading-[1.75] text-[#3D3526]">
-              {[
-                'Reading, liking, commenting, and sharing on Our Stories.',
-                'Accessing your private library after downgrading. Your memories stay.',
-                'Viewing everything you have built, even on the free plan.',
-                'Your data. We do not sell it, rent it, or show you ads.',
-                'Support. Premium gets priority, but everyone gets help.',
-              ].map((line, i) => (
-                <div key={i} className="flex gap-4">
-                  <span className="shrink-0 mt-[0.5em] w-1.5 h-1.5 md:w-2 md:h-2 bg-[#B8932A]" />
-                  <span>{line}</span>
-                </div>
-              ))}
-            </div>
+      <section className={site.section}>
+        <div className={`${landing.wrap} ${css.promise}`}>
+          <div>
+            <Eyebrow dot="var(--c0)">Promise</Eyebrow>
+            <h2 className={`${landing.h2} ${css.promiseTitle}`}>
+              What you will
+              <br />
+              <Accent tone="pink">never pay for.</Accent>
+            </h2>
           </div>
+          <ul className={css.promiseList}>
+            {NEVER_PAY_FOR.map(({ line, Icon, tone, tilt }) => (
+              <li key={line} className={css.promiseItem}>
+                <span
+                  className={`${css.promiseTile} ${tone}`}
+                  style={{ '--tilt': tilt } as CSSProperties}
+                  aria-hidden="true"
+                >
+                  <Icon size={22} strokeWidth={2.4} />
+                </span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
+      </section>
 
       {/* ━━━ CTA ━━━ */}
-      <div className={`${px} pb-20 md:pb-32 xl:pb-40`}>
-        <div className="flex justify-center">
-          <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14 text-center" style={{ background: '#1A1612' }}>
-            <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
-              Start with one memory.<br />
-              <span className="italic text-[#C8A557]">Build from there.</span>
+      <section className={`${landing.ctaSection} ${site.ctaEnd}`}>
+        <div className={`${landing.wrap} ${landing.ctaSlab} ${css.slab}`}>
+          <div className={landing.ctaGlowPink} aria-hidden="true" />
+          <div className={landing.ctaGlowBlue} aria-hidden="true" />
+          <div className={landing.ctaCopy}>
+            <p className={`${landing.ctaTitle} ${css.ctaTitle}`}>
+              <span className={css.ctaLine}>Start with one memory.</span>{' '}
+              <Accent tone="pink">Build from there.</Accent>
             </p>
-            <p className="text-[13px] md:text-[14px] xl:text-[15px] text-[#A09888] mb-6 leading-relaxed">No credit card. No commitment. Just start.</p>
-            <Link href="/signup" prefetch className="block w-full px-8 py-3.5 xl:py-4 text-[13px] xl:text-[14px] font-semibold tracking-[0.06em] text-[#1A1612] transition hover:opacity-90" style={{ background: 'linear-gradient(135deg, #C8A557 0%, #D4AF37 100%)' }}>
-              START FOR FREE
-            </Link>
-            <p className="mt-3 text-[11px] xl:text-[12px] text-[#B0A48C] tracking-[0.04em]">No credit card required · Takes 2 minutes</p>
-
-            <div className="mt-8 pt-6 border-t border-white/10 text-left">
-              <p className="text-[14px] md:text-[15px] leading-relaxed text-[#F5F1E6]">
-                You create and share memories in the app. You upgrade and order keepsakes here on the website.
-              </p>
-              <p className="mt-3 text-[13px] md:text-[14px] leading-relaxed text-[#A09888]">
-                Already using the Ancestorii app? This is the same account. Log in with the same email and password you use in the app.
-              </p>
-              <StoreBadges theme="dark" className="mt-5 justify-center" />
+            <p className={landing.ctaLead}>No credit card. No commitment. Just start.</p>
+            <div className={landing.ctaButtons}>
+              <Link href="/signup" prefetch className={`${landing.btnPrimary} ${landing.btnLight}`}>
+                Start For Free
+                <span className={landing.arrowTile} aria-hidden="true">
+                  →
+                </span>
+              </Link>
+            </div>
+            <div className={css.ctaNote}>
+              <DotList items={['No credit card required', 'Takes 2 minutes']} center />
             </div>
           </div>
+
+          <div className={css.app}>
+            <div className={css.appText}>
+              <p className={css.appLead}>
+                You create and share memories in the app. You upgrade and order keepsakes here on the website.
+              </p>
+              <p className={css.appSub}>
+                Already using the Ancestorii app? This is the same account. Log in with the same email and password you use in the app.
+              </p>
+            </div>
+            <StoreBadges theme="dark" className={css.appBadges} />
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }

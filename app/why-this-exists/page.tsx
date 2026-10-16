@@ -1,6 +1,5 @@
 import WhyThisExists from "@/components/WhyThisExists";
-import PublicNav from '@/components/stories/layout/PublicNav';
-import PublicFooter from '@/components/stories/layout/PublicFooter';
+import SiteShell from '@/components/site/SiteShell';
 import type { Metadata } from "next";
 import Script from "next/script";
 
@@ -77,11 +76,9 @@ export default function WhyThisExistsPage() {
         })}
       </Script>
 
-      <main className="bg-[#FFFDF8] text-[#0F2040]">
-        <PublicNav />
+      <SiteShell>
         <WhyThisExists />
-        <PublicFooter />
-      </main>
+      </SiteShell>
     </>
   );
 }

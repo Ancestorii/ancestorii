@@ -3,7 +3,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { SubmitButton } from '@/components/site/SiteBits';
+import auth from '@/components/site/auth.module.css';
+import site from '@/components/site/site.module.css';
+import forms from '@/components/site/auth/authForms.module.css';
+import styles from './signup.module.css';
+
+// Words beside the four-bar password strength meter (display only).
+const STRENGTH_LABELS = ['', 'Weak', 'Okay', 'Good', 'Strong'];
 
 export default function SignupForm() {
   const supabase = getBrowserClient();
@@ -37,10 +46,15 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Password strength for the meter only (no effect on validation), scored as in the
+  // Claude Design Sign Up file: 0 when empty, otherwise 1 (weak) to 4 (strong).
   const getStrength = (pwd: string) => {
-    if (pwd.length < 6) return 'weak';
-    if (/[A-Z]/.test(pwd) && /\d/.test(pwd) && pwd.length >= 8) return 'strong';
-    return 'medium';
+    let n = 0;
+    if (pwd.length >= 8) n++;
+    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) n++;
+    if (/\d/.test(pwd)) n++;
+    if (/[^A-Za-z0-9]/.test(pwd) || pwd.length >= 14) n++;
+    return pwd ? Math.max(1, n) : 0;
   };
 
   const strength = getStrength(password);
@@ -140,6 +154,7 @@ export default function SignupForm() {
 
       // Invited users go straight to dashboard, new users write first memory
       router.replace(hadInvite ? '/dashboard/our-family' : '/onboarding/first-memory');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong');
       setLoading(false);
@@ -147,150 +162,129 @@ export default function SignupForm() {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center px-5 sm:px-8 pt-10 sm:pt-14 md:pt-16 pb-12"
-      style={{ background: '#FFFDF8', fontFamily: "'DM Sans', sans-serif" }}
-    >
-      {/* Logo */}
-      <Link href="/" className="inline-block text-[clamp(34px,4.5vw,38px)] tracking-[-0.03em] text-[#181512] no-underline mb-4" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>
-        Ancestor<span className="text-[#C8A557]">ii</span>
-      </Link>
-
-      {/* Tagline */}
-      <p className="text-[13px] sm:text-[14px] text-[#181512] mb-10 text-center max-w-[360px] leading-relaxed">
-        Stories, voices, and the moments no photo can capture. All in one place your family can share and grow.
-      </p>
-
-      <div className="w-full max-w-[440px]">
-        {/* Progress */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className={`h-[3px] transition-all duration-300 ${step === 1 ? 'w-8 bg-[#B8932A]' : 'w-2.5 bg-[#ECE5D8]'}`} />
-          <div className={`h-[3px] transition-all duration-300 ${step === 2 ? 'w-8 bg-[#B8932A]' : 'w-2.5 bg-[#ECE5D8]'}`} />
-        </div>
-
-        {/* ── Step 1 ── */}
-        {step === 1 && (
-          <>
-            <h2 className="text-[clamp(26px,4vw,30px)] tracking-[-0.03em] text-[#181512] leading-[1.05] text-center mb-2" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-              Name your <span className="italic text-[#A9782F]">Family Library.</span>
-            </h2>
-            <p className="text-[13px] text-[#181512] text-center mb-7 leading-relaxed max-w-[340px] mx-auto">
-              You&apos;ll be the owner. Invite family members to contribute memories, photos, and stories together.
-            </p>
-
-            <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10 md:px-10 md:py-11">
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">Family Library Name</label>
-                  <input required value={familyName} onChange={(e) => { setFamilyName(e.target.value); setError(''); }} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleContinue(); } }} placeholder="e.g. The Smith Family" className="w-full border border-[#E0D6C8] px-3.5 py-2.5 text-[14px] text-[#181512] placeholder-[#C0B9AE] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A]" style={{ background: '#FDFCFA' }} />
-                </div>
-
-                {familyName.trim() && (
-                  <div className="border border-[#ECE5D8] bg-[#FDFCFA] px-4 py-3 text-center">
-                    <p className="text-[11px] text-[#8A7F72] uppercase tracking-[0.12em] mb-0.5">Your library</p>
-                    <p className="text-[17px] font-medium text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>{familyName.trim()}</p>
-                  </div>
-                )}
-
-                {error && <div className="border border-[#E8C4C0] bg-[#FDF6F5] px-4 py-3"><p className="text-[13px] text-[#8B3A32]">{error}</p></div>}
-
-                <button type="button" onClick={handleContinue} className="w-full py-3 text-[13px] font-semibold tracking-[0.04em] text-[#FFFDF8] transition-all hover:shadow-lg active:scale-[0.98]" style={{ background: 'linear-gradient(135deg, #B8932A 0%, #C8A557 100%)' }}>
-                  Continue
-                </button>
-              </div>
-
-              <p className="text-center text-[13px] mt-6 pt-5 border-t border-[#ECE5D8] text-[#8A7F72]">
-                Already have an account?{' '}
-                <Link href="/login" className="font-medium text-[#B8932A] no-underline hover:text-[#96751E]">Log in</Link>
-              </p>
-            </div>
-
-            <p className="text-center text-[11px] text-[#B5AFA6] tracking-[0.04em] mt-5">No credit card required · Takes 2 minutes</p>
-          </>
-        )}
-
-        {/* ── Step 2 ── */}
+    <div className={styles.flow}>
+      {/* Progress */}
+      <div className={styles.stepTop}>
         {step === 2 && (
-          <>
-            <h2 className="text-[clamp(26px,4vw,30px)] tracking-[-0.03em] text-[#181512] leading-[1.05] text-center mb-2" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-              Create your <span className="italic text-[#A9782F]">account.</span>
-            </h2>
-            <p className="text-[13px] text-[#8A7F72] text-center mb-7">Almost there — just need your details.</p>
+          <button type="button" onClick={() => { setStep(1); setError(''); }} className={styles.back}>
+            <ArrowLeft size={18} strokeWidth={2.5} aria-hidden="true" />
+            Back
+          </button>
+        )}
+        <div className={styles.steps} aria-hidden="true">
+          <span className={`${styles.step} ${step === 1 ? styles.stepActive : ''}`} />
+          <span className={`${styles.step} ${step === 2 ? styles.stepActive : ''}`} />
+        </div>
+      </div>
 
-            <div className="border border-[#ECE5D8] bg-white px-7 py-8 sm:px-9 sm:py-10 md:px-10 md:py-11">
-              <button type="button" onClick={() => { setStep(1); setError(''); }} className="flex items-center gap-1 text-[12px] font-medium text-[#8A7F72] hover:text-[#B8932A] transition-colors mb-5">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                Back
-              </button>
+      {/* ── Step 1 ── */}
+      {step === 1 && (
+        <>
+          <h2 className={styles.stepTitle}>
+            Name your <span className={site.accentBlue}>Family Library.</span>
+          </h2>
+          <p className={styles.stepText}>
+            You&apos;ll be the owner. Invite family members to contribute memories, photos, and stories together.
+          </p>
 
-              <form onSubmit={onSubmit} noValidate className="space-y-5">
-                <div>
-                  <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">Full Name</label>
-                  <input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full border border-[#E0D6C8] px-3.5 py-2.5 text-[14px] text-[#181512] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A]" style={{ background: '#FDFCFA' }} />
-                </div>
+          <div className={styles.firstField}>
+            <label htmlFor="signup-family-name" className={site.label}>Family Library Name</label>
+            <input id="signup-family-name" required value={familyName} onChange={(e) => { setFamilyName(e.target.value); setError(''); }} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleContinue(); } }} placeholder="e.g. The Smith Family" className={site.input} />
+          </div>
 
-                <div>
-                  <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">Email</label>
-                  <input required type="email" value={email} onChange={(e) => { setEmail(e.target.value); setEmailSuggestion(null); if (emailError) setEmailError(''); }} onBlur={() => { if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setEmailError('Please enter a valid email address.'); } else { setEmailError(''); } }} className={`w-full border px-3.5 py-2.5 text-[14px] text-[#181512] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A] ${emailError ? 'border-[#C25550]' : 'border-[#E0D6C8]'}`} style={{ background: '#FDFCFA' }} />
-                  {emailError && <p className="mt-1.5 text-[12px] text-[#8B3A32]">{emailError}</p>}
-                  {emailSuggestion && (
-                    <button type="button" onClick={() => { setEmail(emailSuggestion); setEmailSuggestion(null); setError(''); }} className="mt-1.5 text-[12px] text-[#B8932A] hover:text-[#96751E] underline">
-                      Use {emailSuggestion} instead
-                    </button>
-                  )}
-                </div>
+          {familyName.trim() && (
+            <div className={styles.preview}>
+              <p className={`${site.tag} ${styles.previewLabel}`}>Your library</p>
+              <p className={styles.previewName}>{familyName.trim()}</p>
+            </div>
+          )}
 
-                <div>
-                  <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">Password</label>
-                  <div className="relative">
-                    <input required type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-[#E0D6C8] px-3.5 py-2.5 pr-16 text-[14px] text-[#181512] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A]" style={{ background: '#FDFCFA' }} />
-                    <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[12px] font-medium text-[#8A7F72] hover:text-[#B8932A] transition-colors">{showPassword ? 'Hide' : 'Show'}</button>
-                  </div>
-                  {password && (
-                    <div className="mt-2 h-[3px] bg-[#ECE5D8]">
-                      <div className={`h-[3px] transition-all duration-300 ${strength === 'weak' ? 'bg-[#C25550] w-1/3' : strength === 'medium' ? 'bg-[#C8A557] w-2/3' : 'bg-[#5A8A4A] w-full'}`} />
-                    </div>
-                  )}
-                </div>
+          {error && <div role="alert" className={`${site.noticeError} ${forms.notice}`}>{error}</div>}
 
-                <div>
-                  <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">
-                    Promo / Referral Code <span className="font-normal text-[#B5AFA6]">(optional)</span>
-                  </label>
-                  <input value={promoCode} onChange={(e) => setPromoCode(e.target.value)} className="w-full border border-[#E0D6C8] px-3.5 py-2.5 text-[14px] text-[#181512] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A]" style={{ background: '#FDFCFA' }} />
-                </div>
+          <SubmitButton type="button" onClick={handleContinue} className={forms.submit}>
+            Continue
+          </SubmitButton>
+        </>
+      )}
 
-                <div className="flex items-start gap-3 pt-1">
-                  <input type="checkbox" checked={newsletter} onChange={() => setNewsletter(!newsletter)} className="mt-0.5 accent-[#B8932A]" />
-                  <span className="text-[12px] sm:text-[13px] text-[#6F6255] leading-relaxed">Send me updates on preserving family memories</span>
-                </div>
+      {/* ── Step 2 ── */}
+      {step === 2 && (
+        <>
+          <h2 className={styles.stepTitle}>
+            Create your <span className={site.accentBlue}>account.</span>
+          </h2>
+          <p className={styles.stepText}>Almost there — just need your details.</p>
 
-                <div className="flex items-start gap-3">
-                  <input type="checkbox" checked={agree} onChange={() => setAgree(!agree)} required className="mt-0.5 accent-[#B8932A]" />
-                  <span className="text-[12px] sm:text-[13px] text-[#6F6255] leading-relaxed">
-                    I agree to the{' '}
-                    <Link href="/terms" className="text-[#B8932A] hover:text-[#96751E]">Terms</Link>{' '}and{' '}
-                    <Link href="/privacy-policy" className="text-[#B8932A] hover:text-[#96751E]">Privacy Policy</Link>
-                  </span>
-                </div>
-
-                {error && <div className="border border-[#E8C4C0] bg-[#FDF6F5] px-4 py-3"><p className="text-[13px] text-[#8B3A32] leading-relaxed whitespace-pre-line">{error}</p></div>}
-
-                <button disabled={loading} className="w-full py-3 text-[13px] font-semibold tracking-[0.04em] text-[#FFFDF8] transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-50" style={{ background: 'linear-gradient(135deg, #B8932A 0%, #C8A557 100%)' }}>
-                  {loading ? 'Creating your library…' : `Create ${familyName.trim() || 'your'} Library`}
-                </button>
-              </form>
-
-              <p className="text-center text-[13px] mt-6 pt-5 border-t border-[#ECE5D8] text-[#8A7F72]">
-                Already have an account?{' '}
-                <Link href="/login" className="font-medium text-[#B8932A] no-underline hover:text-[#96751E]">Log in</Link>
-              </p>
+          <form onSubmit={onSubmit} noValidate>
+            <div className={styles.firstField}>
+              <label htmlFor="signup-full-name" className={site.label}>Full Name</label>
+              <input id="signup-full-name" required value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className={site.input} />
             </div>
 
-            <p className="text-center text-[11px] text-[#B5AFA6] tracking-[0.04em] mt-5">No credit card required · Takes 2 minutes</p>
-          </>
-        )}
-      </div>
+            <div className={styles.field}>
+              <label htmlFor="signup-email" className={site.label}>Email</label>
+              <input id="signup-email" required type="email" value={email} onChange={(e) => { setEmail(e.target.value); setEmailSuggestion(null); if (emailError) setEmailError(''); }} onBlur={() => { if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setEmailError('Please enter a valid email address.'); } else { setEmailError(''); } }} placeholder="you@family.com" autoComplete="email" aria-invalid={emailError ? true : undefined} aria-describedby={emailError ? 'signup-email-error' : undefined} className={`${site.input} ${emailError ? site.inputError : ''}`} />
+              {emailError && <p id="signup-email-error" className={site.fieldError}>{emailError}</p>}
+              {emailSuggestion && (
+                <button type="button" onClick={() => { setEmail(emailSuggestion); setEmailSuggestion(null); setError(''); }} className={styles.suggest}>
+                  Use {emailSuggestion} instead
+                </button>
+              )}
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="signup-password" className={site.label}>Password</label>
+              <div className={forms.pwWrap}>
+                <input id="signup-password" required type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" className={site.input} />
+                <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'} className={forms.toggle}>{showPassword ? 'Hide' : 'Show'}</button>
+              </div>
+              <div className={styles.meter} data-score={strength}>
+                <div className={styles.meterBars} aria-hidden="true">
+                  <span className={styles.meterBar} />
+                  <span className={styles.meterBar} />
+                  <span className={styles.meterBar} />
+                  <span className={styles.meterBar} />
+                </div>
+                <span className={styles.meterLabel} aria-live="polite">{STRENGTH_LABELS[strength]}</span>
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="signup-promo-code" className={site.label}>
+                Promo / Referral Code <span className={styles.optional}>(optional)</span>
+              </label>
+              <input id="signup-promo-code" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} className={site.input} />
+            </div>
+
+            <div className={styles.checks}>
+              <label className={`${site.check} ${styles.check}`}>
+                <input type="checkbox" checked={newsletter} onChange={() => setNewsletter(!newsletter)} />
+                <span>Send me updates on preserving family memories</span>
+              </label>
+
+              <label className={`${site.check} ${styles.check}`}>
+                <input type="checkbox" checked={agree} onChange={() => setAgree(!agree)} required />
+                <span>
+                  I agree to the{' '}
+                  <Link href="/terms">Terms</Link>{' '}and{' '}
+                  <Link href="/privacy-policy">Privacy Policy</Link>.
+                </span>
+              </label>
+            </div>
+
+            {error && <div role="alert" className={`${site.noticeError} ${forms.notice}`}>{error}</div>}
+
+            <SubmitButton disabled={loading} className={forms.submit}>
+              {loading ? 'Creating your account…' : 'Create free account'}
+            </SubmitButton>
+          </form>
+        </>
+      )}
+
+      <p className={auth.switch}>
+        Already have an account?{' '}
+        <Link href="/login" className={forms.tapLink}>Log in</Link>
+      </p>
     </div>
   );
 }

@@ -1,0 +1,863 @@
+/* ============================================================
+   Story Assistance on the public story editor: the floating
+   writing helper, in the landing page's style. White card with
+   the hairline ring, a tilted pink tile, ink buttons with the
+   pink-orange arrow tile. Sits inside SiteShell, which provides
+   the tokens (--c0..--c3, --ink, --hover, --hairline-ring) and
+   Plus Jakarta Sans.
+   ============================================================ */
+
+/* ── Tilted pink tile with the feather ────────────────────── */
+
+.tile {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: var(--c0);
+  color: #fff;
+  transform: rotate(-4deg);
+  box-shadow: 0 10px 18px -10px rgba(10, 10, 15, 0.55);
+  box-shadow: 0 10px 18px -8px color-mix(in srgb, var(--c0) 55%, var(--ink));
+}
+
+.tileSm {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Minimised pill (desktop; it can be dragged) ──────────── */
+
+.dock {
+  position: fixed;
+  z-index: 150;
+  user-select: none;
+}
+
+.dockInner {
+  position: relative;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px 8px 8px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 20px 40px -18px rgba(10, 10, 15, 0.45);
+  transition: transform 0.2s ease;
+}
+
+.pill:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+.pillTitle {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.pillNote {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Small round close button on the pill's corner. */
+.close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  z-index: 1;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 14px -6px rgba(10, 10, 15, 0.6);
+}
+
+.close::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+}
+
+/* ── Phones: pill, small welcome card, bottom sheet ───────── */
+
+.mDock {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 150;
+}
+
+.mPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 6px 14px 6px 7px;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--hairline-ring), 0 16px 32px -16px rgba(10, 10, 15, 0.5);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.mWelcome {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 150;
+  width: min(260px, calc(100vw - 24px));
+}
+
+/* Options and suggestion open as a sheet from the bottom. Its top stays below the
+   site nav and the signed-in stories bar (about 140px), which sit above the page. */
+.mSheet {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 150;
+}
+
+.surface {
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 30px 60px -24px rgba(10, 10, 15, 0.55);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mWelcome .surface {
+  max-height: calc(100vh - 80px);
+  max-height: calc(100dvh - 80px);
+  padding: 14px;
+  border-radius: 22px;
+}
+
+.mSheet .surface {
+  max-height: calc(100vh - 164px);
+  max-height: calc(100dvh - 164px);
+}
+
+.mHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mHeadTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.mWelcome .label {
+  font-size: 10.5px;
+}
+
+.mQuestion {
+  margin: 12px 0 0;
+  font-size: 18px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.mButtons {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sheetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 14px 0 18px;
+}
+
+/* ── Round control buttons (minimise, close) ──────────────── */
+
+.ctrls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctrl {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--hover);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.ctrl::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+}
+
+/* ── Desktop card ─────────────────────────────────────────── */
+
+.desk {
+  position: fixed;
+  z-index: 150;
+  width: 380px;
+}
+
+@media (min-width: 768px) {
+  .desk {
+    width: 400px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .desk {
+    width: 420px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .desk {
+    width: 440px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .desk {
+    width: 480px;
+  }
+}
+
+/* Top stays below the site nav and the signed-in stories bar (about 152px). */
+.deskCard {
+  position: relative;
+  max-height: calc(100vh - 184px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 40px 80px -30px rgba(10, 10, 15, 0.55);
+}
+
+.deskCtrls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+}
+
+/* ── Card content (all three steps) ───────────────────────── */
+
+.content {
+  position: relative;
+  padding: 20px;
+}
+
+.mSheet .content {
+  padding: 14px 18px 20px;
+}
+
+.welcomeHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.heading {
+  margin: 0;
+  padding-right: 64px;
+  font-size: 22px;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.subheading {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.body {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.65;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.lead {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* Ink button with the pink-orange arrow tile, full width. */
+.primary {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 6px 6px 6px 20px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 18px 32px -18px rgba(10, 10, 15, 0.75);
+  transition: transform 0.2s ease;
+}
+
+.primaryTile {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--c0), var(--c2));
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+
+.mButtons .primary {
+  min-height: 44px;
+  margin-top: 0;
+  justify-content: center;
+  padding: 0 16px;
+  border-radius: 13px;
+  font-size: 14px;
+}
+
+/* Text button ("No thanks, I'll write on my own"). */
+.textBtn {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.mButtons .textBtn {
+  margin-top: 0;
+  font-size: 13px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  margin-bottom: 16px;
+  padding: 0 14px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--hover);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── Options ──────────────────────────────────────────────── */
+
+.options {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 18px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.12);
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.optionTile {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--tile, var(--c0));
+  color: var(--tile-fg, #fff);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.optionText {
+  flex: 1;
+  min-width: 0;
+}
+
+.optionTitle {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.optionDesc {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.optionChevron {
+  flex: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* ── Suggestion ───────────────────────────────────────────── */
+
+.selected {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.loading {
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.loadingText {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.spin {
+  color: var(--c0);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  padding: 18px 0 6px;
+}
+
+.errorText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.retry {
+  min-height: 42px;
+  margin-top: 12px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 20px;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.1);
+}
+
+/* Short rule with a pink square between the questions. */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0 14px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: rgba(10, 10, 15, 0.1);
+}
+
+.dividerDot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--c0);
+}
+
+.question {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.para {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.8;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.hintStrong {
+  font-weight: 800;
+}
+
+.actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.actionLine,
+.actionInk {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.actionLine {
+  border: 2px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+}
+
+.actionInk {
+  border: 0;
+  background: var(--ink);
+  color: #fff;
+}
+
+.errorText,
+.heading,
+.subheading {
+  overflow-wrap: anywhere;
+}
+
+/* Phones: every control at least 44px tall. */
+@media (max-width: 639px) {
+  .back,
+  .retry {
+    min-height: 44px;
+  }
+}
+
+/* ── Sizes by width (mirrors the dashboard card's steps) ──── */
+
+@media (min-width: 768px) {
+  .content {
+    padding: 24px;
+  }
+
+  .heading {
+    font-size: 24px;
+  }
+
+  .subheading {
+    font-size: 20px;
+  }
+
+  .body {
+    font-size: 15px;
+  }
+
+  .primary {
+    min-height: 54px;
+  }
+
+  .option {
+    padding: 14px 16px;
+  }
+
+  .optionTitle {
+    font-size: 15px;
+  }
+
+  .optionDesc {
+    font-size: 13px;
+  }
+
+  .suggestion {
+    padding: 20px;
+  }
+
+  .question {
+    font-size: 16px;
+  }
+
+  .para {
+    font-size: 15px;
+    line-height: 1.85;
+  }
+
+  .hint {
+    font-size: 13px;
+  }
+
+  .actionLine,
+  .actionInk {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .content {
+    padding: 26px;
+  }
+
+  .heading {
+    font-size: 26px;
+  }
+
+  .body {
+    line-height: 1.7;
+  }
+}
+
+@media (min-width: 1280px) {
+  .content {
+    padding: 28px;
+  }
+
+  .heading {
+    font-size: 28px;
+  }
+
+  .subheading {
+    font-size: 22px;
+  }
+
+  .body {
+    font-size: 16px;
+  }
+
+  .primary {
+    min-height: 56px;
+    font-size: 16px;
+  }
+
+  .option {
+    padding: 16px 18px;
+  }
+
+  .optionTitle {
+    font-size: 16px;
+  }
+
+  .suggestion {
+    padding: 22px;
+  }
+
+  .para {
+    font-size: 16px;
+    line-height: 1.9;
+  }
+
+  .actionLine,
+  .actionInk {
+    min-height: 46px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .content {
+    padding: 32px;
+  }
+
+  .heading {
+    font-size: 30px;
+  }
+
+  .subheading {
+    font-size: 24px;
+  }
+
+  .option {
+    padding: 18px 20px;
+  }
+
+  .optionDesc {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .suggestion {
+    padding: 26px;
+  }
+
+  .para {
+    font-size: 17px;
+  }
+}
+
+/* ── Hover ────────────────────────────────────────────────── */
+
+@media (hover: hover) {
+  .dock:hover .pill {
+    transform: translateY(-2px);
+  }
+
+  .ctrl:hover,
+  .back:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .primary:hover {
+    transform: translateY(-2px);
+  }
+
+  .primary:hover .primaryTile {
+    transform: translateX(2px);
+  }
+
+  .textBtn:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .option:hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+
+  .option:hover .optionChevron {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+
+  .actionLine:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .actionInk:hover,
+  .retry:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.option:focus-visible .optionChevron {
+  opacity: 1;
+}
+
+/* ── Reduced motion ───────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation-duration: 2.4s;
+  }
+}

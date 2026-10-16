@@ -5,8 +5,9 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { getStoryComments } from '@/lib/stories/queries';
 import { addComment } from '@/lib/stories/mutations';
 import type { StoryComment } from '@/lib/stories/types';
-import CommentItem from './CommentItem';
-import CommentInput from './CommentInput';
+import StoryCommentItem from './StoryCommentItem';
+import StoryCommentInput from './StoryCommentInput';
+import styles from './storyComments.module.css';
 
 export default function CommentSection({
   storyId,
@@ -72,14 +73,14 @@ export default function CommentSection({
 
   return (
     <div>
-      <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#B8924A] mb-5">
+      <h2 className={styles.heading}>
         {totalCount > 0 ? `${totalCount} ${totalCount === 1 ? 'Comment' : 'Comments'}` : 'Comments'}
-      </p>
+      </h2>
 
       {topLevel.length > 0 && (
-        <div className="space-y-4">
+        <div className={styles.list}>
           {topLevel.map((comment) => (
-            <CommentItem
+            <StoryCommentItem
               key={comment.id}
               authorName={comment.author_name}
               authorAvatarUrl={comment.author_avatar_url}
@@ -98,18 +99,18 @@ export default function CommentSection({
         </div>
       )}
 
-      <div className={topLevel.length > 0 ? 'mt-5' : ''}>
+      <div className={topLevel.length > 0 ? styles.composerSpaced : styles.composer}>
         {replyingTo && (
-          <div className="flex items-center justify-between mb-2 px-1">
-            <p className="text-[12px] text-[#A9782F]">
-              Replying to <span className="font-semibold">{replyingTo.name}</span>
+          <div className={styles.replying}>
+            <p className={styles.replyingText}>
+              Replying to <span className={styles.replyingName}>{replyingTo.name}</span>
             </p>
-            <button onClick={() => setReplyingTo(null)} className="text-[11px] font-medium text-[#9B8E7D] hover:text-[#6F6255] transition">
+            <button onClick={() => setReplyingTo(null)} className={styles.textBtn}>
               Cancel
             </button>
           </div>
         )}
-        <CommentInput onSubmit={handleSubmit} isLoggedIn={isLoggedIn} onLoginPrompt={onLoginPrompt} />
+        <StoryCommentInput onSubmit={handleSubmit} isLoggedIn={isLoggedIn} onLoginPrompt={onLoginPrompt} />
       </div>
     </div>
   );

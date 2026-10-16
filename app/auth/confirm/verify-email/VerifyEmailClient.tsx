@@ -3,6 +3,8 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import AuthLoader from '@/components/site/auth/AuthLoader';
+import forms from '@/components/site/auth/authForms.module.css';
 
 const supabase = getBrowserClient();
 
@@ -39,9 +41,13 @@ export default function VerifyEmailClient() {
     })();
   }, [token]);
 
+  // The loader shows only while the link is being checked.
+  const checking = status === 'Verifying your email…';
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-lg font-semibold">{status}</p>
+    <div aria-live="polite">
+      <h1 className={forms.statusTitle}>{status}</h1>
+      {checking && <AuthLoader />}
     </div>
   );
 }

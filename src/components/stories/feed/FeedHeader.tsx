@@ -2,6 +2,10 @@
 
 import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import landing from '@/components/landing/landing.module.css';
+import site from '@/components/site/site.module.css';
+import feed from '@/components/site/stories-browse/feed.module.css';
+import { toneClass } from '@/components/site/stories-browse/topicTone';
 
 const CATEGORY_LABELS: Record<string, string> = {
   family: 'Family', food_and_recipes: 'Food & Recipes', childhood: 'Childhood',
@@ -14,6 +18,10 @@ const VALUE_POINTS = [
   'Two minutes to share something that matters — completely free.',
 ];
 
+// Pink, blue, aqua: the colours of the landing's three steps.
+const POINT_TONES = [toneClass(0), toneClass(1), toneClass(3)];
+
+// The page hero, plus the sort control (StoryFeed lays the sort out beside the topic pills).
 export default function FeedHeader({
   sortBy,
   onSortChange,
@@ -32,141 +40,93 @@ export default function FeedHeader({
   const categoryLabel = CATEGORY_LABELS[activeCategory] || '';
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5 pb-6 sm:pb-7 mb-6 sm:mb-8 border-b border-[#ECE5D8]">
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 lg:gap-8">
-        {/* Title block */}
-        <div className="lg:flex-1 min-w-0 max-w-full">
-          <div className="flex items-center gap-2.5 mb-2 sm:mb-3">
-            <div className="h-px w-4 sm:w-5 bg-[#B8932A]" />
-            <span
-              className="text-[11px] sm:text-[12px] lg:text-[13px] xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
-            >
+    <>
+      <section className={feed.hero}>
+        <div className={feed.heroInner}>
+          <div className={site.heroTop}>
+            <span className={`${landing.badge} ${feed.dotPink}`}>
+              <span className={landing.badgeDot} />
               {isAll
                 ? isLoggedIn ? 'Welcome Back' : 'From Families Everywhere'
                 : categoryLabel}
             </span>
           </div>
 
-          <h1
-            className="text-[clamp(28px,5vw,52px)] leading-[0.92] tracking-[-0.04em] text-[#181512] whitespace-normal"
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontWeight: 600,
-            }}
-          >
+          <h1 className={`${site.heroTitle} ${feed.heroTitle}`}>
             {isAll
               ? isLoggedIn
-                ? <span>Good to see you,<span className="italic text-[#A9782F]"> {userName || 'friend'}.</span></span>
-                : <span>Every family has a story<span className="italic text-[#A9782F]"> worth sharing.</span></span>
-              : <span>{categoryLabel}{' '}<span className="italic text-[#A9782F]">stories.</span></span>
+                ? <span>Good to see you,{' '}<span className={landing.gradientText}>{userName || 'friend'}.</span></span>
+                : <span>Every family has a story{' '}<span className={landing.gradientText}>worth sharing.</span></span>
+              : <span>{categoryLabel}{' '}<span className={landing.gradientText}>stories.</span></span>
             }
           </h1>
 
           {/* Hook line — logged out */}
           {isAll && !isLoggedIn && (
-            <>
-              <p
-                className="mt-3 sm:mt-4 text-[14px] sm:text-[15px] lg:text-[16px] leading-[1.7] text-[#4A4030] max-w-[560px]"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
-              >
-                Photos sit on phones. Stories stay in your head. Voices fade.{' '}
-                <span className="text-[#B8932A]">This is where families share the moments that matter.</span>
-              </p>
-
-              <ul className="mt-4 sm:mt-5 space-y-0">
-                {VALUE_POINTS.map((point, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-3 py-2 sm:py-2.5 border-b border-[rgba(95,78,43,0.08)] last:border-b-0"
-                  >
-                    <span
-                      className="flex-shrink-0 text-[11px] sm:text-[12px] font-semibold text-[#B8932A] mt-[1px]"
-                      style={{ fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.08em', minWidth: '1.4rem' }}
-                    >
-                      0{i + 1}
-                    </span>
-                    <span
-                      className="text-[13px] sm:text-[14px] leading-[1.6] text-[#4A4030]"
-                      style={{ fontFamily: "'DM Sans', sans-serif" }}
-                    >
-                      {point}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
+            <p className={site.heroLead}>
+              Photos sit on phones. Stories stay in your head. Voices fade.{' '}
+              This is where families share the moments that matter.
+            </p>
           )}
 
           {/* Welcome — logged in */}
           {isAll && isLoggedIn && (
-            <div className="mt-3 sm:mt-4 max-w-[560px]">
-              <p
-                className="text-[14px] sm:text-[15px] lg:text-[16px] leading-[1.7] text-[#4A4030]"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
-              >
-                Thank you for being part of this community. The stories here exist because people like you chose to share them.{' '}
-                <span className="text-[#B8932A]">
-                  Got a memory on your mind? Two minutes is all it takes.
-                </span>
-              </p>
-            </div>
+            <p className={site.heroLead}>
+              Thank you for being part of this community. The stories here exist because people like you chose to share them.{' '}
+              <span className={feed.leadStrong}>
+                Got a memory on your mind? Two minutes is all it takes.
+              </span>
+            </p>
           )}
 
           {!isAll && (
-            <p className="mt-3 sm:mt-4 text-[14px] sm:text-[15px] lg:text-[16px] xl:text-[17px] leading-[1.7] text-[#6F6255] max-w-[560px]">
+            <p className={site.heroLead}>
               {`Explore ${categoryLabel.toLowerCase()} memories shared by families around the world.`}
             </p>
           )}
-        </div>
 
-        {/* Controls: CTA + Sort */}
-        <div className="flex items-center gap-3 flex-shrink-0 self-start lg:self-end">
           {isAll && (
-            <button
-              onClick={() => router.push(isLoggedIn ? '/stories/create' : '/signup')}
-              className="group relative overflow-hidden px-5 py-2.5 text-[12px] sm:text-[13px] font-semibold text-white transition-all duration-300 hover:shadow-lg hover:shadow-[#1A1612]/20 active:scale-[0.97]"
-              style={{
-                fontFamily: "'DM Sans', sans-serif",
-                letterSpacing: '0.06em',
-                background: 'linear-gradient(135deg, #1A1612 0%, #2E2820 100%)',
-              }}
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                </svg>
+            <div className={site.heroActions}>
+              <button
+                onClick={() => router.push(isLoggedIn ? '/stories/create' : '/signup')}
+                className={`${landing.btnPrimary} ${landing.btnShadow} ${feed.btn}`}
+              >
                 Share Your Story
-              </span>
-              <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{
-                  background: 'linear-gradient(135deg, #2E2820 0%, #3A332B 50%, #2E2820 100%)',
-                }}
-              />
-            </button>
+                <span className={landing.arrowTile} aria-hidden="true">
+                  →
+                </span>
+              </button>
+            </div>
           )}
 
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => onSortChange(e.target.value)}
-              className="appearance-none bg-white border border-[#E0D6C8] px-4 pr-9 py-2.5 text-[12px] sm:text-[13px] font-medium text-[#5E544A] cursor-pointer transition-all duration-200 hover:border-[#B99252] focus:outline-none focus:border-[#A9782F]"
-            >
-              <option value="newest">Newest Stories</option>
-              <option value="popular">Most Loved</option>
-              <option value="discussed">Most Discussed</option>
-            </select>
-
-            <ChevronDown
-              size={13}
-              strokeWidth={2}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8F8477] pointer-events-none"
-            />
-          </div>
+          {isAll && !isLoggedIn && (
+            <ul className={feed.points}>
+              {VALUE_POINTS.map((point, i) => (
+                <li key={i} className={`${feed.point} ${POINT_TONES[i]}`}>
+                  <span className={feed.pointNum}>0{i + 1}</span>
+                  <span className={feed.pointText}>{point}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
+      </section>
+
+      {/* Sort */}
+      <div className={feed.sort}>
+        <select
+          value={sortBy}
+          onChange={(e) => onSortChange(e.target.value)}
+          aria-label="Sort stories"
+          className={feed.sortSelect}
+        >
+          <option value="newest">Newest Stories</option>
+          <option value="popular">Most Loved</option>
+          <option value="discussed">Most Discussed</option>
+        </select>
+
+        <ChevronDown size={16} strokeWidth={2.6} className={feed.sortIcon} aria-hidden="true" />
       </div>
-    </div>
+    </>
   );
 }

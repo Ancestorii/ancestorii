@@ -1,7 +1,14 @@
+import type { CSSProperties } from 'react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
 import StoreBadges from '@/components/StoreBadges';
+import SiteShell from '@/components/site/SiteShell';
+import { Accent, PageHero } from '@/components/site/SiteBits';
+import { CardStage } from '@/components/site/utility/CardRow';
+import { QUESTION_SIDES } from '@/components/site/utility/familyCards';
+import landing from '@/components/landing/landing.module.css';
+import styles from '@/components/site/utility/handoff.module.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /q/[code] — STORE REDIRECT ONLY.
@@ -41,31 +48,39 @@ export default async function QStoreRedirect({
   // Ancestorii is answered in the app, so we point them at the stores and show the code
   // to enter once installed.
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#0F2040] px-6 py-16 text-center">
-      <div className="w-full max-w-md">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">
-          Ancestorii
-        </p>
-        <h1 className="mt-4 font-serif text-3xl leading-tight text-[#f5f1e6]">
-          You have a question to answer
-        </h1>
-        <p className="mt-4 text-base leading-relaxed text-[#f5f1e6]/80">
-          Ancestorii is answered in the app. Install it on your phone, then enter your code to
-          find this question.
-        </p>
+    <SiteShell>
+      <PageHero
+        eyebrow={<>Ancestorii</>}
+        title={
+          <>
+            You have a <Accent>question to answer</Accent>
+          </>
+        }
+        lead={
+          <>
+            Ancestorii is answered in the app. Install it on your phone, then enter your code to
+            find this question.
+          </>
+        }
+      />
 
-        <div className="mt-8 rounded-2xl bg-[#f5f1e6]/10 px-6 py-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#D4AF37]">
-            Your code
-          </p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-widest text-[#f5f1e6]">
-            {code}
-          </p>
-          <p className="mt-2 text-xs text-[#f5f1e6]/60">Valid for 7 days</p>
+      <section className={styles.section}>
+        <div className={landing.wrap}>
+          <CardStage sides={QUESTION_SIDES}>
+            <div className={`${styles.codeCard} ${styles.blue}`}>
+              <p className={styles.codeLabel}>
+                Your code
+              </p>
+              <p className={styles.code} style={{ '--chars': code.length } as CSSProperties}>
+                {code}
+              </p>
+              <p className={styles.codeNote}>Valid for 7 days</p>
+            </div>
+          </CardStage>
+
+          <StoreBadges theme="light" className={styles.badges} />
         </div>
-
-        <StoreBadges theme="dark" className="mt-8 justify-center" />
-      </div>
-    </main>
+      </section>
+    </SiteShell>
   );
 }

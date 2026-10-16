@@ -1,8 +1,15 @@
 import type { Metadata } from 'next';
+import type { CSSProperties } from 'react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
 import StoreBadges from '@/components/StoreBadges';
+import SiteShell from '@/components/site/SiteShell';
+import { Accent, PageHero } from '@/components/site/SiteBits';
+import { CardStage } from '@/components/site/utility/CardRow';
+import { MEMORY_SIDES } from '@/components/site/utility/familyCards';
+import landing from '@/components/landing/landing.module.css';
+import styles from '@/components/site/utility/handoff.module.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // /m/[code] — MEMORY SHARE STORE REDIRECT (twin of /q/[code]).
@@ -92,32 +99,47 @@ export default async function MemoryShareRedirect({
   const preview = await fetchPreview(code);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#0F2040] px-6 py-16 text-center">
-      <div className="w-full max-w-md">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4AF37]">
-          Ancestorii
-        </p>
-        <h1 className="mt-4 font-serif text-3xl leading-tight text-[#f5f1e6]">
-          {preview ? `${preview.author_name} shared a memory` : 'A memory was shared with you'}
-        </h1>
-        <p className="mt-4 text-base leading-relaxed text-[#f5f1e6]/80">
-          {preview
-            ? `“${preview.title}” from ${preview.family_name}. Memories open in the Ancestorii app. Install it on your phone, then your code opens it.`
-            : 'Memories open in the Ancestorii app. Install it on your phone, then enter your code to open it.'}
-        </p>
+    <SiteShell>
+      <PageHero
+        eyebrow={<>Ancestorii</>}
+        title={
+          preview ? (
+            <>
+              <span className={styles.wrapAny}>{preview.author_name}</span> shared{' '}
+              <Accent>a memory</Accent>
+            </>
+          ) : (
+            <>
+              A memory was <Accent>shared with you</Accent>
+            </>
+          )
+        }
+        lead={
+          <span className={styles.wrapAny}>
+            {preview
+              ? `“${preview.title}” from ${preview.family_name}. Memories open in the Ancestorii app. Install it on your phone, then your code opens it.`
+              : 'Memories open in the Ancestorii app. Install it on your phone, then enter your code to open it.'}
+          </span>
+        }
+      />
 
-        <div className="mt-8 rounded-2xl bg-[#f5f1e6]/10 px-6 py-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#D4AF37]">
-            Your code
-          </p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-widest text-[#f5f1e6]">
-            {code}
-          </p>
-          <p className="mt-2 text-xs text-[#f5f1e6]/60">Open it on your phone in the app</p>
+      <section className={styles.section}>
+        <div className={landing.wrap}>
+          <CardStage sides={MEMORY_SIDES}>
+            <div className={`${styles.codeCard} ${styles.pink}`}>
+              <p className={styles.codeLabel}>
+                Your code
+              </p>
+              <p className={styles.code} style={{ '--chars': code.length } as CSSProperties}>
+                {code}
+              </p>
+              <p className={styles.codeNote}>Open it on your phone in the app</p>
+            </div>
+          </CardStage>
+
+          <StoreBadges theme="light" className={styles.badges} />
         </div>
-
-        <StoreBadges theme="dark" className="mt-8 justify-center" />
-      </div>
-    </main>
+      </section>
+    </SiteShell>
   );
 }

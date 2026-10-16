@@ -1,0 +1,525 @@
+/* ============================================================
+   How It Works: page layout on top of the landing and site classes
+   (src/components/landing/landing.module.css, src/components/site/site.module.css).
+   Colours come only from the landing root tokens: --c0 pink, --c1 blue,
+   --c2 orange, --c3 aqua, --ink, plus white. Text is ink, or white on
+   ink/pink/blue and ink on orange/aqua.
+   ============================================================ */
+
+/* ── Colour tones for cards and tiles ─────────────────────── */
+
+.pink {
+  --card: var(--c0);
+  --fg: white;
+}
+
+.blue {
+  --card: var(--c1);
+  --fg: white;
+}
+
+.orange {
+  --card: var(--c2);
+  --fg: var(--ink);
+}
+
+.aqua {
+  --card: var(--c3);
+  --fg: var(--ink);
+}
+
+/* ── Two sides: the photo pair under the hero ─────────────── */
+
+.pair {
+  width: min(880px, calc(100% - 48px));
+  margin: clamp(48px, 6vw, 76px) auto 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.6vw, 36px);
+  align-items: start;
+}
+
+.side {
+  transform: rotate(var(--tilt));
+}
+
+.sidePublic {
+  --tilt: -4deg;
+}
+
+.sidePrivate {
+  --tilt: 3deg;
+  margin-top: clamp(24px, 4vw, 56px);
+}
+
+/* Phone: the two photos overlap on a diagonal so each stays a useful size. */
+@media (max-width: 599px) {
+  .pair {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .side {
+    width: 84%;
+  }
+
+  .sidePrivate {
+    justify-self: end;
+    margin-top: -9%;
+  }
+}
+
+.intro {
+  width: min(800px, calc(100% - 48px));
+  margin: clamp(48px, 6vw, 80px) auto 0;
+  text-align: center;
+}
+
+.intro p {
+  margin: 0;
+  font-size: clamp(19px, 1.7vw, 23px);
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.intro p + p {
+  margin-top: 20px;
+}
+
+.intro strong,
+.intro .introBridge {
+  font-weight: 800;
+}
+
+.intro strong {
+  white-space: nowrap;
+}
+
+/* ── Section heads (eyebrow pill, then the big title) ─────── */
+
+.head > h2,
+.head > h3 {
+  margin-top: 22px;
+  overflow-wrap: break-word;
+}
+
+.headRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px 48px;
+}
+
+.headRow > .head {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.headLead {
+  flex: 0 1 31em;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* ── Prose beside a pull quote ────────────────────────────── */
+
+.split {
+  margin-top: clamp(28px, 3.5vw, 44px);
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: center;
+  gap: 32px clamp(48px, 6vw, 96px);
+}
+
+.splitFlip {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+}
+
+.splitFlip > .aside {
+  order: -1;
+}
+
+.copy {
+  max-width: 40em;
+}
+
+.aside > blockquote {
+  margin: 0;
+}
+
+/* The coloured half of a pull quote starts its own line. */
+.quoteLine {
+  display: block;
+}
+
+@media (max-width: 999px) {
+  .split,
+  .splitFlip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .splitFlip > .aside {
+    order: 0;
+  }
+
+  .aside > blockquote {
+    margin: 8px 0 0;
+  }
+}
+
+/* A short line that introduces the cards under it. */
+.leadIn {
+  margin: clamp(56px, 7vw, 88px) 0 0;
+  max-width: 22em;
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+/* A longer opening paragraph before a card grid. */
+.leadInBody {
+  margin: clamp(56px, 7vw, 88px) 0 0;
+  max-width: 38em;
+  font-size: clamp(19px, 1.6vw, 22px);
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* Paragraph that closes a section. */
+.closing {
+  margin: clamp(32px, 4vw, 48px) 0 0;
+  max-width: 40em;
+  font-size: clamp(18px, 1.45vw, 20px);
+  line-height: 1.65;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* ── Grids ────────────────────────────────────────────────── */
+
+.panelGrid {
+  margin-top: clamp(28px, 3.5vw, 44px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.cardGrid {
+  margin: clamp(28px, 3.5vw, 44px) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* Below 900px the landing's step cards switch to a side-by-side layout,
+   which only has room at full width, so every grid becomes one column. */
+@media (max-width: 899px) {
+  .panelGrid,
+  .cardGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+/* ── "One family. One account." strip with the store badges ── */
+
+.strip {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 32px;
+  padding: 22px 24px 22px 32px;
+  border-radius: 26px;
+  background: white;
+  box-shadow: var(--hairline-ring);
+}
+
+.stripText {
+  margin: 0;
+  font-size: clamp(20px, 2vw, 28px);
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+/* Phone: a little less side padding and a tighter gap keep the two official
+   badges (132px + 148px, fixed 44px tall) on one row from about 370px up. */
+@media (max-width: 599px) {
+  .strip {
+    padding: 24px 16px;
+  }
+
+  .strip .stripBadges {
+    gap: 10px;
+  }
+}
+
+/* ── Rule cards (solid colour, tilted white icon tile) ────── */
+
+.rule {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.ruleTile {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: 20px;
+  background: white;
+  color: var(--card);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 18px 30px -18px rgba(10, 10, 15, 0.6);
+  transform: rotate(var(--tilt, -4deg));
+}
+
+.ruleText {
+  margin: 0;
+  font-size: 16.5px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.ruleTitle {
+  display: block;
+  margin-bottom: 10px;
+  font-size: clamp(22px, 2vw, 26px);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .rule {
+    flex-direction: row;
+    gap: 28px;
+  }
+}
+
+/* ── Product cards (white, coloured icon tile) ────────────── */
+
+.product {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+.productTile {
+  width: 60px;
+  height: 60px;
+  flex: none;
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(var(--tilt, -4deg));
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .product {
+    flex-direction: row;
+    gap: 28px;
+  }
+}
+
+/* ── My Heirlooms: copy beside a real customer photo ──────── */
+
+.heirlooms {
+  margin-top: clamp(88px, 11vw, 150px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 48px 72px;
+}
+
+.heirloomsCopy {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.heirloomsTitle {
+  margin: 22px 0 0;
+  font-size: clamp(36px, 4.2vw, 60px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+.heirloomsLead {
+  margin: 22px 0 0;
+  max-width: 31em;
+  font-size: 18px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.heirloomsPhoto {
+  flex: 0 1 420px;
+  min-width: 0;
+  margin: 0 auto;
+  transform: rotate(3deg);
+}
+
+/* Beside the copy, keep the tilted corners inside the content edge. */
+@media (min-width: 1000px) {
+  .heirloomsPhoto {
+    margin-right: 12px;
+  }
+}
+
+@media (max-width: 599px) {
+  .heirloomsPhoto {
+    flex-basis: 100%;
+    max-width: 340px;
+  }
+}
+
+/* ── Three strikes ────────────────────────────────────────── */
+
+.strike {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+.strikeNum {
+  width: 60px;
+  height: 60px;
+  flex: none;
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.strikeLabel {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.strikeText {
+  margin: 10px 0 0;
+  font-size: 16.5px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .strike {
+    flex-direction: row;
+    gap: 28px;
+  }
+}
+
+/* The private-library promise: one solid blue card. */
+.promise {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: clamp(26px, 3vw, 40px) clamp(24px, 3.5vw, 48px);
+  border-radius: 30px;
+  background: var(--c1);
+  color: white;
+  box-shadow: 0 30px 60px -30px rgba(10, 10, 15, 0.5);
+}
+
+.promiseTile {
+  width: 76px;
+  height: 76px;
+  flex: none;
+  border-radius: 24px;
+  background: white;
+  color: var(--c1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 22px 36px -20px rgba(10, 10, 15, 0.7);
+  transform: rotate(-4deg);
+}
+
+.promiseText {
+  margin: 0;
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1.5;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.promiseText strong {
+  font-weight: 800;
+}
+
+@media (max-width: 599px) {
+  .promise {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+  }
+
+  .promiseTile {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+  }
+}
+
+/* ── Closing slab ─────────────────────────────────────────── */
+
+/* Two sentences instead of the landing's one, so the copy gets more width
+   and a slightly smaller title. */
+.cta .ctaCopy {
+  flex-basis: 1000px;
+}
+
+.cta .ctaTitle {
+  max-width: none;
+  font-size: clamp(34px, 4.2vw, 60px);
+  line-height: 1.02;
+}
+
+.ctaDots {
+  margin-top: 22px;
+}
+
+.cta .ctaBadges {
+  margin-top: 26px;
+  justify-content: center;
+  gap: 12px;
+}

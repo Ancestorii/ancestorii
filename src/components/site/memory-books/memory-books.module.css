@@ -1,0 +1,590 @@
+/* ============================================================
+   Memory Books page (/memory-books).
+   Page-only pieces on top of the landing classes
+   (src/components/landing/landing.module.css) and the shared
+   public-page classes (src/components/site/site.module.css).
+   The tokens (--c0..--c3, --ink, --hairline-ring) and Plus Jakarta
+   Sans come from the landing root class that SiteShell sets.
+   ============================================================ */
+
+/* ── Hero ─────────────────────────────────────────────────── */
+
+/* The long hero button label stays on one line on small phones. */
+@media (max-width: 389px) {
+  .heroCta.heroCta {
+    gap: 12px;
+    padding-left: 20px;
+    font-size: 16px;
+  }
+}
+
+/* The four families with their books, on the landing hero's curved wall
+   (same geometry as the landing ring, held still). */
+.wall {
+  /* Four cards rather than the landing's twelve, so they can be larger on tablets. */
+  --cw: clamp(170px, 25vw, 250px);
+  --ch: calc(var(--cw) * 1.32);
+  --r: clamp(420px, 50vw, 760px);
+  --half: 13.1deg;
+  --top: calc(var(--ch) / 2 + 24px);
+  position: relative;
+  height: calc(var(--ch) + 100px);
+  margin-top: clamp(48px, 5.5vw, 72px);
+  perspective: 1100px;
+  perspective-origin: 50% var(--top);
+}
+
+/* Fallback spacing where CSS trigonometry is missing (see @supports below). */
+@media (min-width: 700px) {
+  .wall {
+    --half: 14.3deg;
+  }
+}
+
+@media (min-width: 850px) {
+  .wall {
+    --half: 15.4deg;
+  }
+}
+
+@media (min-width: 1100px) {
+  .wall {
+    --half: 13.6deg;
+  }
+}
+
+@media (min-width: 1250px) {
+  .wall {
+    --half: 11.4deg;
+  }
+}
+
+@media (min-width: 1500px) {
+  .wall {
+    --half: 10.4deg;
+  }
+}
+
+/* Where CSS trigonometry is available, space the cards exactly as the ring does. */
+@supports (rotate: atan2(1px, 1px)) {
+  .wall {
+    --half: atan2(calc(var(--cw) + 26px), calc(var(--r) * 2));
+  }
+}
+
+.wallRing {
+  position: absolute;
+  left: 50%;
+  top: var(--top);
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(var(--r) - 330px)) rotateX(-3deg);
+}
+
+.wallCard {
+  --lift: 0px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--cw);
+  height: var(--ch);
+  margin: 0;
+  transform: translate(-50%, calc(-50% - var(--lift))) rotateY(var(--a)) translateZ(calc(var(--r) * -1));
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  -webkit-box-reflect: below 14px linear-gradient(transparent 72%, rgba(255, 255, 255, 0.28));
+}
+
+/* Left to right; a positive angle sits left of centre and faces in. */
+.wallCard:nth-child(1) { --a: calc(var(--half) * 3); }
+.wallCard:nth-child(2) { --a: var(--half); }
+.wallCard:nth-child(3) { --a: calc(var(--half) * -1); }
+.wallCard:nth-child(4) { --a: calc(var(--half) * -3); }
+
+@media (hover: hover) {
+  .wallCard:hover {
+    --lift: 10px;
+  }
+}
+
+/* The caption is the figure's own figcaption, laid over the photo inside the 8px frame. */
+.wallCard > .wallCaption {
+  left: 18px;
+  top: 18px;
+  right: 18px;
+}
+
+/* Name chips wrap instead of being cut off if a label ever runs long. */
+.wallCard .wallChip {
+  align-items: flex-start;
+  border-radius: 14px;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.wallChip > span:first-child {
+  margin-top: 2px;
+}
+
+@media (max-width: 849px) {
+  .wallCard .wallChip {
+    font-size: 12px;
+  }
+}
+
+/* Below 800px the cards are too narrow for "Name · Place" on one line, and a two-line
+   chip covers the faces, so the chip shows the name only (the place is in the reviews). */
+@media (max-width: 799px) {
+  .chipPlace {
+    display: none;
+  }
+}
+
+/* The rest of the opening paragraph, under the wall. */
+.heroMore {
+  width: min(780px, calc(100% - 48px));
+  margin: 0 auto;
+  text-align: center;
+  font-size: clamp(19px, 1.7vw, 23px);
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+/* ── Shared section pieces ────────────────────────────────── */
+
+.eyebrowRow {
+  margin-bottom: 22px;
+}
+
+.title12 {
+  max-width: 12ch;
+}
+
+.title14 {
+  max-width: 14ch;
+}
+
+.body {
+  margin: 0;
+  font-size: clamp(17px, 1.35vw, 19px);
+  line-height: 1.65;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* Tilted icon tile, as on the landing's How it works panels.
+   Set --tile, --tile-fg and --tilt. */
+.tile {
+  width: 84px;
+  height: 84px;
+  flex: none;
+  border-radius: 26px;
+  background: var(--tile, #fff);
+  color: var(--tile-fg, var(--c0));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(var(--tilt, -4deg));
+  box-shadow: 0 22px 36px -22px rgba(10, 10, 15, 0.55);
+}
+
+@media (max-width: 599px) {
+  .tile {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+  }
+
+  .tile svg {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ── What a Memory Book is: pull quote beside its paragraph ── */
+
+.what {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: center;
+  gap: 32px 72px;
+}
+
+.what > blockquote {
+  margin: 0;
+}
+
+@media (max-width: 999px) {
+  .what {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .whatText {
+    max-width: 38em;
+  }
+}
+
+/* ── Full creative control: their way beside our way ──────── */
+
+.duo {
+  margin-top: clamp(32px, 4vw, 52px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.duoCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 30px;
+}
+
+.duoCard.duoCard {
+  padding: clamp(28px, 3vw, 40px);
+}
+
+.compare {
+  margin: 28px 0 0;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+@media (max-width: 899px) {
+  .duo {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .duoCard {
+    gap: 24px;
+  }
+}
+
+/* Tablet: tile beside the text, like the landing's step cards at this width. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .duoCard {
+    flex-direction: row;
+    align-items: center;
+    gap: 32px;
+  }
+}
+
+/* ── How it works ─────────────────────────────────────────── */
+
+/* Anchor target for the hero's "How It Works" button: land with the label near the top. */
+.anchor {
+  scroll-margin-top: calc(40px - clamp(64px, 8vw, 110px));
+}
+
+/* Even out the longer step titles, so no single word is left on a line of its own. */
+.steps h3 {
+  text-wrap: balance;
+}
+
+/* "Order as many copies as you need" on a solid orange band. */
+.copies {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 30px clamp(28px, 3.5vw, 44px);
+  border-radius: 30px;
+  background: var(--c2);
+  color: var(--ink);
+  box-shadow: 0 30px 60px -36px rgba(10, 10, 15, 0.45);
+}
+
+.copiesText {
+  margin: 0;
+  max-width: 44em;
+  font-size: clamp(19px, 1.75vw, 24px);
+  line-height: 1.38;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+}
+
+@media (max-width: 599px) {
+  .copies {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+    padding: 28px 24px;
+    border-radius: 26px;
+  }
+}
+
+/* ── A gift: copy beside a big pink quote card ────────────── */
+
+.gift {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 56px 72px;
+}
+
+.giftText {
+  margin-top: 24px;
+  max-width: 31em;
+}
+
+.giftStage {
+  position: relative;
+  padding: 30px 30px 0 0;
+}
+
+.giftQuote {
+  position: relative;
+  margin: 0;
+  padding: clamp(30px, 3.4vw, 46px);
+  border-radius: 30px;
+  background: var(--c0);
+  color: #fff;
+  transform: rotate(-2deg);
+  box-shadow: 0 40px 70px -40px rgba(10, 10, 15, 0.6);
+}
+
+.giftMark {
+  display: block;
+  height: 46px;
+  font-size: 104px;
+  line-height: 0.74;
+  font-weight: 800;
+}
+
+.giftQuoteText {
+  margin: 22px 0 0;
+  max-width: 16ch;
+  font-size: clamp(30px, 3.2vw, 46px);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+.giftTile {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}
+
+@media (max-width: 999px) {
+  .gift {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .giftStage {
+    max-width: 620px;
+  }
+}
+
+@media (max-width: 599px) {
+  .giftStage {
+    padding: 24px 14px 0 0;
+  }
+
+  .giftQuote {
+    border-radius: 26px;
+  }
+
+  .giftMark {
+    height: 38px;
+    font-size: 88px;
+  }
+}
+
+/* ── Reviews ──────────────────────────────────────────────── */
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px 11px 14px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.stars {
+  display: inline-flex;
+  gap: 2px;
+  color: var(--c0);
+}
+
+.ratingLabel {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.reviews {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.swipeHint {
+  display: none;
+}
+
+/* Phones: one swipeable row of reviews, as before, with the next card peeking in. */
+@media (max-width: 599px) {
+  .reviews {
+    display: flex;
+    gap: 14px;
+    margin: 32px -24px -26px;
+    padding: 4px 24px 34px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 24px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .reviews::-webkit-scrollbar {
+    display: none;
+  }
+
+  .reviews > * {
+    flex: 0 0 min(84%, 380px);
+    scroll-snap-align: start;
+  }
+
+  .swipeHint {
+    display: block;
+    margin: 18px 0 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+}
+
+/* ── Questions ────────────────────────────────────────────── */
+
+/* The title column is wide enough for "Questions about" on one line at the largest
+   heading size, so the title stays on two lines. */
+.faqLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 7fr);
+  align-items: start;
+  gap: 40px 64px;
+}
+
+.faqHead {
+  position: sticky;
+  top: 32px;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.faqItem {
+  --dot: var(--c0);
+  padding: 24px 26px 26px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -40px rgba(10, 10, 15, 0.4);
+}
+
+.faqItem:nth-child(4n + 2) { --dot: var(--c1); }
+.faqItem:nth-child(4n + 3) { --dot: var(--c2); }
+.faqItem:nth-child(4n + 4) { --dot: var(--c3); }
+
+.faqQ {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  font-size: clamp(18px, 1.5vw, 21px);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.faqQ::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: 0.4em;
+  border-radius: 3px;
+  background: var(--dot);
+}
+
+.faqA {
+  margin: 10px 0 0;
+  padding-left: 24px;
+  font-size: 16.5px;
+  line-height: 1.65;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+@media (max-width: 999px) {
+  .faqLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .faqHead {
+    position: static;
+  }
+}
+
+@media (max-width: 599px) {
+  .faqItem {
+    padding: 20px 20px 22px;
+    border-radius: 22px;
+  }
+
+  .faqA {
+    padding-left: 0;
+  }
+}
+
+/* ── Closing call to action ───────────────────────────────── */
+
+.ctaTitle.ctaTitle {
+  max-width: 16ch;
+}
+
+.ctaNote {
+  text-wrap: balance;
+}
+
+/* The long button label fits on one line inside the slab on phones. */
+@media (max-width: 599px) {
+  .ctaButton.ctaButton {
+    gap: 12px;
+    padding-left: 20px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 389px) {
+  .ctaSlab.ctaSlab {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .ctaButton.ctaButton {
+    font-size: 15px;
+  }
+}

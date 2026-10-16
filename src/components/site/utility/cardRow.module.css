@@ -1,0 +1,240 @@
+/* ============================================================
+   Hero cards laid flat for the utility pages (see CardRow.tsx).
+   Same shapes as the landing hero ring: a solid colour frame
+   round a real photo with a white caption chip, or a solid colour
+   quote card. Sits inside SiteShell, so the landing tokens apply.
+   ============================================================ */
+
+/* ── Row (cancel page) ───────────────────────────────────── */
+
+.row {
+  --cw: clamp(150px, 15.5vw, 216px);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: clamp(14px, 2vw, 28px);
+  margin-top: clamp(44px, 6vw, 76px);
+  padding: 20px 0 44px;
+  /* Runs off both edges on narrow screens without making the page scroll sideways. */
+  overflow-x: clip;
+}
+
+.row .card:nth-child(even) {
+  margin-top: 40px;
+}
+
+/* ── Stage (app hand-off pages) ──────────────────────────── */
+
+.stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.side {
+  --cw: clamp(176px, 17vw, 236px);
+  position: relative;
+  z-index: 0;
+  flex: none;
+}
+
+/* Each side card tucks 32px under the centre card (20px on narrower screens). */
+.sideLeft {
+  margin-right: -32px;
+}
+
+.sideRight {
+  margin-left: -32px;
+}
+
+/* Keep each side card's caption on the part that shows, never under the centre card. */
+.side .chip {
+  max-width: calc(100% - 46px);
+}
+
+@media (max-width: 1199px) {
+  .sideLeft {
+    margin-right: -20px;
+  }
+
+  .sideRight {
+    margin-left: -20px;
+  }
+
+  .side .chip {
+    max-width: calc(100% - 34px);
+    font-size: 12px;
+  }
+}
+
+.center {
+  position: relative;
+  z-index: 1;
+  flex: 0 1 420px;
+  min-width: 0;
+}
+
+/* The right card's left edge sits behind the centre card, so its caption goes on the right. */
+.sideRight .chip {
+  left: auto;
+  right: 10px;
+}
+
+@media (max-width: 719px) {
+  .side {
+    display: none;
+  }
+
+  .center {
+    flex-basis: 100%;
+    max-width: 420px;
+  }
+}
+
+/* ── Cards ────────────────────────────────────────────────── */
+
+.card {
+  position: relative;
+  flex: none;
+  width: var(--cw);
+  height: calc(var(--cw) * 1.32);
+  border-radius: 26px;
+  rotate: var(--tilt, 0deg);
+  box-shadow: 0 30px 60px -30px rgba(10, 10, 15, 0.5);
+  animation: bob 6.5s ease-in-out var(--delay, 0s) infinite alternate;
+}
+
+.photo {
+  padding: 8px;
+  background: var(--card);
+}
+
+.photoInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 19px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.img {
+  object-fit: cover;
+}
+
+/* Caption chip. These cards are narrower than the hero ring's, so captions wrap
+   (never cut short), as the ring's do on small screens. */
+.chip {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: calc(100% - 20px);
+  padding: 8px 13px 8px 9px;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 700;
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.5);
+}
+
+.chipText {
+  min-width: 0;
+  text-wrap: balance;
+}
+
+.chipDot {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: 2px;
+  border-radius: 3px;
+  background: var(--card);
+}
+
+.quote {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 20px 20px;
+  background: var(--card);
+  color: var(--fg);
+}
+
+.quoteMark {
+  height: 40px;
+  font-size: 78px;
+  line-height: 0.7;
+  font-weight: 800;
+}
+
+.quoteText {
+  font-size: calc(var(--cw) * 0.105);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: pretty;
+}
+
+.quoteBy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quoteInitial {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--fg);
+  color: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.quoteName {
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+@media (max-width: 1049px) {
+  .chip {
+    font-size: 12px;
+  }
+
+  .quote {
+    padding: 20px 16px 16px;
+  }
+
+  .quoteMark {
+    height: 34px;
+  }
+}
+
+@keyframes bob {
+  from {
+    translate: 0 -6px;
+  }
+
+  to {
+    translate: 0 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}

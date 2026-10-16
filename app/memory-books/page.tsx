@@ -1,7 +1,5 @@
-import PublicNav from '@/components/stories/layout/PublicNav';
-import PublicFooter from '@/components/stories/layout/PublicFooter';
+import SiteShell from '@/components/site/SiteShell';
 import MemoryBooksContent from '@/components/MemoryBookSection';
-import Image from "next/image";
 import type { Metadata } from "next";
 import Script from "next/script";
 
@@ -67,11 +65,9 @@ export default function MemoryBooksPage() {
         })}
       </Script>
 
-      <main className="bg-[#FFFDF8]">
-        <PublicNav />
+      <SiteShell>
         <MemoryBooksContent />
-        <PublicFooter />
-      </main>
+      </SiteShell>
     </>
   );
 }

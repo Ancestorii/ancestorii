@@ -1,0 +1,1356 @@
+/* ============================================================
+   Our Stories feed (/stories) and the story cards it shares with
+   the topic pages. Same language as the landing page
+   (src/components/landing/landing.module.css): pure white, four
+   solid colours plus ink, Plus Jakarta Sans, hairline-ring cards,
+   the pink featured card and the dark slab. Everything sits inside
+   SiteShell, which provides --c0..--c3, --ink, --hover and
+   --hairline-ring. Topic colours come from tones.module.css
+   (--tone / --tone-fg).
+   ============================================================ */
+
+/* <button> elements wearing the landing's link buttons (btnPrimary etc.).
+   No font shorthand here: the landing classes set the size and weight. */
+.btn {
+  border: 0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* ── Top of the feed: hero, then the topic pills with the sort beside them ── */
+
+.top {
+  width: min(1240px, calc(100% - 48px));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'hero'
+    'tabs'
+    'sort';
+}
+
+.top > .hero {
+  grid-area: hero;
+}
+
+.top > .tabs {
+  grid-area: tabs;
+}
+
+.top > .sort {
+  grid-area: sort;
+}
+
+@media (min-width: 900px) {
+  .top {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'hero hero'
+      'tabs sort';
+    column-gap: 24px;
+  }
+}
+
+/* No stories: no hero above the pills, so they take the hero's top spacing. */
+.topEmpty .tabs {
+  margin-top: clamp(24px, 3.5vw, 48px);
+}
+
+/* While a topic or sort is loading. */
+.filtering {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+/* ── Hero ─────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  min-width: 0;
+  padding-top: clamp(24px, 3.5vw, 48px);
+}
+
+.heroInner {
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.dotPink {
+  --dot: var(--c0);
+}
+
+/* The signed-in title carries the reader's name, which may be one long word. */
+.heroTitle {
+  overflow-wrap: anywhere;
+}
+
+.leadStrong {
+  font-weight: 700;
+}
+
+/* Three short value lines, as small cards with tilted number tiles. */
+.points {
+  list-style: none;
+  margin: 48px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  text-align: left;
+}
+
+.point {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 22px 20px 20px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+}
+
+.pointNum {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 13px;
+  background: var(--tone);
+  color: var(--tone-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  transform: rotate(-4deg);
+  box-shadow: 0 14px 22px -14px rgba(10, 10, 15, 0.55);
+}
+
+.point:nth-child(2) .pointNum {
+  transform: rotate(3deg);
+}
+
+.point:nth-child(3) .pointNum {
+  transform: rotate(-3deg);
+}
+
+.pointText {
+  padding-top: 1px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+@media (max-width: 899px) {
+  .points {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 540px;
+    margin: 40px auto 0;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 599px) {
+  .point {
+    padding: 16px 18px 16px 16px;
+    border-radius: 22px;
+  }
+}
+
+/* ── Topic pills (the landing's topic filters) ────────────── */
+
+.tabs {
+  min-width: 0;
+  margin-top: clamp(48px, 6vw, 80px);
+}
+
+.tabsScroll {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.14);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.tabActive {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .tab:not(.tabActive):hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+}
+
+@media (max-width: 599px) {
+  /* Phone: one swipeable line, edge to edge. */
+  .tabs {
+    margin-top: 44px;
+  }
+
+  .tabsScroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: -8px -24px;
+    padding: 8px 24px;
+    scroll-padding-inline: 24px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 40px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 40px), transparent);
+  }
+
+  .tabsScroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    flex: none;
+  }
+}
+
+/* ── Sort ─────────────────────────────────────────────────── */
+
+.sort {
+  position: relative;
+  align-self: start;
+  justify-self: start;
+  margin-top: 14px;
+}
+
+@media (min-width: 900px) {
+  .sort {
+    justify-self: end;
+    margin-top: clamp(48px, 6vw, 80px);
+  }
+}
+
+.sortSelect {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 44px;
+  min-width: 196px;
+  padding: 0 46px 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px var(--ink);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sortSelect:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+.sortIcon {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* ── Feed layout: stories, with the sidebar from 1280px ──── */
+
+.feed {
+  position: relative;
+  padding-top: 24px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+}
+
+.mainCol {
+  min-width: 0;
+}
+
+.side {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .endCta {
+    display: none;
+  }
+
+  /* The sidebar follows the reader down the feed. It sits at the foot of its column and
+     sticks 24px above the bottom of the window: it scrolls with the page until its last
+     card is in view, then stays put, so no card is ever out of reach on a short window. */
+  .side {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .sideSticky {
+    position: sticky;
+    bottom: 24px;
+  }
+}
+
+/* Windows tall enough for the whole sidebar: it simply stays at the top. */
+@media (min-width: 1280px) and (min-height: 1360px) {
+  .side {
+    justify-content: flex-start;
+  }
+
+  .sideSticky {
+    top: 24px;
+    bottom: auto;
+  }
+}
+
+.grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+/* ── Photos ───────────────────────────────────────────────── */
+
+.cover {
+  object-fit: cover;
+  object-position: 50% 30%;
+  transition: opacity 0.3s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.coverHidden {
+  opacity: 0;
+}
+
+.coverShown {
+  opacity: 1;
+}
+
+.coverVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A story without a photo: a solid colour panel with a big quote mark, never a stock image. */
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: var(--tone, var(--c0));
+  color: var(--tone-fg, #fff);
+  text-align: center;
+}
+
+/* Keep the quote mark and words clear of the badge or voice-note pill at the foot of the panel. */
+.featuredMedia .fallback,
+.cardMedia:has(.voice) .fallback {
+  padding-bottom: 60px;
+}
+
+/* On the pink featured card the panel is white, so it does not melt into the frame. */
+.fallbackLight {
+  background: #fff;
+  color: var(--ink);
+}
+
+.fallbackMark {
+  height: 52px;
+  font-size: 120px;
+  line-height: 0.9;
+  font-weight: 800;
+}
+
+.fallbackLight .fallbackMark {
+  color: var(--c0);
+}
+
+.fallbackText {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+/* Voice note and gallery markers on a photo. */
+.voice {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 5px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.5);
+}
+
+.voiceTop {
+  left: auto;
+  right: 16px;
+  bottom: auto;
+  top: 16px;
+}
+
+.voicePlay {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--c0);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voicePlay svg {
+  margin-left: 2px;
+}
+
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.waveBar {
+  width: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+
+.voiceTime {
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: #fff;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.5);
+}
+
+/* ── Reactions and comments ───────────────────────────────── */
+
+.stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-variant-numeric: tabular-nums;
+}
+
+.heart {
+  color: var(--c0);
+}
+
+.comment {
+  color: var(--c1);
+}
+
+/* ── Featured story (the landing's pink card) ─────────────── */
+
+.featured {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border-radius: 30px;
+  background: var(--c0);
+  color: #fff;
+  box-shadow: 0 40px 70px -40px rgba(10, 10, 15, 0.5);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.featuredMedia {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.featuredPortrait .featuredMedia {
+  aspect-ratio: 4 / 5;
+}
+
+.featuredCover {
+  object-position: 50% 12%;
+}
+
+.featuredBadge {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1;
+  max-width: calc(100% - 32px);
+  padding: 8px 14px 8px 12px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.5);
+}
+
+.featuredBadge::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 3px;
+  background: var(--c0);
+}
+
+.featuredBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 24px 14px 12px;
+}
+
+.featuredTitle {
+  margin: 0;
+  font-size: clamp(30px, 3.2vw, 46px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.featuredExcerpt {
+  margin: 14px 0 0;
+  max-width: 34em;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.featuredAuthor {
+  padding-top: 26px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.featuredAvatar {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fff;
+  color: var(--c0);
+  box-shadow: 0 0 0 2.5px #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.featuredAvatar img,
+.cardAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.authorText {
+  min-width: 0;
+}
+
+.authorName {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.authorMeta {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.featuredMeta {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.readMore {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: gap 0.2s ease;
+}
+
+@media (min-width: 768px) {
+  .featured {
+    flex-direction: row;
+    min-height: 450px;
+  }
+
+  .featuredPortrait {
+    min-height: 500px;
+  }
+
+  .featuredMedia,
+  .featuredPortrait .featuredMedia {
+    flex: 1 1 54%;
+    aspect-ratio: auto;
+  }
+
+  /* Words sit at the foot of the pink panel, as on the landing's featured card. */
+  .featuredBody {
+    flex: 1 1 46%;
+    justify-content: flex-end;
+    padding: 28px 24px 16px 30px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .featuredBody {
+    padding: 30px 26px 16px 32px;
+  }
+}
+
+/* ── Story card (the landing's story card) ────────────────── */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease;
+}
+
+/* The topic colour shows while the photo loads (it fades in over it). */
+.cardMedia {
+  position: relative;
+  flex: none;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--tone, var(--c0));
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding: 20px 22px 18px;
+}
+
+.cardTop {
+  min-height: 20px;
+}
+
+/* Topic label with the topic's colour square. */
+.topicTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.topicTag::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--tone, var(--c0));
+}
+
+.cardTitle {
+  margin: 10px 0 0;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardPreview {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardAuthor {
+  margin-top: auto;
+  padding-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cardAvatar {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--tone, var(--c0));
+  color: var(--tone-fg, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cardAuthorText {
+  min-width: 0;
+}
+
+.cardBy {
+  display: block;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.cardByTitle {
+  display: block;
+  margin-top: 1px;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cardFoot {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1.5px solid rgba(10, 10, 15, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cardTime {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .featured:hover,
+  .card:hover {
+    transform: translateY(-4px);
+  }
+
+  .card:hover {
+    box-shadow: var(--hairline-ring), 0 34px 60px -34px rgba(10, 10, 15, 0.5);
+  }
+
+  .featured:hover .cover,
+  .card:hover .cover {
+    transform: scale(1.045);
+  }
+
+  .featured:hover .readMore {
+    gap: 12px;
+  }
+}
+
+/* ── Load more ────────────────────────────────────────────── */
+
+.more {
+  margin-top: 44px;
+  display: flex;
+  justify-content: center;
+}
+
+.moreBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 0 30px;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Loading: the spinner says so; the label stays solid ink. */
+.moreBtn:disabled {
+  cursor: progress;
+}
+
+@media (hover: hover) {
+  .moreBtn:not(:disabled):hover {
+    background: var(--ink);
+    color: #fff;
+  }
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Share a memory: the one dark card (sidebar, or end of feed) ── */
+
+.ctaCard {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 30px;
+  padding: 30px 26px 26px;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 40px 70px -40px rgba(10, 10, 15, 0.6);
+}
+
+.ctaGlowPink,
+.ctaGlowBlue {
+  position: absolute;
+  z-index: -1;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ctaGlowPink {
+  right: -48%;
+  top: -42%;
+  width: 115%;
+  background: radial-gradient(closest-side, var(--c0), rgba(10, 10, 15, 0));
+  opacity: 0.5;
+}
+
+.ctaGlowBlue {
+  left: -52%;
+  bottom: -50%;
+  width: 115%;
+  background: radial-gradient(closest-side, var(--c1), rgba(10, 10, 15, 0));
+  opacity: 0.45;
+}
+
+.ctaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px 8px 11px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ctaBadge::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--c0);
+}
+
+.ctaTitle {
+  margin: 20px 0 0;
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.ctaAccent {
+  color: var(--c0);
+}
+
+.ctaText {
+  margin: 14px 0 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.ctaBtn {
+  margin-top: 24px;
+  max-width: 100%;
+}
+
+/* Below 1280px the card closes the feed as a small version of the landing's dark slab. */
+.endCta {
+  margin-top: 64px;
+}
+
+.endCta .ctaCard {
+  padding: clamp(40px, 6vw, 72px) clamp(24px, 5vw, 64px);
+  border-radius: 40px;
+  text-align: center;
+}
+
+.endCta .ctaGlowPink {
+  right: -14%;
+  top: -55%;
+  width: 62%;
+  opacity: 0.45;
+}
+
+.endCta .ctaGlowBlue {
+  left: -14%;
+  bottom: -60%;
+  width: 62%;
+  opacity: 0.4;
+}
+
+.endCta .ctaTitle {
+  margin: 22px auto 0;
+  max-width: 12ch;
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 0.98;
+}
+
+.endCta .ctaText {
+  margin: 20px auto 0;
+  max-width: 30em;
+  font-size: 18px;
+  text-wrap: balance;
+}
+
+.endCta .ctaBtn {
+  margin-top: 32px;
+}
+
+@media (max-width: 599px) {
+  .endCta {
+    margin-top: 56px;
+  }
+
+  .endCta .ctaCard {
+    border-radius: 32px;
+    padding: 40px 24px;
+  }
+
+  .endCta .ctaGlowPink {
+    right: -55%;
+    top: -30%;
+    width: 125%;
+  }
+
+  .endCta .ctaGlowBlue {
+    left: -60%;
+    bottom: -35%;
+    width: 125%;
+  }
+
+  .endCta .ctaText {
+    font-size: 17px;
+  }
+}
+
+/* ── Sidebar cards ────────────────────────────────────────── */
+
+.sideStack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sideCard {
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+  padding: 24px 22px 20px;
+}
+
+.sideTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+
+.trendList {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.trendItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+}
+
+.trendItem + .trendItem {
+  border-top: 1.5px solid rgba(10, 10, 15, 0.07);
+}
+
+.trendThumb {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  flex: none;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--c0);
+}
+
+.trendFallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 54px;
+  line-height: 1;
+  font-weight: 800;
+  padding-top: 22px;
+}
+
+.trendText {
+  min-width: 0;
+  flex: 1;
+}
+
+.trendTitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.trendStats {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.trendStats .stat {
+  gap: 5px;
+}
+
+.topicList {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.topicRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 8px 6px 6px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.topicRowLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.topicRowText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topicTile {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--tone);
+  color: var(--tone-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topicCount {
+  min-width: 32px;
+  height: 26px;
+  flex: none;
+  padding: 0 10px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.viewAll {
+  margin-top: 10px;
+  min-height: 36px;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--c1);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.sideEmpty {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .trendItem:hover .trendTitle {
+    text-decoration-color: currentColor;
+  }
+
+  .trendItem:hover .cover {
+    transform: scale(1.06);
+  }
+
+  .topicRow:hover {
+    background: var(--hover);
+  }
+}
+
+/* ── No stories yet ───────────────────────────────────────── */
+
+.empty {
+  max-width: 660px;
+  margin: 20px auto 0;
+  padding: clamp(40px, 5vw, 56px) clamp(24px, 4vw, 48px);
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 30px 60px -40px rgba(10, 10, 15, 0.4);
+  text-align: center;
+}
+
+.emptyTile {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto;
+  border-radius: 28px;
+  background: var(--c0);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-4deg);
+  box-shadow: 0 24px 40px -22px rgba(10, 10, 15, 0.55);
+}
+
+.emptyTitle {
+  margin: 28px 0 0;
+  font-size: clamp(28px, 3.2vw, 40px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.emptyTitle em {
+  font-style: normal;
+  color: var(--c0);
+}
+
+.emptyText {
+  margin: 14px auto 0;
+  max-width: 30em;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.emptyBtn {
+  margin-top: 28px;
+}
+
+/* ── Reduced motion ───────────────────────────────────────── */
+/* (Transitions are already shortened by the landing root class.) */
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

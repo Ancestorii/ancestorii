@@ -1,8 +1,10 @@
-import PublicNav from '@/components/stories/layout/PublicNav';
-import PublicFooter from '@/components/stories/layout/PublicFooter';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { Baby, Briefcase, Heart, Lightbulb, TreeDeciduous } from 'lucide-react';
+import SiteShell from '@/components/site/SiteShell';
+import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
+import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
+import { QuestionSet, QuestionSets, Step, Steps } from '../_components/GuideBlocks';
 
 export const metadata: Metadata = {
   title: 'Questions to Ask Your Parents About Their Life | Ancestorii',
@@ -12,61 +14,6 @@ export const metadata: Metadata = {
     canonical: 'https://www.ancestorii.com/guides/questions-to-ask-your-parents-about-their-life',
   },
 };
-
-function Body({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="space-y-6 md:space-y-7 xl:space-y-8 text-[15px] md:text-[17px] lg:text-[18px] xl:text-[20px] 2xl:text-[22px] leading-[1.85] text-[#3D3526]">
-      {children}
-    </div>
-  );
-}
-
-function PullQuote({ children }: { children: React.ReactNode }) {
-  return (
-    <blockquote className="my-12 md:my-16 xl:my-20 py-6 md:py-8 xl:py-10 border-l-[3px] border-[#B8932A] pl-6 md:pl-8 xl:pl-10">
-      <p className="text-[20px] md:text-[24px] lg:text-[28px] xl:text-[34px] 2xl:text-[38px] leading-[1.35] tracking-[-0.02em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
-        {children}
-      </p>
-    </blockquote>
-  );
-}
-
-function Step({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
-  return (
-    <div className="flex gap-6 md:gap-8 xl:gap-10">
-      <span className="shrink-0 text-[36px] md:text-[44px] xl:text-[52px] 2xl:text-[58px] leading-none tracking-[-0.03em] text-[#C8A557]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-        {number}
-      </span>
-      <div>
-        <h3 className="text-[18px] md:text-[20px] xl:text-[22px] 2xl:text-[24px] font-semibold text-[#181512] mb-3 md:mb-4">{title}</h3>
-        <div className="text-[15px] md:text-[17px] lg:text-[18px] xl:text-[20px] 2xl:text-[22px] leading-[1.85] text-[#3D3526] space-y-4 md:space-y-5">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function QuestionSet({ title, questions }: { title: string; questions: string[] }) {
-  return (
-    <div className="py-10 md:py-12 xl:py-14 border-t border-[#ECE5D8]">
-      <h3
-        className="text-[22px] md:text-[28px] xl:text-[34px] leading-[1.1] tracking-[-0.02em] text-[#181512] mb-6 md:mb-8"
-        style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
-      >
-        {title}
-      </h3>
-      <ul className="space-y-3 md:space-y-4">
-        {questions.map((q, i) => (
-          <li key={i} className="flex gap-4">
-            <span className="shrink-0 mt-[0.55em] w-1.5 h-1.5 rounded-full bg-[#C8A557]" />
-            <p className="text-[15px] md:text-[17px] xl:text-[19px] leading-[1.7] text-[#3D3526]">{q}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 const SETS = [
   {
@@ -126,6 +73,9 @@ const SETS = [
   },
 ];
 
+// An icon for each theme above, in the same order.
+const SET_ICONS = [Baby, TreeDeciduous, Heart, Briefcase, Lightbulb];
+
 export default function QuestionsToAskParentsPage() {
   return (
     <>
@@ -167,76 +117,80 @@ export default function QuestionsToAskParentsPage() {
         })}
       </Script>
 
-      <main className="w-full relative overflow-hidden" style={{ background: '#FFFDF8', fontFamily: "'DM Sans', sans-serif" }}>
-        <PublicNav />
-
-        <div className="w-full px-6 sm:px-8 md:px-[8%] lg:px-[12%] xl:px-[14%] 2xl:px-[16%] pt-16 sm:pt-20 md:pt-28 lg:pt-36 xl:pt-44 pb-20 md:pb-32 xl:pb-40">
-
-          <div className="flex items-center gap-2.5 mb-5 md:mb-6 xl:mb-8">
-            <div className="h-px w-5 xl:w-6 bg-[#B8932A]" />
-            <Link href="/guides" className="text-[11px] md:text-[12px] xl:text-[13px] 2xl:text-[14px] tracking-[0.16em] uppercase text-[#B8932A] font-semibold hover:text-[#A9782F] transition">Guide</Link>
-          </div>
-
-          <h1 className="text-[clamp(36px,7vw,90px)] leading-[0.95] tracking-[-0.03em] text-[#181512] mb-4 md:mb-5 xl:mb-6" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-            Questions to ask<br />
-            <span className="italic text-[#A9782F]">your parents.</span>
-          </h1>
-
-          <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', width: '10rem', background: 'linear-gradient(to right, rgba(184,147,42,0.85), transparent)' }} />
-
-          <Body>
-            <p>
+      <SiteShell>
+        <GuideArticle
+          guideLink
+          crumb="Questions to Ask Your Parents About Their Life"
+          title={
+            <>
+              Questions to ask{' '}
+              <br />
+              <Accent>your parents.</Accent>
+            </>
+          }
+        >
+          <Prose>
+            <Lead>
               There is a particular kind of regret that arrives too late. It is the realisation that the person who knew the answers is no longer here to ask. The name of the village. The story behind the photograph. The reason the family left in the first place.
-            </p>
+            </Lead>
             <p>
               Most of us mean to ask. We assume there will be time. And then one ordinary day there is not. The questions below exist so that you ask while you still can, and so that the answers do not disappear with the person who held them.
             </p>
-          </Body>
+          </Prose>
 
           <PullQuote>
             The questions are easy.{' '}
-            <span className="italic text-[#A9782F]">It is the asking we keep putting off.</span>
+            <Accent tone="blue">It is the asking we keep putting off.</Accent>
           </PullQuote>
 
-          {/* WHY IT MATTERS */}
-          <div className="mt-4 md:mt-8">
-            <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
-            <h2 className="text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-              Why these questions <span className="italic text-[#A9782F]">matter.</span>
-            </h2>
-            <div className="mt-8 md:mt-10 xl:mt-12">
-              <Body>
-                <p>
-                  Your parents are not a list of dates. They were children once, frightened and hopeful and unsure, long before they were anyone’s mother or father. The stories that made them are the stories that, in part, made you.
-                </p>
-                <p>
-                  Ask the right question and something shifts. A parent who never talks about the past suddenly does. You learn things you were never told. And the next generation inherits not just names on a tree, but the voices and feelings behind them.
-                </p>
-              </Body>
-            </div>
-          </div>
+          <GuideSection
+            title={
+              <>
+                Why these questions <Accent tone="pink">matter.</Accent>
+              </>
+            }
+          >
+            <Prose>
+              <p>
+                Your parents are not a list of dates. They were children once, frightened and hopeful and unsure, long before they were anyone’s mother or father. The stories that made them are the stories that, in part, made you.
+              </p>
+              <p>
+                Ask the right question and something shifts. A parent who never talks about the past suddenly does. You learn things you were never told. And the next generation inherits not just names on a tree, but the voices and feelings behind them.
+              </p>
+            </Prose>
+          </GuideSection>
 
-          {/* QUESTION SETS */}
-          <div className="mt-16 md:mt-20 xl:mt-24">
-            <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
-            <h2 className="mb-4 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-              More than sixty <span className="italic text-[#A9782F]">to begin with.</span>
-            </h2>
-            <p className="text-[14px] md:text-[16px] text-[#3D3526]/60 mb-6">Grouped by theme. Start anywhere. One good question is enough for an afternoon.</p>
+          <GuideSection
+            title={
+              <>
+                More than sixty <Accent tone="pink">to begin with.</Accent>
+              </>
+            }
+          >
+            <Prose>
+              <p>Grouped by theme. Start anywhere. One good question is enough for an afternoon.</p>
+            </Prose>
 
-            {SETS.map((set, i) => (
-              <QuestionSet key={i} title={set.title} questions={set.questions} />
-            ))}
-            <div className="border-t border-[#ECE5D8]" />
-          </div>
+            <QuestionSets>
+              {SETS.map((set, i) => (
+                <QuestionSet
+                  key={i}
+                  icon={SET_ICONS[i % SET_ICONS.length]}
+                  title={set.title}
+                  questions={set.questions}
+                />
+              ))}
+            </QuestionSets>
+          </GuideSection>
 
-          {/* HOW TO HAVE THE CONVERSATION */}
-          <div className="mt-16 md:mt-20 xl:mt-24">
-            <div className="mb-10 md:mb-14 xl:mb-16" style={{ height: '1px', background: 'linear-gradient(to right, rgba(184,147,42,0.4), transparent 60%)' }} />
-            <h2 className="mb-12 md:mb-16 xl:mb-20 text-[clamp(32px,6vw,76px)] leading-[0.95] tracking-[-0.03em] text-[#181512]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
-              How to actually <span className="italic text-[#A9782F]">have it.</span>
-            </h2>
-            <div className="space-y-12 md:space-y-16 xl:space-y-20">
+          <GuideSection
+            title={
+              <>
+                How to actually <Accent tone="pink">have it.</Accent>
+              </>
+            }
+          >
+            <Steps>
               <Step number="01" title="Pick one theme, not all of them.">
                 <p>Do not try to cover a whole life in one sitting. Choose one area, sit down with a cup of tea, and let the conversation wander from there. The tangents are usually where the best stories hide.</p>
               </Step>
@@ -249,37 +203,33 @@ export default function QuestionsToAskParentsPage() {
               <Step number="04" title="Put the answers somewhere that lasts.">
                 <p>A voice note buried in a phone is one lost handset away from gone. Save the stories somewhere intentional and private, where the whole family can return to them for generations.</p>
               </Step>
-            </div>
-          </div>
+            </Steps>
+          </GuideSection>
 
           <PullQuote>
             You are not interviewing them.{' '}
-            <span className="italic text-[#A9782F]">You are making sure they are remembered.</span>
+            <Accent tone="blue">You are making sure they are remembered.</Accent>
           </PullQuote>
 
-          <Body>
+          <Prose>
             <p>
               Ancestorii gives every story a home. Record the answer in your parent’s own voice, add the photograph it belongs with, and keep it in a private family space that only the people you invite can see. Years from now, your children will be able to hear their grandparents tell it themselves.
             </p>
-          </Body>
+          </Prose>
+        </GuideArticle>
 
-          {/* CTA */}
-          <div className="mt-20 md:mt-28 xl:mt-32 flex justify-center">
-            <div className="w-full max-w-[560px] xl:max-w-[640px] 2xl:max-w-[720px] px-8 py-10 md:px-10 md:py-12 xl:px-12 xl:py-14" style={{ background: '#1A1612' }}>
-              <p className="text-[22px] md:text-[26px] xl:text-[30px] 2xl:text-[34px] leading-[1.2] tracking-[-0.02em] text-white mb-3 text-center" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 500 }}>
-                Ask the question today.<br /><span className="italic text-[#C8A557]">Keep the answer forever.</span>
-              </p>
-              <p className="text-[13px] md:text-[14px] xl:text-[15px] text-[#A09888] mb-6 leading-relaxed text-center">It takes two minutes to start.</p>
-              <Link href="/signup" prefetch className="block w-full px-8 py-3.5 xl:py-4 text-[13px] xl:text-[14px] font-semibold tracking-[0.06em] text-[#1A1612] text-center transition hover:opacity-90" style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #C8A557 0%, #D4AF37 100%)' }}>
-                START FOR FREE
-              </Link>
-              <p className="mt-3 text-[11px] xl:text-[12px] text-[#B0A48C] tracking-[0.04em] text-center">Free forever · No credit card · Takes 2 minutes</p>
-            </div>
-          </div>
-        </div>
-
-        <PublicFooter />
-      </main>
+        <GuideCta
+          title={
+            <>
+              Ask the question today.
+              <br />
+              <Accent tone="pink">Keep the answer forever.</Accent>
+            </>
+          }
+        >
+          It takes two minutes to start.
+        </GuideCta>
+      </SiteShell>
     </>
   );
 }

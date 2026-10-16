@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { BookOpen, PenLine, ArrowUpRight } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import HeroCard from './HeroCard';
 import StoryCard from './StoryCard';
 import FeedSidebar, { type TrendingStory, type PopularTopic } from './FeedSidebar';
 import FeedHeader from './FeedHeader';
+import CategoryTabs from './CategoryTabs';
 import type { FeaturedStory } from './ExploreFeed';
+import landing from '@/components/landing/landing.module.css';
+import feed from '@/components/site/stories-browse/feed.module.css';
 
 export type FeedStory = {
   id: string;
@@ -60,37 +61,53 @@ export default function StoryFeed({
   userName?: string | null;
 }) {
   const router = useRouter();
+  const isEmpty = stories.length === 0;
 
-  if (stories.length === 0) {
+  // Hero, then the topic pills with the sort beside them (FeedHeader renders the hero and the sort).
+  // With no stories the feed shows only the topic pills and the empty message, as it always has.
+  // The pills keep their place in the tree either way, so they never remount.
+  const top = (
+    <div className={`${feed.top} ${isEmpty ? feed.topEmpty : ''}`}>
+      {!isEmpty && (
+        <FeedHeader sortBy={sortBy} onSortChange={onSortChange} activeCategory={activeCategory} isLoggedIn={isLoggedIn} userName={userName} />
+      )}
+      <CategoryTabs active={activeCategory} onChange={onCategoryChange} />
+    </div>
+  );
+
+  if (isEmpty) {
     return (
-      <section className="w-full bg-white px-6 md:px-10 lg:px-20 xl:px-28 py-20">
-        <div className="mx-auto max-w-[480px] text-center">
-          <div className="mx-auto mb-6 flex h-[64px] w-[64px] items-center justify-center rounded-full bg-[#FAF5EB]">
-            <BookOpen className="h-7 w-7 text-[#A9782F]" strokeWidth={1.5} />
+      <>
+        {top}
+        <section className={feed.feed}>
+          <div className={landing.wrap}>
+            <div className={feed.empty}>
+              <div className={feed.emptyTile}>
+                <BookOpen size={44} strokeWidth={2.2} aria-hidden="true" />
+              </div>
+
+              <h3 className={feed.emptyTitle}>
+                The first story hasn&apos;t been{' '}
+                <em>written yet.</em>
+              </h3>
+
+              <p className={feed.emptyText}>
+                Every family has a memory worth sharing. Be the first to start.
+              </p>
+
+              <button
+                onClick={() => router.push(isLoggedIn ? '/stories/create' : '/signup')}
+                className={`${landing.btnPrimary} ${landing.btnShadow} ${feed.btn} ${feed.emptyBtn}`}
+              >
+                Share the First Memory
+                <span className={landing.arrowTile} aria-hidden="true">
+                  →
+                </span>
+              </button>
+            </div>
           </div>
-
-          <h3
-            className="text-[26px] leading-[1.15] tracking-[-0.02em] text-[#1A1612]"
-            style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
-          >
-            The first story hasn&apos;t been{' '}
-            <em className="italic text-[#A9782F]">written yet.</em>
-          </h3>
-
-          <p className="mt-4 text-[15px] leading-[1.8] text-[#6F6255]">
-            Every family has a memory worth sharing. Be the first to start.
-          </p>
-
-          <button
-            onClick={() => router.push(isLoggedIn ? '/stories/create' : '/signup')}
-            className="mt-7 inline-flex h-[52px] items-center justify-center gap-2.5 px-10 font-serif text-[1.05rem] text-white shadow-md transition hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #D8BE8B 0%, #A9782F 100%)' }}
-          >
-            <PenLine size={16} strokeWidth={1.8} />
-            Share the First Memory
-          </button>
-        </div>
-      </section>
+        </section>
+      </>
     );
   }
 
@@ -102,26 +119,26 @@ export default function StoryFeed({
     : stories.slice(1);
 
   return (
-    <section className="w-full bg-white">
-      <div className="w-full px-[clamp(1.25rem,4vw,7rem)] py-8 sm:py-10">
-        <div className="flex flex-col xl:flex-row gap-8 xl:gap-12">
+    <>
+      {top}
+      <section className={feed.feed}>
+        <div className={landing.wrap}>
+          <div className={feed.layout}>
 
-          {/* ─── Left: header + stories ─── */}
-          <div className="flex-1 min-w-0">
-          <FeedHeader sortBy={sortBy} onSortChange={onSortChange} activeCategory={activeCategory} isLoggedIn={isLoggedIn} userName={userName} />
+            {/* ─── Left: stories ─── */}
+            <div className={feed.mainCol}>
 
-            {/* Featured Stories — show if one matches the active category */}
-            {activeFeatured && (
-              <FeaturedSection
-                featuredStories={featuredStories}
-                isLoggedIn={isLoggedIn}
-                activeCategory={activeCategory}
-              />
-            )}
+              {/* Featured Stories — show if one matches the active category */}
+              {activeFeatured && (
+                <FeaturedSection
+                  featuredStories={featuredStories}
+                  isLoggedIn={isLoggedIn}
+                  activeCategory={activeCategory}
+                />
+              )}
 
-            {/* Fallback hero if no featured story for this category */}
-            {!activeFeatured && (
-              <div className="mb-6">
+              {/* Fallback hero if no featured story for this category */}
+              {!activeFeatured && (
                 <HeroCard
                   slug={heroStory.slug}
                   title={heroStory.title}
@@ -141,122 +158,107 @@ export default function StoryFeed({
                   isLoggedIn={isLoggedIn}
                   activeCategory={activeCategory}
                 />
-              </div>
-            )}
+              )}
 
-            {/* Grid stories */}
-            {gridStories.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 xl:gap-6 mt-10">
-                {gridStories.map((story) => (
-                  <StoryCard
-                    key={story.id}
-                    featuredLabel={FEATURE_TAB_LABELS[featuredStories.find((f) => f.id === story.id)?.feature_type ?? ''] || null}
-                    slug={story.slug}
-                    title={story.title}
-                    body={story.body}
-                    excerpt={story.excerpt}
-                    authorName={story.author_name}
-                    authorAvatarUrl={story.author_avatar_url}
-                    authorTitle={story.author_title}
-                    coverUrl={story.cover_url}
-                    coverType={story.cover_type}
-                    voiceNotePath={story.voice_note_path}
-                    voiceNoteDuration={story.voice_note_duration}
-                    mediaCount={story.media_count}
-                    category={story.category}
-                    reactionCount={story.reaction_count}
-                    commentCount={story.comment_count}
-                    publishedAt={story.published_at}
-                    isLoggedIn={isLoggedIn}
-                  />
-                ))}
-              </div>
-            )}
+              {/* Grid stories */}
+              {gridStories.length > 0 && (
+                <div className={feed.grid}>
+                  {gridStories.map((story) => (
+                    <StoryCard
+                      key={story.id}
+                      featuredLabel={FEATURE_TAB_LABELS[featuredStories.find((f) => f.id === story.id)?.feature_type ?? ''] || null}
+                      slug={story.slug}
+                      title={story.title}
+                      body={story.body}
+                      excerpt={story.excerpt}
+                      authorName={story.author_name}
+                      authorAvatarUrl={story.author_avatar_url}
+                      authorTitle={story.author_title}
+                      coverUrl={story.cover_url}
+                      coverType={story.cover_type}
+                      voiceNotePath={story.voice_note_path}
+                      voiceNoteDuration={story.voice_note_duration}
+                      mediaCount={story.media_count}
+                      category={story.category}
+                      reactionCount={story.reaction_count}
+                      commentCount={story.comment_count}
+                      publishedAt={story.published_at}
+                      isLoggedIn={isLoggedIn}
+                    />
+                  ))}
+                </div>
+              )}
 
-            {/* Load more */}
-            {hasMore && (
-              <div className="mt-12 flex justify-center">
-                <button
-                  onClick={onLoadMore}
-                  disabled={isLoadingMore}
-                  className="inline-flex items-center gap-2.5 px-10 py-3.5 border-2 border-[#EDE8DF] bg-white font-serif text-[1rem] text-[#3d3428] transition hover:border-[#B8932A] hover:text-[#1A1612] disabled:opacity-50"
-                >
-                  {isLoadingMore ? (
-                    <>
-                      <span className="h-4 w-4 rounded-full border-2 border-[#B8932A] border-t-transparent animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    'More stories'
-                  )}
-                </button>
-              </div>
-            )}
+              {/* Load more */}
+              {hasMore && (
+                <div className={feed.more}>
+                  <button
+                    onClick={onLoadMore}
+                    disabled={isLoadingMore}
+                    className={feed.moreBtn}
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <span className={feed.spinner} />
+                        Loading...
+                      </>
+                    ) : (
+                      'More stories'
+                    )}
+                  </button>
+                </div>
+              )}
 
-            {/* Mobile CTA — end of feed, shown until the sidebar appears at xl */}
-            <div className="xl:hidden mt-10 border border-[#2E2820] bg-[#1A1612] overflow-hidden">
-              <div className="relative w-full aspect-[16/10] overflow-hidden">
-                <Image
-                  src="/CTA.png"
-                  alt="Vintage family photographs"
-                  fill
-                  sizes="100vw"
-                  className="object-cover"
-                />
-              </div>
+              {/* End-of-feed CTA, shown until the sidebar appears at 1280px */}
+              <div className={feed.endCta}>
+                <div className={feed.ctaCard}>
+                  <div className={feed.ctaGlowPink} aria-hidden="true" />
+                  <div className={feed.ctaGlowBlue} aria-hidden="true" />
 
-              <div className="px-5 py-5 sm:px-6 sm:py-6">
-                <span className="block mb-2 text-[10px] sm:text-[11px] tracking-[0.16em] uppercase text-[#B8932A] font-medium">
-                  Preserve a Moment
-                </span>
+                  <span className={feed.ctaBadge}>
+                    Preserve a Moment
+                  </span>
 
-                <h3
-                  className="text-[24px] sm:text-[28px] leading-[1.05] tracking-[-0.04em] text-[#F7F2EA]"
-                  style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontWeight: 600,
-                  }}
-                >
-                  Share a memory
-                  <span className="italic text-[#D8BE8B]"> that lives on.</span>
-                </h3>
+                  <h3 className={feed.ctaTitle}>
+                    Share a memory
+                    <span className={feed.ctaAccent}> that lives on.</span>
+                  </h3>
 
-                <p className="mt-2.5 text-[13px] sm:text-[14px] leading-[1.7] text-white">
-                  It takes two minutes to preserve something that matters
-                  forever. Completely free — no credit card, no catch.
-                </p>
+                  <p className={feed.ctaText}>
+                    It takes two minutes to preserve something that matters
+                    forever. Completely free — no credit card, no catch.
+                  </p>
 
-                <button
-                  onClick={() =>
-                    router.push(isLoggedIn ? '/stories/create' : '/signup')
-                  }
-                  className="group mt-5 inline-flex items-center gap-2 text-[12px] sm:text-[13px] font-medium tracking-[0.08em] uppercase text-white transition hover:text-[#D8BE8B]"
-                >
-                  <PenLine size={13} strokeWidth={1.8} />
-                  Share Your Memory
-                  <ArrowUpRight
-                    size={13}
-                    className="transition-transform duration-200 group-hover:translate-x-[1px] group-hover:-translate-y-[1px]"
-                  />
-                </button>
+                  <button
+                    onClick={() =>
+                      router.push(isLoggedIn ? '/stories/create' : '/signup')
+                    }
+                    className={`${landing.btnPrimary} ${landing.btnLight} ${feed.btn} ${feed.ctaBtn}`}
+                  >
+                    Share Your Memory
+                    <span className={landing.arrowTile} aria-hidden="true">
+                      →
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* ─── Right: sidebar — hidden until xl, where there's room for it ─── */}
-          <div className="hidden xl:block w-[320px] flex-shrink-0">
-            <div className="sticky top-[100px]">
-              <FeedSidebar
-                isLoggedIn={isLoggedIn}
-                trendingStories={trendingStories}
-                popularTopics={popularTopics}
-                onTopicClick={onCategoryChange}
-              />
+            {/* ─── Right: sidebar — hidden until 1280px, where there's room for it ─── */}
+            <div className={feed.side}>
+              <div className={feed.sideSticky}>
+                <FeedSidebar
+                  isLoggedIn={isLoggedIn}
+                  trendingStories={trendingStories}
+                  popularTopics={popularTopics}
+                  onTopicClick={onCategoryChange}
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
 
@@ -302,27 +304,25 @@ function FeaturedSection({
   if (!activeStory) return null;
 
   return (
-    <div className="mb-8">
-      <HeroCard
-        slug={activeStory.slug}
-        title={activeStory.title}
-        body={activeStory.body}
-        excerpt={activeStory.excerpt}
-        authorName={activeStory.author_name}
-        authorAvatarUrl={activeStory.author_avatar_url}
-        authorTitle={activeStory.author_title}
-        coverUrl={activeStory.cover_url}
-        coverType={activeStory.cover_type}
-        voiceNotePath={activeStory.voice_note_path}
-        voiceNoteDuration={activeStory.voice_note_duration}
-        category={activeStory.category}
-        reactionCount={activeStory.reaction_count}
-        commentCount={activeStory.comment_count}
-        publishedAt={activeStory.published_at}
-        isLoggedIn={isLoggedIn}
-        activeCategory={activeCategory}
-        overlineLabel={FEATURE_TAB_LABELS[activeStory.feature_type] || null}
-      />
-    </div>
+    <HeroCard
+      slug={activeStory.slug}
+      title={activeStory.title}
+      body={activeStory.body}
+      excerpt={activeStory.excerpt}
+      authorName={activeStory.author_name}
+      authorAvatarUrl={activeStory.author_avatar_url}
+      authorTitle={activeStory.author_title}
+      coverUrl={activeStory.cover_url}
+      coverType={activeStory.cover_type}
+      voiceNotePath={activeStory.voice_note_path}
+      voiceNoteDuration={activeStory.voice_note_duration}
+      category={activeStory.category}
+      reactionCount={activeStory.reaction_count}
+      commentCount={activeStory.comment_count}
+      publishedAt={activeStory.published_at}
+      isLoggedIn={isLoggedIn}
+      activeCategory={activeCategory}
+      overlineLabel={FEATURE_TAB_LABELS[activeStory.feature_type] || null}
+    />
   );
 }

@@ -1,0 +1,42 @@
+import type { ReactNode } from 'react';
+import LandingFooter from '@/components/landing/LandingFooter';
+import { jakarta } from '@/components/landing/fonts';
+import landing from '@/components/landing/landing.module.css';
+import SiteNav from './SiteNav';
+import StoriesUserBar from './StoriesUserBar';
+import styles from './site.module.css';
+
+/**
+ * Frame for every public page except the landing page itself: the landing's own nav and
+ * footer, its typeface and colour tokens (the landing root class), and the pink and blue
+ * glow from behind the hero. `storiesBar` adds the signed-in bar on Our Stories pages.
+ */
+export default function SiteShell({
+  children,
+  isLoggedIn,
+  storiesBar = false,
+  glow = true,
+}: {
+  children: ReactNode;
+  isLoggedIn?: boolean;
+  storiesBar?: boolean;
+  glow?: boolean;
+}) {
+  return (
+    <div className={`${jakarta.variable} ${landing.page}`}>
+      {glow && (
+        <div className={landing.glows} aria-hidden="true">
+          <div className={landing.glowTop} />
+          <div className={landing.glowBottom} />
+        </div>
+      )}
+
+      <SiteNav isLoggedIn={isLoggedIn} />
+      {storiesBar && <StoriesUserBar isLoggedIn={isLoggedIn} />}
+
+      <main className={styles.main}>{children}</main>
+
+      <LandingFooter />
+    </div>
+  );
+}

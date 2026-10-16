@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Heart } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { toggleReaction } from '@/lib/stories/mutations';
+import styles from '@/components/stories/detail/storyPage.module.css';
 
 export default function ReactionButton({
   storyId,
@@ -65,21 +66,21 @@ export default function ReactionButton({
 
   return (
     <button
+      type="button"
       onClick={handleClick}
       disabled={loading}
-      className="group flex items-center gap-2 text-[14px] lg:text-[15px] xl:text-[16px] font-medium transition-all duration-200"
+      aria-pressed={reacted}
+      aria-label={`Like · ${count}`}
+      className={`${styles.pill} ${styles.pillLike} ${reacted ? styles.liked : ''}`}
     >
       <Heart
         size={18}
-        strokeWidth={1.6}
-        fill="#D94F4F"
-        className={`text-[#D94F4F] transition-all duration-200 ${
-          pulse ? 'scale-125' : 'scale-100'
-        } ${
-          reacted ? 'opacity-100' : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'
-        }`}
+        strokeWidth={2.2}
+        fill="currentColor"
+        aria-hidden="true"
+        className={`${styles.heart} ${pulse ? styles.heartPulse : ''}`}
       />
-      <span className="text-[#1A1612]">{count}</span>
+      <span>{count}</span>
     </button>
   );
 }

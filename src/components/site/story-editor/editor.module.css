@@ -1,0 +1,1425 @@
+/* ============================================================
+   Story editor: /stories/create and /stories/<slug>/edit.
+   Sits inside SiteShell, so it has the landing tokens and type:
+   --c0 pink, --c1 blue, --c2 orange, --c3 aqua, --ink, --hover,
+   --hairline-ring and Plus Jakarta Sans. Text is always ink
+   (white on ink, pink and blue). Built from the landing's own
+   shapes: white cards with the hairline ring, solid colour panels
+   with tilted white tiles, ink buttons with the arrow tile.
+   ============================================================ */
+
+/* ── Entrance: the toolbar and editor rise in once mounted ── */
+
+.preMount {
+  opacity: 0;
+}
+
+.rise {
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Sticky toolbar ───────────────────────────────────────── */
+
+.toolbarWrap {
+  position: sticky;
+  top: 12px;
+  z-index: 40;
+  margin-top: clamp(28px, 3.5vw, 44px);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 22px 44px -30px rgba(10, 10, 15, 0.5);
+}
+
+.toolbarStart,
+.toolbarEnd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.backBtn {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 15px 10px 12px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.12);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.count::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--c1);
+}
+
+.countText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Completeness: title, category and story fill in pink, blue, aqua. */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 8px;
+}
+
+.progressSeg {
+  width: 22px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(10, 10, 15, 0.1);
+  transition: background-color 0.5s ease;
+}
+
+.progressSeg[data-done='true']:nth-child(1) {
+  background: var(--c0);
+}
+
+.progressSeg[data-done='true']:nth-child(2) {
+  background: var(--c1);
+}
+
+.progressSeg[data-done='true']:nth-child(3) {
+  background: var(--c3);
+}
+
+/* Preview toggle (the live preview only exists on wide screens). */
+.toggle {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .toggle {
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.14);
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .toggleOn {
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+}
+
+/* Publish: the landing's ink button with the pink-orange arrow tile. */
+.publish {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  max-width: 100%;
+  height: 52px;
+  padding: 0 6px 0 22px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 18px 32px -18px rgba(10, 10, 15, 0.75);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.publishLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.publishTile {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--c0), var(--c2));
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+
+/* Not ready yet (no title, story or category): a plain white button, faded like the
+   site's other disabled buttons. The ink fill and the colour tile arrive once it can
+   be published. */
+.publish:disabled {
+  cursor: not-allowed;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.14);
+  opacity: 0.6;
+}
+
+.publish:disabled .publishTile {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+/* While publishing the button shows progress, so it keeps its full look. */
+.publishBusy:disabled {
+  cursor: progress;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 18px 32px -18px rgba(10, 10, 15, 0.75);
+  opacity: 1;
+}
+
+.publishBusy:disabled .publishTile {
+  background: linear-gradient(135deg, var(--c0), var(--c2));
+  color: #fff;
+}
+
+.publish:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  .backBtn:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .toggle:not(.toggleOn):hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+
+  .publish:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+
+  .publish:not(:disabled):hover .publishTile {
+    transform: translateX(2px);
+  }
+}
+
+@media (max-width: 639px) {
+  .toolbar {
+    border-radius: 22px;
+    padding: 8px;
+  }
+
+  .backBtn {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+  }
+
+  .count,
+  .progress {
+    display: none;
+  }
+
+  .publish {
+    height: 48px;
+    gap: 12px;
+    padding-left: 18px;
+    font-size: 15px;
+  }
+
+  .publishTile {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+}
+
+/* ── Two columns: editor and live preview ─────────────────── */
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.editorCol {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.previewCol {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .previewCol {
+    display: block;
+    position: sticky;
+    top: 106px;
+    flex: none;
+    width: 340px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .layout {
+    gap: 28px;
+  }
+
+  .previewCol {
+    width: 380px;
+  }
+}
+
+@media (max-width: 599px) {
+  .layout {
+    margin-top: 16px;
+  }
+
+  .editorCol {
+    gap: 16px;
+  }
+}
+
+/* ── Section cards ────────────────────────────────────────── */
+
+.card {
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+  padding: 28px 30px 30px;
+}
+
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 14px;
+  margin-bottom: 22px;
+}
+
+/* Small tilted icon tile in the section's colour (set --tile, --tile-fg, --tilt). */
+.tile {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  background: var(--tile, var(--c0));
+  color: var(--tile-fg, #fff);
+  transform: rotate(var(--tilt, -4deg));
+  box-shadow: 0 14px 24px -14px rgba(10, 10, 15, 0.55);
+  box-shadow: 0 14px 24px -12px color-mix(in srgb, var(--tile, var(--c0)) 45%, var(--ink));
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: clamp(22px, 2vw, 26px);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.optional {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.14);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.optional::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--c3);
+}
+
+@media (max-width: 599px) {
+  .card {
+    border-radius: 26px;
+    padding: 22px 20px 24px;
+  }
+
+  .cardHead {
+    margin-bottom: 18px;
+  }
+
+  .tile {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+}
+
+/* ── Category and title ───────────────────────────────────── */
+
+/* The category buttons wear the landing's topic pills (landing.topic). */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.chip {
+  cursor: pointer;
+}
+
+/* 2px less side padding than the landing pill (landing.topic), so all seven fit on one
+   row on desktop instead of leaving "Travel" alone on a second line. */
+.chips .chip {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Short message with a coloured square (set --dot). */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.notice::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  margin-top: 5px;
+  border-radius: 3px;
+  background: var(--dot, var(--c0));
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 1.5px solid rgba(10, 10, 15, 0.14);
+  border-radius: 18px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+  caret-color: var(--c0);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input::placeholder {
+  color: rgba(10, 10, 15, 0.42);
+}
+
+.input:focus {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c0) 14%, transparent);
+}
+
+.titleInput {
+  height: 70px;
+  padding: 0 22px;
+  font-size: clamp(20px, 2.1vw, 26px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.titleInput::placeholder {
+  font-weight: 700;
+}
+
+.excerptInput {
+  height: 58px;
+  padding: 0 20px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.excerptInput::placeholder {
+  font-weight: 500;
+}
+
+@media (max-width: 599px) {
+  .titleInput {
+    height: 62px;
+    padding: 0 18px;
+    font-size: 19px;
+  }
+
+  .excerptInput {
+    padding: 0 18px;
+  }
+}
+
+/* ── Story text (Quill) ───────────────────────────────────── */
+
+.quill {
+  border: 1.5px solid rgba(10, 10, 15, 0.14);
+  border-radius: 20px;
+  background: #fff;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quill:focus-within {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c0) 14%, transparent);
+}
+
+.quill :global(.ql-toolbar.ql-snow) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1.5px solid rgba(10, 10, 15, 0.08);
+  font-family: inherit;
+}
+
+.quill :global(.ql-toolbar.ql-snow .ql-formats) {
+  display: inline-flex;
+  gap: 4px;
+  margin-right: 0;
+}
+
+.quill :global(.ql-toolbar.ql-snow .ql-formats + .ql-formats) {
+  margin-left: 4px;
+  padding-left: 10px;
+  box-shadow: inset 1.5px 0 0 rgba(10, 10, 15, 0.1);
+}
+
+.quill :global(.ql-snow.ql-toolbar button) {
+  float: none;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 12px;
+  transition: background-color 0.15s ease;
+}
+
+.quill :global(.ql-snow.ql-toolbar button svg) {
+  float: none;
+  width: 22px;
+  height: 22px;
+}
+
+.quill :global(.ql-snow .ql-stroke),
+.quill :global(.ql-snow.ql-toolbar button:hover .ql-stroke),
+.quill :global(.ql-snow.ql-toolbar button:focus .ql-stroke) {
+  stroke: var(--ink);
+}
+
+.quill :global(.ql-snow .ql-fill),
+.quill :global(.ql-snow.ql-toolbar button:hover .ql-fill),
+.quill :global(.ql-snow.ql-toolbar button:focus .ql-fill) {
+  fill: var(--ink);
+}
+
+.quill :global(.ql-snow.ql-toolbar button.ql-active) {
+  background: var(--ink);
+}
+
+.quill :global(.ql-snow.ql-toolbar button.ql-active .ql-stroke) {
+  stroke: #fff;
+}
+
+.quill :global(.ql-snow.ql-toolbar button.ql-active .ql-fill) {
+  fill: #fff;
+}
+
+.quill :global(.ql-container.ql-snow) {
+  border: 0;
+  font-family: inherit;
+  font-size: 17px;
+}
+
+.quill :global(.ql-editor) {
+  min-height: 300px;
+  padding: 22px 24px 26px;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.75;
+  font-weight: 500;
+}
+
+.quill :global(.ql-editor p) {
+  margin-bottom: 0.6rem;
+}
+
+.quill :global(.ql-editor strong) {
+  font-weight: 800;
+}
+
+.quill :global(.ql-editor.ql-blank::before) {
+  left: 24px;
+  right: 24px;
+  color: rgba(10, 10, 15, 0.42);
+  font-style: normal;
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .quill :global(.ql-snow.ql-toolbar button:not(.ql-active):hover) {
+    background: var(--hover);
+  }
+}
+
+@media (max-width: 599px) {
+  /* Five 44px buttons on one row down to 360px wide. */
+  .quill :global(.ql-toolbar.ql-snow) {
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .quill :global(.ql-toolbar.ql-snow .ql-formats) {
+    gap: 0;
+  }
+
+  .quill :global(.ql-toolbar.ql-snow .ql-formats + .ql-formats) {
+    margin-left: 2px;
+    padding-left: 6px;
+  }
+
+  .quill :global(.ql-snow.ql-toolbar button) {
+    width: 44px;
+    height: 44px;
+  }
+
+  .quill :global(.ql-editor) {
+    min-height: 260px;
+    padding: 18px 18px 22px;
+  }
+
+  .quill :global(.ql-editor.ql-blank::before) {
+    left: 18px;
+    right: 18px;
+  }
+}
+
+/* ── Photos ───────────────────────────────────────────────── */
+
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+  .thumbs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .thumbs {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--hover);
+}
+
+.thumbImg {
+  object-fit: cover;
+  transition: opacity 0.2s ease;
+}
+
+.thumbImgBusy {
+  opacity: 0.6;
+}
+
+.thumbBusy,
+.mediaBusy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* White disc behind a spinner so it reads on any photo. */
+.spinDisc {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 10px 20px -10px rgba(10, 10, 15, 0.5);
+}
+
+.thumbDone {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--c3);
+  color: var(--ink);
+}
+
+/* "Saved" label: the landing's white chip with a coloured square. */
+.savedChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 6px 14px -8px rgba(10, 10, 15, 0.5);
+}
+
+.savedChip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--c3);
+}
+
+.thumbSaved {
+  position: absolute;
+  left: 7px;
+  bottom: 7px;
+}
+
+.thumbRemove {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 6px 14px -6px rgba(10, 10, 15, 0.55);
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Bigger hit area than the visible circle. */
+.thumbRemove::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+}
+
+.thumb:hover .thumbRemove,
+.thumbRemove:focus-visible {
+  opacity: 1;
+}
+
+/* Touch screens have no hover, so the remove button is always shown. */
+@media (hover: none) {
+  .thumbRemove {
+    opacity: 1;
+  }
+}
+
+/* ── Drop zones (photos, video): a step card from the landing ── */
+
+.dropGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 639px) {
+  .dropGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 20px 40px -32px rgba(10, 10, 15, 0.45);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.dropPanel {
+  height: 136px;
+  margin: 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: var(--panel, var(--c1));
+}
+
+.dropTile {
+  width: 74px;
+  height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: #fff;
+  color: var(--panel, var(--c1));
+  transform: rotate(var(--tilt, -4deg));
+  box-shadow: 0 18px 30px -18px rgba(10, 10, 15, 0.55);
+  box-shadow: 0 20px 30px -16px color-mix(in srgb, var(--panel, var(--c1)) 35%, var(--ink));
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dropBody {
+  display: block;
+  padding: 16px 18px 18px;
+}
+
+.dropTitle {
+  display: block;
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.dropText {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+/* Dragging files over it, or converting them. */
+.dropActive {
+  box-shadow: 0 0 0 3px var(--panel, var(--c1)), 0 20px 40px -32px rgba(10, 10, 15, 0.45);
+}
+
+.dropActive .dropTile {
+  transform: rotate(0deg) scale(1.06);
+}
+
+.dropBusy {
+  cursor: progress;
+}
+
+/* Keyboard focus lands on the visually hidden file input inside. */
+.drop:has(:focus-visible) {
+  box-shadow: 0 0 0 3px var(--c1), 0 20px 40px -32px rgba(10, 10, 15, 0.45);
+}
+
+@media (hover: hover) {
+  .drop:hover .dropTile {
+    transform: rotate(0deg) scale(1.06);
+  }
+}
+
+/* Hidden file input that still takes keyboard focus. */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  opacity: 0;
+}
+
+/* ── Video ────────────────────────────────────────────────── */
+
+.media {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 20px 40px -32px rgba(10, 10, 15, 0.45);
+  overflow: hidden;
+}
+
+.mediaFrame {
+  position: relative;
+  margin: 8px 8px 0;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+.video {
+  display: block;
+  width: 100%;
+  max-height: 160px;
+  background: var(--ink);
+  transition: opacity 0.2s ease;
+}
+
+.videoBusy {
+  opacity: 0.5;
+}
+
+/* Keyboard focus on the video: the landing's blue ring, drawn on the frame because the
+   frame clips the video's own outline (which would otherwise take the old global ring colour). */
+.video:focus-visible {
+  outline: none;
+}
+
+.mediaFrame:has(.video:focus-visible) {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+.mediaFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 10px 10px 18px;
+}
+
+.mediaInfo {
+  min-width: 0;
+}
+
+.mediaName {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.mediaSize {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ── Voice note ───────────────────────────────────────────── */
+
+.voiceActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.voiceBtn {
+  position: relative;
+  height: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.recordBtn {
+  border: 0;
+  background: var(--c0);
+  color: #fff;
+  box-shadow: 0 18px 30px -20px rgba(10, 10, 15, 0.6);
+  box-shadow: 0 18px 30px -18px color-mix(in srgb, var(--c0) 70%, var(--ink));
+}
+
+.uploadBtn {
+  border: 2px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+}
+
+.uploadBtn:has(:focus-visible) {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+.stopBtn {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--c0);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  box-shadow: 0 18px 30px -18px color-mix(in srgb, var(--c0) 70%, var(--ink));
+}
+
+.voiceCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 18px 36px -30px rgba(10, 10, 15, 0.45);
+}
+
+.playBtn {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.playIcon {
+  margin-left: 2px;
+}
+
+.wave {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.bar {
+  flex: 1;
+  min-height: 3px;
+  border-radius: 2px;
+  background: rgba(10, 10, 15, 0.12);
+}
+
+.barOn {
+  background: var(--c0);
+}
+
+.time {
+  flex: none;
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.voiceInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.voiceTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.voiceNote {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Square icon button (remove / replace). */
+.iconBtn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.14);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (hover: hover) {
+  .recordBtn:hover,
+  .playBtn:hover {
+    transform: translateY(-2px);
+  }
+
+  .uploadBtn:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .thumbRemove:hover,
+  .iconBtn:hover {
+    background: var(--c0);
+    color: #fff;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .voiceBtn {
+    gap: 8px;
+    font-size: 15px;
+  }
+}
+
+/* ── Live preview (wide screens) ──────────────────────────── */
+
+.previewHead {
+  margin: 0 0 14px;
+}
+
+.previewCard {
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+  overflow: hidden;
+}
+
+.previewMedia {
+  position: relative;
+  height: 190px;
+  margin: 8px 8px 0;
+  border-radius: 19px;
+  overflow: hidden;
+  background: var(--hover);
+}
+
+.previewImg {
+  object-fit: cover;
+}
+
+.previewMore {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.5);
+}
+
+.previewEmpty {
+  height: 150px;
+  margin: 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 19px;
+  background: var(--c0);
+}
+
+.previewEmptyTile {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: #fff;
+  color: var(--c0);
+  transform: rotate(-4deg);
+  box-shadow: 0 20px 30px -16px color-mix(in srgb, var(--c0) 35%, var(--ink));
+}
+
+.previewBody {
+  padding: 20px 22px 22px;
+}
+
+.previewTopic {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.previewTopic::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--c0);
+}
+
+.previewTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.previewExcerpt {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.previewText {
+  display: -webkit-box;
+  margin: 10px 0 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  font-size: 14.5px;
+  line-height: 1.6;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.previewMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1.5px solid rgba(10, 10, 15, 0.08);
+}
+
+.previewMeta:empty {
+  display: none;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.12);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.metaChip svg {
+  color: var(--chip, var(--c1));
+}
+
+.metaDot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--c2);
+}
+
+/* ── Moderation messages ──────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(10, 10, 15, 0.45);
+}
+
+.dialog {
+  width: 100%;
+  max-width: 460px;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 38px 32px 32px;
+  border-radius: 30px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 40px 90px -30px rgba(10, 10, 15, 0.65);
+  animation: pop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+.dialogTile {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: var(--tile, var(--c1));
+  color: #fff;
+  transform: rotate(-4deg);
+  box-shadow: 0 20px 30px -16px color-mix(in srgb, var(--tile, var(--c1)) 45%, var(--ink));
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: clamp(24px, 2.4vw, 28px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.dialogText {
+  margin: 12px 0 0;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.dialogActions {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+}
+
+/* The landing's link buttons used as <button>s. */
+.asButton {
+  cursor: pointer;
+}
+
+@media (max-width: 599px) {
+  .dialog {
+    padding: 32px 22px 24px;
+    border-radius: 26px;
+  }
+}
+
+/* ── Reduced motion ───────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .dialog {
+    animation: none;
+  }
+
+  .spin {
+    animation-duration: 2.4s;
+  }
+}
