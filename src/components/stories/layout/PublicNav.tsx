@@ -194,11 +194,11 @@ export default function PublicNav() {
 
   const navLinks = isLoggedIn
     ? [
-        { href: '/', label: 'Our Stories' },
+        { href: '/stories', label: 'Our Stories' },
         { href: '/dashboard/home', label: 'My Family' },
       ]
     : [
-        { href: '/', label: 'Our Stories' },
+        { href: '/stories', label: 'Our Stories' },
         { href: '/how-it-works', label: 'How It Works' },
         { href: '/why-this-exists', label: 'Our Roots' },
         { href: '/login', label: 'My Family' },
@@ -687,8 +687,8 @@ export default function PublicNav() {
                 key={link.label}
                 href={link.href}
                 className={`pn-link ${
-  link.href === '/'
-    ? pathname === '/' || pathname.startsWith('/stories')
+  link.href === '/stories'
+    ? pathname.startsWith('/stories')
       ? 'active'
       : ''
     : link.href.startsWith('/dashboard')
@@ -839,8 +839,8 @@ export default function PublicNav() {
               key={link.label}
               href={link.href}
               className={`pn-drawer-link ${
-  link.href === '/'
-    ? pathname === '/' || pathname.startsWith('/stories')
+  link.href === '/stories'
+    ? pathname.startsWith('/stories')
       ? 'active'
       : ''
     : link.href.startsWith('/dashboard')

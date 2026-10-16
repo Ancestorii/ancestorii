@@ -281,7 +281,7 @@ export default function LoginPage() {
               Create an account
             </Link>
             <Link
-              href="/"
+              href="/stories"
               className="text-[12px] sm:text-[13px] text-[#5A4F3C] hover:text-[#4A4030] transition-colors duration-200 no-underline"
             >
               Back to stories

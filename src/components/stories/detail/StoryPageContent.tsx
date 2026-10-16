@@ -116,7 +116,7 @@ export default function StoryPageContent({
     const supabase = getBrowserClient();
     const success = await deleteStory(supabase, story.id);
     if (success) {
-      router.push('/');
+      router.push('/stories');
     } else {
       setDeleting(false);
       setDeleteModalOpen(false);

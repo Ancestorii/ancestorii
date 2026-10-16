@@ -7,7 +7,7 @@ const SECTIONS = [
   {
     heading: 'Discover',
     links: [
-      { href: '/', label: 'Explore Stories' },
+      { href: '/stories', label: 'Explore Stories' },
       { href: '/stories/topics', label: 'Browse by Topic' },
       { href: '/digital-legacy', label: 'What is a Digital Legacy?' },
       { href: '/living-library', label: 'What is a Living Library?' },
