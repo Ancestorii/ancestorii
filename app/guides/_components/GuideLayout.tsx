@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { Breadcrumbs, Eyebrow, type Crumb } from '@/components/site/SiteBits';
-import landing from '@/components/landing/landing.module.css';
-import site from '@/components/site/site.module.css';
+import { Breadcrumbs, ClosingCta, DotList, Eyebrow, type Crumb } from '@/components/site/SiteBits';
 import g from './guides.module.css';
 
 // One template for every page under /guides, in the landing page's language (SiteShell
@@ -109,30 +107,15 @@ const CTA_NOTE = ['Free forever', 'No credit card', 'Takes 2 minutes'];
 /** The landing's dark closing slab: the guide's own closing title and line, and Start For Free. */
 export function GuideCta({ title, children }: { title: ReactNode; children: ReactNode }) {
   return (
-    <section className={`${landing.ctaSection} ${site.ctaEnd}`}>
-      <div className={`${landing.wrap} ${landing.ctaSlab}`}>
-        <div className={landing.ctaGlowPink} aria-hidden="true" />
-        <div className={landing.ctaGlowBlue} aria-hidden="true" />
-        <div className={landing.ctaCopy}>
-          <h2 className={g.ctaTitle}>{title}</h2>
-          <p className={landing.ctaLead}>{children}</p>
-          <div className={landing.ctaButtons}>
-            <Link href="/signup" prefetch className={`${landing.btnPrimary} ${landing.btnLight}`}>
-              Start For Free
-              <span className={landing.arrowTile} aria-hidden="true">
-                →
-              </span>
-            </Link>
-          </div>
-          <div className={g.ctaNote}>
-            <ul className={`${site.dots} ${site.dotsCenter}`}>
-              {CTA_NOTE.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
+    <ClosingCta
+      wide
+      size="md"
+      prefetch
+      title={title}
+      lead={children}
+      primary={{ href: '/signup', label: 'Start For Free' }}
+    >
+      <DotList center items={CTA_NOTE} />
+    </ClosingCta>
   );
 }

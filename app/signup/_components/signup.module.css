@@ -15,12 +15,6 @@
   margin-top: 30px;
 }
 
-/* Space held while the form script loads, so the page does not jump. */
-.placeholder {
-  margin-top: 30px;
-  min-height: 400px;
-}
-
 /* ── Step indicator: a two-part bar (current step in pink), Back beside it on step 2 ── */
 
 .stepTop {
@@ -195,6 +189,21 @@
   font-weight: 800;
 }
 
+/* Consent line under Continue with Google (the email path has its own tick box). */
+.googleNote {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.googleNote a {
+  font-weight: 800;
+  color: var(--c1);
+}
+
 /* ── Checkboxes: the whole row is the touch target ────────── */
 
 .checks {
@@ -203,35 +212,4 @@
 
 .check {
   padding: 11px 0;
-}
-
-/* ── StepIndicator (headline block, kept for reuse) ───────── */
-
-.indicator {
-  margin-bottom: 40px;
-  text-align: center;
-}
-
-.indicatorTitle {
-  margin: 0;
-  font-size: clamp(36px, 6vw, 60px);
-  line-height: 1.02;
-  letter-spacing: -0.05em;
-  font-weight: 800;
-  text-wrap: balance;
-}
-
-.indicatorText {
-  margin: 16px 0 0;
-  font-size: 17px;
-  line-height: 1.55;
-  font-weight: 500;
-  text-wrap: pretty;
-}
-
-.indicatorFree {
-  margin: 10px 0 0;
-  font-size: 16px;
-  line-height: 1.5;
-  font-weight: 800;
 }

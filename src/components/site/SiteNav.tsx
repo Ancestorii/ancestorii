@@ -7,7 +7,7 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 // The landing page's own nav, used on every other public page. Pages that already know
 // who is signed in pass `isLoggedIn`; static pages leave it out and the nav reads the
 // browser session once it mounts, so those pages can stay statically rendered.
-export default function SiteNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
+export default function SiteNav({ isLoggedIn, hidePricing }: { isLoggedIn?: boolean; hidePricing?: boolean }) {
   const [sessionSignedIn, setSessionSignedIn] = useState(false);
   const known = isLoggedIn !== undefined;
 
@@ -27,5 +27,5 @@ export default function SiteNav({ isLoggedIn }: { isLoggedIn?: boolean }) {
     };
   }, [known]);
 
-  return <LandingNav isLoggedIn={known ? !!isLoggedIn : sessionSignedIn} />;
+  return <LandingNav isLoggedIn={known ? !!isLoggedIn : sessionSignedIn} hidePricing={hidePricing} />;
 }

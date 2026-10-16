@@ -7,7 +7,7 @@ import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/Guide
 import { GuideFigure, Step, Steps } from '../_components/GuideBlocks';
 
 export const metadata: Metadata = {
-  title: 'What to Write in a Memory Book | Ancestorii',
+  title: 'What to Write in a Memory Book',
   description:
     'A practical guide to what to write in a memory book, what to include on every page, and how to turn scattered memories into a keepsake your family will actually return to.',
   alternates: {

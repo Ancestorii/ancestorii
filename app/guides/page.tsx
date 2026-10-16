@@ -10,7 +10,7 @@ import { GuideCard, type GuideTone } from './_components/GuideBlocks';
 import styles from './_components/guides.module.css';
 
 export const metadata: Metadata = {
-  title: 'Family Memory Guides | Ancestorii',
+  title: 'Family Memory Guides',
   description:
     'Practical guides on capturing stories, voices, and photos while life is happening. Learn how to begin building your family library with clarity and intention.',
   alternates: {
@@ -46,7 +46,7 @@ const guides = [
   },
   {
     title: 'Questions to ask your parents about their life',
-    desc: 'More than sixty questions, grouped by theme, for asking while you still can.',
+    desc: 'Thirty questions, grouped by theme, for asking while you still can.',
     href: '/guides/questions-to-ask-your-parents-about-their-life',
   },
   {

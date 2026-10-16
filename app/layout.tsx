@@ -5,6 +5,8 @@ import { Toaster } from "react-hot-toast";
 import Script from "next/script";
 import LenisProvider from "./providers/LenisProvider";
 
+// Keep: this registers the global "Inter" face that the dashboard's font-[Inter] classes and the
+// 800-weight Memory Book cover titles (editor and print export) rely on.
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 const playfair = Playfair_Display({
@@ -236,23 +238,23 @@ rdt('track','PageVisit');
           toastOptions={{
             duration: 7000,
             style: {
-              background: "#0F2040",
+              background: "#0A0A0F",
               color: "#FFFFFF",
-              border: "1px solid #D4AF37",
-              borderRadius: "12px",
+              border: "1px solid rgba(255, 255, 255, 0.12)",
+              borderRadius: "14px",
               padding: "12px 18px",
               fontSize: "15.5px",
               fontWeight: 500,
             },
             success: {
               iconTheme: {
-                primary: "#D4AF37",
-                secondary: "#FFFFFF",
+                primary: "#12D3AC",
+                secondary: "#0A0A0F",
               },
             },
             error: {
               iconTheme: {
-                primary: "#D64545",
+                primary: "#FF2D87",
                 secondary: "#FFFFFF",
               },
             },

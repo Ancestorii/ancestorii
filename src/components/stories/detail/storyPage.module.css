@@ -89,7 +89,7 @@
   padding: 0 15px;
   border-radius: 999px;
   background: var(--c0);
-  color: #fff;
+  color: var(--ink);
   font-weight: 800;
 }
 
@@ -228,13 +228,8 @@
   transition: transform 0.15s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.pill:not(.pillStatic):active {
+.pill:active {
   transform: scale(0.96);
-}
-
-/* The comment count has no action of its own (as before), so it gives no hover or press feedback. */
-.pillStatic {
-  cursor: default;
 }
 
 .pillSoft {
@@ -328,7 +323,7 @@
 }
 
 @media (hover: hover) {
-  .pillSoft:not(.pillStatic):hover {
+  .pillSoft:hover {
     box-shadow: inset 0 0 0 1.5px var(--ink);
   }
 

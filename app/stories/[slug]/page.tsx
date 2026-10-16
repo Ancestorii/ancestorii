@@ -5,6 +5,7 @@ import Script from 'next/script';
 import SiteShell from '@/components/site/SiteShell';
 import StoryPageContent from '@/components/stories/detail/StoryPageContent';
 import { getStoryComments } from '@/lib/stories/queries';
+import { plainTextFromHtml } from '@/lib/stories/format';
 
 function sanitizeHtml(html: string): string {
   return html
@@ -25,18 +26,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const supabase = await getServerClient();
 
-  const { data: story } = await supabase
+  const { data: story, error } = await supabase
     .from('stories')
     .select('title, body, author_name, slug, category, id')
     .eq('slug', slug)
     .eq('status', 'published')
-    .single();
+    .maybeSingle();
 
+  // As in the page: a failed query is an error, not a missing story
+  if (error) throw new Error(`Could not load story "${slug}": ${error.message}`);
   if (!story) {
-    return { title: 'Story Not Found — Ancestorii' };
+    return { title: 'Story Not Found' };
   }
 
-  const plainBody = story.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const plainBody = plainTextFromHtml(story.body);
   const description = plainBody.length > 160 ? plainBody.slice(0, 157).trim() + '…' : plainBody;
 
   let ogImageUrl = '/og-default.jpg';
@@ -93,14 +96,16 @@ export default async function StoryPage({ params }: Props) {
   } = await supabase.auth.getUser();
   const isLoggedIn = !!user;
 
-  // Fetch story
-  const { data: story } = await supabase
+  // Fetch story. Only a story that isn't there is a 404; a failed query (a timeout, say)
+  // throws to the error boundary, so a blip never tells search engines the story is gone.
+  const { data: story, error: storyError } = await supabase
     .from('stories')
     .select('*')
     .eq('slug', slug)
     .eq('status', 'published')
-    .single();
+    .maybeSingle();
 
+  if (storyError) throw new Error(`Could not load story "${slug}": ${storyError.message}`);
   if (!story) notFound();
 
   const isAuthor = user?.id === story.author_id;
@@ -263,6 +268,8 @@ export default async function StoryPage({ params }: Props) {
     commentCount: relatedCommentMap.get(s.id) ?? 0,
   }));
 
+  const plainBody = plainTextFromHtml(story.body);
+
   return (
     <>
       <Script
@@ -274,10 +281,7 @@ export default async function StoryPage({ params }: Props) {
           '@context': 'https://schema.org',
           '@type': 'Article',
           headline: story.title,
-          description:
-            story.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().length > 160
-              ? story.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 157) + '…'
-              : story.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+          description: plainBody.length > 160 ? plainBody.slice(0, 157) + '…' : plainBody,
           author: { '@type': 'Person', name: story.author_name },
           datePublished: story.published_at,
           dateModified: story.updated_at,

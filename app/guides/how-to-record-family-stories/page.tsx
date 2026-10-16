@@ -7,7 +7,7 @@ import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/Guide
 import { Point, Points, Prompt, Prompts } from '../_components/GuideBlocks';
 
 export const metadata: Metadata = {
-  title: 'How to Record Family Stories and Voices | Ancestorii',
+  title: 'How to Record Family Stories and Voices',
   description:
     'Learn how to record family stories in a simple, meaningful way. Capture personal memories while life is happening and grow a living family collection over time.',
   alternates: {

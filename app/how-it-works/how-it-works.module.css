@@ -3,7 +3,8 @@
    (src/components/landing/landing.module.css, src/components/site/site.module.css).
    Colours come only from the landing root tokens: --c0 pink, --c1 blue,
    --c2 orange, --c3 aqua, --ink, plus white. Text is ink, or white on
-   ink/pink/blue and ink on orange/aqua.
+   ink/blue and ink on pink/orange/aqua (white stays only for icons and big
+   numerals on pink tiles).
    ============================================================ */
 
 /* ── Colour tones for cards and tiles ─────────────────────── */
@@ -290,6 +291,12 @@
   transform: rotate(var(--tilt, -4deg));
 }
 
+/* White body text on pink is too faint to read comfortably, so the pink card's words are
+   ink, title included, to keep the card in one colour. */
+.rule.pink {
+  --fg: var(--ink);
+}
+
 .ruleText {
   margin: 0;
   font-size: 16.5px;
@@ -500,26 +507,25 @@
   }
 }
 
-/* ── Closing slab ─────────────────────────────────────────── */
+/* ── Closing slab (ClosingCta) ────────────────────────────── */
 
-/* Two sentences instead of the landing's one, so the copy gets more width
-   and a slightly smaller title. */
-.cta .ctaCopy {
-  flex-basis: 1000px;
-}
-
-.cta .ctaTitle {
-  max-width: none;
-  font-size: clamp(34px, 4.2vw, 60px);
-  line-height: 1.02;
-}
-
-.ctaDots {
-  margin-top: 22px;
-}
-
-.cta .ctaBadges {
+/* The store badges under the dots. */
+.ctaBadges {
   margin-top: 26px;
   justify-content: center;
   gap: 12px;
+}
+
+/* Each sentence of the title is its own line, and balances on its own when it wraps. */
+.ctaLine {
+  display: block;
+}
+
+/* From about 527 to 636px the first sentence wraps but the second does not, which stacks
+   the title into a three-line pyramid. A narrower title wraps both into two balanced lines,
+   as on phones. (The doubled class outranks the shared `wide` rule that lifts the cap.) */
+@media (max-width: 639px) {
+  .cta.cta h2 {
+    max-width: 12em;
+  }
 }

@@ -15,7 +15,8 @@ import { TOPICS } from '@/lib/stories/topics';
 const SITE = 'https://www.ancestorii.com';
 
 export const metadata: Metadata = {
-  title: 'Browse Family Stories by Topic | Ancestorii',
+  // The root layout's template adds " | Ancestorii"
+  title: 'Browse Family Stories by Topic',
   description:
     'Explore real family stories by topic — family, food and recipes, childhood, love, life lessons, traditions, and travel. Real memories from real families on Ancestorii.',
   alternates: { canonical: `${SITE}/stories/topics` },
@@ -35,12 +36,22 @@ export const metadata: Metadata = {
 export default async function TopicsIndexPage() {
   const supabase = await getServerClient();
 
-  // Count published stories per category
-  const { data: rows } = await supabase
-    .from('stories')
-    .select('category')
-    .eq('status', 'published')
-    .not('category', 'is', null);
+  const [
+    {
+      data: { user },
+    },
+    { data: rows },
+  ] = await Promise.all([
+    // The reader, so the signed-in bar is there from the first paint
+    supabase.auth.getUser(),
+    // Count published stories per category
+    supabase
+      .from('stories')
+      .select('category')
+      .eq('status', 'published')
+      .not('category', 'is', null),
+  ]);
+  const isLoggedIn = !!user;
 
   const counts = new Map<string, number>();
   (rows ?? []).forEach((r) => {
@@ -82,7 +93,7 @@ export default async function TopicsIndexPage() {
         })}
       </Script>
 
-      <SiteShell storiesBar>
+      <SiteShell isLoggedIn={isLoggedIn} storiesBar>
         {/* HERO */}
         <section className={topics.hero}>
           <div className={topics.heroInner}>

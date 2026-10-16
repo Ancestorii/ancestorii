@@ -11,6 +11,19 @@
   letter-spacing: -0.045em;
   word-spacing: 0.08em;
   font-weight: 800;
+  /* Room above it when the story page's comment count jumps here */
+  scroll-margin-top: 32px;
+}
+
+/* Focused by that jump: the ring shows when it came from the keyboard. */
+.heading:focus {
+  outline: none;
+}
+
+.heading:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 6px;
+  border-radius: 6px;
 }
 
 .list {

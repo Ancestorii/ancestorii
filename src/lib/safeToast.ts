@@ -13,54 +13,23 @@ function shouldSkip(msgKey: string) {
   return false;
 }
 
-/* ---------- Toast Wrapper ---------- */
+/* ---------- Toast Wrapper ----------
+   The look (ink background, white text, aqua/pink icons) comes from the root <Toaster> in
+   app/layout.tsx, so every toast on the site and in the dashboard matches. */
 export const safeToast = {
   success(msg: string) {
     if (shouldSkip(msg)) return;
-    toast.success(msg, {
-      style: {
-        background: "#ffffff",
-        color: "#0F2040",
-        border: "1px solid #D4AF37",
-        padding: "12px 16px",
-        fontFamily: "Inter, sans-serif",
-        fontWeight: 500,
-      },
-      iconTheme: {
-        primary: "#D4AF37",
-        secondary: "#ffffff",
-      },
-    });
+    toast.success(msg);
   },
 
   error(msg: string) {
     if (shouldSkip(msg)) return;
-    toast.error(msg, {
-      style: {
-        background: "#ffffff",
-        color: "#B91C1C",
-        border: "1px solid #F87171",
-        padding: "12px 16px",
-        fontFamily: "Inter, sans-serif",
-        fontWeight: 500,
-      },
-    });
+    toast.error(msg);
   },
 
   info(msg: string) {
     if (shouldSkip(msg)) return;
-    toast(msg, {
-      icon: "✨",
-      style: {
-        background: "#fffdfa",
-        color: "#0F2040",
-        border: "1px solid #D4AF37",
-        boxShadow: "0 0 15px rgba(212,175,55,0.25)",
-        padding: "12px 16px",
-        fontFamily: "Inter, sans-serif",
-        fontWeight: 500,
-      },
-    });
+    toast(msg, { icon: "✨" });
   },
 
   custom(

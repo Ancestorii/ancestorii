@@ -1,7 +1,23 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Play, Pause, Download } from 'lucide-react';
+
+/**
+ * Bar heights (0.2–1) from a seeded generator, so the server and the browser
+ * draw the same waveform. Seeded by the URL without its query string, so a
+ * note keeps its shape when its signed URL is renewed.
+ */
+function waveformBars(src: string, count: number) {
+  let seed = 2166136261;
+  for (const ch of src.split('?')[0]) seed = Math.imul(seed ^ ch.charCodeAt(0), 16777619);
+  return Array.from({ length: count }, () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return 0.2 + (((t ^ (t >>> 14)) >>> 0) / 4294967296) * 0.8;
+  });
+}
 
 /**
  * Waveform audio player for a single voice note (signed URL).
@@ -21,12 +37,13 @@ export default function VoiceNotePlayer({
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const barCount = compact ? 32 : 48;
-  const [bars] = useState(() => Array.from({ length: barCount }, () => 0.2 + Math.random() * 0.8));
+  const bars = useMemo(() => waveformBars(src, barCount), [src, barCount]);
 
   const toggle = () => {
     const el = audioRef.current;
     if (!el) return;
-    playing ? el.pause() : el.play();
+    if (playing) el.pause();
+    else el.play();
     setPlaying(!playing);
   };
   const seek = (e: React.MouseEvent<HTMLDivElement>) => {

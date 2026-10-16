@@ -2,6 +2,7 @@ import SiteShell from '@/components/site/SiteShell';
 import MemoryBooksContent from '@/components/MemoryBookSection';
 import type { Metadata } from "next";
 import Script from "next/script";
+import { MEMORY_BOOK_FAQS } from '@/components/site/memory-books/faqs';
 
 export const metadata: Metadata = {
   title: "Memory Books: Turn Your Family Stories Into a Printed Hardcover",
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     description: "Turn your family's stories and photos into a beautifully printed hardcover book you design yourself.",
     url: "https://www.ancestorii.com/memory-books",
     siteName: "Ancestorii",
-    images: [{ url: "/og-memory-books.jpg", width: 1200, height: 630, alt: "Ancestorii Memory Books" }],
+    images: [{ url: "/og-default.jpg", width: 1200, height: 630, alt: "Ancestorii Memory Books" }],
     locale: "en_GB",
     type: "website",
   },
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Memory Books | Ancestorii",
     description: "Design and print a hardcover book of your family's stories, photos, and memories.",
-    images: ["/og-memory-books.jpg"],
+    images: ["/og-default.jpg"],
   },
 };
 
@@ -54,14 +55,11 @@ export default function MemoryBooksPage() {
       <Script id="memory-books-faq-schema" type="application/ld+json" strategy="afterInteractive">
         {JSON.stringify({
           "@context": "https://schema.org", "@type": "FAQPage",
-          mainEntity: [
-            { "@type": "Question", name: "What is an Ancestorii Memory Book?", acceptedAnswer: { "@type": "Answer", text: "A Memory Book is a professionally printed hardcover book containing your family's stories, photos, and memories. You design every page using a visual editor — no rigid templates or generic layouts." } },
-            { "@type": "Question", name: "How is this different from a regular photo book?", acceptedAnswer: { "@type": "Answer", text: "Photo books display images. Memory Books preserve stories. Each page can combine photographs with written context, personal reflections, and the meaning behind a moment." } },
-            { "@type": "Question", name: "Do I need design experience?", acceptedAnswer: { "@type": "Answer", text: "No. The visual editor is built so anyone can arrange pages naturally. Drag photos, add text, adjust layouts — the design stays clean without needing professional skills." } },
-            { "@type": "Question", name: "How are Memory Books printed and delivered?", acceptedAnswer: { "@type": "Answer", text: "Memory Books are professionally printed as hardcover books and shipped directly to your door." } },
-            { "@type": "Question", name: "Can I order multiple copies?", acceptedAnswer: { "@type": "Answer", text: "Yes. Once your Memory Book is designed, you can order as many copies as you need." } },
-            { "@type": "Question", name: "What makes this different from StoryWorth or other services?", acceptedAnswer: { "@type": "Answer", text: "Most services use a question-and-answer template. Ancestorii gives you full creative control over every page." } },
-          ],
+          mainEntity: MEMORY_BOOK_FAQS.map(({ q, a }) => ({
+            "@type": "Question",
+            name: q,
+            acceptedAnswer: { "@type": "Answer", text: a },
+          })),
         })}
       </Script>
 

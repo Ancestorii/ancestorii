@@ -45,13 +45,15 @@ export function ArrowLink({
   href,
   children,
   className = '',
+  prefetch,
 }: {
   href: string;
   children: ReactNode;
   className?: string;
+  prefetch?: boolean;
 }) {
   return (
-    <Link href={href} className={`${styles.btnPrimary} ${className}`}>
+    <Link href={href} prefetch={prefetch} className={`${styles.btnPrimary} ${className}`}>
       {children}
       <span className={styles.arrowTile} aria-hidden="true">
         →

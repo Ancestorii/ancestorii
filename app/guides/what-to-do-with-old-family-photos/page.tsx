@@ -6,7 +6,7 @@ import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/Guide
 import { Compare, CompareRow, GuideFigure } from '../_components/GuideBlocks';
 
 export const metadata: Metadata = {
-  title: 'What to Do with Old Family Photos | Ancestorii',
+  title: 'What to Do with Old Family Photos',
   description:
     'A practical guide on how to preserve old family photos by adding context, stories, and meaning so each image becomes part of a living family library.',
   alternates: {
@@ -121,13 +121,17 @@ export default function OldFamilyPhotosPage() {
             </Prose>
           </GuideSection>
 
-          <GuideFigure
-            src="/Testimonial2.png"
-            alt="Alison and her dad holding his printed Ancestorii Memory Book"
-            label="Alison · Nevada, US"
-            color="var(--c1)"
-            position="50% 30%"
-          />
+          {/* Alison's photo is only 651px wide, so its frame is never wider than that
+              (it would turn soft); centred in the reading column. */}
+          <div style={{ maxWidth: 651, marginInline: 'auto' }}>
+            <GuideFigure
+              src="/Testimonial2.png"
+              alt="Alison and her dad holding his printed Ancestorii Memory Book"
+              label="Alison · Nevada, US"
+              color="var(--c1)"
+              position="50% 30%"
+            />
+          </div>
 
           <PullQuote>
             A photo with three sentences of context{' '}

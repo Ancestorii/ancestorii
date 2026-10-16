@@ -12,7 +12,7 @@ import {
 import LegalToc, { type TocGroup } from '@/components/site/legal/LegalToc';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions – Ancestorii',
+  title: 'Terms & Conditions',
   description:
     'Terms and conditions governing use of the Ancestorii website, mobile app, physical products, and services.',
   alternates: {
@@ -92,7 +92,7 @@ export default function TermsPage() {
             Terms &amp; <Accent>Conditions</Accent>
           </>
         }
-        lead={<>Last updated: 26 June 2026</>}
+        lead={<>Last updated: 16 October 2026</>}
       />
 
       {/* ── Body ── */}
@@ -444,8 +444,9 @@ export default function TermsPage() {
         {/* 13 */}
         <Section number="13" title="Account Termination">
           <p>
-            You may delete your account at any time through your account
-            settings on the website or by contacting support@ancestorii.com.
+            You may delete your account at any time in the Ancestorii app (go to
+            your Profile and tap &quot;Delete Account&quot;) or by contacting
+            support@ancestorii.com.
             Upon deletion, your personal data and uploaded content will be
             permanently removed in accordance with our data-retention practices
             outlined in the Privacy Policy. Content within a shared family space
@@ -913,14 +914,14 @@ export default function TermsPage() {
         <Section number="30" title="Account Deletion in the App">
           <p>
             You can delete your account and all associated data at any time
-            directly in the app, by going to the Profile screen and tapping
-            &quot;Delete account&quot;. This permanently removes your account
-            and personal data, signs you out, and you will no longer be able to
-            log back in.
+            directly in the app: open the Ancestorii app, go to your Profile,
+            tap &quot;Delete Account&quot; and confirm when prompted. This
+            permanently removes your account and personal data, signs you out,
+            and you will no longer be able to log back in.
           </p>
           <p>
             Deletion also remains available by contacting support@ancestorii.com
-            or by deleting your account on the website at ancestorii.com.
+            if you cannot use the app.
             Deletion is actioned in accordance with the data-retention practices
             set out in our Privacy Policy. Signing out of the app does not delete
             your account or your content.

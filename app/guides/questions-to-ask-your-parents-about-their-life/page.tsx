@@ -7,14 +7,16 @@ import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/Guide
 import { QuestionSet, QuestionSets, Step, Steps } from '../_components/GuideBlocks';
 
 export const metadata: Metadata = {
-  title: 'Questions to Ask Your Parents About Their Life | Ancestorii',
+  title: 'Questions to Ask Your Parents About Their Life',
   description:
-    'More than sixty questions to ask your parents and grandparents about their lives, grouped by theme, plus how to have the conversation before the stories are gone.',
+    'Thirty questions to ask your parents and grandparents about their lives, grouped by theme, plus how to have the conversation before the stories are gone.',
   alternates: {
     canonical: 'https://www.ancestorii.com/guides/questions-to-ask-your-parents-about-their-life',
   },
 };
 
+// Thirty questions in all (five themes of six). The copy says "Thirty" in the metadata, the
+// Article schema, the section heading and the card on /guides: change those with the count.
 const SETS = [
   {
     title: 'Childhood and the early years',
@@ -83,7 +85,7 @@ export default function QuestionsToAskParentsPage() {
         {JSON.stringify({
           '@context': 'https://schema.org', '@type': 'Article',
           headline: 'Questions to ask your parents about their life',
-          description: 'More than sixty questions to ask your parents and grandparents about their lives, grouped by theme, plus how to have the conversation.',
+          description: 'Thirty questions to ask your parents and grandparents about their lives, grouped by theme, plus how to have the conversation.',
           author: { '@type': 'Organization', name: 'Ancestorii' },
           publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
           mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/questions-to-ask-your-parents-about-their-life' },
@@ -163,7 +165,7 @@ export default function QuestionsToAskParentsPage() {
           <GuideSection
             title={
               <>
-                More than sixty <Accent tone="pink">to begin with.</Accent>
+                Thirty questions <Accent tone="pink">to begin with.</Accent>
               </>
             }
           >

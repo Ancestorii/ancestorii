@@ -43,7 +43,7 @@
   --destructive: oklch(0.577 0.245 27.325); /* functional error red — intentionally distinct from --like */
   --border: var(--hairline);
   --input: var(--hairline);
-  --ring: var(--gold);                   /* gold focus ring */
+  --ring: #2B4BFF;                       /* brand blue focus ring */
 
   /* Charts — provisional on-brand mapping (gold / periwinkle / ink family); revisit with a proper dataviz pass */
   --chart-1: var(--gold);
@@ -52,7 +52,7 @@
   --chart-4: var(--gold-deep);
   --chart-5: #7C8AE0;
 
-  /* Sidebar — white ground, ink text, cool hover, gold focus */
+  /* Sidebar — white ground, ink text, cool hover, blue focus */
   --sidebar: #FFFFFF;
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--ink);
@@ -60,7 +60,7 @@
   --sidebar-accent: var(--surface-periwinkle);
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--hairline);
-  --sidebar-ring: var(--gold);
+  --sidebar-ring: var(--ring);
 }
 
 /* Base setup */
@@ -96,19 +96,6 @@
   }
   100% {
     transform: translateX(100%);
-  }
-}
-
-
-@keyframes ambientPulse {
-  0% {
-    background-color: rgba(230, 194, 110, 0.12);
-  }
-  50% {
-    background-color: rgba(230, 194, 110, 0.22);
-  }
-  100% {
-    background-color: rgba(230, 194, 110, 0.12);
   }
 }
 
@@ -197,56 +184,6 @@ section {
 }
 
 
-@keyframes confirm-shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  50% { transform: translateX(2px); }
-  75% { transform: translateX(-2px); }
-  100% { transform: translateX(0); }
-}
-
-.confirm-shake-hover:hover {
-  animation: confirm-shake 0.35s ease-in-out;
-}
-
-@keyframes fade-in-soft {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-out-soft {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-}
-
-.fade-in-soft {
-  animation: fade-in-soft 0.35s ease-out;
-}
-
-.fade-out-soft {
-  animation: fade-out-soft 0.25s ease-in forwards;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
 /* ===========================
    PERFORMANCE MODE (SAFE)
    =========================== */
@@ -289,11 +226,13 @@ html {
   width: 100%;
   height: 4px; /* 🔥 thicker */
 
+  /* brand gradient; it ends on pink again so the moving loop has no seam */
   background: linear-gradient(
     90deg,
-    #D4AF37,
-    #f3d99b,
-    #D4AF37
+    #FF2D87,
+    #FF7A1A,
+    #2B4BFF,
+    #FF2D87
   );
 
   background-size: 200% 100%;

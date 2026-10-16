@@ -14,7 +14,7 @@ import {
 } from '@/components/site/seo-articles/ArticleBits';
 
 export const metadata: Metadata = {
-  title: 'Ancestorii vs StoryWorth vs Remento: Which Family Memory Platform Is Right for You?',
+  title: { absolute: 'Ancestorii vs StoryWorth vs Remento: Which Family Memory Platform Is Right for You?' },
   description: 'An honest comparison of Ancestorii, StoryWorth, and Remento. See how a living family library compares to prompt-based book services — and decide which approach fits your family.',
   alternates: { canonical: 'https://www.ancestorii.com/compare' },
   robots: { index: true, follow: true },
@@ -90,16 +90,15 @@ export default function ComparePage() {
         })}
       </Script>
 
+      {/* Built from the questions the page shows, so the two can never differ. */}
       <Script id="compare-faq-schema" type="application/ld+json" strategy="afterInteractive">
         {JSON.stringify({
           '@context': 'https://schema.org', '@type': 'FAQPage',
-          mainEntity: [
-            { '@type': 'Question', name: 'What is the difference between Ancestorii and StoryWorth?', acceptedAnswer: { '@type': 'Answer', text: 'StoryWorth sends weekly email prompts to one storyteller over a year, then compiles responses into a printed book. Ancestorii is a living digital library with two layers — a public story feed and a private family space — plus printed Memory Books, Canvas Prints, and Acrylic Prints.' } },
-            { '@type': 'Question', name: 'What is the difference between Ancestorii and Remento?', acceptedAnswer: { '@type': 'Answer', text: 'Remento captures voice and video recordings and uses AI to transcribe them into a printed book. Ancestorii combines a persistent digital library with physical heirlooms and gives full creative control over every page of the Memory Book.' } },
-            { '@type': 'Question', name: 'Which platform gives the most creative control over the book?', acceptedAnswer: { '@type': 'Answer', text: 'Ancestorii. Both StoryWorth and Remento auto-compile books. Ancestorii gives you a visual page editor where you design every spread yourself.' } },
-            { '@type': 'Question', name: 'Is Ancestorii a good StoryWorth alternative in the UK?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Ancestorii is built in the UK and ships worldwide. StoryWorth is US-based and charges in dollars.' } },
-            { '@type': 'Question', name: 'Do StoryWorth or Remento offer a digital library?', acceptedAnswer: { '@type': 'Answer', text: 'No. Both platforms end with a printed book. Ancestorii is a living library that continues to grow after any book is printed.' } },
-          ],
+          mainEntity: QUESTIONS.map((item) => ({
+            '@type': 'Question',
+            name: item.q,
+            acceptedAnswer: { '@type': 'Answer', text: item.a },
+          })),
         })}
       </Script>
 
@@ -213,7 +212,7 @@ export default function ComparePage() {
             </>
           }
         >
-          <FaqBlock items={QUESTIONS} />
+          <FaqBlock items={QUESTIONS} variant="open" />
         </ArticleSection>
 
         <ArticleCta

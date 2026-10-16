@@ -18,10 +18,11 @@
   }
 }
 
-/* The four families with their books, on the landing hero's curved wall
-   (same geometry as the landing ring, held still). */
+/* Three families with their books, on the landing hero's curved wall
+   (same geometry as the landing ring, held still). Each card's angle (--a) is set inline
+   by MemoryBookSection from its place in the row. */
 .wall {
-  /* Four cards rather than the landing's twelve, so they can be larger on tablets. */
+  /* Three cards rather than the landing's twelve, so they can be larger on tablets. */
   --cw: clamp(170px, 25vw, 250px);
   --ch: calc(var(--cw) * 1.32);
   --r: clamp(420px, 50vw, 760px);
@@ -96,12 +97,6 @@
   transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
   -webkit-box-reflect: below 14px linear-gradient(transparent 72%, rgba(255, 255, 255, 0.28));
 }
-
-/* Left to right; a positive angle sits left of centre and faces in. */
-.wallCard:nth-child(1) { --a: calc(var(--half) * 3); }
-.wallCard:nth-child(2) { --a: var(--half); }
-.wallCard:nth-child(3) { --a: calc(var(--half) * -1); }
-.wallCard:nth-child(4) { --a: calc(var(--half) * -3); }
 
 @media (hover: hover) {
   .wallCard:hover {
@@ -559,19 +554,16 @@
   }
 }
 
-/* ── Closing call to action ───────────────────────────────── */
+/* ── Closing call to action (ClosingCta, `cta` on its section) ── */
 
-.ctaTitle.ctaTitle {
+/* A little more room than the landing's 12ch cap: three balanced lines on desktop. */
+.cta h2 {
   max-width: 16ch;
-}
-
-.ctaNote {
-  text-wrap: balance;
 }
 
 /* The long button label fits on one line inside the slab on phones. */
 @media (max-width: 599px) {
-  .ctaButton.ctaButton {
+  .cta a {
     gap: 12px;
     padding-left: 20px;
     font-size: 16px;
@@ -579,12 +571,12 @@
 }
 
 @media (max-width: 389px) {
-  .ctaSlab.ctaSlab {
+  .cta > div {
     padding-left: 16px;
     padding-right: 16px;
   }
 
-  .ctaButton.ctaButton {
+  .cta a {
     font-size: 15px;
   }
 }

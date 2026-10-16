@@ -35,12 +35,12 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import {
   createStory,
   updateStory,
-  publishStory,
   uploadStoryMedia,
   uploadVoiceNote,
 } from '@/lib/stories/mutations';
 
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { downscaleImage } from '@/lib/stories/downscaleImage';
 import { usePlanLimits } from '@/lib/usePlanLimits';
 // The public-site version of the writing helper (same props and behaviour as
 // @/components/StoryAssistanceCard, which the dashboard keeps using).
@@ -739,7 +739,8 @@ export default function StoryEditorPage({
                         'existing-voice'
                       ) as HTMLAudioElement;
                       if (el) {
-                        el.paused ? el.play() : el.pause();
+                        if (el.paused) el.play();
+                        else el.pause();
                       }
                     }}
                     className={styles.playBtn}
@@ -959,6 +960,14 @@ function QuillEditor({
 
   const lastAppliedRef = useRef('');
 
+  // Quill binds Tab to indenting lists and typing a tab character, which traps keyboard
+  // users in the editor. Drop those bindings (on this editor only) so Tab and Shift+Tab
+  // move focus on, like any other field.
+  useEffect(() => {
+    if (!quill) return;
+    delete quill.keyboard.bindings.Tab;
+  }, [quill]);
+
   useEffect(() => {
     if (!quill) return;
     const handler = () => {
@@ -1017,7 +1026,14 @@ function PhotoUploader({
       const converted = await Promise.all(
         arr.map((f) => ensureDisplayableImage(f))
       );
-      onAdd(converted);
+      // Then shrink camera-size photos (long edge 2560px), one at a time so a phone never
+      // holds several full-size photos in memory at once. Only photos within the 10-photo
+      // limit are worth the work: addMedia drops the rest anyway.
+      const resized: File[] = [];
+      for (const file of converted.slice(0, Math.max(0, 10 - currentCount))) {
+        resized.push(await downscaleImage(file));
+      }
+      onAdd(resized);
     } finally {
       setProcessing(false);
     }

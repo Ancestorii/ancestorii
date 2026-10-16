@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { useState, type CSSProperties, type ReactNode } from 'react';
-import { Accent, DotList, Eyebrow } from '@/components/site/SiteBits';
+import { Accent, ClosingCta, DotList, Eyebrow } from '@/components/site/SiteBits';
 import landing from '@/components/landing/landing.module.css';
 import site from '@/components/site/site.module.css';
 import styles from '@/components/site/why-rewards/whyThisExists.module.css';
@@ -324,29 +323,18 @@ export default function WhyThisExists() {
       </article>
 
       {/* CTA: the landing's closing slab */}
-      <section className={`${landing.ctaSection} ${site.ctaEnd}`}>
-        <div className={`${landing.wrap} ${landing.ctaSlab}`}>
-          <div className={landing.ctaGlowPink} aria-hidden="true" />
-          <div className={landing.ctaGlowBlue} aria-hidden="true" />
-          <div className={landing.ctaCopy}>
-            <h2 className={landing.ctaTitle}>
-              Every family has a story{' '}<Accent tone="pink">worth sharing.</Accent>
-            </h2>
-            <p className={landing.ctaLead}>Two minutes. Your words. A memory that lives on.</p>
-            <div className={landing.ctaButtons}>
-              <Link href="/signup" prefetch className={`${landing.btnPrimary} ${landing.btnLight}`}>
-                Start For Free
-                <span className={landing.arrowTile} aria-hidden="true">
-                  →
-                </span>
-              </Link>
-            </div>
-            <div className={styles.ctaNote}>
-              <DotList center items={['Free forever', 'No credit card', 'Takes 2 minutes']} />
-            </div>
-          </div>
-        </div>
-      </section>
+      <ClosingCta
+        prefetch
+        title={
+          <>
+            Every family has a story{' '}<Accent tone="pink">worth sharing.</Accent>
+          </>
+        }
+        lead="Two minutes. Your words. A memory that lives on."
+        primary={{ href: '/signup', label: 'Start For Free' }}
+      >
+        <DotList center items={['Free forever', 'No credit card', 'Takes 2 minutes']} />
+      </ClosingCta>
     </>
   );
 }

@@ -4,7 +4,7 @@ import SiteShell from '@/components/site/SiteShell';
 import HowItWorksContent from './HowItWorksContent';
 
 export const metadata: Metadata = {
-  title: 'How It Works | Ancestorii',
+  title: 'How It Works',
   description:
     'Explore how Ancestorii structures timelines, albums, capsules and family access to preserve memory with intention, privacy and continuity.',
   alternates: {

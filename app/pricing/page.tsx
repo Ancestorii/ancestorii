@@ -4,7 +4,7 @@ import Script from 'next/script';
 import PricingContent from './PricingContent';
 
 export const metadata: Metadata = {
-  title: 'Pricing | Ancestorii',
+  title: 'Pricing',
   description:
     'Start building your private family library for free. Upgrade to Premium monthly membership to preserve more memories, stories and legacy.',
   alternates: {

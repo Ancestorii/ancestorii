@@ -53,7 +53,8 @@
   padding: 32px clamp(24px, 5vw, 72px);
 }
 
-/* A <main>: globals.css makes every main a scroller, so undo that here. */
+/* A <main>: globals.css makes every main a scroller, so undo that here.
+   Short status screens ("Signing you in…", "Link expired.") are centred. */
 .formMiddle {
   flex: 1;
   display: flex;
@@ -64,6 +65,27 @@
 
 .signup .formMiddle {
   padding: 40px 0;
+}
+
+/* Screens with fields hang the form from the top instead, so it stays put when an
+   error notice (or Sign Up's second step) makes it taller. */
+.formMiddle:has(input) {
+  align-items: flex-start;
+}
+
+/* Side by side with the cards: start the form where centring used to put it with an
+   error notice showing (half the free height, less half the form and one notice), so
+   a notice no longer moves it and the page scrolls exactly when it did before. */
+@media (min-width: 1040px) {
+  .formMiddle:has(input) {
+    padding-top: max(48px, calc(50vh - 389px));
+    padding-top: max(48px, calc(50dvh - 389px));
+  }
+
+  .signup .formMiddle:has(input) {
+    padding-top: max(40px, calc(50vh - 419px));
+    padding-top: max(40px, calc(50dvh - 419px));
+  }
 }
 
 /* Keeps the logo link the size of the logo (a flex child would stretch it across the column). */
@@ -82,7 +104,8 @@
   font-weight: 600;
 }
 
-/* Title and intro used by every account screen. */
+/* Title and intro used by every account screen. overflow-wrap: a title can hold a
+   name someone typed, which may be one long word. */
 .title {
   margin: 0;
   font-size: clamp(40px, 4.4vw, 60px);
@@ -90,6 +113,7 @@
   letter-spacing: -0.05em;
   font-weight: 800;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .intro {

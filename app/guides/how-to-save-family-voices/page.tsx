@@ -17,7 +17,7 @@ import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/Guide
 import { Point, Points, Tip, Tips } from '../_components/GuideBlocks';
 
 export const metadata: Metadata = {
-  title: 'How to Capture and Keep Family Voices | Ancestorii',
+  title: 'How to Capture and Keep Family Voices',
   description:
     'A practical guide to capturing family voices and recordings while life is happening. Learn simple ways to record tone, personality, and presence as part of a growing family library.',
   alternates: {

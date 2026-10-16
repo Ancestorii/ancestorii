@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, MessageCircle, Play, ArrowRight } from 'lucide-react';
 import feed from '@/components/site/stories-browse/feed.module.css';
+import { getTimeAgo, plainTextFromHtml } from '@/lib/stories/format';
 
 const CATEGORY_LABELS: Record<string, string> = {
   family: 'Family', food_and_recipes: 'Food & Recipes', childhood: 'Childhood',
@@ -16,20 +17,20 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default function HeroCard({
  slug, title, body, excerpt, authorName, authorAvatarUrl, authorTitle, coverUrl,
   voiceNotePath, voiceNoteDuration, coverType, category, reactionCount,
-  commentCount, publishedAt, isLoggedIn, activeCategory, overlineLabel,
+  commentCount, publishedAt, activeCategory, overlineLabel,
 }: {
   slug: string; title: string; body: string; excerpt?: string | null; authorName: string;
   authorAvatarUrl: string | null; authorTitle?: string | null; coverUrl: string | null;
   coverType?: 'image' | 'video' | null;
   voiceNotePath: string | null; voiceNoteDuration: string | null;
   category: string | null; reactionCount: number; commentCount: number;
-  publishedAt: string | null; isLoggedIn: boolean; activeCategory?: string;
+  publishedAt: string | null; activeCategory?: string;
   overlineLabel?: string | null;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
 
- const strippedBody = body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+ const strippedBody = plainTextFromHtml(body);
   const preview = excerpt || (strippedBody.length > 260 ? strippedBody.slice(0, 260).trim() + '…' : strippedBody);
   const initials = authorName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const timeAgo = publishedAt ? getTimeAgo(publishedAt) : '';
@@ -56,10 +57,10 @@ export default function HeroCard({
           />
         ) : coverUrl ? (
           <Image
-            src={coverUrl} alt="" fill priority
+            src={coverUrl} alt="" fill preload
             sizes="(max-width: 767px) 100vw, (max-width: 1279px) 54vw, 470px"
             className={`${feed.cover} ${feed.featuredCover} ${imageLoaded ? feed.coverShown : feed.coverHidden}`}
-            onLoadingComplete={handleImageLoad}
+            onLoad={(e) => handleImageLoad(e.currentTarget)}
           />
         ) : (
           <div className={`${feed.fallback} ${feed.fallbackLight}`}>
@@ -114,7 +115,8 @@ export default function HeroCard({
               <span className={feed.authorMeta}>{authorTitle}</span>
             )}
             {timeAgo && (
-              <span className={feed.authorMeta}>{timeAgo}</span>
+              // Counted from now, so the browser can land a minute past the server
+              <span className={feed.authorMeta} suppressHydrationWarning>{timeAgo}</span>
             )}
           </div>
         </div>
@@ -136,17 +138,4 @@ export default function HeroCard({
       </div>
     </Link>
   );
-}
-
-function getTimeAgo(dateStr: string): string {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }

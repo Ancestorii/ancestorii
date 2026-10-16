@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getBrowserClient } from "@/lib/supabase/browser";
+import { safeRedirect } from "@/lib/safeRedirect";
 import AuthShell from "@/components/site/AuthShell";
+import GoogleButton, { signInWithGoogle } from "@/components/site/auth/GoogleButton";
 import { SubmitButton } from "@/components/site/SiteBits";
 import auth from "@/components/site/auth.module.css";
 import site from "@/components/site/site.module.css";
@@ -60,8 +62,7 @@ export default function LoginPage() {
         router.replace('/onboarding/first-memory');
       } else {
         const searchParams = new URLSearchParams(window.location.search);
-        const redirectTo = searchParams.get('redirect');
-        router.replace(redirectTo || '/dashboard/our-family');
+        router.replace(safeRedirect(searchParams.get('redirect')) || '/dashboard/our-family');
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -110,16 +111,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setError(null);
 
-    const searchParams = new URLSearchParams(window.location.search);
-    const redirectTo = searchParams.get('redirect');
-    if (redirectTo) sessionStorage.setItem('post_login_redirect', redirectTo);
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    const error = await signInWithGoogle();
 
     if (error) {
       setError(error.message);
@@ -134,15 +126,7 @@ export default function LoginPage() {
       <p className={auth.intro}>Your family&apos;s stories are right where you left them.</p>
 
       {/* Google */}
-      <button type="button" onClick={handleGoogleLogin} className={`${auth.social} ${forms.formStart}`}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">
-          <path fill="#EA4335" d="M24 9.5c3.2 0 6 1.1 8.2 3.2l6.1-6.1C34.6 2.4 29.7 0 24 0 14.6 0 6.4 5.8 2.6 14.2l7.5 5.8C12.1 13.2 17.6 9.5 24 9.5z"/>
-          <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4H24v7.6h12.6c-.3 2-1.6 5-4.4 7l6.8 5.3c4-3.7 7.1-9.2 7.1-15.9z"/>
-          <path fill="#FBBC05" d="M10.1 28c-1-3-1-6.2 0-9.2l-7.5-5.8C.9 16.3 0 20 0 24c0 4 1 7.7 2.6 11l7.5-5.8z"/>
-          <path fill="#34A853" d="M24 48c6.5 0 12-2.1 16-5.8l-6.8-5.3c-1.9 1.3-4.5 2.2-9.2 2.2-6.4 0-11.9-3.7-13.9-8.5l-7.5 5.8C6.4 42.2 14.6 48 24 48z"/>
-        </svg>
-        Continue with Google
-      </button>
+      <GoogleButton onClick={handleGoogleLogin} className={forms.formStart} />
 
       <div className={auth.divider}>or with email</div>
 

@@ -22,6 +22,7 @@ import site from '@/components/site/site.module.css';
 import {
   Accent,
   ArrowLink,
+  ClosingCta,
   DotList,
   Eyebrow,
   PageHero,
@@ -150,7 +151,7 @@ export default function HowItWorksContent() {
             color="var(--c0)"
             aspect="5 / 4"
             sizes="(max-width: 599px) 84vw, (max-width: 999px) 46vw, 430px"
-            priority
+            preload
           />
         </div>
         <div className={`${styles.side} ${styles.sidePrivate}`}>
@@ -471,34 +472,23 @@ export default function HowItWorksContent() {
       </section>
 
       {/* ━━━ CTA ━━━ */}
-      <section className={`${landing.ctaSection} ${site.ctaEnd} ${styles.cta}`}>
-        <div className={`${landing.wrap} ${landing.ctaSlab}`}>
-          <div className={landing.ctaGlowPink} aria-hidden="true" />
-          <div className={landing.ctaGlowBlue} aria-hidden="true" />
-          <div className={`${landing.ctaCopy} ${styles.ctaCopy}`}>
-            <h2 className={`${landing.ctaTitle} ${styles.ctaTitle}`}>
-              Some memories are for everyone.
-              <br />
-              <span className={site.accentPink}>Some are just for your family.</span>
-            </h2>
-            <p className={landing.ctaLead}>
-              Share stories with the world. Keep memories with your family. Build something that lasts.
-            </p>
-            <div className={landing.ctaButtons}>
-              <Link href="/signup" prefetch className={`${landing.btnPrimary} ${landing.btnLight}`}>
-                Start For Free
-                <span className={landing.arrowTile} aria-hidden="true">
-                  →
-                </span>
-              </Link>
-            </div>
-            <div className={styles.ctaDots}>
-              <DotList center items={['Free forever', 'No credit card', 'Takes 2 minutes']} />
-            </div>
-            <StoreBadges theme="dark" className={styles.ctaBadges} />
-          </div>
-        </div>
-      </section>
+      <ClosingCta
+        wide
+        size="md"
+        prefetch
+        className={styles.cta}
+        title={
+          <>
+            <span className={styles.ctaLine}>Some memories are for everyone.</span>{' '}
+            <span className={`${styles.ctaLine} ${site.accentPink}`}>Some are just for your family.</span>
+          </>
+        }
+        lead="Share stories with the world. Keep memories with your family. Build something that lasts."
+        primary={{ href: '/signup', label: 'Start For Free' }}
+      >
+        <DotList center items={['Free forever', 'No credit card', 'Takes 2 minutes']} />
+        <StoreBadges theme="dark" className={styles.ctaBadges} />
+      </ClosingCta>
     </>
   );
 }

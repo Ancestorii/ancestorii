@@ -6,7 +6,7 @@ import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/Guide
 import { Step, Steps } from '../_components/GuideBlocks';
 
 export const metadata: Metadata = {
-  title: 'How to Capture and Grow Family Memories | Ancestorii',
+  title: 'How to Capture and Grow Family Memories',
   description:
     'A practical guide to capturing family memories while life is happening. Learn simple ways to record stories, voices, and moments and grow a living family library over time.',
   alternates: {

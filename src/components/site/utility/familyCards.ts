@@ -20,7 +20,7 @@ export const ROW_CARDS: FanCard[] = [
   { kind: 'photo', src: '/landing/hero-nan-twins.jpg', label: 'Nan with the twins', color: 'var(--c0)', tilt: -6 },
   { kind: 'quote', text: 'I knew the moment he asked me to dance.', who: 'Nan, on meeting Grandad', color: 'var(--c1)', fg: 'white', tilt: 3 },
   { kind: 'photo', src: '/landing/hero-sixth-birthday.jpg', label: "Tom's sixth birthday", color: 'var(--c2)', tilt: -2 },
-  { kind: 'quote', text: 'You were the loudest baby on the whole ward.', who: 'Mum', color: 'var(--c0)', fg: 'white', tilt: 4 },
+  { kind: 'quote', text: 'You were the loudest baby on the whole ward.', who: 'Mum', color: 'var(--c0)', fg: 'var(--ink)', tilt: 4 },
   { kind: 'photo', src: '/landing/hero-became-a-dad.jpg', label: 'The Day I Became a Dad', color: 'var(--c3)', tilt: -5 },
 ];
 

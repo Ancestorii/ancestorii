@@ -33,16 +33,6 @@
 
 /* ── Hero follow-on: more intro paragraphs and the button under PageHero ── */
 
-/* Breadcrumb links get a full 44px tap area on phones. */
-@media (max-width: 699px) {
-  .heroWrap nav[aria-label='Breadcrumb'] a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
-
 /* Small phones: slightly tighter separators so the trail stays on one line at 360px. */
 @media (max-width: 389px) {
   .heroWrap nav[aria-label='Breadcrumb'] ol {
@@ -173,27 +163,6 @@
   letter-spacing: -0.045em;
 }
 
-/* ── Closing slab (ClosingCta) ────────────────────────────── */
-
-/* The pages' closing titles are two short lines (kept as written, with a break between);
-   a little more room than the landing's 12ch lets each line stay whole on desktop. */
-.ctaWide h2 {
-  max-width: 20ch;
-}
-
-.ctaWide p {
-  text-wrap: balance;
-}
-
-/* ── Questions (FaqList) ──────────────────────────────────── */
-
-/* The landing root only rings links and buttons; give the question rows the same ring. */
-.faqWrap summary:focus-visible {
-  outline: 3px solid var(--c1);
-  outline-offset: 3px;
-  border-radius: 22px;
-}
-
 /* ── Comparison tables (site.tableWrap + site.table) ──────── */
 
 /* While a table scrolls sideways (phones), a soft ink shadow sits on the wrapper's right
@@ -236,10 +205,6 @@ table.cmpMid {
 table.cmpFit {
   min-width: 0;
   table-layout: fixed;
-}
-
-table.cmpFit thead th {
-  white-space: normal;
 }
 
 @media (min-width: 700px) {

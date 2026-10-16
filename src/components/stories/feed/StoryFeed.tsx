@@ -132,7 +132,6 @@ export default function StoryFeed({
               {activeFeatured && (
                 <FeaturedSection
                   featuredStories={featuredStories}
-                  isLoggedIn={isLoggedIn}
                   activeCategory={activeCategory}
                 />
               )}
@@ -155,7 +154,6 @@ export default function StoryFeed({
                   reactionCount={heroStory.reaction_count}
                   commentCount={heroStory.comment_count}
                   publishedAt={heroStory.published_at}
-                  isLoggedIn={isLoggedIn}
                   activeCategory={activeCategory}
                 />
               )}
@@ -183,7 +181,6 @@ export default function StoryFeed({
                       reactionCount={story.reaction_count}
                       commentCount={story.comment_count}
                       publishedAt={story.published_at}
-                      isLoggedIn={isLoggedIn}
                     />
                   ))}
                 </div>
@@ -291,11 +288,9 @@ const CATEGORY_TO_FEATURE: Record<string, string> = {
 
 function FeaturedSection({
   featuredStories,
-  isLoggedIn,
   activeCategory,
 }: {
   featuredStories: FeaturedStory[];
-  isLoggedIn: boolean;
   activeCategory: string;
 }) {
   const featureType = CATEGORY_TO_FEATURE[activeCategory] || 'story_of_the_week';
@@ -320,7 +315,6 @@ function FeaturedSection({
       reactionCount={activeStory.reaction_count}
       commentCount={activeStory.comment_count}
       publishedAt={activeStory.published_at}
-      isLoggedIn={isLoggedIn}
       activeCategory={activeCategory}
       overlineLabel={FEATURE_TAB_LABELS[activeStory.feature_type] || null}
     />

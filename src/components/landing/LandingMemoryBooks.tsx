@@ -70,13 +70,15 @@ export default function LandingMemoryBooks() {
                     className={styles.coverImg}
                     style={{ objectPosition: photo.position }}
                   />
-                  <figcaption className={styles.chipRow}>
-                    <span className={styles.chip}>
-                      <span className={styles.chipDot} />
-                      <span className={styles.chipText}>{photo.label}</span>
-                    </span>
-                  </figcaption>
                 </div>
+                {/* The figure's own caption, so it sits outside the inner box: the chip's 10px
+                    inset plus the 8px frame keeps it where it was over the photo. */}
+                <figcaption className={styles.chipRow} style={{ top: 18, left: 18, right: 18 }}>
+                  <span className={styles.chip}>
+                    <span className={styles.chipDot} />
+                    <span className={styles.chipText}>{photo.label}</span>
+                  </span>
+                </figcaption>
               </figure>
             ))}
           </div>

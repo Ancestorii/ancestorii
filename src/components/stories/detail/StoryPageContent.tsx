@@ -21,6 +21,7 @@ import ShareButton from '@/components/stories/shares/ShareButton';
 import ReactionButton from '@/components/stories/reactions/ReactionButton';
 import CommentSection from '@/components/stories/comments/CommentSection';
 import { deleteStory } from '@/lib/stories/mutations';
+import { getTimeAgo, plainTextFromHtml } from '@/lib/stories/format';
 import type { StoryComment } from '@/lib/stories/types';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { Accent } from '@/components/site/SiteBits';
@@ -140,17 +141,20 @@ export default function StoryPageContent({
     .toUpperCase()
     .slice(0, 2);
 
+  // A fixed time zone, so the server and the browser print the same day (a reader's own
+  // zone could tip a late-evening story into the next day and break hydration).
   const dateLabel = story.publishedAt
     ? new Date(story.publishedAt).toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
+        timeZone: 'Europe/London',
       })
     : '';
 
   const timeAgo = story.publishedAt ? getTimeAgo(story.publishedAt) : '';
 
-  const strippedBody = story.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const strippedBody = plainTextFromHtml(story.body);
   const preview = story.excerpt
     || (strippedBody.length > 160
       ? strippedBody.slice(0, 160).trim() + '…'
@@ -170,6 +174,23 @@ export default function StoryPageContent({
     window.addEventListener('scroll', close, { passive: true });
     return () => window.removeEventListener('scroll', close);
   }, [menuOpen]);
+
+  // The comment count jumps to the comments: a smooth scroll (instant for readers who prefer
+  // less motion), then focus on the comments heading so keyboard and screen reader users
+  // land there too. Without JavaScript the link still jumps there.
+  const jumpToComments = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const heading = document.getElementById('comments');
+    if (!heading) return;
+    e.preventDefault();
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    heading.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    heading.focus({ preventScroll: true });
+  };
+
+  // Signed-out readers who want to like or comment log in and come back to the story.
+  const loginTo = (hash = '') =>
+    router.push(`/login?redirect=${encodeURIComponent(`/stories/${story.slug}${hash}`)}`);
+  const loginToComment = () => loginTo('#comments');
 
   return (
     <article className={s.article} data-mounted={mounted}>
@@ -228,7 +249,10 @@ export default function StoryPageContent({
                         </span>{' '}
                       </>
                     )}
-                    <span className={s.when}>{timeAgo || 'Just shared'}</span>
+                    {/* Counted from now, so the browser can land a minute past the server */}
+                    <span className={s.when} suppressHydrationWarning>
+                      {timeAgo || 'Just shared'}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -240,16 +264,17 @@ export default function StoryPageContent({
                   initialCount={reactionCount}
                   initialReacted={userHasReacted}
                   isLoggedIn={isLoggedIn}
-                  onLoginPrompt={() => router.push('/login')}
+                  onLoginPrompt={() => loginTo()}
                 />
-                <button
-                  type="button"
-                  className={`${s.pill} ${s.pillSoft} ${s.pillStatic}`}
-                  aria-label={`Comments · ${commentCount}`}
+                <a
+                  href="#comments"
+                  onClick={jumpToComments}
+                  className={`${s.pill} ${s.pillSoft}`}
+                  aria-label={`Jump to comments (${commentCount})`}
                 >
                   <MessageCircle size={18} strokeWidth={2.2} fill="currentColor" aria-hidden="true" className={s.commentIcon} />
                   <span>{commentCount}</span>
-                </button>
+                </a>
                 <ShareButton storyId={story.id} slug={story.slug} title={story.title} />
                 {!isAuthor && isLoggedIn && !reportDone && (
                   <button
@@ -342,6 +367,7 @@ export default function StoryPageContent({
                 storyId={story.id}
                 initialComments={initialComments ?? []}
                 isLoggedIn={isLoggedIn}
+                onLoginPrompt={loginToComment}
               />
             </div>
           </div>
@@ -443,8 +469,9 @@ export default function StoryPageContent({
               top: menuBtnRef.current
                 ? menuBtnRef.current.getBoundingClientRect().bottom + 8
                 : 0,
+              // clientWidth leaves out the scrollbar, which window.innerWidth counts
               right: menuBtnRef.current
-                ? window.innerWidth - menuBtnRef.current.getBoundingClientRect().right
+                ? document.documentElement.clientWidth - menuBtnRef.current.getBoundingClientRect().right
                 : 0,
             }}
           >
@@ -613,7 +640,8 @@ function HeroImageCarousel({
     if (touchStart.current === null) return;
     const diff = touchStart.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 50) {
-      diff > 0 ? goNext() : goPrev();
+      if (diff > 0) goNext();
+      else goPrev();
     }
     touchStart.current = null;
   };
@@ -638,10 +666,10 @@ function HeroImageCarousel({
             src={images[activeImage].url}
             alt={images[activeImage].alt || title}
             fill
-            priority
+            preload
             sizes="(max-width: 599px) 100vw, (max-width: 759px) 560px, 44vw"
             className={`${s.stageImg} ${imageLoaded ? s.stageImgIn : ''}`}
-            onLoadingComplete={() => setImageLoaded(true)}
+            onLoad={() => setImageLoaded(true)}
           />
 
           {/* Soft shade at the bottom so the dots stay visible */}
@@ -837,25 +865,4 @@ function AuthorAvatar({
       )}
     </div>
   );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════════════════════ */
-
-function getTimeAgo(dateStr: string): string {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  const diffWeeks = Math.floor(diffDays / 7);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffWeeks < 4) return `${diffWeeks}w ago`;
-  return '';
 }

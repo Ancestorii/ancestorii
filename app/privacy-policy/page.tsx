@@ -11,7 +11,7 @@ import {
 import LegalToc, { type TocGroup } from '@/components/site/legal/LegalToc';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy – Ancestorii',
+  title: 'Privacy Policy',
   description:
     'How Ancestorii collects, uses, stores, and protects your personal data across the website and the mobile app.',
   alternates: {
@@ -85,7 +85,7 @@ export default function PrivacyPolicyPage() {
             Privacy <Accent>Policy</Accent>
           </>
         }
-        lead={<>Last updated: 26 June 2026</>}
+        lead={<>Last updated: 16 October 2026</>}
       />
 
       {/* ── Body ── */}
@@ -988,19 +988,19 @@ export default function PrivacyPolicyPage() {
         <Section number="24" title="Account &amp; Data Deletion">
           <p>
             You can delete your account and all associated personal data at any
-            time directly in the app. Go to the Profile screen and tap
-            &quot;Delete account&quot;. This permanently removes your account
-            and personal data, signs you out, and you will no longer be able to
-            log back in.
+            time directly in the app. Open the Ancestorii app, go to your
+            Profile, tap &quot;Delete Account&quot; and confirm when prompted.
+            This permanently removes your account and personal data, signs you
+            out, and you will no longer be able to log back in.
           </p>
           <p>
             Deletion also remains available by contacting{' '}
             <a href="mailto:support@ancestorii.com">
               support@ancestorii.com
             </a>{' '}
-            or by deleting your account on the website at ancestorii.com.
-            However you request it, deletion is permanent and is actioned in
-            accordance with the Data Retention section in Part A (Section 10).
+            if you cannot use the app. However you request it, deletion is
+            permanent and is actioned in accordance with the Data Retention
+            section in Part A (Section 10).
           </p>
         </Section>
 

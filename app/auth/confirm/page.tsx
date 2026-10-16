@@ -16,7 +16,7 @@ export default function AuthConfirmPage() {
 
 useEffect(() => {
   const confirmEmail = async () => {
-    const { data, error } =
+    const { data } =
       await supabase.auth.exchangeCodeForSession(window.location.href);
 
     if (data?.session) {

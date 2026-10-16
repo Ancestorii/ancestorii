@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import GoogleButton, { signInWithGoogle } from '@/components/site/auth/GoogleButton';
 import { SubmitButton } from '@/components/site/SiteBits';
 import auth from '@/components/site/auth.module.css';
 import site from '@/components/site/site.module.css';
@@ -17,13 +18,13 @@ const STRENGTH_LABELS = ['', 'Weak', 'Okay', 'Good', 'Strong'];
 export default function SignupForm() {
   const supabase = getBrowserClient();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // Capture invite token from URL (e.g. /signup?invite_token=xxx)
+  // Capture invite token from URL (e.g. /signup?invite_token=xxx). Read here rather than with
+  // useSearchParams so the form can render on the server instead of appearing after the script.
   useEffect(() => {
-    const token = searchParams.get('invite_token');
+    const token = new URLSearchParams(window.location.search).get('invite_token');
     if (token) sessionStorage.setItem('invite_token', token);
-  }, [searchParams]);
+  }, []);
 
   // Step state
   const [step, setStep] = useState(1);
@@ -68,6 +69,17 @@ export default function SignupForm() {
     setError('');
     sessionStorage.setItem('family_name', familyName.trim());
     setStep(2);
+  };
+
+  // Google signup: the same flow as Log In. Google can't carry the form's metadata, so
+  // /auth/callback names the library (or accepts the invite) from sessionStorage afterwards.
+  const handleGoogle = async () => {
+    setError('');
+    sessionStorage.setItem('family_name', familyName.trim());
+
+    const oauthError = await signInWithGoogle();
+
+    if (oauthError) setError(oauthError.message);
   };
 
   // Email signup
@@ -215,8 +227,16 @@ export default function SignupForm() {
           </h2>
           <p className={styles.stepText}>Almost there — just need your details.</p>
 
+          <GoogleButton onClick={handleGoogle} className={styles.firstField} />
+          <p className={styles.googleNote}>
+            By continuing with Google you agree to the{' '}
+            <Link href="/terms">Terms</Link> and <Link href="/privacy-policy">Privacy Policy</Link>.
+          </p>
+
+          <div className={auth.divider}>or with email</div>
+
           <form onSubmit={onSubmit} noValidate>
-            <div className={styles.firstField}>
+            <div>
               <label htmlFor="signup-full-name" className={site.label}>Full Name</label>
               <input id="signup-full-name" required value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" className={site.input} />
             </div>

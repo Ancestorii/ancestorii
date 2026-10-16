@@ -5,6 +5,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeRedirect } from '@/lib/safeRedirect';
 import AuthShell from '@/components/site/AuthShell';
 import AuthLoader from '@/components/site/auth/AuthLoader';
 import forms from '@/components/site/auth/authForms.module.css';
@@ -56,9 +57,15 @@ export default function AuthCallback() {
         sessionStorage.removeItem('invite_token');
       }
 
-      // Update family name from sessionStorage (set during step 1 of signup)
+      // Update family name from sessionStorage (set during step 1 of signup). Only for an account
+      // this sign-in has just created: an existing user who picks Google on Sign Up (or has a
+      // leftover name in the tab) keeps their library's name.
       const familyName = sessionStorage.getItem('family_name');
-      if (familyName && !inviteToken) {
+      sessionStorage.removeItem('family_name');
+      const isNewAccount =
+        !!user.last_sign_in_at &&
+        Date.parse(user.last_sign_in_at) - Date.parse(user.created_at) < 10 * 60 * 1000;
+      if (familyName && !inviteToken && isNewAccount) {
         try {
           const { data: membership } = await supabase
             .from('family_memberships')
@@ -76,7 +83,6 @@ export default function AuthCallback() {
         } catch {
           // Non-critical
         }
-        sessionStorage.removeItem('family_name');
       }
 
       // Clean up redirect
@@ -97,13 +103,14 @@ export default function AuthCallback() {
         if (!profile?.onboarding_complete) {
           router.replace('/onboarding/first-memory');
         } else {
-          router.replace(postLoginRedirect || '/dashboard/our-family');
+          router.replace(safeRedirect(postLoginRedirect) || '/dashboard/our-family');
         }
       }
     };
 
     handleOAuth();
-  }, []);
+    // Runs once: the browser client is a singleton and the app router instance never changes.
+  }, [router, supabase]);
 
   return (
     <AuthShell>

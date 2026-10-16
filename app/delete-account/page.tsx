@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { CircleCheck, Settings, Smartphone, Trash2 } from 'lucide-react';
+import { CircleCheck, CircleUserRound, Smartphone, Trash2 } from 'lucide-react';
 import SiteShell from '@/components/site/SiteShell';
 import { Accent, PageHero } from '@/components/site/SiteBits';
 import {
@@ -12,7 +12,7 @@ import {
 } from '@/components/site/legal/LegalBits';
 
 export const metadata: Metadata = {
-  title: 'Delete Your Account — Ancestorii',
+  title: 'Delete Your Account',
   description:
     'How to delete your Ancestorii account and what happens to your data when you do.',
   alternates: {
@@ -31,7 +31,7 @@ export default function DeleteAccountPage() {
             Delete Your <Accent>Account</Accent>
           </>
         }
-        lead={<>Last updated: 26 June 2026</>}
+        lead={<>Last updated: 16 October 2026</>}
       />
 
       {/* ── Body ── */}
@@ -87,10 +87,10 @@ export default function DeleteAccountPage() {
                 text: <>Open the Ancestorii app on your device.</>,
               },
               {
-                Icon: Settings,
+                Icon: CircleUserRound,
                 text: (
                   <>
-                    Go to <strong>Settings</strong>.
+                    Go to your <strong>Profile</strong>.
                   </>
                 ),
               },

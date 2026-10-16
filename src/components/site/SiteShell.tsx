@@ -9,18 +9,21 @@ import styles from './site.module.css';
 /**
  * Frame for every public page except the landing page itself: the landing's own nav and
  * footer, its typeface and colour tokens (the landing root class), and the pink and blue
- * glow from behind the hero. `storiesBar` adds the signed-in bar on Our Stories pages.
+ * glow from behind the hero. `storiesBar` adds the signed-in bar on Our Stories pages;
+ * `hidePricing` drops the Pricing links from the nav and footer (the app's Apple-safe pages).
  */
 export default function SiteShell({
   children,
   isLoggedIn,
   storiesBar = false,
   glow = true,
+  hidePricing = false,
 }: {
   children: ReactNode;
   isLoggedIn?: boolean;
   storiesBar?: boolean;
   glow?: boolean;
+  hidePricing?: boolean;
 }) {
   return (
     <div className={`${jakarta.variable} ${landing.page}`}>
@@ -31,12 +34,12 @@ export default function SiteShell({
         </div>
       )}
 
-      <SiteNav isLoggedIn={isLoggedIn} />
+      <SiteNav isLoggedIn={isLoggedIn} hidePricing={hidePricing} />
       {storiesBar && <StoriesUserBar isLoggedIn={isLoggedIn} />}
 
       <main className={styles.main}>{children}</main>
 
-      <LandingFooter />
+      <LandingFooter hidePricing={hidePricing} />
     </div>
   );
 }

@@ -83,21 +83,6 @@
   margin-bottom: clamp(18px, 2.2vw, 26px);
 }
 
-/* Breadcrumbs: each pink separator trails its crumb instead of leading the next one,
-   so when the page name wraps onto its own line it never starts with a stray square. */
-.heroTop nav li + li::before {
-  content: none;
-}
-
-.heroTop nav li:not(:last-child)::after {
-  content: '';
-  width: 6px;
-  height: 6px;
-  flex: none;
-  border-radius: 2px;
-  background: var(--c0);
-}
-
 /* The Guide label links back to the index; the link is 44px tall for fingers. */
 .eyebrowLink {
   display: inline-flex;
@@ -138,16 +123,11 @@
 }
 
 /* Phones: drop the forced line break in titles and let balance wrap them,
-   so no word is left on a line of its own; breadcrumb links get 44px to tap. */
+   so no word is left on a line of its own. The breadcrumb links are 44px tall
+   here (shared), so wrapped rows sit closer together. */
 @media (max-width: 599px) {
   .title br {
     display: none;
-  }
-
-  .heroTop a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
   }
 
   .heroTop {
@@ -591,23 +571,6 @@
   .setList li {
     padding-left: 24px;
   }
-}
-
-/* ── Closing call to action (the landing's dark slab) ─────── */
-
-.ctaTitle {
-  margin: 0;
-  max-width: 15em;
-  font-size: clamp(34px, 4.2vw, 60px);
-  line-height: 1;
-  letter-spacing: -0.05em;
-  font-weight: 800;
-  text-wrap: balance;
-  overflow-wrap: break-word;
-}
-
-.ctaNote {
-  margin-top: 26px;
 }
 
 /* ── Guides index ─────────────────────────────────────────── */

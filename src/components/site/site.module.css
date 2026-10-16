@@ -54,6 +54,7 @@
   justify-content: flex-start;
 }
 
+/* overflow-wrap: some titles hold a name someone typed, which may be one long word. */
 .heroTitle {
   margin: 0 auto;
   font-size: clamp(44px, 6.2vw, 96px);
@@ -61,6 +62,7 @@
   letter-spacing: -0.055em;
   font-weight: 800;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .heroTitleMd {
@@ -324,6 +326,29 @@
   background: #fff;
 }
 
+/* The caption is the figure's own figcaption (the landing's chipRow), laid over the photo
+   inside the 8px frame: the chip's 10px inset plus the frame. */
+.photoFrame > .photoCaption {
+  left: 18px;
+  top: 18px;
+  right: 18px;
+}
+
+/* A long label wraps onto a second line instead of being cut off. The 16px radius is
+   still a full pill on one line. */
+.photoFrame .photoChip {
+  align-items: flex-start;
+  border-radius: 16px;
+  line-height: 1.2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The dot stays centred on the first line (1.2em line, 10px dot). */
+.photoChip > span:first-child {
+  margin-top: calc((1.2em - 10px) / 2);
+}
+
 /* ── Long-form text (guides, articles, legal) ─────────────── */
 
 .prose {
@@ -497,7 +522,9 @@
   gap: 10px;
 }
 
-.crumbs li + li::before {
+/* Each pink separator trails its crumb rather than leading the next one, so a trail
+   that wraps never starts a line with a stray square. */
+.crumbs li:not(:last-child)::after {
   content: '';
   width: 6px;
   height: 6px;
@@ -512,6 +539,16 @@
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
   transition: text-decoration-color 0.2s ease;
+}
+
+/* Phones: every link is a full 44px tap target. */
+@media (max-width: 699px) {
+  .crumbs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 .crumbs [aria-current='page'] {
@@ -565,6 +602,13 @@
   content: '';
 }
 
+/* The landing root only rings links and buttons; give the question rows the same ring. */
+.faqQ:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+  border-radius: 22px;
+}
+
 .faqIcon {
   width: 36px;
   height: 36px;
@@ -607,6 +651,48 @@
   text-underline-offset: 3px;
 }
 
+/* variant="open": every answer showing, each question an h3 with a coloured square
+   (pink, blue, orange, aqua in turn) where the toggle would be, as on Memory Books. */
+.faqOpen .faqItem {
+  --dot: var(--c0);
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+}
+
+.faqOpen .faqItem:nth-child(4n + 2) { --dot: var(--c1); }
+.faqOpen .faqItem:nth-child(4n + 3) { --dot: var(--c2); }
+.faqOpen .faqItem:nth-child(4n + 4) { --dot: var(--c3); }
+
+.faqOpen .faqQ {
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 14px;
+  margin: 0;
+  padding: 22px 24px 10px;
+  cursor: auto;
+  text-wrap: balance;
+}
+
+.faqOpen .faqQ::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: 0.4em;
+  border-radius: 3px;
+  background: var(--dot);
+}
+
+/* Answers line up with the question text. */
+.faqOpen .faqA {
+  padding-left: 48px;
+}
+
+@media (max-width: 599px) {
+  .faqOpen .faqA {
+    padding-left: 24px;
+  }
+}
+
 /* ── Tables ───────────────────────────────────────────────── */
 
 .tableWrap {
@@ -632,12 +718,14 @@
   vertical-align: top;
 }
 
+/* Headers wrap in narrow columns rather than being cut off; balance keeps a wrapped
+   header from leaving one word on a line of its own. */
 .table thead th {
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  white-space: nowrap;
+  text-wrap: balance;
   border-bottom: 1.5px solid rgba(10, 10, 15, 0.1);
 }
 
@@ -800,16 +888,33 @@
   font-family: system-ui, sans-serif;
   font-size: 18px;
   font-weight: 800;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
+/* Disabled or busy: the button keeps its ink fill and white label (fading the whole
+   button reads grey); only the arrow tile dims. */
 .btnSubmit:disabled {
-  cursor: default;
-  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.btnSubmit:disabled .btnSubmitTile {
+  opacity: 0.4;
 }
 
 .btnSubmit:not(:disabled):active {
   transform: scale(0.98);
+}
+
+/* ArrowButton: the landing's ArrowLink (btnPrimary + arrowTile) on a real <button>. */
+button.btnArrow {
+  border: 0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.btnArrow:active {
+  transform: translateY(0) scale(0.97);
 }
 
 /* Outline button for <button> elements (same look as the landing's btnOutline). */
@@ -896,6 +1001,19 @@
   text-underline-offset: 3px;
 }
 
+/* Read by screen readers, hidden on screen. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ── Closing call to action ───────────────────────────────── */
 
 /* The landing's dark slab ends each page; main supplies the space before the footer. */
@@ -907,6 +1025,33 @@
   margin: 18px 0 0;
   font-size: 14px;
   font-weight: 600;
+  text-wrap: balance;
+}
+
+/* `wide`: a title written as two lines keeps them whole (no 12ch cap), and the copy
+   takes the slab's full width so neither line runs onto a third. */
+.ctaWide .ctaCopy {
+  flex-basis: 100%;
+}
+
+.ctaWide .ctaTitle {
+  max-width: none;
+}
+
+/* `size="md"`: a step down from the landing's title, for longer lines. */
+.ctaMd .ctaTitle {
+  font-size: clamp(34px, 4.2vw, 60px);
+  line-height: 1;
+  overflow-wrap: break-word;
+}
+
+/* Anything under the buttons (a DotList, StoreBadges), centred like the rest of the copy. */
+.ctaExtra {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 22px;
 }
 
 /* Reduced motion is handled by the landing root class (it shortens every transition). */

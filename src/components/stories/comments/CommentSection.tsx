@@ -73,7 +73,8 @@ export default function CommentSection({
 
   return (
     <div>
-      <h2 className={styles.heading}>
+      {/* The story page's comment count jumps here (scrolls and moves focus), hence the id and tabIndex */}
+      <h2 id="comments" tabIndex={-1} className={styles.heading}>
         {totalCount > 0 ? `${totalCount} ${totalCount === 1 ? 'Comment' : 'Comments'}` : 'Comments'}
       </h2>
 

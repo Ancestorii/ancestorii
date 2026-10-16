@@ -74,21 +74,6 @@ export async function updateStory(
 }
 
 /**
- * Publish a draft story.
- */
-export async function publishStory(
-  supabase: SupabaseClient,
-  storyId: string
-): Promise<boolean> {
-  const { error } = await supabase
-    .from('stories')
-    .update({ status: 'published' })
-    .eq('id', storyId);
-
-  return !error;
-}
-
-/**
  * Delete a story.
  */
 export async function deleteStory(

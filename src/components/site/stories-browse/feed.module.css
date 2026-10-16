@@ -525,13 +525,14 @@
 
 /* ── Featured story (the landing's pink card) ─────────────── */
 
+/* Ink text: white on this pink is too faint for body-size copy (about 3.5:1). */
 .featured {
   display: flex;
   flex-direction: column;
   padding: 10px;
   border-radius: 30px;
   background: var(--c0);
-  color: #fff;
+  color: var(--ink);
   box-shadow: 0 40px 70px -40px rgba(10, 10, 15, 0.5);
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -666,7 +667,7 @@
 .featuredMeta {
   margin-top: 18px;
   padding-top: 16px;
-  border-top: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-top: 1.5px solid rgba(10, 10, 15, 0.18);
   display: flex;
   flex-wrap: wrap;
   align-items: center;

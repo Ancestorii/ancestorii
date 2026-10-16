@@ -33,7 +33,12 @@ const COLUMNS = [
   },
 ];
 
-export default function LandingFooter() {
+// `hidePricing` drops the Pricing link (the app's Apple-safe /rewards page shows no prices).
+export default function LandingFooter({ hidePricing = false }: { hidePricing?: boolean }) {
+  const columns = hidePricing
+    ? COLUMNS.map((col) => ({ ...col, links: col.links.filter((link) => link.href !== '/pricing') }))
+    : COLUMNS;
+
   return (
     <footer className={styles.footer}>
       <div className={styles.wrap}>
@@ -46,7 +51,7 @@ export default function LandingFooter() {
           </div>
 
           <div className={styles.footerCols}>
-            {COLUMNS.map((col) => (
+            {columns.map((col) => (
               <nav key={col.heading} className={styles.footerCol} aria-label={col.heading}>
                 <span className={styles.footerHeading}>{col.heading}</span>
                 {col.links.map((link) => (

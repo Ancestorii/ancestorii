@@ -13,9 +13,10 @@ import styles from './rewards.module.css';
 // target of an in app link, so by rule it shows NO prices and NO upgrade/buy button. Its
 // job is to EXPLAIN how redemption works and offer a neutral login. The reward code itself
 // is entered later, at keepsake checkout inside the Book / Canvas / Acrylic editors.
-// It carries the normal public nav + footer so it reads as part of the site.
+// It carries the normal public nav + footer so it reads as part of the site, minus their
+// Pricing links (hidePricing).
 export const metadata: Metadata = {
-  title: 'Redeem your app rewards | Ancestorii',
+  title: 'Redeem your app rewards',
   description: 'Your family earns reward codes in the Ancestorii app. Here is how to redeem them on the website.',
   robots: { index: false, follow: false },
 };
@@ -40,7 +41,7 @@ const STEP_LOOKS = [
 
 export default function RewardsPage() {
   return (
-    <SiteShell>
+    <SiteShell hidePricing>
       {/* Hero: the landing's big centred title with one gradient phrase */}
       <section className={`${site.hero} ${styles.hero}`}>
         <div className={site.heroInner}>

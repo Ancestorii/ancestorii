@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Join a Family Library on Ancestorii',
+  title: 'Join a Family Library',
   description: "You've been invited to join a family library on Ancestorii — a private place to preserve your family's stories, photos, and memories together.",
   openGraph: {
     title: "You've been invited to join a Family Library",

@@ -152,11 +152,7 @@ export function ArticleCta({
   primary: CtaLink;
   note?: ReactNode;
 }) {
-  return (
-    <div className={a.ctaWide}>
-      <ClosingCta title={title} lead={lead} primary={primary} note={note} />
-    </div>
-  );
+  return <ClosingCta wide title={title} lead={lead} primary={primary} note={note} />;
 }
 
 /** A big pull quote standing on its own between two sections. */
@@ -198,7 +194,7 @@ export function CaptionedPhoto({
         aspect="4 / 5"
         sizes="(max-width: 520px) calc(100vw - 48px), 460px"
         position={position}
-        priority={priority}
+        preload={priority}
         className={a.photoTilt}
       />
       <p className={a.photoCaption}>{caption}</p>
@@ -206,13 +202,9 @@ export function CaptionedPhoto({
   );
 }
 
-/** FaqList with a visible focus ring on each question. */
-export function FaqBlock({ items }: { items: FaqItem[] }) {
-  return (
-    <div className={a.faqWrap}>
-      <FaqList items={items} />
-    </div>
-  );
+/** The shared FaqList; `variant="open"` shows every answer, each question an h3. */
+export function FaqBlock({ items, variant }: { items: FaqItem[]; variant?: 'accordion' | 'open' }) {
+  return <FaqList items={items} variant={variant} />;
 }
 
 /**

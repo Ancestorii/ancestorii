@@ -168,7 +168,10 @@ export function PanelCard({
   );
 }
 
-/** A real photo in a solid colour frame with an optional white caption chip. */
+/**
+ * A real photo in a solid colour frame with an optional white caption chip (it wraps if long).
+ * `preload` is for a photo above the fold: it loads at once and is preloaded.
+ */
 export function PhotoFrame({
   src,
   alt,
@@ -177,6 +180,7 @@ export function PhotoFrame({
   aspect = '4 / 5',
   sizes = '(max-width: 768px) 90vw, 480px',
   position,
+  preload = false,
   priority = false,
   className = '',
 }: {
@@ -187,6 +191,8 @@ export function PhotoFrame({
   aspect?: string;
   sizes?: string;
   position?: string;
+  preload?: boolean;
+  /** @deprecated Old name for `preload` (next/image deprecated its own `priority` for `preload`). */
   priority?: boolean;
   className?: string;
 }) {
@@ -198,27 +204,43 @@ export function PhotoFrame({
           alt={alt}
           fill
           sizes={sizes}
-          priority={priority}
+          preload={preload || priority}
           className={landing.coverImg}
           style={position ? { objectPosition: position } : undefined}
         />
-        {label && (
-          <figcaption className={landing.chipRow}>
-            <span className={landing.chip}>
-              <span className={landing.chipDot} />
-              <span className={landing.chipText}>{label}</span>
-            </span>
-          </figcaption>
-        )}
       </div>
+      {label && (
+        <figcaption className={`${landing.chipRow} ${styles.photoCaption}`}>
+          <span className={`${landing.chip} ${styles.photoChip}`}>
+            <span className={landing.chipDot} />
+            <span className={landing.chipText}>{label}</span>
+          </span>
+        </figcaption>
+      )}
     </figure>
   );
 }
 
 export type FaqItem = { q: string; a: ReactNode };
 
-/** Questions and answers as native <details>, so every answer stays in the page for search. */
-export function FaqList({ items }: { items: FaqItem[] }) {
+/**
+ * Questions and answers as native <details>, so every answer stays in the page for search.
+ * `variant="open"` shows every answer instead, each question an h3 (no toggles).
+ */
+export function FaqList({ items, variant = 'accordion' }: { items: FaqItem[]; variant?: 'accordion' | 'open' }) {
+  if (variant === 'open') {
+    return (
+      <div className={`${styles.faq} ${styles.faqOpen}`}>
+        {items.map((item) => (
+          <div key={item.q} className={styles.faqItem}>
+            <h3 className={styles.faqQ}>{item.q}</h3>
+            <div className={styles.faqA}>{item.a}</div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className={styles.faq}>
       {items.map((item) => (
@@ -249,42 +271,85 @@ export function DotList({ items, center = false }: { items: ReactNode[]; center?
 
 type CtaLink = { href: string; label: string };
 
-/** The landing's dark closing slab with its pink and blue glows. */
+/**
+ * The landing's dark closing slab with its pink and blue glows. `wide` is for a title written
+ * as two lines (with a <br />): it lifts the landing's 12ch cap so each line stays whole, and
+ * the copy takes the slab's full width. `size="md"` sets a longer title a step smaller.
+ * `children` sit under the buttons (a DotList, StoreBadges), centred.
+ */
 export function ClosingCta({
   title,
   lead,
   primary,
   secondary,
   note,
+  prefetch,
+  wide = false,
+  size = 'lg',
+  className = '',
+  children,
 }: {
   title: ReactNode;
   lead?: ReactNode;
   primary: CtaLink;
   secondary?: CtaLink;
   note?: ReactNode;
+  prefetch?: boolean;
+  wide?: boolean;
+  size?: 'lg' | 'md';
+  className?: string;
+  children?: ReactNode;
 }) {
+  const variant = `${wide ? styles.ctaWide : ''} ${size === 'md' ? styles.ctaMd : ''}`;
   return (
-    <section className={`${landing.ctaSection} ${styles.ctaEnd}`}>
+    <section className={`${landing.ctaSection} ${styles.ctaEnd} ${variant} ${className}`}>
       <div className={`${landing.wrap} ${landing.ctaSlab}`}>
         <div className={landing.ctaGlowPink} aria-hidden="true" />
         <div className={landing.ctaGlowBlue} aria-hidden="true" />
-        <div className={landing.ctaCopy}>
-          <h2 className={landing.ctaTitle}>{title}</h2>
+        <div className={`${landing.ctaCopy} ${styles.ctaCopy}`}>
+          <h2 className={`${landing.ctaTitle} ${styles.ctaTitle}`}>{title}</h2>
           {lead && <p className={landing.ctaLead}>{lead}</p>}
           <div className={landing.ctaButtons}>
-            <ArrowLink href={primary.href} className={landing.btnLight}>
+            <ArrowLink href={primary.href} prefetch={prefetch} className={landing.btnLight}>
               {primary.label}
             </ArrowLink>
             {secondary && (
-              <Link href={secondary.href} className={`${landing.btnOutline} ${landing.btnOutlineDark}`}>
+              <Link
+                href={secondary.href}
+                prefetch={prefetch}
+                className={`${landing.btnOutline} ${landing.btnOutlineDark}`}
+              >
                 {secondary.label}
               </Link>
             )}
           </div>
           {note && <p className={styles.ctaNote}>{note}</p>}
+          {children && <div className={styles.ctaExtra}>{children}</div>}
         </div>
       </div>
     </section>
+  );
+}
+
+/** The ArrowLink look on a real <button>, for actions that are not plain links. */
+export function ArrowButton({
+  children,
+  onClick,
+  type = 'button',
+  className = '',
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  type?: 'submit' | 'button';
+  className?: string;
+}) {
+  return (
+    <button type={type} onClick={onClick} className={`${landing.btnPrimary} ${styles.btnArrow} ${className}`}>
+      {children}
+      <span className={landing.arrowTile} aria-hidden="true">
+        →
+      </span>
+    </button>
   );
 }
 

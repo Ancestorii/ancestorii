@@ -13,7 +13,15 @@ const NAV_LINKS = [
   { href: '/pricing', label: 'Pricing', dot: 'var(--c3)' },
 ];
 
-export default function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
+// `hidePricing` drops the Pricing link (the app's Apple-safe /rewards page shows no prices).
+export default function LandingNav({
+  isLoggedIn,
+  hidePricing = false,
+}: {
+  isLoggedIn: boolean;
+  hidePricing?: boolean;
+}) {
+  const links = hidePricing ? NAV_LINKS.filter((link) => link.href !== '/pricing') : NAV_LINKS;
   const [open, setOpen] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -73,7 +81,7 @@ export default function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
         <Logo href="/" />
 
         <nav className={styles.navLinks} aria-label="Main">
-          {NAV_LINKS.map((link) => (
+          {links.map((link) => (
             <Link key={link.href} href={link.href} className={styles.navLink}>
               {link.label}
             </Link>
@@ -139,7 +147,7 @@ export default function LandingNav({ isLoggedIn }: { isLoggedIn: boolean }) {
           </div>
 
           <nav className={styles.menuLinks} aria-label="Menu">
-            {NAV_LINKS.map((link) => (
+            {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Heart, MessageCircle, Play, ImageIcon } from 'lucide-react';
 import feed from '@/components/site/stories-browse/feed.module.css';
 import { topicToneClass } from '@/components/site/stories-browse/topicTone';
+import { getTimeAgo, plainTextFromHtml } from '@/lib/stories/format';
 
 const CATEGORY_LABELS: Record<string, string> = {
   family: 'Family',
@@ -37,7 +38,6 @@ export default function StoryCard({
   reactionCount,
   commentCount,
   publishedAt,
-  isLoggedIn,
 }: {
   featuredLabel?: string | null;
   slug: string;
@@ -56,11 +56,10 @@ export default function StoryCard({
   reactionCount: number;
   commentCount: number;
   publishedAt: string | null;
-  isLoggedIn: boolean;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
- const strippedBody = body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+ const strippedBody = plainTextFromHtml(body);
   const preview = excerpt || (strippedBody.length > 100 ? strippedBody.slice(0, 100).trim() + '…' : strippedBody);
 
   const initials = authorName
@@ -94,7 +93,7 @@ export default function StoryCard({
             fill
             sizes="(max-width: 639px) 100vw, (max-width: 959px) 50vw, (max-width: 1279px) 34vw, 420px"
             className={`${feed.cover} ${imageLoaded ? feed.coverShown : feed.coverHidden}`}
-            onLoadingComplete={() => setImageLoaded(true)}
+            onLoad={() => setImageLoaded(true)}
           />
         ) : (
           <div className={feed.fallback}>
@@ -195,27 +194,11 @@ export default function StoryCard({
             </span>
           </div>
           {timeAgo && (
-            <span className={feed.cardTime}>{timeAgo}</span>
+            // Counted from now, so the browser can land a minute past the server
+            <span className={feed.cardTime} suppressHydrationWarning>{timeAgo}</span>
           )}
         </div>
       </div>
     </Link>
   );
-}
-
-function getTimeAgo(dateStr: string): string {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-  });
 }

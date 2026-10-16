@@ -29,14 +29,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params;
   const topic = getTopicBySlug(category);
 
+  // The root layout's template adds " | Ancestorii" to both titles
   if (!topic) {
-    return { title: 'Topic Not Found — Ancestorii' };
+    return { title: 'Topic Not Found' };
   }
 
   const url = `${SITE}/stories/topics/${topic.slug}`;
 
   return {
-    title: `${topic.metaTitle} | Ancestorii`,
+    title: topic.metaTitle,
     description: topic.metaDescription,
     openGraph: {
       type: 'website',
@@ -73,16 +74,26 @@ export default async function TopicPage({ params }: Props) {
 
   const supabase = await getServerClient();
 
-  // Stories in this topic
-  const { data: stories } = await supabase
-    .from('stories')
-    .select(
-      'id, slug, title, body, excerpt, author_id, author_name, author_avatar_url, voice_note_path, category, published_at'
-    )
-    .eq('status', 'published')
-    .eq('category', topic.key)
-    .order('published_at', { ascending: false })
-    .limit(PAGE_SIZE);
+  const [
+    {
+      data: { user },
+    },
+    { data: stories },
+  ] = await Promise.all([
+    // The reader, so the signed-in bar is there from the first paint
+    supabase.auth.getUser(),
+    // Stories in this topic
+    supabase
+      .from('stories')
+      .select(
+        'id, slug, title, body, excerpt, author_id, author_name, author_avatar_url, voice_note_path, category, published_at'
+      )
+      .eq('status', 'published')
+      .eq('category', topic.key)
+      .order('published_at', { ascending: false })
+      .limit(PAGE_SIZE),
+  ]);
+  const isLoggedIn = !!user;
 
   const storyIds = (stories ?? []).map((s) => s.id);
 
@@ -215,7 +226,7 @@ export default async function TopicPage({ params }: Props) {
         })}
       </Script>
 
-      <SiteShell storiesBar>
+      <SiteShell isLoggedIn={isLoggedIn} storiesBar>
         {/* HERO */}
         <section className={topicsCss.hero}>
           <div className={topicsCss.heroInner}>
@@ -268,7 +279,6 @@ export default async function TopicPage({ params }: Props) {
                     reactionCount={s.reaction_count}
                     commentCount={s.comment_count}
                     publishedAt={s.published_at}
-                    isLoggedIn={false}
                   />
                 ))}
               </div>

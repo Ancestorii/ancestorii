@@ -12,10 +12,6 @@ const nextConfig: NextConfig = {
   images: {
     qualities: [60, 70, 75, 90],
     remotePatterns: [
-      { protocol: 'https', hostname: 'images.unsplash.com' },
-      { protocol: 'https', hostname: 'i.pravatar.cc' },
-      { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
-      { protocol: 'https', hostname: 'cdn.pixabay.com' },
       { protocol: 'https', hostname: 'wekebqaooixjngznycnm.supabase.co' },
     ],
   },

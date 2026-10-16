@@ -24,13 +24,6 @@ const SearchIcon = ({ size = 20, color = MUTED }: { size?: number; color?: strin
   </svg>
 );
 
-const BellIcon = ({ size = 22, color = INK }: { size?: number; color?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-  </svg>
-);
-
 const MenuIcon = () => (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.6" strokeLinecap="round">
     <line x1="4" y1="7" x2="20" y2="7" />
@@ -64,7 +57,6 @@ export default function PublicNav() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [hasUnread, setHasUnread] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -752,7 +744,7 @@ export default function PublicNav() {
                <button className="pn-profile-btn" onClick={() => setProfileOpen(!profileOpen)} aria-label="Profile menu">
                   {avatarUrl ? (
                     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                      <Image src={avatarUrl} alt="" fill sizes="96px" quality={90} className="pn-avatar-img" priority />
+                      <Image src={avatarUrl} alt="" fill sizes="96px" quality={90} className="pn-avatar-img" preload />
                     </div>
                   ) : (
                     <UserIcon />
@@ -804,7 +796,7 @@ export default function PublicNav() {
               <div className="pn-drawer-avatar">
                 {avatarUrl ? (
                   <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                    <Image src={avatarUrl} alt="" fill sizes="96px" quality={90} className="pn-avatar-img" priority />
+                    <Image src={avatarUrl} alt="" fill sizes="96px" quality={90} className="pn-avatar-img" preload />
                   </div>
                 ) : (
                   <UserIcon size={20} />

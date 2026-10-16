@@ -205,7 +205,7 @@ export default function DigitalLegacyPage() {
           </>
         }
       >
-        <FaqBlock items={QUESTIONS} />
+        <FaqBlock items={QUESTIONS} variant="open" />
       </ArticleSection>
 
       <ArticleCta

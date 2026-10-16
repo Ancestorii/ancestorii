@@ -5,10 +5,11 @@ import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { BookCopy, BookOpen, Gift, Images, LayoutPanelLeft, LayoutTemplate, PenTool } from 'lucide-react';
-import { Accent, ArrowLink, Eyebrow, PanelCard, PullQuote } from '@/components/site/SiteBits';
+import { Accent, ArrowLink, ClosingCta, Eyebrow, PanelCard, PullQuote } from '@/components/site/SiteBits';
 import landing from '@/components/landing/landing.module.css';
 import site from '@/components/site/site.module.css';
 import styles from '@/components/site/memory-books/memory-books.module.css';
+import { MEMORY_BOOK_FAQS } from '@/components/site/memory-books/faqs';
 
 /* ─── Tilted icon tile (white unless `bg` is set) ─── */
 function Tile({
@@ -59,8 +60,8 @@ const testimonials = [
   { name: 'Alison', location: 'Nevada, United States', quote: 'I walked past my dad’s room and caught him looking through his memory book again. That’s the third time this week. Ancestorii helped me turn years of photos into something he genuinely treasures.', image: '/Testimonial2.png' },
   { name: 'Nicole', location: 'Nampa, United States', quote: 'In my case, I have external hard drives full of photos I never get to see, but Ancestorii finally gave those memories a place where they can be easily enjoyed and shared.', image: '/testimonial1.png' },
   { name: 'Andrea', location: 'Dudley, United Kingdom', quote: 'I recently lost my dad, so this book became incredibly special. It captured the essence of him and the life he lived. Our family will treasure it for years to come.', image: '/testimonial4.png' },
-  { name: 'Erin', location: 'United Kingdom', quote: 'Ancestorii feels less like cloud storage and more like a living family archive. Beautifully designed and genuinely meaningful.', image: '/Testimonial5.png' },
-];
+  { name: 'Erin', location: 'United Kingdom', quote: 'Ancestorii feels less like cloud storage and more like a living family archive. Beautifully designed and genuinely meaningful.' },
+] as const;
 
 // How each family appears: the frame colour, caption and crop of their photo on the
 // hero wall, and the avatar beside their review (cropped from the photo they shared).
@@ -73,8 +74,9 @@ const family: Record<string, { place: string; color: string; position: string; a
   Erin: { place: 'UK', color: 'var(--c2)', position: '50% 35%', avatar: '/landing/review-erin.jpg' },
 };
 
-// Left to right on the hero wall, with the two book photos in the middle.
-const wall = [1, 0, 2, 3].map((i) => testimonials[i]);
+// Left to right on the hero wall, Alison's book in the middle. Erin has a review but no
+// photo here: hers shows the old dashboard on her laptop.
+const wall = [testimonials[1], testimonials[0], testimonials[2]];
 
 function Star() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
@@ -85,10 +87,13 @@ function FamilyWall() {
   return (
     <div className={styles.wall}>
       <div className={styles.wallRing}>
-        {wall.map((t) => {
+        {wall.map((t, i) => {
           const f = family[t.name];
+          // Each card's angle on the curve, two half-steps from the next and centred on the
+          // middle card, so the wall stays centred whatever the number of cards.
+          const angle = `calc(var(--half) * ${wall.length - 1 - 2 * i})`;
           return (
-            <figure key={t.name} className={styles.wallCard} style={{ '--card': f.color } as CSSProperties}>
+            <figure key={t.name} className={styles.wallCard} style={{ '--card': f.color, '--a': angle } as CSSProperties}>
               <div className={landing.photoCard}>
                 <div className={landing.photoCardInner}>
                   <Image
@@ -319,38 +324,22 @@ export default function MemoryBooksContent() {
           </div>
 
           <ul className={styles.faqList}>
-            <FAQ q="How is this different from a regular photo book?" a="Photo books display images. Memory Books preserve stories. Each page can combine photographs with written context, personal reflections, and the meaning behind a moment. Not just the image itself." />
-            <FAQ q="Do I need design experience?" a="No. The visual editor is built so anyone can arrange pages naturally. Drag photos, add text, adjust layouts. The design stays clean without needing professional skills." />
-            <FAQ q="How are Memory Books printed and delivered?" a="Memory Books are professionally printed as hardcover books and shipped directly to your door. Print quality is handled by a specialist fulfilment partner to ensure every book feels like a keepsake." />
-            <FAQ q="Can I order multiple copies?" a="Yes. Once your book is designed, order as many copies as you need. For family members, as gifts, or to keep for different branches of your family." />
-            <FAQ q="What makes this different from StoryWorth or other services?" a="Most services use a question and answer format to auto generate a book from responses. Ancestorii gives you full creative control. You decide the layout, the stories, the photos, and the structure. Your book looks exactly the way you want it to." />
-            <FAQ q="Is a Memory Book a good gift?" a="It is one of the most personal gifts you can give. A printed collection of family stories, designed by someone who was there, for a birthday, anniversary, or simply because the stories deserve to exist on a shelf." />
+            {MEMORY_BOOK_FAQS.map((faq) => (
+              <FAQ key={faq.q} q={faq.q} a={faq.a} />
+            ))}
           </ul>
         </div>
       </section>
 
       {/* ━━━ CTA ━━━ */}
-      <section className={`${landing.ctaSection} ${site.ctaEnd}`}>
-        <div className={`${landing.wrap} ${landing.ctaSlab} ${styles.ctaSlab}`}>
-          <div className={landing.ctaGlowPink} aria-hidden="true" />
-          <div className={landing.ctaGlowBlue} aria-hidden="true" />
-          <div className={landing.ctaCopy}>
-            <p className={`${landing.ctaTitle} ${styles.ctaTitle}`}>
-              Your stories deserve more than{' '}a phone screen.
-            </p>
-            <p className={landing.ctaLead}>Turn them into something your family can hold.</p>
-            <div className={landing.ctaButtons}>
-              <Link href="/signup" prefetch className={`${landing.btnPrimary} ${landing.btnLight} ${styles.ctaButton}`}>
-                Start Designing Your Book
-                <span className={landing.arrowTile} aria-hidden="true">
-                  →
-                </span>
-              </Link>
-            </div>
-            <p className={`${site.ctaNote} ${styles.ctaNote}`}>No credit card required · Takes 2 minutes</p>
-          </div>
-        </div>
-      </section>
+      <ClosingCta
+        prefetch
+        className={styles.cta}
+        title="Your stories deserve more than a phone screen."
+        lead="Turn them into something your family can hold."
+        primary={{ href: '/signup', label: 'Start Designing Your Book' }}
+        note="No credit card required · Takes 2 minutes"
+      />
     </>
   );
 }

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Our Roots — Why Ancestorii Exists",
+  title: { absolute: "Our Roots — Why Ancestorii Exists" },
   description:
     "The personal story behind Ancestorii. Built by one person who could not stop thinking about how much families lose when nobody writes things down.",
   alternates: {

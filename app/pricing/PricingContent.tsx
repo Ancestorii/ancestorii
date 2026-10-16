@@ -17,7 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import StoreBadges from '@/components/StoreBadges';
-import { Accent, ArrowLink, DotList, Eyebrow, PageHero, SectionHead } from '@/components/site/SiteBits';
+import { Accent, ArrowLink, ClosingCta, DotList, Eyebrow, PageHero, SectionHead } from '@/components/site/SiteBits';
 import landing from '@/components/landing/landing.module.css';
 import site from '@/components/site/site.module.css';
 import css from './pricing.module.css';
@@ -122,7 +122,7 @@ export default function PricingPage() {
       <section className={site.sectionSm}>
         <div className={`${landing.wrap} ${css.plans}`}>
           {/* ── OUR STORIES ── */}
-          <article className={css.plan}>
+          <article className={`${css.plan} ${css.planStories}`}>
             <div className={css.planHead}>
               <div className={css.planTop}>
                 <span className={site.tag} style={{ '--dot': 'var(--c0)' } as CSSProperties}>
@@ -143,6 +143,13 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
+            {/* Fills the room the shorter list leaves when the plans sit side by side. */}
+            <blockquote className={css.planQuote}>
+              <span className={css.planQuoteMark} aria-hidden="true">
+                “
+              </span>
+              <p>Not social media. A memory space with a door that stays open.</p>
+            </blockquote>
             <Link href="/signup" className={`${landing.btnOutline} ${css.planCta}`}>
               Get started
             </Link>
@@ -167,7 +174,7 @@ export default function PricingPage() {
                 <li key={i} className={css.feature}>
                   {f.on ? <Tick tone={css.blue} /> : <Cross />}
                   <span>
-                    {!f.on && <span className={css.srOnly}>Not included: </span>}
+                    {!f.on && <span className={site.srOnly}>Not included: </span>}
                     {f.t}
                   </span>
                 </li>
@@ -284,42 +291,32 @@ export default function PricingPage() {
       </section>
 
       {/* ━━━ CTA ━━━ */}
-      <section className={`${landing.ctaSection} ${site.ctaEnd}`}>
-        <div className={`${landing.wrap} ${landing.ctaSlab} ${css.slab}`}>
-          <div className={landing.ctaGlowPink} aria-hidden="true" />
-          <div className={landing.ctaGlowBlue} aria-hidden="true" />
-          <div className={landing.ctaCopy}>
-            <p className={`${landing.ctaTitle} ${css.ctaTitle}`}>
-              <span className={css.ctaLine}>Start with one memory.</span>{' '}
-              <Accent tone="pink">Build from there.</Accent>
-            </p>
-            <p className={landing.ctaLead}>No credit card. No commitment. Just start.</p>
-            <div className={landing.ctaButtons}>
-              <Link href="/signup" prefetch className={`${landing.btnPrimary} ${landing.btnLight}`}>
-                Start For Free
-                <span className={landing.arrowTile} aria-hidden="true">
-                  →
-                </span>
-              </Link>
-            </div>
-            <div className={css.ctaNote}>
-              <DotList items={['No credit card required', 'Takes 2 minutes']} center />
-            </div>
-          </div>
+      <ClosingCta
+        wide
+        prefetch
+        title={
+          <>
+            <span className={css.ctaLine}>Start with one memory.</span>{' '}
+            <Accent tone="pink">Build from there.</Accent>
+          </>
+        }
+        lead="No credit card. No commitment. Just start."
+        primary={{ href: '/signup', label: 'Start For Free' }}
+      >
+        <DotList items={['No credit card required', 'Takes 2 minutes']} center />
 
-          <div className={css.app}>
-            <div className={css.appText}>
-              <p className={css.appLead}>
-                You create and share memories in the app. You upgrade and order keepsakes here on the website.
-              </p>
-              <p className={css.appSub}>
-                Already using the Ancestorii app? This is the same account. Log in with the same email and password you use in the app.
-              </p>
-            </div>
-            <StoreBadges theme="dark" className={css.appBadges} />
+        <div className={css.app}>
+          <div className={css.appText}>
+            <p className={css.appLead}>
+              You create and share memories in the app. You upgrade and order keepsakes here on the website.
+            </p>
+            <p className={css.appSub}>
+              Already using the Ancestorii app? This is the same account. Log in with the same email and password you use in the app.
+            </p>
           </div>
+          <StoreBadges theme="dark" className={css.appBadges} />
         </div>
-      </section>
+      </ClosingCta>
     </>
   );
 }

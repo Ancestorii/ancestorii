@@ -19,7 +19,7 @@ import {
 const SITE = 'https://www.ancestorii.com';
 
 export const metadata: Metadata = {
-  title: 'The Best StoryWorth Alternative for 2026 | Ancestorii',
+  title: 'The Best StoryWorth Alternative for 2026',
   description:
     'Looking for a StoryWorth alternative? See how Ancestorii compares — a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, ships worldwide.',
   alternates: { canonical: `${SITE}/compare/storyworth-alternative` },
@@ -222,7 +222,7 @@ export default function StoryworthAlternativePage() {
             </>
           }
         >
-          <FaqBlock items={FAQ} />
+          <FaqBlock items={FAQ} variant="open" />
         </ArticleSection>
 
         <ArticleCta

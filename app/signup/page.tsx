@@ -2,7 +2,7 @@ import AuthShell from '@/components/site/AuthShell';
 import { DotList } from '@/components/site/SiteBits';
 import auth from '@/components/site/auth.module.css';
 import site from '@/components/site/site.module.css';
-import SignupFormClient from './_components/SignupFormClient';
+import SignupForm from './_components/SignupForm';
 import styles from './_components/signup.module.css';
 
 export default function SignupPage() {
@@ -18,7 +18,7 @@ export default function SignupPage() {
         <DotList items={['Free to start', 'No credit card', 'Two minutes']} />
       </div>
 
-      <SignupFormClient />
+      <SignupForm />
     </AuthShell>
   );
 }

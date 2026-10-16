@@ -193,13 +193,6 @@
   flex: none;
 }
 
-/* ── Closing slab ─────────────────────────────────────────── */
-
-/* "Free forever · No credit card · Takes 2 minutes" as the shared coloured-dot list. */
-.ctaNote {
-  margin-top: 22px;
-}
-
 /* ── Tablet and phone: photo above its passage ────────────── */
 
 @media (max-width: 899px) {
