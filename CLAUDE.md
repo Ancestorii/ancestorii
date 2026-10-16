@@ -4,9 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Ancestorii is a Next.js platform where families privately capture loved ones, timelines, albums, and memories (the "My Family" feed) and share chosen stories publicly (the "Our Stories" feed), then turn them into physical heirlooms (printed Memory Books, Canvases, Acrylic Prints). Copy is British English throughout.
-
-Customer-facing positioning: "a place where families capture and keep memories together." Do not use "family library" or "living library" language anywhere — it was retired from all copy. Product copy uses action verbs ("add a memory", "ask Mum a question"), not category nouns.
+Ancestorii is a Next.js platform where families privately capture loved ones, timelines, albums, and memories (the "My Family" feed) and share chosen stories publicly (the "Our Stories" feed), then turn them into physical heirlooms (printed Memory Books, Canvases, Acrylic Prints).
 
 **Two feeds, two names (canonical):**
 - **"Our Stories"** — the public community feed (SEO-indexed, anyone can read).
@@ -18,20 +16,6 @@ Customer-facing positioning: "a place where families capture and keep memories t
 - **Surgical edits only.** Make the smallest change that satisfies the request. Do not refactor, rename, or "tidy" adjacent code unprompted.
 - **Verify the DB before writing queries.** Confirm table/column shapes against the live schema (via the Supabase MCP server or by reading existing queries) before writing or editing any Supabase call. Do not invent columns.
 - **Never touch Supabase logic during a purely visual change.** If a task is styling/layout only, leave queries, RLS assumptions, and data flow untouched.
-
-## Design rules (hard)
-
-- **No Cormorant Garamond anywhere on the public layer** (feed, sidebar, cards, footer) — it halates and reads fuzzy at the sizes used there.
-- **No hyphens in copy.**
-- **No greys anywhere.**
-- **Fonts:** Playfair Display for serif headings; DM Sans for all UI chrome.
-
-## Brand palette
-
-The public app layer and the marketing layer use different palettes — keep them separate, do not bleed one into the other.
-
-- **Public app layer:** pure white `#FFFFFF`, ink `#191512`, gold `#C8A557` / `#A9842E`.
-- **Marketing layer:** navy `#0F2040`, gold `#D4AF37` / `#c8a557`, cream `#f5f1e6`.
 
 Stack: Next.js 16 (App Router) · React 18 · TypeScript · Tailwind v4 · Supabase (Postgres + Auth + Storage + Edge Functions) · Stripe · Prodigi (print-on-demand) · Anthropic Claude (writing assistance) · Resend (email).
 
