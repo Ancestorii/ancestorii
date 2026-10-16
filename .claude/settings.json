@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npx eslint app/dashboard/_layout.client.tsx src/components/stories/layout/PublicNav.tsx src/components/dashboard/BottomNavigation.tsx)",
+      "PowerShell(npm run build 2>&1)",
+      "PowerShell(git add app/api/admin/moderate/route.ts app/api/feature-story/route.ts app/api/unfeature-story/route.ts app/dashboard/_layout.client.tsx app/dashboard/profile/page.tsx src/components/dashboard/BottomNavigation.tsx src/components/stories/layout/PublicNav.tsx src/lib/adminUser.ts)",
+      "PowerShell(git push origin main)",
+      "PowerShell(npx tsc --noEmit; Write-Output \"TSC_EXIT=$LASTEXITCODE\")",
+      "Bash(git add *)"
+    ]
+  }
+}
