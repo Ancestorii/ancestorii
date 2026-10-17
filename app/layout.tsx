@@ -145,16 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${inter.variable} ${playfair.variable} ${dmSans.variable} antialiased text-gray-900 bg-transparent min-h-screen`}
       >
-        {/* 🟡 GOOGLE TAG MANAGER (noscript) */}
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-PWNN6NGL"
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
-
+        {/* No GTM <noscript> fallback: without JavaScript the cookie banner can't ask, so nothing loads. */}
         {children}
 
         <Toaster
