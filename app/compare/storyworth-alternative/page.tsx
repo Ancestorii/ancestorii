@@ -19,24 +19,24 @@ import {
 const SITE = 'https://www.ancestorii.com';
 
 export const metadata: Metadata = {
-  title: 'The Best StoryWorth Alternative for 2026',
+  title: 'The Best Storyworth Alternative for 2026',
   description:
-    'Looking for a StoryWorth alternative? See how Ancestorii compares — a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, delivering to 20 countries.',
+    'Looking for a Storyworth alternative? See how Ancestorii compares — a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, delivering to 20 countries.',
   alternates: { canonical: `${SITE}/compare/storyworth-alternative` },
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'The Best StoryWorth Alternative | Ancestorii',
+    title: 'The Best Storyworth Alternative | Ancestorii',
     description:
-      'A living family library instead of a one year prompt service. See how Ancestorii compares to StoryWorth.',
+      'A living family library instead of a one year prompt service. See how Ancestorii compares to Storyworth.',
     url: `${SITE}/compare/storyworth-alternative`,
     siteName: 'Ancestorii',
-    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii, a StoryWorth alternative' }],
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii, a Storyworth alternative' }],
     locale: 'en_GB',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'The Best StoryWorth Alternative | Ancestorii',
+    title: 'The Best Storyworth Alternative | Ancestorii',
     description: 'A living family library instead of a one year prompt service.',
     images: ['/og-default.jpg'],
     creator: '@ancestorii',
@@ -45,35 +45,35 @@ export const metadata: Metadata = {
 
 const FAQ = [
   {
-    q: 'What is the best alternative to StoryWorth?',
-    a: 'It depends on what you want. If you want more than a single book, Ancestorii is the strongest alternative. StoryWorth sends one storyteller weekly email prompts for a year and compiles the replies into a hardcover. Ancestorii is a living family library with a private space for your family and a public story feed, plus printed Memory Books, Canvas Prints, and Acrylic Prints you design yourself.',
+    q: 'What is the best alternative to Storyworth?',
+    a: 'It depends on what you want. If you want more than a single book, Ancestorii is the strongest alternative. Storyworth sends one storyteller weekly email prompts for a year and compiles the replies into a hardcover. Ancestorii is a living family library with a private space for your family and a public story feed, plus printed Memory Books, Canvas Prints, and Acrylic Prints you design yourself.',
   },
   {
-    q: 'Is there a StoryWorth alternative in the UK?',
-    a: 'Yes. Ancestorii is built in the UK, charges in pounds, euros or dollars, and delivers its prints to 20 countries, including the UK. StoryWorth is US based, and as of October 2026 its UK plans start at £49. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
+    q: 'Is there a Storyworth alternative in the UK?',
+    a: 'Yes. Ancestorii is built in the UK, charges in pounds, euros or dollars, and delivers its prints to 20 countries, including the UK. Storyworth is US based, and as of October 2026 its UK plans start at £49. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
   },
   {
-    q: 'How is Ancestorii different from StoryWorth?',
-    a: 'StoryWorth is a book service built around one storyteller and one year. Ancestorii is a permanent digital library the whole family can add to, with timelines, albums, stories, and voice recordings that keep growing. You can turn any of it into physical heirlooms whenever you want, and you design every page yourself rather than letting it auto compile.',
+    q: 'How is Ancestorii different from Storyworth?',
+    a: 'Storyworth is a book service built around one storyteller and one year. Ancestorii is a permanent digital library the whole family can add to, with timelines, albums, stories, and voice recordings that keep growing. You can turn any of it into physical heirlooms whenever you want, and you design every page yourself rather than letting it auto compile.',
   },
   {
-    q: 'Is Ancestorii cheaper than StoryWorth?',
-    a: 'Ancestorii has a free forever plan, so you can build a family library at no cost and only pay if you choose to print something or upgrade. As of October 2026, StoryWorth\'s UK plans start at £49 for a year of weekly questions and one hardcover book. The two are priced around different ideas, so the better question is whether you want one book or a library that lasts.',
+    q: 'Is Ancestorii cheaper than Storyworth?',
+    a: 'Ancestorii has a free forever plan, so you can build a family library at no cost and only pay if you choose to print something or upgrade. As of October 2026, Storyworth\'s UK plans start at £49 for a year of weekly questions and one hardcover book. The two are priced around different ideas, so the better question is whether you want one book or a library that lasts.',
   },
   {
     q: 'Can the whole family contribute, not just one person?',
-    a: 'Yes. Ancestorii is built for family collaboration. You invite members into your private library and everyone can add stories, upload photos, and help build the archive together. StoryWorth is built around one storyteller per subscription.',
+    a: 'Yes. Ancestorii is built for family collaboration. You invite members into your private library and everyone can add stories, upload photos, and help build the archive together. Storyworth is built around one storyteller per subscription.',
   },
   {
     q: 'Does my content disappear after the book is printed?',
-    a: 'No. With StoryWorth, the plan ends with the book unless you renew for another year. With Ancestorii the library is the core of the product and keeps growing after any book is printed. You can create more heirlooms from it at any point in the future.',
+    a: 'No. With Storyworth, the plan ends with the book unless you renew for another year. With Ancestorii the library is the core of the product and keeps growing after any book is printed. You can create more heirlooms from it at any point in the future.',
   },
 ];
 
 const REASONS = [
   {
     title: 'It is built around one storyteller.',
-    text: 'StoryWorth works beautifully for a single person writing to prompts. Each subscription covers one storyteller and one book, and collaborative books need a higher plan.',
+    text: 'Storyworth works beautifully for a single person writing to prompts. Each subscription covers one storyteller and one book, and collaborative books need a higher plan.',
     Icon: UserRound,
   },
   {
@@ -115,8 +115,8 @@ export default function StoryworthAlternativePage() {
       <JsonLd
         data={{
           '@context': 'https://schema.org', '@type': 'WebPage',
-          name: 'The best StoryWorth alternative',
-          description: 'How Ancestorii compares to StoryWorth as a way to preserve family stories.',
+          name: 'The best Storyworth alternative',
+          description: 'How Ancestorii compares to Storyworth as a way to preserve family stories.',
           url: `${SITE}/compare/storyworth-alternative`,
           isPartOf: { '@id': `${SITE}/#website` },
         }}
@@ -128,7 +128,7 @@ export default function StoryworthAlternativePage() {
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
             { '@type': 'ListItem', position: 2, name: 'Compare', item: `${SITE}/compare` },
-            { '@type': 'ListItem', position: 3, name: 'StoryWorth alternative', item: `${SITE}/compare/storyworth-alternative` },
+            { '@type': 'ListItem', position: 3, name: 'Storyworth alternative', item: `${SITE}/compare/storyworth-alternative` },
           ],
         }}
       />
@@ -149,16 +149,16 @@ export default function StoryworthAlternativePage() {
           crumbs={[
             { href: '/', label: 'Home' },
             { href: '/compare', label: 'Compare' },
-            { label: 'StoryWorth alternative' },
+            { label: 'Storyworth alternative' },
           ]}
           size="md"
           title={
             <>
-              A StoryWorth alternative <Accent>that does not end with the book.</Accent>
+              A Storyworth alternative <Accent>that does not end with the book.</Accent>
             </>
           }
           intro={[
-            'StoryWorth helped make family storytelling mainstream, and it does one thing genuinely well. It sends a weekly prompt to one person for a year, then turns their answers into a hardcover book. If that is exactly what you want, it is a lovely gift.',
+            'Storyworth helped make family storytelling mainstream, and it does one thing genuinely well. It sends a weekly prompt to one person for a year, then turns their answers into a hardcover book. If that is exactly what you want, it is a lovely gift.',
             'But many families want something the book model cannot give them. A space the whole family can add to. Something that keeps going after the twelve months are up. Stories in their own words rather than answers to set prompts. That is the gap Ancestorii was built to fill.',
             'There is also a free Ancestorii app for your phone, so the whole family can add photos, memories, and voices from anywhere. It is on iPhone and Android.',
           ]}
@@ -181,7 +181,7 @@ export default function StoryworthAlternativePage() {
         </ArticleSection>
 
         <QuoteBlock>
-          StoryWorth gives a family one book.{' '}
+          Storyworth gives a family one book.{' '}
           <Accent tone="blue">Ancestorii gives them a library that keeps growing.</Accent>
         </QuoteBlock>
 
@@ -192,21 +192,21 @@ export default function StoryworthAlternativePage() {
           kicker={"Side by side"}
           title={
             <>
-              Ancestorii vs <Accent tone="pink">StoryWorth.</Accent>
+              Ancestorii vs <Accent tone="pink">Storyworth.</Accent>
             </>
           }
         >
           <CompareTable
-            head={['Feature', 'Ancestorii', 'StoryWorth']}
+            head={['Feature', 'Ancestorii', 'Storyworth']}
             rows={FEATURES}
             highlight={1}
             size="mid"
             labelledBy="side-by-side-title"
           />
           <TableNote>
-            StoryWorth details last checked on its own website on 17 October 2026. Want the full picture?{' '}
+            Storyworth details last checked on its own website on 17 October 2026. Want the full picture?{' '}
             <Link href="/compare" className={site.textLink}>
-              Compare Ancestorii, StoryWorth, and Remento side by side.
+              Compare Ancestorii, Storyworth, and Remento side by side.
             </Link>
           </TableNote>
         </ArticleSection>

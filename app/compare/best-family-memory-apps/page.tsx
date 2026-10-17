@@ -60,7 +60,7 @@ type App = {
 };
 
 const STORYWORTH: App = {
-  name: 'StoryWorth',
+  name: 'Storyworth',
   tone: 'blue',
   oneLiner: 'Weekly questions for a year, then a hardcover book.',
   strengths: [
@@ -176,15 +176,15 @@ function AppCard({ app, featured = false }: { app: App; featured?: boolean }) {
 const FAQ = [
   {
     q: 'What is the best app for preserving family memories?',
-    a: "It depends on the job. Remento suits a storyteller who would rather talk, and StoryWorth sends weekly questions for a book. Tinybeans and FamilyAlbum share children's photos, Google Photos and iCloud back up pictures, and FamilySearch Memories links memories to a family tree. For a private library the whole family adds to, with voice notes and printed books, Ancestorii is built for that.",
+    a: "It depends on the job. Remento suits a storyteller who would rather talk, and Storyworth sends weekly questions for a book. Tinybeans and FamilyAlbum share children's photos, Google Photos and iCloud back up pictures, and FamilySearch Memories links memories to a family tree. For a private library the whole family adds to, with voice notes and printed books, Ancestorii is built for that.",
   },
   {
     q: 'Which family memory app is free?',
-    a: 'FamilySearch Memories is free, and FamilyAlbum says it has no fees or storage limits. Ancestorii has a Free plan with 1\u00a0GB of family storage and no card, Tinybeans is free for 20 photos and videos a month with ads, Google gives up to 15\u00a0GB shared with Gmail and Drive, and iCloud includes 5\u00a0GB. StoryWorth and Remento are paid services that include a printed book.',
+    a: 'FamilySearch Memories is free, and FamilyAlbum says it has no fees or storage limits. Ancestorii has a Free plan with 1\u00a0GB of family storage and no card, Tinybeans is free for 20 photos and videos a month with ads, Google gives up to 15\u00a0GB shared with Gmail and Drive, and iCloud includes 5\u00a0GB. Storyworth and Remento are paid services that include a printed book.',
   },
   {
     q: "What's the best app for recording a grandparent's stories?",
-    a: "If they would rather talk than write, Remento lets them record by clicking a link on any phone, for up to 30\u00a0minutes a story, and turns each recording into text for a book. StoryWorth lets them reply by email or on its website, or by phone on an upgraded plan. In Ancestorii you can send them one of 46 ready-made questions to answer in the free app, and keep voice notes in your family's private library.",
+    a: "If they would rather talk than write, Remento lets them record by clicking a link on any phone, for up to 30\u00a0minutes a story, and turns each recording into text for a book. Storyworth lets them reply by email or on its website, or by phone on an upgraded plan. In Ancestorii you can send them one of 46 ready-made questions to answer in the free app, and keep voice notes in your family's private library.",
   },
   {
     q: 'Which app is best for sharing baby photos privately?',
@@ -192,13 +192,13 @@ const FAQ = [
   },
   {
     q: 'Can I print a book from these apps?',
-    a: 'Yes, from several. StoryWorth and Remento include one hardcover book in their price, Tinybeans and FamilyAlbum offer photobooks, and Ancestorii prints A4 landscape Memory Books you lay out page by page, from £44.99 plus delivery. We did not compare printing for Google Photos, iCloud or FamilySearch Memories.',
+    a: 'Yes, from several. Storyworth and Remento include one hardcover book in their price, Tinybeans and FamilyAlbum offer photobooks, and Ancestorii prints A4 landscape Memory Books you lay out page by page, from £44.99 plus delivery. We did not compare printing for Google Photos, iCloud or FamilySearch Memories.',
   },
 ];
 
 const KEY_FACTS = [
   <>
-    As of October&nbsp;2026, StoryWorth&apos;s UK plans <strong>start at £49</strong>. It sends weekly
+    As of October&nbsp;2026, Storyworth&apos;s UK plans <strong>start at £49</strong>. It sends weekly
     questions by text or email and prints the stories as a book after a year.
   </>,
   <>
@@ -227,7 +227,7 @@ const KEY_FACTS = [
 // App, free option, paid plan, best for: the prices sit next to the names, so phones show them first.
 const SIDE_BY_SIDE = [
   ['Ancestorii', 'Yes: 1\u00a0GB for the family, no card', 'Premium £3.99 a month per family', 'A private library the whole family adds to, with prints'],
-  ['StoryWorth', 'No', 'From £49 (UK)', "One person's stories in a book after a year"],
+  ['Storyworth', 'No', 'From £49 (UK)', "One person's stories in a book after a year"],
   ['Remento', 'No', '$99 first year with one book, then $99 a year or $12 a month', 'Recorded stories turned into a book with QR codes'],
   ['Tinybeans', '20 uploads a month and 5\u00a0GB, with ads', 'Tinybeans+ $74.99 a year or $7.99 a month', "Sharing children's photos with family"],
   ['FamilyAlbum', 'Yes, with no storage limits', 'Premium Family £54.99 a year (UK App Store)', 'Sharing baby photos and videos privately'],
@@ -248,8 +248,8 @@ const ITEM_LIST = {
 
 const SOURCES: Source[] = [
   {
-    publisher: 'StoryWorth',
-    title: 'StoryWorth UK homepage: plans, weekly questions and books',
+    publisher: 'Storyworth',
+    title: 'Storyworth UK homepage: plans, weekly questions and books',
     href: 'https://welcome.storyworth.com/gb',
     date: 'accessed October 2026',
   },
@@ -381,7 +381,7 @@ export default function BestFamilyMemoryAppsPage() {
             </>
           }
           intro={[
-            "The best family memory app depends on the job. Remento or StoryWorth turn one person's stories into a book, Tinybeans or FamilyAlbum share a child's photos with family, Google Photos or iCloud back up and share everyday pictures, FamilySearch Memories is free and tied to a family tree, and Ancestorii is a private, ad-free library the whole family adds to, with prints.",
+            "The best family memory app depends on the job. Remento or Storyworth turn one person's stories into a book, Tinybeans or FamilyAlbum share a child's photos with family, Google Photos or iCloud back up and share everyday pictures, FamilySearch Memories is free and tied to a family tree, and Ancestorii is a private, ad-free library the whole family adds to, with prints.",
             "Ancestorii publishes this page, so we have said where each app is strongest and where ours falls short. Every price comes from the company's own website, help centre or App Store listing, checked on 17\u00a0October\u00a02026.",
           ]}
           cta={{ href: '/signup', label: 'Start For Free' }}
@@ -455,7 +455,7 @@ export default function BestFamilyMemoryAppsPage() {
             </Link>{' '}
             and{' '}
             <Link href="/compare/storyworth-alternative" className={site.textLink}>
-              StoryWorth alternative
+              Storyworth alternative
             </Link>{' '}
             comparisons.
           </TableNote>

@@ -57,7 +57,7 @@ export const metadata: Metadata = {
 const FAQ = [
   {
     q: 'What is the best alternative to Remento?',
-    a: 'It depends on what you want to keep. For a private space where the whole family adds memories, photos and voice notes, with books you lay out yourself, Ancestorii is built for that. For weekly questions and a book after a year, StoryWorth works that way. If typed-up recordings and QR codes in the book matter most, Remento does that better than either.',
+    a: 'It depends on what you want to keep. For a private space where the whole family adds memories, photos and voice notes, with books you lay out yourself, Ancestorii is built for that. For weekly questions and a book after a year, Storyworth works that way. If typed-up recordings and QR codes in the book matter most, Remento does that better than either.',
   },
   {
     q: 'Is Remento available in the UK?',
@@ -210,8 +210,8 @@ const SOURCES: Source[] = [
     date: 'accessed October 2026',
   },
   {
-    publisher: 'StoryWorth',
-    title: 'StoryWorth UK homepage: weekly questions and how stories are told',
+    publisher: 'Storyworth',
+    title: 'Storyworth UK homepage: weekly questions and how stories are told',
     href: 'https://welcome.storyworth.com/gb',
     date: 'accessed October 2026',
   },
@@ -411,9 +411,9 @@ export default function RementoAlternativePage() {
               <li>you want to lay out the book yourself, or add a canvas or acrylic print later.</li>
             </ul>
             <p>
-              If you are also weighing up StoryWorth, which sends weekly questions by text or email and
+              If you are also weighing up Storyworth, which sends weekly questions by text or email and
               prints a book after a year, our{' '}
-              <Link href="/compare/storyworth-alternative">StoryWorth alternative</Link> page covers
+              <Link href="/compare/storyworth-alternative">Storyworth alternative</Link> page covers
               it.
             </p>
           </Reading>

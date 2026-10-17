@@ -150,7 +150,7 @@ Printed keepsakes are paid for per order, with no subscription needed. They are 
 - **Cloud photo storage (Google Photos, iCloud, Dropbox)**: built to back up every file. Ancestorii keeps the story, the date and the voices behind the photos that matter, in a private space the family adds to. The two work well side by side.
 - **Group chats and social media (WhatsApp, Facebook groups)**: built for conversation, so photos get buried in the scroll, and Facebook is funded by ads. Ancestorii is ad-free and private to the family you invite, and memories stay organised by person, album and timeline.
 - **Genealogy sites (Ancestry, MyHeritage)**: built for researching records and building family trees. Ancestorii keeps the family's own photos, voices and stories, and is not a genealogy research service. They work well together.
-- **Prompt-and-book services (StoryWorth, Remento)**: built around one storyteller answering prompts to make a book. Ancestorii is a private space the whole family adds to over time, and any printed book is one you design yourself, page by page.
+- **Prompt-and-book services (Storyworth, Remento)**: built around one storyteller answering prompts to make a book. Ancestorii is a private space the whole family adds to over time, and any printed book is one you design yourself, page by page.
 - **Baby journals (Tinybeans)**: built to share one child's photos with family. Ancestorii is for every generation's photos, voices and stories.
 
 ## Founder
@@ -242,8 +242,8 @@ Ancestry is for researching records and building a family tree. Ancestorii is fo
 
 ### Comparisons
 
-- [Ancestorii vs StoryWorth vs Remento](https://www.ancestorii.com/compare): A side-by-side look at a family library and prompt-based book services.
-- [StoryWorth alternative](https://www.ancestorii.com/compare/storyworth-alternative): How a living family library compares with StoryWorth's prompt service.
+- [Ancestorii vs Storyworth vs Remento](https://www.ancestorii.com/compare): A side-by-side look at a family library and prompt-based book services.
+- [Storyworth alternative](https://www.ancestorii.com/compare/storyworth-alternative): How a living family library compares with Storyworth's prompt service.
 - [Remento alternative](https://www.ancestorii.com/compare/remento-alternative): Remento turns one storyteller's recordings into a book; Ancestorii is a private library the whole family adds to.
 - [Best family memory apps](https://www.ancestorii.com/compare/best-family-memory-apps): Eight apps for family photos, voices and stories, compared on price, free plans and printing.
 - [Ancestorii vs Ancestry](https://www.ancestorii.com/compare/ancestorii-vs-ancestry): Records and family trees, or your family's own photos, voices and stories, and how to use both.

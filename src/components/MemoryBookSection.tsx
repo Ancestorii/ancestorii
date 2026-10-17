@@ -198,7 +198,7 @@ export default function MemoryBooksContent() {
 
           <p className={styles.compare}>
             See how Ancestorii compares to other family memory book services like{' '}
-            <Link href="/compare" className={site.textLink}>StoryWorth and Remento</Link>.
+            <Link href="/compare" className={site.textLink}>Storyworth and Remento</Link>.
           </p>
         </div>
       </section>

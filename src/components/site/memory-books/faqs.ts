@@ -18,7 +18,7 @@ export const MEMORY_BOOK_FAQS = [
     a: 'Yes. Once your book is designed, order as many copies as you need. For family members, as gifts, or to keep for different branches of your family.',
   },
   {
-    q: 'What makes this different from StoryWorth or other services?',
+    q: 'What makes this different from Storyworth or other services?',
     a: 'Most services use a question and answer format to auto generate a book from responses. Ancestorii gives you full creative control. You decide the layout, the stories, the photos, and the structure. Your book looks exactly the way you want it to.',
   },
   {

@@ -122,8 +122,8 @@ const SOURCES = [
     date: '2008',
   },
   {
-    publisher: 'StoryWorth',
-    title: 'StoryWorth UK homepage: how weekly questions and replies work',
+    publisher: 'Storyworth',
+    title: 'Storyworth UK homepage: how weekly questions and replies work',
     href: 'https://welcome.storyworth.com/gb',
     date: 'accessed October 2026',
   },
@@ -302,14 +302,14 @@ export default function FamilyQuestionsPage() {
             </p>
             <p>
               That is a real difference from the services built around email and text messages. As of
-              October&nbsp;2026, StoryWorth sends weekly questions by text or email, and storytellers reply by email, by
+              October&nbsp;2026, Storyworth sends weekly questions by text or email, and storytellers reply by email, by
               recording their voice over the phone, or on its website. Remento sends a storytelling prompt
               by email or text message, once a week by default, and storytellers record by clicking the
               link, with no app to download and no password to remember.
             </p>
             <p>
               If the person you want to hear from will never install an app, one of those may suit them
-              better; our <Link href="/compare/storyworth-alternative">StoryWorth alternative</Link> and{' '}
+              better; our <Link href="/compare/storyworth-alternative">Storyworth alternative</Link> and{' '}
               <Link href="/compare/remento-alternative">Remento alternative</Link> pages set out the
               differences. If they do have a smartphone, the app’s advantage is where the answer lands: in
               your family’s private space, next to your photos and voice notes, where the rest of the

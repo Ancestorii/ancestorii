@@ -18,20 +18,20 @@ import articles from '@/components/site/seo-articles/articles.module.css';
 import site from '@/components/site/site.module.css';
 
 export const metadata: Metadata = {
-  title: { absolute: 'Ancestorii vs StoryWorth vs Remento: Which Family Memory Platform Is Right for You?' },
-  description: 'An honest comparison of Ancestorii, StoryWorth, and Remento. See how a living family library compares to prompt-based book services — and decide which approach fits your family.',
+  title: { absolute: 'Ancestorii vs Storyworth vs Remento: Which Family Memory Platform Is Right for You?' },
+  description: 'An honest comparison of Ancestorii, Storyworth, and Remento. See how a living family library compares to prompt-based book services — and decide which approach fits your family.',
   alternates: { canonical: 'https://www.ancestorii.com/compare' },
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'Ancestorii vs StoryWorth vs Remento | Honest Comparison',
+    title: 'Ancestorii vs Storyworth vs Remento | Honest Comparison',
     description: 'Compare three family memory platforms side by side.',
     url: 'https://www.ancestorii.com/compare',
     siteName: 'Ancestorii',
-    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii vs StoryWorth vs Remento comparison' }],
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii vs Storyworth vs Remento comparison' }],
     locale: 'en_GB',
     type: 'website',
   },
-  twitter: { card: 'summary_large_image', title: 'Ancestorii vs StoryWorth vs Remento', description: 'An honest comparison of three family memory platforms.', images: ['/og-default.jpg'] },
+  twitter: { card: 'summary_large_image', title: 'Ancestorii vs Storyworth vs Remento', description: 'An honest comparison of three family memory platforms.', images: ['/og-default.jpg'] },
 };
 
 const FEATURES = [
@@ -56,8 +56,8 @@ const FEATURES = [
 
 const QUESTIONS = [
   {
-    q: 'What is the main difference between Ancestorii and StoryWorth?',
-    a: 'StoryWorth is a book service. One storyteller writes to prompts for a year, and those responses become a book. Ancestorii is a living library with two layers — a public feed for sharing stories with the world, and a private space only your family can see. You can also print Memory Books, Canvas Prints, and Acrylic Prints from your library whenever you want.',
+    q: 'What is the main difference between Ancestorii and Storyworth?',
+    a: 'Storyworth is a book service. One storyteller writes to prompts for a year, and those responses become a book. Ancestorii is a living library with two layers — a public feed for sharing stories with the world, and a private space only your family can see. You can also print Memory Books, Canvas Prints, and Acrylic Prints from your library whenever you want.',
   },
   {
     q: 'What is the main difference between Ancestorii and Remento?',
@@ -65,7 +65,7 @@ const QUESTIONS = [
   },
   {
     q: 'Which platform gives you the most control over the book?',
-    a: 'Ancestorii. StoryWorth and Remento auto compile books from your content. Ancestorii gives you a visual editor where you design every spread, choose layouts, arrange photos, and control exactly how the finished book looks.',
+    a: 'Ancestorii. Storyworth and Remento auto compile books from your content. Ancestorii gives you a visual editor where you design every spread, choose layouts, arrange photos, and control exactly how the finished book looks.',
   },
   {
     q: 'Do I need to print a book to use Ancestorii?',
@@ -73,17 +73,17 @@ const QUESTIONS = [
   },
   {
     q: 'Can my whole family contribute on Ancestorii?',
-    a: 'Yes. Ancestorii is built for family collaboration. You invite members into your private library and everyone can add stories, upload photos, fill in names, and help build the archive together. StoryWorth and Remento are built around one storyteller per subscription.',
+    a: 'Yes. Ancestorii is built for family collaboration. You invite members into your private library and everyone can add stories, upload photos, fill in names, and help build the archive together. Storyworth and Remento are built around one storyteller per subscription.',
   },
   {
-    q: 'Is Ancestorii a good alternative to StoryWorth in the UK?',
-    a: 'Yes. Ancestorii is built in the UK, charges in pounds, euros or dollars, and delivers its prints to 20 countries, including the UK. StoryWorth is US based, and as of October\u00a02026 its UK plans start at £49. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
+    q: 'Is Ancestorii a good alternative to Storyworth in the UK?',
+    a: 'Yes. Ancestorii is built in the UK, charges in pounds, euros or dollars, and delivers its prints to 20 countries, including the UK. Storyworth is US based, and as of October\u00a02026 its UK plans start at £49. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
   },
 ];
 
 // The other comparison pages, each summed up from its own description.
 const MORE_COMPARISONS = [
-  { href: '/compare/storyworth-alternative', label: 'StoryWorth alternative', text: 'A year of weekly questions and one book, or a family library that keeps growing.' },
+  { href: '/compare/storyworth-alternative', label: 'Storyworth alternative', text: 'A year of weekly questions and one book, or a family library that keeps growing.' },
   { href: '/compare/remento-alternative', label: 'Remento alternative', text: "One storyteller's recordings turned into a book, or a private library the whole family adds to." },
   { href: '/compare/best-family-memory-apps', label: 'Best family memory apps', text: 'Eight apps for family photos, voices and stories, compared on price, free plans and printing.' },
   { href: '/compare/ancestorii-vs-ancestry', label: 'Ancestorii vs Ancestry', text: "Researching records and a family tree, or keeping your family's own photos, voices and stories." },
@@ -100,7 +100,7 @@ export default function ComparePage() {
       <JsonLd
         data={{
           '@context': 'https://schema.org', '@type': 'WebPage',
-          name: 'Ancestorii vs StoryWorth vs Remento',
+          name: 'Ancestorii vs Storyworth vs Remento',
           description: 'An honest, side-by-side comparison of three different approaches to preserving family stories.',
           url: 'https://www.ancestorii.com/compare',
           isPartOf: { '@type': 'WebSite', name: 'Ancestorii' },
@@ -130,7 +130,7 @@ export default function ComparePage() {
             </>
           }
           intro={[
-            'StoryWorth, Remento, and Ancestorii all help families preserve memories. But they are built around fundamentally different ideas about what preservation means. One sends you prompts. One records your voice. One builds a library your whole family can grow together.',
+            'Storyworth, Remento, and Ancestorii all help families preserve memories. But they are built around fundamentally different ideas about what preservation means. One sends you prompts. One records your voice. One builds a library your whole family can grow together.',
             'This page is an honest breakdown. We will tell you what each platform does well, where each one falls short, and which one makes sense depending on what your family actually needs.',
           ]}
           cta={{ href: '/signup', label: 'Start For Free' }}
@@ -150,7 +150,7 @@ export default function ComparePage() {
         >
           <PlatformList>
             <PlatformCard
-              name="StoryWorth"
+              name="Storyworth"
               tone="blue"
               oneLiner="A weekly email prompt that builds a book over twelve months."
               strengths={[
@@ -210,13 +210,13 @@ export default function ComparePage() {
           }
         >
           <CompareTable
-            head={['Feature', 'Ancestorii', 'StoryWorth', 'Remento']}
+            head={['Feature', 'Ancestorii', 'Storyworth', 'Remento']}
             rows={FEATURES}
             highlight={1}
             size="wide"
             labelledBy="side-by-side-title"
           />
-          <TableNote>Last checked against StoryWorth&apos;s and Remento&apos;s own websites on 17&nbsp;October&nbsp;2026.</TableNote>
+          <TableNote>Last checked against Storyworth&apos;s and Remento&apos;s own websites on 17&nbsp;October&nbsp;2026.</TableNote>
         </ArticleSection>
 
         {/* Common questions */}

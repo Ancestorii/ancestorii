@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import Script from 'next/script';
 
-// The marketing tags (GTM, Reddit, Meta, Spotify) are about 2.4 MB of script. On phones they used
-// to run straight after 'load' (lazyOnload gets no idle phase on iOS), which is exactly when people
-// make their first scrolls. Touch devices now wait for a pause: no scrolling for 1.5s after load,
-// the first tap (so a visitor who taps straight through is still counted on this page), or 6s
-// after the page was opened, whichever comes first. Desktop adds them after load (or 3s in, if
+// The marketing tags (GTM, Meta, Spotify) are about 2.4 MB of script. The Reddit pixel runs inside
+// GTM, whose Reddit tag has the account's real pixel ID; the copy that used to sit here had a typo
+// in the ID, so its events went nowhere, and fixing it would have counted every visit twice.
+// On phones the tags used to run straight after 'load' (lazyOnload gets no idle phase on iOS),
+// which is exactly when people make their first scrolls. Touch devices now wait for a pause: no
+// scrolling for 1.5s after load, the first tap (so a visitor who taps straight through is still
+// counted on this page), or 6s after the page was opened, whichever comes first. Desktop adds them after load (or 3s in, if
 // photos are still loading), as before. Visits from an ad or campaign link (utm_*, gclid, fbclid,
 // rdt_cid...) get them straight away, so attribution sees the landing URL.
 const QUIET_MS = 1500;
@@ -95,27 +97,6 @@ export default function DeferredTags() {
             'https://www.googletagmanager.com/gtm.js?id=GTM-PWNN6NGL'+dl;
             f.parentNode.insertBefore(j,f);
             })(window,document,'script','dataLayer','GTM-PWNN6NGL');
-          `}
-        </Script>
-
-        {/* 🔴 REDDIT PIXEL */}
-        <Script id="reddit-pixel" strategy="afterInteractive">
-          {`
-!function(w,d){
-  if(!w.rdt){
-    var p=w.rdt=function(){
-      p.sendEvent ? p.sendEvent.apply(p,arguments) : p.callQueue.push(arguments)
-    };
-    p.callQueue=[];
-    var t=d.createElement("script");
-    t.src="https://www.redditstatic.com/ads/pixel.js";
-    t.async=!0;
-    var s=d.getElementsByTagName("script")[0];
-    s.parentNode.insertBefore(t,s);
-  }
-}(window,document);
-rdt('init','a2_ibovuqrsg8y0');
-rdt('track','PageVisit');
           `}
         </Script>
 
