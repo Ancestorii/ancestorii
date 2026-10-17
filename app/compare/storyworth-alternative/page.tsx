@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { CalendarX2, ListChecks, MapPin, UserRound } from 'lucide-react';
 import SiteShell from '@/components/site/SiteShell';
+import { AuthorBox } from '@/components/site/seo/SeoBits';
 import JsonLd from '@/components/site/seo/JsonLd';
 import { Accent } from '@/components/site/SiteBits';
 import site from '@/components/site/site.module.css';
@@ -223,6 +224,12 @@ export default function StoryworthAlternativePage() {
           }
         >
           <FaqBlock items={FAQ} variant="open" />
+        </ArticleSection>
+
+        <ArticleSection>
+          <div className={site.sectionBody}>
+            <AuthorBox updated="17 October 2026" />
+          </div>
         </ArticleSection>
 
         <ArticleCta

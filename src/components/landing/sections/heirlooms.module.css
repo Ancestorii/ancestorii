@@ -1,7 +1,7 @@
 /* ============================================================
    Heirlooms (#heirlooms): the three printed products with their real sizes and prices, then
    delivery, the Premium discount and family rewards. No photos: the reviewers holding their
-   books come straight after, in Reviews.
+   books sit higher up the page, in Reviews.
    Mobile first: the base is the 390px phone (.wrap is 342px there), then 600 to 899px, 900px
    and 1024px. Static: no motion, and the only hover effect is the product links' underline. The
    section paints no background; the cards are white with the hairline ring, each over a solid

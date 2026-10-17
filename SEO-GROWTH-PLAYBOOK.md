@@ -74,7 +74,7 @@ entity that the same name, logo, and links describe everywhere.
    one-line description, and URL on each:
    - Product Hunt (launch)
    - G2 and Capterra (software directories — strong for "best X" queries)
-   - AlternativeTo (directly feeds "StoryWorth alternative" intent)
+   - AlternativeTo (directly feeds "Storyworth alternative" intent)
    - Trustpilot (reviews; trust signal)
    - Crunchbase, LinkedIn company page
 3. **Add every claimed profile URL to `sameAs`** in `app/layout.tsx`. Each
@@ -115,7 +115,7 @@ to be the thing ChatGPT, Perplexity, Claude, and Google AI Overviews _quote_.
   participation in r/genealogy, r/GriefSupport, r/Ancestry, r/family. LLMs weight
   Reddit heavily.
 - **Quora** answers to questions like "What is the best alternative to
-  StoryWorth?" and "How do I record my parents' stories?"
+  Storyworth?" and "How do I record my parents' stories?"
 - **YouTube** — transcripts are crawlable and feed AI engines. Repurposing story
   content into short videos is a strong, low-cost channel.
 Be useful first. Self-promotion that reads as spam is worse than silence.
@@ -163,7 +163,7 @@ Be useful first. Self-promotion that reads as spam is worse than silence.
 | Topics index (internal-link hub) | ✅ | `app/stories/topics/page.tsx` |
 | Organization + WebSite entity graph (`sameAs`) | ✅ | `app/layout.tsx` |
 | High-intent guides (questions, memory book) | ✅ | `app/guides/*` |
-| StoryWorth-alternative comparison + FAQ schema | ✅ | `app/compare/storyworth-alternative/page.tsx` |
+| Storyworth-alternative comparison + FAQ schema | ✅ | `app/compare/storyworth-alternative/page.tsx` |
 | `llms.txt` for AI crawlers | ✅ | `public/llms.txt` |
 
 The machine is built. This document is how you give it fuel.

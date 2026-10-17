@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import SiteShell from '@/components/site/SiteShell';
+import { AuthorBox } from '@/components/site/seo/SeoBits';
 import JsonLd from '@/components/site/seo/JsonLd';
 import { Accent } from '@/components/site/SiteBits';
 import {
@@ -255,6 +256,12 @@ export default function ComparePage() {
                 </span>
               </Link>
             ))}
+          </div>
+        </ArticleSection>
+
+        <ArticleSection>
+          <div className={site.sectionBody}>
+            <AuthorBox updated="17 October 2026" />
           </div>
         </ArticleSection>
 

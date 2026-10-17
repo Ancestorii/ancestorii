@@ -2,6 +2,8 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { BookHeart, Infinity as InfinityIcon, Users, Waypoints } from 'lucide-react';
 import SiteShell from '@/components/site/SiteShell';
+import { AuthorBox } from '@/components/site/seo/SeoBits';
+import site from '@/components/site/site.module.css';
 import { Accent } from '@/components/site/SiteBits';
 import {
   ArticleCta,
@@ -154,6 +156,12 @@ export default function LivingLibraryPage() {
             <Link href="/how-it-works">how Ancestorii works</Link>.
           </p>
         </Reading>
+      </ArticleSection>
+
+      <ArticleSection>
+        <div className={site.sectionBody}>
+          <AuthorBox updated="16 October 2026" />
+        </div>
       </ArticleSection>
 
       <ArticleCta

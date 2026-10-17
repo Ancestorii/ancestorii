@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import SiteShell from '@/components/site/SiteShell';
+import { AuthorBox } from '@/components/site/seo/SeoBits';
+import site from '@/components/site/site.module.css';
 import { Accent, PullQuote } from '@/components/site/SiteBits';
 import {
   ArticleCta,
@@ -206,6 +208,12 @@ export default function DigitalLegacyPage() {
         }
       >
         <FaqBlock items={QUESTIONS} variant="open" />
+      </ArticleSection>
+
+      <ArticleSection>
+        <div className={site.sectionBody}>
+          <AuthorBox updated="17 October 2026" />
+        </div>
       </ArticleSection>
 
       <ArticleCta
