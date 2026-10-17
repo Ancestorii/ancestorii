@@ -85,7 +85,7 @@ export default function PrivacyPolicyPage() {
             Privacy <Accent>Policy</Accent>
           </>
         }
-        lead={<>Last updated: 16 October 2026</>}
+        lead={<>Last updated: 17 October 2026</>}
       />
 
       {/* ── Body ── */}
@@ -201,11 +201,12 @@ export default function PrivacyPolicyPage() {
             <strong>Technical and usage data:</strong>{' '}
             limited technical data such as device type, operating system, IP
             address, and request information is processed by our infrastructure
-            providers as part of serving the Service securely. On the website
-            this may also include browser type, pages visited, and session
-            duration, used in aggregate to improve the Service. The mobile app
-            does not contain analytics, advertising, or tracking software (see
-            Section 23).
+            providers as part of serving the Service securely. On the website,
+            analytics and advertising tags also record the pages you visit, how
+            far you scroll, how long you stay and whether you sign up, together
+            with your browser, your device and an identifier stored in a cookie
+            (see Section 17). The mobile app does not contain analytics,
+            advertising, or tracking software (see Section 23).
           </p>
         </Section>
 
@@ -215,30 +216,32 @@ export default function PrivacyPolicyPage() {
 
           <p>
             To create, authenticate, and manage your account and family space.
-            To store, organise, display, and protect your uploaded memories
-            and content within your private family library. To display
-            stories, likes, comments, and shares on the Our Stories public
-            feed where you have chosen to publish content. To review content
-            submitted to the Our Stories public feed against our community
-            standards before publication. To enforce our community standards
-            and three-strike policy, including issuing warnings, suspensions,
-            and bans from the public feed. To process reports submitted by
-            users about content on the public feed. To process physical
-            product orders through My Heirlooms, generate print-ready files,
-            and coordinate fulfilment and delivery. To provide AI-assisted
-            writing suggestions when you opt to use the Story Assistance
-            feature. To send transactional communications including welcome
-            emails, onboarding guidance, order confirmations, family
-            invitation notifications, family activity alerts, community
-            standards notifications, strike warnings, and account security
-            alerts. To deliver push notifications about family activity to
-            your device where you use the mobile app and have granted
-            permission. To validate email addresses at registration to ensure
-            deliverability of essential communications. To provide customer
-            support and respond to enquiries. To maintain the security,
+            To store, organise, display, and protect your uploaded memories and
+            content within your private family library. To display stories,
+            likes, comments, and shares on the Our Stories public feed where you
+            have chosen to publish content. To check stories published to the
+            Our Stories public feed against our community standards:
+            automatically when they are published, with flagged stories reviewed
+            by a person. To enforce our community standards and three-strike
+            policy, including issuing warnings, suspensions, and bans from the
+            public feed. To process reports submitted by users about content on
+            the public feed. To process physical product orders through My
+            Heirlooms, generate print-ready files, and coordinate fulfilment and
+            delivery. To provide AI-assisted writing suggestions when you choose
+            to use the Story Assistance feature. To send transactional
+            communications including welcome emails, onboarding guidance, order
+            confirmations, family invitation notifications, family activity
+            alerts, community standards notifications, strike warnings, and
+            account security alerts. To deliver push notifications about family
+            activity to your device where you use the mobile app and have
+            granted permission. To validate email addresses at registration to
+            ensure deliverability of essential communications. To provide
+            customer support and respond to enquiries. To maintain the security,
             integrity, and performance of the platform. To detect and prevent
             fraud, abuse, and violations of our Terms. To improve the Service
-            based on anonymised and aggregated usage insights.
+            based on anonymised and aggregated usage insights. To measure visits
+            to the website and the results of our advertising on other platforms
+            (website only; see Section 17).
           </p>
         </Section>
 
@@ -259,7 +262,7 @@ export default function PrivacyPolicyPage() {
 
           <p>
             <strong>Consent:</strong> where you
-            have given explicit consent, such as opting in to the AI Story
+            have given explicit consent, such as choosing to use the AI Story
             Assistance feature, granting device permissions in the mobile app,
             or providing optional profile information. You may withdraw consent
             at any time through your account settings, your device settings, or
@@ -650,11 +653,11 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             <strong>Content review data:</strong>{' '}
-            every story submitted to Our Stories is reviewed before
-            publication. We collect data relating to the review process
-            including the review outcome, the reason for any rejection, and
-            any community standards violations recorded against your account
-            under our three-strike policy.
+            when you publish a story to Our Stories, its title and text are
+            checked automatically against our community standards. We keep the
+            outcome of that check and of any review by a person, the reason for
+            any flag or rejection, and any community standards violations
+            recorded against your account under our three-strike policy.
           </p>
           <p>
             <strong>Order and shipping information:</strong>{' '}
@@ -672,11 +675,14 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             <strong>AI interaction data:</strong>{' '}
-            if you use the optional Story Assistance feature, the names,
-            dates, and contextual details you provide as prompts are sent to
-            a third-party AI language model to generate writing suggestions.
-            We log the type of assistance requested, token usage, and
-            response time for service-quality purposes. We do not use your
+            Story Assistance is switched on by default, and it only sends
+            anything when you press one of its buttons. It then sends the names,
+            dates, titles and other details of what you are writing about (such
+            as an album, a capsule or a loved one), or in the Our Stories editor
+            the story you have written so far, to our AI provider to generate
+            writing suggestions. We log the type of assistance requested, token
+            usage, and response time for service-quality purposes. You can turn
+            Story Assistance off in your profile settings. We do not use your
             content to train AI models.
           </p>
         </Section>
@@ -684,10 +690,11 @@ export default function PrivacyPolicyPage() {
         {/* 14 */}
         <Section number="14" title="Our Stories — Public Feed Data">
           <p>
-            When you publish a story to Our Stories, the following data
-            becomes publicly visible to all Ancestorii users: the story title,
-            story content, any photos or media attached to the story, your
-            display name, and your profile photograph.
+            When you publish a story to Our Stories, the following data becomes
+            public: the story title, story content, any photos or media attached
+            to the story, your display name, and your profile photograph. Anyone
+            can read published stories, including people without an Ancestorii
+            account, and story pages can appear in search engines.
           </p>
           <p>
             <strong>Likes, comments, and shares.</strong>{' '}
@@ -698,14 +705,16 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             <strong>Content review.</strong>{' '}
-            Every story submitted to Our Stories is reviewed before it appears
-            on the public feed. This review process may involve automated
-            systems and manual review. The purpose of the review is to ensure
-            compliance with our community standards, which prohibit religious
-            content, political content, hate speech, harassment, spam,
-            self-promotion, and any content that is not a genuine family
-            memory. The outcome of each review (approved or rejected) and the
-            reason for any rejection are recorded against your account.
+            When you publish a story, its title and text are checked
+            automatically by an AI service against our community standards,
+            which prohibit religious content, political content, hate speech,
+            harassment, spam, self-promotion, and any content that is not a
+            genuine family memory. Stories that pass appear straight away.
+            Stories that are flagged are held back and reviewed by a person at
+            Ancestorii, and we email you to say your story is being reviewed. If
+            the automatic check is unavailable, a story may appear before it has
+            been checked. The outcome of each check and review, and the reason
+            for any flag or rejection, are recorded against your account.
           </p>
           <p>
             <strong>Three-strike policy data.</strong>{' '}
@@ -731,12 +740,14 @@ export default function PrivacyPolicyPage() {
             affect content stored in your private family library.
           </p>
           <p>
-            <strong>No algorithms.</strong>{' '}
-            Our Stories does not use engagement-based algorithms, behavioural
-            profiling, or personalised content ranking. Stories are displayed
-            in chronological order. We do not track or profile your reading
-            behaviour on the public feed for the purpose of content
-            recommendation.
+            <strong>How stories are ordered.</strong>{' '}
+            Our Stories shows the newest stories first by default. Readers can
+            also sort stories by Most Loved or Most Discussed, a Trending box
+            shows the most-loved recent stories, and Ancestorii may feature
+            selected stories. These use the date and the number of hearts and
+            comments, and they are the same for every reader: the feed is not
+            personalised, and we do not track or profile your reading behaviour
+            to recommend content.
           </p>
         </Section>
 
@@ -813,22 +824,21 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             <strong>Content review:</strong>{' '}
-            stories submitted to the Our Stories public feed may be reviewed
-            using automated systems including third-party AI services. The
-            content of the story is processed solely for the purpose of
-            determining compliance with our community standards. Content
-            processed for review is not retained by third-party review
-            services beyond the duration of the review request and is not used
-            to train AI models.
+            the title and text of stories published to Our Stories are checked
+            by Anthropic&apos;s Claude AI models to determine whether they meet
+            our community standards. Anthropic does not use this content to
+            train its models and deletes it within 30 days, unless it is flagged
+            as breaking Anthropic&apos;s own usage policies, in which case it
+            may be kept for up to two years.
           </p>
           <p>
             <strong>AI processing:</strong>{' '}
-            if you use Story Assistance, the contextual details you provide
-            (names, dates, descriptions) are sent to a third-party AI language
-            model provider to generate writing suggestions. These inputs are
-            not used to train AI models. The AI provider processes data in
-            accordance with its own data-handling policies and does not retain
-            your inputs beyond the duration of the request.
+            if you use Story Assistance, the details described in Section 13 are
+            sent to Anthropic, whose Claude AI models generate the writing
+            suggestions. Anthropic does not use these inputs to train its models
+            and deletes them within 30 days, unless they are flagged as breaking
+            Anthropic&apos;s usage policies, in which case they may be kept for
+            up to two years.
           </p>
           <p>
             <strong>Hosting:</strong>{' '}
@@ -843,21 +853,33 @@ export default function PrivacyPolicyPage() {
           <p>
             The Ancestorii website uses essential cookies required for the
             platform to function, including authentication session cookies that
-            keep you logged in. These are strictly necessary and do not require
-            consent.
+            keep you logged in. These are strictly necessary.
           </p>
           <p>
-            We may use analytics cookies or similar technologies to
-            understand how the website is used in aggregate. Where
-            non-essential cookies are used, we will obtain your consent
-            before setting them.
+            <strong>Analytics and advertising tags.</strong>{' '}
+            The website also loads Google Tag Manager, which runs Google
+            Analytics, Google Ads conversion tracking and the Reddit Pixel, and
+            it loads the Meta Pixel and the Spotify Pixel. These tags set
+            cookies or similar identifiers in your browser and send Google,
+            Reddit, Meta and Spotify information about your visit: the pages you
+            view, how far you scroll, how long you stay, whether you sign up,
+            the page that referred you, your IP address, and your browser and
+            device. We use this to understand how the website is used and to
+            measure whether our adverts on those platforms work. Those companies
+            may also use it under their own privacy policies, for example to
+            show you adverts on their platforms.
           </p>
           <p>
-            Ancestorii does not use advertising cookies or tracking pixels for
-            profiling. We do not serve ads on the platform, and we do not share
-            browsing data with advertising networks. Our Stories does not use
-            cookies or tracking to profile reading behaviour or personalise
-            content. The mobile app does not use cookies (see Section 23).
+            We do not show adverts on Ancestorii. We do not send these tags your
+            name, your email address or anything you have written or uploaded,
+            and they do not run in the mobile app (see Section 23).
+          </p>
+          <p>
+            <strong>Your choices.</strong>{' '}
+            You can block or delete cookies in your browser settings, and you
+            can control how each company uses this data for advertising in your
+            Google, Meta, Reddit and Spotify account settings. Google also
+            offers a browser add-on to opt out of Google Analytics.
           </p>
         </Section>
 
@@ -1049,7 +1071,7 @@ export default function PrivacyPolicyPage() {
 
         {/* ── End mark ── */}
         <LegalEndNote>
-          This Privacy Policy was last reviewed and updated on 26 June 2026.
+          This Privacy Policy was last reviewed and updated on 17 October 2026.
           Previous versions are available upon request.
         </LegalEndNote>
       </LegalBody>

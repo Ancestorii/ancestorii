@@ -354,8 +354,8 @@ export default function StoryEditorPage({
                   Your story is being reviewed
                 </h2>
                 <p className={styles.dialogText}>
-                  Every story published to Our Stories is reviewed before it goes live.
-                  You&apos;ll receive an email once your story has been approved.
+                  Every story is checked when it&apos;s published, and yours has been passed
+                  to our team to review. You&apos;ll get an email once a decision has been made.
                 </p>
                 <div className={styles.dialogActions}>
                   <button

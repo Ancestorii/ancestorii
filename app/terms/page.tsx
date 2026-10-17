@@ -92,7 +92,7 @@ export default function TermsPage() {
             Terms &amp; <Accent>Conditions</Accent>
           </>
         }
-        lead={<>Last updated: 16 October 2026</>}
+        lead={<>Last updated: 17 October 2026</>}
       />
 
       {/* ── Body ── */}
@@ -561,9 +561,10 @@ export default function TermsPage() {
         <Section number="19" title="Our Stories — Public Feed">
           <p>
             Our Stories is a public space where users may publish family
-            memories for other Ancestorii users to read. By publishing a story
-            to Our Stories, you acknowledge that the content will be publicly
-            visible to all users of the platform.
+            memories for anyone to read. By publishing a story to Our Stories,
+            you acknowledge that the content will be publicly visible to anyone,
+            including people who do not have an Ancestorii account, and that
+            story pages can appear in search engines.
           </p>
           <p>
             <strong>Interactions.</strong> Users may
@@ -573,16 +574,18 @@ export default function TermsPage() {
             unrelated to the story may be removed without notice.
           </p>
           <p>
-            <strong>No algorithms.</strong> Stories
-            on Our Stories are displayed in chronological order. There is no
-            engagement-based ranking, algorithmic boosting, or suppression of
-            content. Every published story receives the same treatment.
+            <strong>How stories are shown.</strong>{' '}
+            Our Stories shows the newest stories first by default. Readers can
+            also sort stories by Most Loved or Most Discussed, a Trending box
+            shows the most-loved recent stories, and Ancestorii may feature
+            selected stories. These orders use the date and the number of hearts
+            and comments, and they are the same for every reader: the feed is
+            not personalised.
           </p>
           <p>
             <strong>No follower counts.</strong>{' '}
-            Our Stories does not include follower counts, audience metrics,
-            vanity numbers, or any mechanism designed to encourage competition
-            between users.
+            Our Stories has no followers and no follower counts. Each story
+            shows how many hearts and comments it has received.
           </p>
           <p>
             <strong>Content restrictions.</strong>{' '}
@@ -597,10 +600,14 @@ export default function TermsPage() {
             platform.
           </p>
           <p>
-            <strong>Content review.</strong> Every
-            story published to Our Stories is reviewed before it appears on the
-            public feed. Stories that do not meet our community standards will
-            not be published and the author will be notified.
+            <strong>Content checks.</strong>{' '}
+            When you publish a story, its title and text are checked
+            automatically against our community standards. Stories that pass
+            appear straight away. Stories that are flagged are held back and
+            reviewed by a person at Ancestorii, and the author is told by email.
+            If the automatic check is unavailable, a story may appear before it
+            has been checked. Any story can still be removed later if it breaks
+            these Terms or our community standards.
           </p>
           <p>
             <strong>Reporting.</strong> Users may
@@ -669,16 +676,19 @@ export default function TermsPage() {
             Ancestorii offers an optional AI-assisted writing feature
             (&quot;Story Assistance&quot;) designed to help you find words to
             describe memories, write captions, and craft introductory text for
-            your content. This feature can be enabled or disabled in your
-            account settings at any time.
+            your content. It is switched on by default, it only runs when you
+            press one of its buttons, and you can turn it off in your account
+            settings at any time.
           </p>
           <p>
             Story Assistance generates suggestions based on the names, dates,
-            and context you provide. All AI-generated text is offered as a
-            starting point for your own editing and is not a substitute for
-            your personal voice. You are solely responsible for reviewing,
-            editing, and approving any AI-generated content before it is saved,
-            published to Our Stories, or included in a physical product.
+            titles and other details you provide, and in the Our Stories editor
+            on the story you have written so far. All AI-generated text is
+            offered as a starting point for your own editing and is not a
+            substitute for your personal voice. You are solely responsible for
+            reviewing, editing, and approving any AI-generated content before it
+            is saved, published to Our Stories, or included in a physical
+            product.
           </p>
           <p>
             Ancestorii does not guarantee the accuracy, completeness, or
@@ -959,8 +969,8 @@ export default function TermsPage() {
 
         {/* ── End mark ── */}
         <LegalEndNote>
-          These Terms &amp; Conditions were last reviewed and updated on 26 June
-          2026. Previous versions are available upon request.
+          These Terms &amp; Conditions were last reviewed and updated on 17
+          October 2026. Previous versions are available upon request.
         </LegalEndNote>
       </LegalBody>
     </SiteShell>
