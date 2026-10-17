@@ -3,17 +3,6 @@ import type { CSSProperties } from 'react';
 import landing from '../landing.module.css';
 import s from './voicesCapsules.module.css';
 
-// Where a feature works: a pink dot for the app, a blue dot for the website, both dots for both
-// (the logo's two dots). The words always show, so colour is never the only signal.
-function Where({ on, className = '' }: { on: 'app' | 'web' | 'both'; className?: string }) {
-  return (
-    <span className={`${s.where} ${className}`}>
-      {on !== 'web' && <span className={s.whereDot} style={{ background: 'var(--c0)' }} aria-hidden="true" />}
-      {on !== 'app' && <span className={s.whereDot} style={{ background: 'var(--c1)' }} aria-hidden="true" />}
-      {on === 'app' ? 'In the app' : on === 'web' ? 'On the website' : 'App and website'}
-    </span>
-  );
-}
 
 const CAPSULE_CONTENTS = ['Photos', 'Videos', 'A letter', 'Voice notes', 'Loved ones'];
 
@@ -36,8 +25,11 @@ export default function VoicesCapsules() {
           </div>
           <h2 className={`${landing.h2} ${s.title}`}>Keep what a photo can’t.</h2>
           <p className={landing.headLead}>
-            A photo shows you what someone looked like. A voice note keeps how they sounded, and a
-            capsule keeps what you want to say to each other years from now.
+            <span className={landing.leadFull}>
+              A photo shows you what someone looked like. A voice note keeps how they sounded, and a
+              capsule keeps what you want to say to each other years from now.
+            </span>
+            <span className={landing.leadShort}>A voice note keeps how they sounded. A capsule keeps what you want to say years from now.</span>
           </p>
         </div>
 
@@ -65,7 +57,6 @@ export default function VoicesCapsules() {
             </div>
 
             <div className={s.block}>
-              <Where on="both" />
               <h3 className={s.blockTitle}>Voice notes</h3>
               <p className={s.blockText}>
                 Record or upload a voice note on album photos, timeline moments, capsules, family
@@ -103,7 +94,6 @@ export default function VoicesCapsules() {
             </div>
 
             <div className={s.block}>
-              <Where on="web" />
               <h3 className={s.blockTitle}>Capsules</h3>
               <p className={s.blockText}>
                 Fill a capsule with photos, videos, a letter and voice notes, tag the loved ones it’s

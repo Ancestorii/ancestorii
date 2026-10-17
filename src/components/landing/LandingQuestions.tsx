@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import { ArrowRight } from 'lucide-react';
 import StoreBadges from '@/components/StoreBadges';
+import Fold from './Fold';
 import QuestionMarquee, { type MarqueeQuestion } from './QuestionMarquee';
 import styles from './landing.module.css';
 import q from './questions.module.css';
@@ -53,17 +54,6 @@ const ROWS: MarqueeQuestion[][] = QUESTIONS.map((row, r) =>
   })
 );
 
-// Where a feature works: a pink dot for the app, a blue dot for the website, both dots for both
-// (the logo's two dots). The words always show, so colour is never the only signal.
-function Where({ on }: { on: 'app' | 'web' | 'both' }) {
-  return (
-    <span className={q.where}>
-      {on !== 'web' && <span className={q.whereDot} style={{ background: 'var(--c0)' }} aria-hidden="true" />}
-      {on !== 'app' && <span className={q.whereDot} style={{ background: 'var(--c1)' }} aria-hidden="true" />}
-      {on === 'app' ? 'In the app' : on === 'web' ? 'On the website' : 'App and website'}
-    </span>
-  );
-}
 
 // Sending a question is the app's own feature: the sender picks one of the library's questions in
 // the app, the relative answers it in the app (see app/q/[code]) and the sender is emailed when
@@ -79,22 +69,28 @@ export default function LandingQuestions() {
             <span className={styles.badgeDot} style={{ '--dot': 'var(--c1)' } as CSSProperties} />
             Questions
           </span>
-          <Where on="app" />
         </div>
         <h2 className={`${styles.h2} ${styles.headTitle} ${styles.questionsTitle}`}>
           Not sure where to start?{' '}
           <span className={styles.questionsAccent}>Send them a question.</span>
         </h2>
         <p className={styles.questionsLead}>
-          Pick one of 46 ready-made questions in the Ancestorii app and send it to Mum, Grandad or
-          anyone in the family. They answer on their phone, in their own words, and it lands in My
-          Family. You get an email when they do.
+          <span className={styles.leadFull}>
+            Pick one of 46 ready-made questions in the Ancestorii app and send it to Mum, Grandad or
+            anyone in the family. They answer on their phone, in their own words, and it lands in My
+            Family. You get an email when they do.
+          </span>
+          <span className={styles.leadShort}>
+            Send one of 46 questions to Mum, Grandad or anyone. They answer on their phone, and it
+            lands in My Family.
+          </span>
         </p>
       </div>
 
       <QuestionMarquee rows={ROWS} />
 
       <div className={`${styles.wrap} ${q.after}`}>
+        <Fold label="The 10 chapters and how it works">
         <p className={q.chaptersLabel}>The 10 chapters</p>
         <ul className={q.chapters}>
           {CHAPTERS.map((chapter) => (
@@ -118,6 +114,7 @@ export default function LandingQuestions() {
             </span>
           </p>
         </div>
+        </Fold>
       </div>
 
       <div className={`${styles.wrap} ${styles.questionsMore}`}>

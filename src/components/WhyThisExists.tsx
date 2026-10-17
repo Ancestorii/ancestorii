@@ -37,7 +37,8 @@ function StoryPhoto({
             alt={alt}
             fill
             sizes={portrait ? '(max-width: 599px) 92vw, 440px' : '(max-width: 599px) 92vw, (max-width: 899px) 560px, 540px'}
-            loading="lazy"
+            loading="eager"
+            fetchPriority="low"
             className={landing.coverImg}
           />
         </div>
@@ -52,12 +53,27 @@ function StoryPhoto({
 }
 
 /* ─── Photo + text row (the photo side alternates) ─── */
-function Row({ photo, flip = false, children }: { photo: ReactNode; flip?: boolean; children: ReactNode }) {
+function Row({ photo, flip = false, mark, children }: { photo: ReactNode; flip?: boolean; mark?: string; children: ReactNode }) {
   return (
     <div className={`${landing.wrap} ${styles.row} ${flip ? styles.rowFlip : ''}`}>
       {photo}
-      <Body className={styles.rowText}>{children}</Body>
+      <Body className={styles.rowText} mark={mark}>
+        {children}
+      </Body>
     </div>
+  );
+}
+
+/* ─── Chapter mark: a coloured dot and a numeral, so the letter reads in parts ─── */
+const MARK_COLOURS = ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)'];
+const MARKS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
+function Mark({ n }: { n: string }) {
+  const i = Math.max(0, MARKS.indexOf(n));
+  return (
+    <span className={styles.mark} style={{ '--card': MARK_COLOURS[i % 4] } as CSSProperties} aria-hidden="true">
+      <span className={styles.markDot} />
+      {n}
+    </span>
   );
 }
 
@@ -76,8 +92,13 @@ function PullQuote({ children }: { children: ReactNode }) {
 }
 
 /* ─── Body text wrapper ─── */
-function Body({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`${site.prose} ${className}`}>{children}</div>;
+function Body({ children, className = '', mark }: { children: ReactNode; className?: string; mark?: string }) {
+  return (
+    <div className={`${site.prose} ${className}`}>
+      {mark && <Mark n={mark} />}
+      {children}
+    </div>
+  );
 }
 
 /* ─── Share button ─── */
@@ -145,7 +166,7 @@ export default function WhyThisExists() {
         <div className={styles.flow}>
 
           {/* ─── Opening ─── */}
-          <Body className={styles.column}>
+          <Body className={styles.column} mark="I">
             <p className={site.proseLead}>
               Not the big things. You remember birthdays and weddings and holidays. I was scared of losing the small stuff. The way my grandmother used to hum when she was cooking. The way she would describe the village she grew up in, always with the same faraway look, always adding a detail she had never mentioned before. The sound of my mum laughing at her own jokes before she even gets to the punchline.
             </p>
@@ -160,6 +181,7 @@ export default function WhyThisExists() {
           </Body>
 
           <Row
+            mark="II"
             photo={
               <StoryPhoto src="/outdoor.jpg" alt="Dante posing outdoors" caption="Me, pretending I was too cool to smile · July 2010" color="var(--c0)" ratio="4 / 3" />
             }
@@ -183,6 +205,7 @@ export default function WhyThisExists() {
           </PullQuote>
 
           <Row
+            mark="III"
             flip
             photo={
               <StoryPhoto src="/snow.jpg" alt="Dante and his sister in the snow" caption="She still says she won the snowball fight · March 2010" color="var(--c1)" ratio="720 / 481" side="left" />
@@ -205,7 +228,7 @@ export default function WhyThisExists() {
             </p>
           </Row>
 
-          <Body className={styles.column}>
+          <Body className={styles.column} mark="IV">
             <p>
               I called it Ancestorii. Ancestors and story, blended into one word. The double &quot;i&quot; at the end was not a stylistic choice. It stands for two people. The one telling the story and the one receiving it. Because memory does not survive alone. It only survives in the handoff, from a grandmother to a grandchild, from a father to a son, from the person who lived it to the person who will carry it forward.
             </p>
@@ -217,6 +240,7 @@ export default function WhyThisExists() {
           </PullQuote>
 
           <Row
+            mark="V"
             photo={
               <StoryPhoto src="/garden.jpg" alt="Dante and his sister in the garden" caption="Me and my sister in the garden · Mum's favourite photo of us · May 2013" color="var(--c3)" ratio="3 / 4" portrait />
             }
@@ -236,6 +260,7 @@ export default function WhyThisExists() {
           </PullQuote>
 
           <Row
+            mark="VI"
             flip
             photo={
               <StoryPhoto src="/family.jpg" alt="Dante and his mum sitting on the floor" caption="Me and my mum · The woman behind everything · May 2011" color="var(--c2)" ratio="4 / 3" side="left" />
@@ -255,6 +280,7 @@ export default function WhyThisExists() {
           </Row>
 
           <Row
+            mark="VII"
             photo={
               <StoryPhoto src="/sister.jpg" alt="A childhood memory" caption="A childhood memory · the kind of moment that disappears if nobody writes it down" color="var(--c0)" ratio="720 / 482" />
             }
@@ -272,7 +298,7 @@ export default function WhyThisExists() {
             </p>
           </Row>
 
-          <Body className={styles.column}>
+          <Body className={styles.column} mark="VIII">
             <p>
               I did not build this for millions of users. I built this for the person who has been meaning to write things down but never has. For the family that has a hundred stories but nowhere to put them. For the person who lost a grandparent last year and realised, too late, how much went with them. For the person who picks up their phone to call someone who is no longer there, just because they heard a song or smelled something that brought it all back.
             </p>
@@ -295,7 +321,7 @@ export default function WhyThisExists() {
             <Accent tone="blue">They are the ones told around kitchen tables.</Accent>
           </PullQuote>
 
-          <Body className={styles.column}>
+          <Body className={styles.column} mark="IX">
             <p>
               I am going to keep building this. I am going to keep making it better. I am going to keep adding features that make it easier to capture the things that matter, and I am going to keep fighting for the idea that your family&apos;s story is worth more than a folder of photos that nobody opens.
             </p>

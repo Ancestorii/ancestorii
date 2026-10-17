@@ -6,23 +6,7 @@ import s from './featureIndex.module.css';
 
 type WhereOn = 'app' | 'web' | 'both';
 
-const WHERE_LABEL: Record<WhereOn, string> = {
-  app: 'In the app',
-  web: 'On the website',
-  both: 'App and website',
-};
 
-// Where a feature works: a pink dot for the app, a blue dot for the website, both dots for both
-// (the logo's two dots). The words always show, so colour is never the only signal.
-function Where({ on, className = '' }: { on: WhereOn; className?: string }) {
-  return (
-    <span className={`${s.where} ${className}`}>
-      {on !== 'web' && <span className={s.whereDot} style={{ background: 'var(--c0)' }} aria-hidden="true" />}
-      {on !== 'app' && <span className={s.whereDot} style={{ background: 'var(--c1)' }} aria-hidden="true" />}
-      {WHERE_LABEL[on]}
-    </span>
-  );
-}
 
 // Every area of the product, in the order the page shows them. Each tile jumps to its section:
 // SmoothAnchor glides there (or jumps, with reduced motion) and moves focus to its heading.
@@ -117,14 +101,15 @@ export default function FeatureIndex() {
           </div>
           <h2 className={`${landing.h2} ${s.title}`}>Everything you can keep, share and print.</h2>
           <p className={landing.headLead}>
-            A private space for the people you invite, a public feed for the stories you choose to
-            share, and prints made from your family’s photos. Pick one to see how it works.
+            <span className={landing.leadFull}>
+              A private space for the people you invite, a public feed for the stories you choose to
+              share, and prints made from your family’s photos. Pick one to see how it works.
+            </span>
+            <span className={landing.leadShort}>Pick one to see how it works.</span>
           </p>
         </div>
 
-        {/* SmoothAnchor takes no style prop, so each tile's colours sit on its li and inherit.
-            The where pill comes after the line, so each link's name starts with the feature;
-            from 600px the CSS still shows it first. */}
+        {/* SmoothAnchor takes no style prop, so each tile's colours sit on its li and inherit. */}
         <ul className={s.grid}>
           {TILES.map((t) => (
             <li
@@ -134,17 +119,7 @@ export default function FeatureIndex() {
             >
               <SmoothAnchor href={t.href} className={s.tile}>
                 <h3 className={s.tileTitle}>{t.title}</h3>
-                <span className={s.tileLine}>
-                  {t.line}
-                  {/* Phones hide the pill and say where at the end of the line instead. The no-break
-                      space keeps the dot off the start of a wrapped line, and the label never
-                      breaks inside itself. */}
-                  <span className={s.whereInline}>
-                    {'\u00a0· '}
-                    <span className={s.whereWords}>{WHERE_LABEL[t.on]}</span>
-                  </span>
-                </span>
-                <Where on={t.on} className={s.tileWhere} />
+                <span className={s.tileLine}>{t.line}</span>
                 <span className={s.arrow} aria-hidden="true">
                   <ArrowDown size={16} strokeWidth={2.6} />
                 </span>

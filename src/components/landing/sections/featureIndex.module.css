@@ -221,3 +221,35 @@
   transform: scale(0.98);
   transition: none;
 }
+
+/* Phones: the eight tiles two-up, title and arrow only (the one-line benefit shows from 600px),
+   so the index is four short rows instead of a column of paragraphs. */
+@media (max-width: 599px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 116px;
+    padding: 16px 14px 14px 16px;
+  }
+
+  .tileTitle {
+    font-size: 17px;
+  }
+
+  .tileLine {
+    display: none;
+  }
+
+  .arrow {
+    width: 32px;
+    height: 32px;
+    margin-top: auto;
+    align-self: flex-end;
+  }
+}

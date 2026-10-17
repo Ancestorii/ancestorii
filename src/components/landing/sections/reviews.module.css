@@ -186,3 +186,26 @@
     display: none;
   }
 }
+
+/* Phones: one review at a time, swiped sideways, instead of three stacked. */
+@media (max-width: 599px) {
+  .list {
+    display: flex;
+    gap: 14px;
+    margin: 28px -24px 0;
+    padding: 0 24px 6px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .review {
+    flex: 0 0 calc(100% - 36px);
+    scroll-snap-align: center;
+  }
+}

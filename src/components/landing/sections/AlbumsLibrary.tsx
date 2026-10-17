@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
+import Fold from '../Fold';
 import landing from '../landing.module.css';
 import s from './albumsLibrary.module.css';
 
@@ -8,17 +9,6 @@ import s from './albumsLibrary.module.css';
 // 'When Was This?' date and its 'The Story' thread (albums/_components/StoryPanel.tsx).
 // Type beside a real photo, not a screenshot; the credit line says so.
 
-// Where a feature works: a pink dot for the app, a blue dot for the website, both dots for both
-// (the logo's two dots). The words always show, so colour is never the only signal.
-function Where({ on, className = '' }: { on: 'app' | 'web' | 'both'; className?: string }) {
-  return (
-    <span className={className ? `${s.where} ${className}` : s.where}>
-      {on !== 'web' && <span className={s.whereDot} style={{ background: 'var(--c0)' }} aria-hidden="true" />}
-      {on !== 'app' && <span className={s.whereDot} style={{ background: 'var(--c1)' }} aria-hidden="true" />}
-      {on === 'app' ? 'In the app' : on === 'web' ? 'On the website' : 'App and website'}
-    </span>
-  );
-}
 
 const LABEL = [
   { term: 'Title', value: 'Me and my sister in the garden' },
@@ -64,13 +54,15 @@ export default function AlbumsLibrary() {
                 />
                 Albums and Library
               </span>
-              <Where on="both" />
             </div>
             <h2 className={`${landing.h2} ${s.title}`}>Photos with the story still attached.</h2>
             <p className={landing.headLead}>
-              Gather the photos from one chapter of life into an album, then let the family add what
-              a picture can’t say. Albums are unlimited on every plan.
-            </p>
+              <span className={landing.leadFull}>
+                Gather the photos from one chapter of life into an album, then let the family add what
+                a picture can’t say. Albums are unlimited on every plan.
+              </span>
+              <span className={landing.leadShort}>One chapter of life in an album, with the story under every photo.</span>
+          </p>
           </div>
 
           <figure className={s.figure}>
@@ -109,6 +101,7 @@ export default function AlbumsLibrary() {
             </figcaption>
           </figure>
 
+          <Fold label="What albums do" className={s.factsFold}>
           <ul className={s.facts}>
             {FACTS.map((fact) => (
               <li key={fact.lead} style={{ '--dot': fact.dot } as CSSProperties}>
@@ -119,16 +112,18 @@ export default function AlbumsLibrary() {
               </li>
             ))}
           </ul>
+          </Fold>
         </div>
 
         <div className={s.library}>
-          <Where on="web" className={s.libraryWhere} />
           <h3 className={s.libraryTitle}>One Library for the whole family.</h3>
+          <Fold label="What goes in it" className={s.libraryFold}>
           <ul className={s.libraryFacts}>
             {LIBRARY_FACTS.map((fact) => (
               <li key={fact}>{fact}</li>
             ))}
           </ul>
+          </Fold>
           <p className={s.fine}>
             Everyone you invite shares it, with 1GB of storage on the free plan and 100GB on Premium.
           </p>

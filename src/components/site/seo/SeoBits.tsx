@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { FOUNDER_LINKS } from '@/lib/seo/schema';
 import s from './seo.module.css';
+import Fold from '@/components/landing/Fold';
 
 // Pieces every guide, comparison and feature page shares, in the landing page's language
 // (they sit inside SiteShell, which supplies the colour tokens and Plus Jakarta Sans).
@@ -11,11 +12,14 @@ export function KeyFacts({ title = 'Key facts', items }: { title?: string; items
   return (
     <aside className={s.facts} aria-label={title}>
       <h2 className={s.factsTitle}>{title}</h2>
-      <ul className={s.factsList}>
-        {items.map((item, i) => (
-          <li key={i}>{item}</li>
-        ))}
-      </ul>
+      {/* On phones the list sits behind a "Key facts" button (Fold); from 600px it is just there. */}
+      <Fold label={title} className={s.factsFold}>
+        <ul className={s.factsList}>
+          {items.map((item, i) => (
+            <li key={i}>{item}</li>
+          ))}
+        </ul>
+      </Fold>
     </aside>
   );
 }

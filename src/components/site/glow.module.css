@@ -22,10 +22,10 @@
   /* Doubled class: beats the landing root's `background: #fff` whatever order the sheets load in. */
   background-color: #fff;
   background-image:
-    radial-gradient(560px 460px, rgb(255 45 135 / 0.13), rgb(255 45 135 / 0)),
-    radial-gradient(540px 440px, rgb(43 75 255 / 0.12), rgb(43 75 255 / 0)),
-    radial-gradient(540px 440px, rgb(43 75 255 / 0.12), rgb(43 75 255 / 0)),
-    radial-gradient(560px 460px, rgb(255 45 135 / 0.13), rgb(255 45 135 / 0));
+    radial-gradient(560px 460px, rgb(255 45 135 / 0.2), rgb(255 45 135 / 0)),
+    radial-gradient(540px 440px, rgb(43 75 255 / 0.18), rgb(43 75 255 / 0)),
+    radial-gradient(540px 440px, rgb(43 75 255 / 0.18), rgb(43 75 255 / 0)),
+    radial-gradient(560px 460px, rgb(255 45 135 / 0.2), rgb(255 45 135 / 0));
   background-repeat: repeat-y;
   background-size:
     1120px 2200px,
@@ -45,10 +45,10 @@
 @media (max-width: 1099px) {
   .glowPage.glowPage {
     background-image:
-      radial-gradient(340px 400px, rgb(255 45 135 / 0.13), rgb(255 45 135 / 0)),
-      radial-gradient(320px 390px, rgb(43 75 255 / 0.12), rgb(43 75 255 / 0)),
-      radial-gradient(320px 390px, rgb(43 75 255 / 0.12), rgb(43 75 255 / 0)),
-      radial-gradient(340px 400px, rgb(255 45 135 / 0.13), rgb(255 45 135 / 0));
+      radial-gradient(340px 400px, rgb(255 45 135 / 0.2), rgb(255 45 135 / 0)),
+      radial-gradient(320px 390px, rgb(43 75 255 / 0.18), rgb(43 75 255 / 0)),
+      radial-gradient(320px 390px, rgb(43 75 255 / 0.18), rgb(43 75 255 / 0)),
+      radial-gradient(340px 400px, rgb(255 45 135 / 0.2), rgb(255 45 135 / 0));
     background-size:
       680px 1700px,
       640px 1700px,
@@ -67,10 +67,10 @@
 @media (max-width: 699px) {
   .glowPage.glowPage {
     background-image:
-      radial-gradient(200px 300px, rgb(255 45 135 / 0.12), rgb(255 45 135 / 0)),
-      radial-gradient(190px 290px, rgb(43 75 255 / 0.11), rgb(43 75 255 / 0)),
-      radial-gradient(190px 290px, rgb(43 75 255 / 0.11), rgb(43 75 255 / 0)),
-      radial-gradient(200px 300px, rgb(255 45 135 / 0.12), rgb(255 45 135 / 0));
+      radial-gradient(200px 300px, rgb(255 45 135 / 0.18), rgb(255 45 135 / 0)),
+      radial-gradient(190px 290px, rgb(43 75 255 / 0.16), rgb(43 75 255 / 0)),
+      radial-gradient(190px 290px, rgb(43 75 255 / 0.16), rgb(43 75 255 / 0)),
+      radial-gradient(200px 300px, rgb(255 45 135 / 0.18), rgb(255 45 135 / 0));
     background-size:
       400px 1300px,
       380px 1300px,

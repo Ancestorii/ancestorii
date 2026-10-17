@@ -261,3 +261,60 @@
     width: 100%;
   }
 }
+
+/* ── Chapter marks and a drop cap: the letter reads in parts, not as one block ── */
+
+.mark {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+/* The shared `.prose > * + *` spacing must not push the first paragraph away from its mark. */
+.flow .prose > .mark + * {
+  margin-top: 0;
+}
+
+/* A short stem after the numeral, so it reads as a rule, not a stray bullet. */
+.mark::after {
+  content: '';
+  flex: 0 1 48px;
+  height: 2px;
+  margin-left: 4px;
+  border-radius: 2px;
+  background: var(--card);
+}
+
+.markDot {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--card);
+}
+
+/* The opening word of the letter, in a big pink capital. */
+.flow > .column:first-child > p:first-of-type::first-letter {
+  float: left;
+  margin: 6px 12px 0 0;
+  font-size: 4.4em;
+  line-height: 0.78;
+  font-weight: 800;
+  color: var(--c0);
+}
+
+/* A short coloured rule closes each passage without a photo. */
+.flow > .column:not(.signoff)::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 4px;
+  margin-top: clamp(36px, 4vw, 56px);
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--c0), var(--c2));
+}

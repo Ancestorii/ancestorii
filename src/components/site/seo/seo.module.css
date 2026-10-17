@@ -266,3 +266,32 @@
     padding: 22px 20px;
   }
 }
+
+/* Phones: the key facts fold behind their heading (Fold.tsx), so a guide opens on its words. */
+@media (max-width: 599px) {
+  .factsTitle {
+    display: none;
+  }
+
+  .factsFold > summary {
+    margin-top: 0;
+  }
+}
+
+/* Phones: the folded key facts are just the pill; the card look returns when it opens. */
+@media (max-width: 599px) {
+  .facts {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .factsFold[open] .factsList {
+    margin-top: 12px;
+    padding: 16px 18px;
+    background: #fff;
+    border: 1.5px solid rgba(10, 10, 15, 0.1);
+    border-radius: 18px;
+  }
+}

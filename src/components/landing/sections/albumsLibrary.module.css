@@ -394,3 +394,16 @@
     grid-area: fine;
   }
 }
+
+/* The folds (Fold.tsx) take the grid places their lists used to hold. */
+.factsFold {
+  grid-area: facts;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .libraryFold {
+    grid-area: facts;
+    min-width: 0;
+  }
+}

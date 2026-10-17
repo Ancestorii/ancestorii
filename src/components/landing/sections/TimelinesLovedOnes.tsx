@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
+import Fold from '../Fold';
 import landing from '../landing.module.css';
 import s from './timelinesLovedOnes.module.css';
 
@@ -8,17 +9,6 @@ import s from './timelinesLovedOnes.module.css';
 // names and prompts are the Loved Ones page's own (family/[id]/_components/StorySection.tsx).
 // The Free plan's single loved one is the limit the family page enforces.
 
-// Where a feature works: a pink dot for the app, a blue dot for the website, both dots for both
-// (the logo's two dots). The words always show, so colour is never the only signal.
-function Where({ on, className = '' }: { on: 'app' | 'web' | 'both'; className?: string }) {
-  return (
-    <span className={className ? `${s.where} ${className}` : s.where}>
-      {on !== 'web' && <span className={s.whereDot} style={{ background: 'var(--c0)' }} aria-hidden="true" />}
-      {on !== 'app' && <span className={s.whereDot} style={{ background: 'var(--c1)' }} aria-hidden="true" />}
-      {on === 'app' ? 'In the app' : on === 'web' ? 'On the website' : 'App and website'}
-    </span>
-  );
-}
 
 // Each frame takes the photo's colour on the founder's page. A no-break space keeps each "·"
 // with the words before it.
@@ -104,12 +94,14 @@ export default function TimelinesLovedOnes() {
               />
               Timelines and Loved Ones
             </span>
-            <Where on="both" />
           </div>
           <h2 className={`${landing.h2} ${s.title}`}>Put a life in order.</h2>
           <p className={landing.headLead}>
-            Give each moment a date and see a life laid out from start to finish. Then give everyone
-            who shaped your family a page of their own.
+            <span className={landing.leadFull}>
+              Give each moment a date and see a life laid out from start to finish. Then give everyone
+              who shaped your family a page of their own.
+            </span>
+            <span className={landing.leadShort}>A life in date order, and a page for everyone who shaped your family.</span>
           </p>
         </div>
 
@@ -144,6 +136,7 @@ export default function TimelinesLovedOnes() {
         </figure>
 
         <div className={s.split}>
+          <Fold label="What timelines do">
           <ul className={s.facts}>
             {FACTS.map((fact) => (
               <li key={fact.lead} style={{ '--dot': fact.dot } as CSSProperties}>
@@ -154,15 +147,16 @@ export default function TimelinesLovedOnes() {
               </li>
             ))}
           </ul>
+          </Fold>
 
           <div className={s.people}>
-            <Where on="web" />
             <h3 className={s.peopleTitle}>A page for everyone who shaped you.</h3>
             <p className={s.peopleText}>
               Add their photo, how they’re related and their dates, then tell their life story in four
               chapters, each with a photo and gentle questions to start you off. Every album, timeline
               and capsule they’re tagged in gathers on their page.
             </p>
+            <Fold label="The four chapters">
             <ol className={s.chapters}>
               {CHAPTERS.map((chapter) => (
                 <li key={chapter.name} style={{ '--dot': chapter.dot } as CSSProperties}>
@@ -171,6 +165,7 @@ export default function TimelinesLovedOnes() {
                 </li>
               ))}
             </ol>
+            </Fold>
             <p className={s.fine}>
               Story Assistance can suggest questions for each chapter. Free families can add one loved
               one; Premium families, as many as they like.

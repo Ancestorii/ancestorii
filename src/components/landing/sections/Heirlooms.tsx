@@ -1,21 +1,11 @@
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
+import Fold from '../Fold';
 import { ArrowLink } from '../LandingBits';
 import landing from '../landing.module.css';
 import s from './heirlooms.module.css';
 
-// Where a feature works: a pink dot for the app, a blue dot for the website, both dots for both
-// (the logo's two dots). The words always show, so colour is never the only signal.
-function Where({ on, className = '' }: { on: 'app' | 'web' | 'both'; className?: string }) {
-  return (
-    <span className={className ? `${s.where} ${className}` : s.where}>
-      {on !== 'web' && <span className={s.whereDot} style={{ background: 'var(--c0)' }} aria-hidden="true" />}
-      {on !== 'app' && <span className={s.whereDot} style={{ background: 'var(--c1)' }} aria-hidden="true" />}
-      {on === 'app' ? 'In the app' : on === 'web' ? 'On the website' : 'App and website'}
-    </span>
-  );
-}
 
 // Each panel is a size drawing, not a mockup: book spines as wide as their page counts, or the
 // prints as rectangles in inches at one scale shared by canvas and acrylic.
@@ -145,12 +135,14 @@ export default function Heirlooms() {
               />
               {'Heirlooms · Print'}
             </span>
-            <Where on="web" />
           </div>
           <h2 className={`${landing.h2} ${s.title}`}>Turn the stories into something you can hold.</h2>
           <p className={landing.headLead}>
-            Design a Memory Book, a canvas or an acrylic print from the photos in your Library, on a
-            laptop or desktop, and it’s printed and posted to your door.
+            <span className={landing.leadFull}>
+              Design a Memory Book, a canvas or an acrylic print from the photos in your Library, on a
+              laptop or desktop, and it’s printed and posted to your door.
+            </span>
+            <span className={landing.leadShort}>A Memory Book, a canvas or an acrylic print from your photos, posted to your door.</span>
           </p>
         </div>
 
@@ -186,6 +178,7 @@ export default function Heirlooms() {
               <div className={s.body}>
                 <h3 className={s.productTitle}>{product.title}</h3>
                 <p className={s.text}>{product.text}</p>
+                <Fold label="Sizes and details">
                 {product.tiers && (
                   <ul className={s.tiers}>
                     {product.tiers.map((tier) => (
@@ -203,6 +196,7 @@ export default function Heirlooms() {
                     <li key={point}>{point}</li>
                   ))}
                 </ul>
+                </Fold>
                 <p className={s.price}>
                   From {product.from}{' '}<span>plus delivery</span>
                 </p>
@@ -215,6 +209,7 @@ export default function Heirlooms() {
           ))}
         </ul>
 
+        <Fold label="Delivery, discounts and rewards">
         <ul className={`${s.facts} ${s.after}`}>
           {FACTS.map((fact) => (
             <li key={fact.lead} style={{ '--dot': fact.dot } as CSSProperties}>
@@ -230,6 +225,7 @@ export default function Heirlooms() {
           Reward codes are single-use, last 7 days and are used at checkout on the website. They
           replace the Premium discount rather than adding to it. Delivery still applies.
         </p>
+        </Fold>
 
         <ArrowLink href="/memory-books" prefetch={false} className={s.cta}>
           Explore Memory Books

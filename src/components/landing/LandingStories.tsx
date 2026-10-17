@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { TOPICS, getTopicByKey } from '@/lib/stories/topics';
 import type { LandingStory } from '@/lib/stories/landing';
 import { topicToneClass } from '@/components/site/stories-browse/topicTone';
+import Fold from './Fold';
 import { ArrowLink } from './LandingBits';
 import styles from './landing.module.css';
 import st from './stories.module.css';
@@ -26,17 +27,6 @@ const FACTS = [
   },
 ];
 
-// Where a feature works: a pink dot for the app, a blue dot for the website, both dots for both
-// (the logo's two dots). The words always show, so colour is never the only signal.
-function Where({ on }: { on: 'app' | 'web' | 'both' }) {
-  return (
-    <span className={st.where}>
-      {on !== 'web' && <span className={st.whereDot} style={{ background: 'var(--c0)' }} aria-hidden="true" />}
-      {on !== 'app' && <span className={st.whereDot} style={{ background: 'var(--c1)' }} aria-hidden="true" />}
-      {on === 'app' ? 'In the app' : on === 'web' ? 'On the website' : 'App and website'}
-    </span>
-  );
-}
 
 function byline(story: LandingStory) {
   // A no-break space keeps the dot with the name, so a wrapped byline never starts with "·".
@@ -87,14 +77,16 @@ export default function LandingStories({
               <span className={styles.badgeDot} style={{ '--dot': 'var(--c3)' } as CSSProperties} />
               {'Our Stories\u00a0· Public'}
             </span>
-            <Where on="web" />
           </div>
           <h2 className={`${styles.h2} ${styles.headTitle} ${styles.storiesTitle} ${st.title}`}>
             Real stories from real families.
           </h2>
           <p className={styles.headLead}>
-            Our Stories is the public side of Ancestorii. Anyone can read it free, without an
-            account, and you choose which of your stories go on it.
+            <span className={styles.leadFull}>
+              Our Stories is the public side of Ancestorii. Anyone can read it free, without an
+              account, and you choose which of your stories go on it.
+            </span>
+            <span className={styles.leadShort}>The public side of Ancestorii. Free to read, and you choose what goes on it.</span>
           </p>
         </div>
 
@@ -175,6 +167,7 @@ export default function LandingStories({
           </div>
         )}
 
+        <Fold label="How Our Stories works">
         <ul className={st.facts}>
           {FACTS.map((fact) => (
             <li key={fact.text} style={{ '--dot': fact.dot } as CSSProperties}>
@@ -182,6 +175,7 @@ export default function LandingStories({
             </li>
           ))}
         </ul>
+        </Fold>
 
         <div className={styles.storiesFoot}>
           <nav className={styles.storyTopics} aria-label="Story topics">

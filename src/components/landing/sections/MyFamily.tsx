@@ -1,22 +1,11 @@
 import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import { LockKeyhole } from 'lucide-react';
+import Fold from '../Fold';
 import landing from '../landing.module.css';
 import s from './myFamily.module.css';
 
-type WhereOn = 'app' | 'web' | 'both';
 
-// Where a feature works: a pink dot for the app, a blue dot for the website, both dots for both
-// (the logo's two dots). The words always show, so colour is never the only signal.
-function Where({ on, className = '' }: { on: WhereOn; className?: string }) {
-  return (
-    <span className={`${s.where} ${className}`}>
-      {on !== 'web' && <span className={s.whereDot} style={{ background: 'var(--c0)' }} aria-hidden="true" />}
-      {on !== 'app' && <span className={s.whereDot} style={{ background: 'var(--c1)' }} aria-hidden="true" />}
-      {on === 'app' ? 'In the app' : on === 'web' ? 'On the website' : 'App and website'}
-    </span>
-  );
-}
 
 // Every line is checked against the product: memories take up to 10 photos, one video (5 minutes
 // on Free, 15 on Premium) and a voice note, and the private feed is in the app; one heart each,
@@ -24,12 +13,11 @@ function Where({ on, className = '' }: { on: WhereOn; className?: string }) {
 // on any plan; alerts for hearts, comments, added perspectives and joins (nothing creates one for
 // an answered question), and emails for answered questions and new members only (no "family
 // activity" emails).
-const CARDS: { dot: string; title: string; text: string; where?: WhereOn }[] = [
+const CARDS: { dot: string; title: string; text: string }[] = [
   {
     dot: 'var(--c0)',
     title: 'Memories in your own words',
     text: 'Write a moment down with up to 10 photos, a video and a voice note. Videos run up to 5 minutes, or 15 on Premium.',
-    where: 'app',
   },
   {
     dot: 'var(--c1)',
@@ -61,13 +49,15 @@ export default function MyFamily() {
               <span className={landing.badgeDot} style={{ '--dot': 'var(--c0)' } as CSSProperties} />
               {'My Family\u00a0· Private'}
             </span>
-            <Where on="both" />
           </div>
           <h2 className={`${landing.h2} ${s.title}`}>Share it with the people who were there.</h2>
           <p className={landing.headLead}>
-            My Family is your family’s private space. Everyone you invite can share memories, photos
-            and voice notes, and nobody else can get in. The private feed lives in the iPhone and
-            Android app.
+            <span className={landing.leadFull}>
+              My Family is your family’s private space. Everyone you invite can share memories, photos
+              and voice notes, and nobody else can get in. The private feed lives in the iPhone and
+              Android app.
+            </span>
+            <span className={landing.leadShort}>A private space for the people you invite. Nobody else can get in.</span>
           </p>
         </div>
 
@@ -103,7 +93,6 @@ export default function MyFamily() {
           <div className={s.text}>
             <div className={s.kickerRow}>
               <span className={s.kicker}>Multiple perspectives</span>
-              <Where on="both" />
             </div>
             <h3 className={s.textTitle}>Remember it differently? Keep both.</h3>
             <p className={s.textBody}>
@@ -114,6 +103,7 @@ export default function MyFamily() {
           </div>
         </div>
 
+        <Fold label="What you can do">
         <ul className={s.cards}>
           {CARDS.map((card) => (
             <li key={card.title} className={s.card} style={{ '--dot': card.dot } as CSSProperties}>
@@ -121,11 +111,11 @@ export default function MyFamily() {
               <div>
                 <h3 className={s.cardTitle}>{card.title}</h3>
                 <p className={s.cardText}>{card.text}</p>
-                {card.where && <Where on={card.where} className={s.cardWhere} />}
               </div>
             </li>
           ))}
         </ul>
+        </Fold>
 
         {/* "No ads" is on /pricing. Never "no tracking": the website loads marketing pixels. */}
         <p className={s.privacy}>
