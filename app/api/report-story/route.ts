@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail, internalNote, p, esc, wrap } from '@/lib/email';
 
 function getAdminClient() {
   return createClient(
@@ -68,24 +69,18 @@ export async function POST(req: NextRequest) {
 
     // Email admin
     try {
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: 'Ancestorii <support@ancestorii.com>',
-          to: [process.env.ADMIN_EMAIL || 'support@ancestorii.com'],
-          subject: `[Report] Story reported: ${story.title}`,
-          html: `
-            <h2>A story has been reported by a community member</h2>
-            <p><strong>Story:</strong> ${story.title}</p>
-            <p><strong>Author:</strong> ${story.author_name}</p>
-            <p><strong>Reason:</strong> ${reason || 'No reason provided'}</p>
-            <p><a href="https://www.ancestorii.com/stories/${story_id}">View story</a></p>
-          `,
-        }),
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL || 'support@ancestorii.com',
+        letter: internalNote(
+          'A story has been reported',
+          [
+            ['Story', String(story.title ?? '')],
+            ['Author', String(story.author_name ?? '')],
+            ['Reason', reason || 'No reason provided'],
+          ],
+          p(`<a href="https://www.ancestorii.com/stories/${story_id}" style="color:#2B4BFF;">View the story</a>`),
+        ),
+        tag: 'report',
       });
     } catch (emailErr) {
       console.error('Failed to send report email:', emailErr);
@@ -99,46 +94,30 @@ export async function POST(req: NextRequest) {
       if (reporterEmail) {
         const reporterName = reporterUser?.user_metadata?.full_name?.split(' ')[0] || 'there';
 
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        await sendEmail({
+          to: reporterEmail,
+          letter: {
+            subject: 'Thank you for your report',
+            preheader: 'We will review the story and take it from here.',
+            eyebrow: 'REPORT RECEIVED',
+            heading: 'Thank you for your report.',
+            bodyHtml: [
+              p(`Hi ${esc(reporterName)}. Thank you for taking the time to report a story on Our Stories. We take every report seriously.`),
+              p('Our team will review the story and take the right action. Our Stories is a shared space for genuine family memories, and reports like yours help us keep it that way.'),
+              p('You do not need to do anything else. We will handle it from here.', true),
+            ].join(''),
+            bodyText: [
+              wrap(`Hi ${reporterName}. Thank you for taking the time to report a story on Our Stories. We take every report seriously.`),
+              '',
+              wrap('Our team will review the story and take the right action. Our Stories is a shared space for genuine family memories, and reports like yours help us keep it that way.'),
+              '',
+              wrap('You do not need to do anything else. We will handle it from here.'),
+            ].join('\n'),
+            note: 'Thank you for helping us protect this space.',
+            reason: 'You are receiving this because you reported a story on Our Stories.',
           },
-          body: JSON.stringify({
-            from: 'Ancestorii <support@ancestorii.com>',
-            to: [reporterEmail],
-            subject: 'Thank you for your report — Ancestorii',
-            html: `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
-<body style="margin:0;padding:0;background-color:#f5f1e6;font-family:Georgia,'Times New Roman',serif;color:#3d3830;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr><td align="center" style="padding:48px 16px 56px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background-color:#fdfaf5;">
-        <tr><td style="background-color:#16120c;padding:36px 40px 32px 40px;text-align:center;">
-          <p style="font-size:10px;letter-spacing:5px;color:#7a6a4f;text-transform:uppercase;margin:0 0 14px 0;">A letter from</p>
-          <p style="font-size:24px;letter-spacing:9px;color:#c8a557;text-transform:uppercase;margin:0;">Ancestorii</p>
-        </td></tr>
-        <tr><td style="background-color:#c8a557;height:2px;font-size:0;line-height:0;">&nbsp;</td></tr>
-        <tr><td style="padding:48px 40px 36px 40px;">
-          <p style="font-size:24px;font-style:italic;color:#16120c;margin:0 0 32px 0;line-height:1.4;">Hi ${reporterName},</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Thank you for taking the time to report a story on Our Stories. We take every report seriously.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Our team will review the story and take appropriate action. Our Stories is a shared space for genuine family memories, and reports like yours help us keep it that way.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">You do not need to do anything else. We will handle it from here.</p>
-          <p style="font-size:15px;color:#3d3830;line-height:1.75;margin:0;font-style:italic;">Thank you for helping us protect this space.</p>
-          <p style="font-size:16px;color:#3d3830;margin:32px 0 4px 0;">— The Ancestorii Team</p>
-        </td></tr>
-        <tr><td style="padding:28px 40px 36px 40px;text-align:center;border-top:1px solid #ebe4d5;">
-          <p style="font-size:11px;color:#a39c91;margin:0 0 6px 0;letter-spacing:2px;text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
-          <p style="font-size:12px;color:#a39c91;margin:0;"><a href="https://ancestorii.com" style="color:#ab8232;text-decoration:none;">ancestorii.com</a></p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`,
-          }),
+          idempotencyKey: `report-thanks-${story_id}-${user.id}`,
+          tag: 'report',
         });
       }
     } catch (reporterEmailErr) {

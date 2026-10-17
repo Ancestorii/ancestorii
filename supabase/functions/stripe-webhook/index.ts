@@ -1,6 +1,7 @@
 import Stripe from "npm:stripe@14.21.0";
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2?target=deno";
+import { esc, p, send, SITE_URL, steps, stepsText, wrap, type Letter } from "../_shared/email.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -9,498 +10,88 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// ── Email helper ──
-async function sendEmail(to: string, subject: string, html: string) {
-  const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-  if (!RESEND_API_KEY) {
-    console.error("Missing RESEND_API_KEY — skipping email");
-    return;
-  }
-
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Ancestorii <support@ancestorii.com>",
-        to: [to],
-        subject,
-        html,
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("Resend error:", res.status, err);
-    }
-  } catch (err) {
-    console.error("Email send failed:", err);
-  }
+// ── Email helper (every letter is drawn in the shared shell, _shared/letter.ts) ──
+async function sendEmail(to: string, letter: Letter, idempotencyKey: string) {
+  const result = await send({ to, letter, idempotencyKey, tag: 'stripe' });
+  if (!result.ok) console.error(`Resend refused (${result.status}): ${result.message}`);
 }
-
-// ── Resolve a customer's email + name from a Stripe customer id ──
-// Subscription/invoice events carry no checkout session, so we read the
-// contact straight from Stripe (with invoice-provided values preferred).
-async function resolveContact(
-  stripe: Stripe,
-  customerId: string,
-  fallbackEmail?: string | null,
-  fallbackName?: string | null,
-): Promise<{ email: string | null; name: string }> {
-  if (fallbackEmail) {
-    return { email: fallbackEmail, name: fallbackName ?? "" };
-  }
-  try {
-    const customer = await stripe.customers.retrieve(customerId);
-    if (customer && !(customer as Stripe.DeletedCustomer).deleted) {
-      const c = customer as Stripe.Customer;
-      return { email: c.email ?? null, name: c.name ?? fallbackName ?? "" };
-    }
-  } catch (err) {
-    console.error("resolveContact failed:", err);
-  }
-  return { email: null, name: fallbackName ?? "" };
-}
-
-// ── Derive the SELECTED shipping method + the real amounts from the session ──
-// Every order now charges shipping, so the old `amount_total > 0 → Express` inference
-// is wrong. Read the actual chosen shipping rate's display_name (Standard vs Express)
-// by expanding shipping_cost.shipping_rate, with an amount-based fallback only if the
-// expand fails. Also returns what was actually charged (total) and the shipping fee.
-async function deriveShippingInfo(
-  stripe: Stripe,
-  session: Stripe.Checkout.Session,
-): Promise<{ method: string; shippingAmount: number | null; amountCharged: number | null }> {
-  let displayName = "";
-  let shippingMinor = session.shipping_cost?.amount_total ?? null;
-  let totalMinor = session.amount_total ?? null;
-
-  try {
-    const full = await stripe.checkout.sessions.retrieve(session.id, {
-      expand: ["shipping_cost.shipping_rate"],
-    });
-    const rate = full.shipping_cost?.shipping_rate;
-    if (rate && typeof rate !== "string") {
-      displayName = (rate.display_name ?? "").toLowerCase();
-    }
-    if (full.shipping_cost?.amount_total != null) shippingMinor = full.shipping_cost.amount_total;
-    if (full.amount_total != null) totalMinor = full.amount_total;
-  } catch (err) {
-    console.error("deriveShippingInfo: session retrieve failed, falling back to amount:", err);
-  }
-
-  let method: string;
-  if (displayName.includes("express")) method = "Express";
-  else if (displayName.includes("standard")) method = "Standard";
-  // Fallback: Standard rates are 499/599/599, Express 899/1099/999 — split at 800 minor units.
-  else method = (shippingMinor ?? 0) >= 800 ? "Express" : "Standard";
-
-  return {
-    method,
-    shippingAmount: shippingMinor != null ? shippingMinor / 100 : null,
-    amountCharged: totalMinor != null ? totalMinor / 100 : null,
-  };
-}
-
 // ── Email templates ──
-function premiumUpgradeEmail(name: string): { subject: string; html: string } {
+function premiumUpgradeEmail(name: string): Letter {
+  const greeting = name ? `Thank you, ${name}.` : 'Thank you.';
+  const first = 'Your upgrade to Ancestorii Premium is confirmed. You now have the room and every premium feature to keep and share the memories that matter most.';
+  const second = 'Your subscription is active and renews automatically each month. You can manage it any time from your Plans page.';
+  const third = 'If you have any questions, just reply to this email.';
   return {
-    subject: "Welcome to Ancestorii Premium",
-    html: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <meta name="color-scheme" content="light only" />
-  <meta name="supported-color-schemes" content="light only" />
-  <title>Welcome to Ancestorii Premium</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-
-          <tr>
-            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
-                Membership confirmed
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
-                Ancestorii
-              </p>
-            </td>
-          </tr>
-
-          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
-
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
-                Thank you${name ? `, ${name}` : ''}.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                Your upgrade to Ancestorii Premium is confirmed. You now have access to expanded storage and all premium features to preserve and share your family's most precious memories.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                Your subscription is active and will renew automatically each month. You can manage it anytime from your Plans page.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
-                If you have any questions, just reply to this email.
-              </p>
-
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
-                <tr>
-                  <td align="center" style="background-color:#16120c;">
-                    <a href="https://www.ancestorii.com/dashboard/our-family" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
-                      Go to Dashboard
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">
-                — The Ancestorii Team
-              </p>
-
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
-                Ancestorii Ltd &middot; London
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
-                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
+    subject: 'Welcome to Ancestorii Premium',
+    preheader: 'Your upgrade is confirmed. More room, every feature.',
+    eyebrow: 'PREMIUM',
+    heading: 'Welcome to Premium.',
+    bodyHtml: [p(`${esc(greeting)} ${esc(first)}`), p(esc(second)), p(esc(third), true)].join(''),
+    bodyText: [wrap(`${greeting} ${first}`), '', wrap(second), '', third].join('\n'),
+    button: { label: 'Open Ancestorii', href: `${SITE_URL}/dashboard/our-family` },
+    facts: [
+      { label: 'PLAN', value: 'Premium' },
+      { label: 'RENEWS', value: 'Monthly, automatically' },
+    ],
+    reason: 'You are receiving this because you upgraded your Ancestorii account to Premium.',
   };
 }
 
-function paymentFailedEmail(name: string): { subject: string; html: string } {
+function paymentFailedEmail(name: string): Letter {
+  const greeting = name ? `Hi ${name}, nothing to worry about.` : 'Hi, nothing to worry about.';
+  const first = 'We tried to renew your Ancestorii Premium subscription, but your card did not go through this time. It happens often, usually an expired card or a small bank hiccup.';
+  const second = 'Your memories are completely safe. Nothing has been deleted, and everything you have created is exactly where you left it. This is only about the payment.';
+  const third = 'To keep your subscription running, update your card and we will take care of the rest. If you have already sorted it, you can ignore this note.';
   return {
-    subject: "A quick note about your Ancestorii payment",
-    html: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <meta name="color-scheme" content="light only" />
-  <meta name="supported-color-schemes" content="light only" />
-  <title>A quick note about your Ancestorii payment</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-
-          <tr>
-            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
-                A gentle heads up
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
-                Ancestorii
-              </p>
-            </td>
-          </tr>
-
-          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
-
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
-                Hi${name ? ` ${name}` : ''}, nothing to worry about.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                We tried to renew your Ancestorii Premium subscription, but your card did not go through this time. It happens often, usually an expired card or a small bank hiccup, and it is nothing to worry about.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                Your memories are completely safe. Nothing has been deleted, and everything you have created is exactly where you left it. This is only about the payment.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
-                To keep your subscription running, just update your card and we will take care of the rest. If you have already sorted it, you can ignore this note.
-              </p>
-
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
-                <tr>
-                  <td align="center" style="background-color:#16120c;">
-                    <a href="https://www.ancestorii.com/dashboard/plans" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
-                      Update payment details
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">
-                — The Ancestorii Team
-              </p>
-
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
-                Ancestorii Ltd &middot; London
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
-                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
+    subject: 'A quick note about your Ancestorii payment',
+    preheader: 'Your card did not go through. Your memories are safe.',
+    eyebrow: 'PAYMENT',
+    heading: 'A quick note about your payment.',
+    bodyHtml: [p(`${esc(greeting)} ${esc(first)}`), p(esc(second)), p(esc(third))].join(''),
+    bodyText: [wrap(`${greeting} ${first}`), '', wrap(second), '', wrap(third)].join('\n'),
+    button: { label: 'Update payment details', href: `${SITE_URL}/dashboard/plans` },
+    facts: [
+      { label: 'PLAN', value: 'Premium' },
+      { label: 'YOUR MEMORIES', value: 'Safe and untouched' },
+    ],
+    reason: 'You are receiving this because a payment for your Ancestorii Premium subscription did not go through.',
   };
 }
 
-function subscriptionCanceledEmail(name: string): { subject: string; html: string } {
+function subscriptionCanceledEmail(name: string): Letter {
+  const greeting = name ? `Thank you for being here, ${name}.` : 'Thank you for being here.';
+  const first = 'Your Ancestorii Premium subscription has come to an end, and that is completely okay. No guilt, no hard feelings.';
+  const second = 'Your memories stay. Every photo, story, voice note and timeline you have added is still here, safe and yours. Nothing is locked away and nothing is deleted.';
+  const third = 'The only thing that pauses is adding new content beyond the free limits. Whenever you are ready, you can resubscribe and pick up exactly where you left off.';
   return {
-    subject: "Your Ancestorii Premium has ended — your memories stay",
-    html: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <meta name="color-scheme" content="light only" />
-  <meta name="supported-color-schemes" content="light only" />
-  <title>Your Ancestorii Premium has ended</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-
-          <tr>
-            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
-                Your library is safe
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
-                Ancestorii
-              </p>
-            </td>
-          </tr>
-
-          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
-
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
-                Thank you for being here${name ? `, ${name}` : ''}.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                Your Ancestorii Premium subscription has come to an end, and that is completely okay. No guilt, no hard feelings.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                Your memories stay. Every photo, story, voice note and timeline you have added is still here, safe and yours. You keep full access to view and revisit everything you have built. Nothing is locked away, and nothing is deleted.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
-                The only thing that pauses is adding new content beyond the free limits. Whenever you are ready, you can resubscribe and pick up exactly where you left off.
-              </p>
-
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
-                <tr>
-                  <td align="center" style="background-color:#16120c;">
-                    <a href="https://www.ancestorii.com/dashboard/plans" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
-                      Resubscribe anytime
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">
-                — The Ancestorii Team
-              </p>
-
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
-                Ancestorii Ltd &middot; London
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
-                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
+    subject: 'Your Ancestorii Premium has ended. Your memories stay.',
+    preheader: 'Nothing is deleted. Everything you added is still yours.',
+    eyebrow: 'SUBSCRIPTION',
+    heading: 'Your memories stay.',
+    bodyHtml: [p(`${esc(greeting)} ${esc(first)}`), p(esc(second)), p(esc(third))].join(''),
+    bodyText: [wrap(`${greeting} ${first}`), '', wrap(second), '', wrap(third)].join('\n'),
+    button: { label: 'Resubscribe any time', href: `${SITE_URL}/dashboard/plans` },
+    facts: [
+      { label: 'PLAN', value: 'Free' },
+      { label: 'YOUR MEMORIES', value: 'Safe and untouched' },
+    ],
+    reason: 'You are receiving this because your Ancestorii Premium subscription ended.',
   };
 }
 
-function bookOrderEmail(name: string, bookTitle: string, tierName: string, shippingMethod?: string): { subject: string; html: string } {
+function bookOrderEmail(name: string, bookTitle: string, tierName: string, shippingMethod?: string): Letter {
   const isExpress = shippingMethod === "Express";
   const deliveryLine = isExpress
-    ? "Shipped directly to your door via Express delivery (5–7 working days)."
-    : "Shipped directly to your door via Standard delivery (10–14 working days).";
-  return {
-    subject: `Your memory book order is confirmed`,
-    html: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <meta name="color-scheme" content="light only" />
-  <meta name="supported-color-schemes" content="light only" />
-  <title>Your memory book order is confirmed</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-
-          <tr>
-            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
-                Order confirmed
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
-                Ancestorii
-              </p>
-            </td>
-          </tr>
-
-          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
-
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
-                Thank you${name ? `, ${name}` : ''}.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                Your memory book <em style="font-style:italic; color:#16120c;">"${bookTitle}"</em> (${tierName}) is now being prepared for print.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 28px 0;">
-                Here's what happens next:
-              </p>
-
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
-                <tr>
-                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">1.</td>
-                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
-                    We prepare your book for printing.
-                  </td>
-                </tr>
-              </table>
-
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
-                <tr>
-                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">2.</td>
-                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
-                    Your book is printed on premium 200gsm gloss pages.
-                  </td>
-                </tr>
-              </table>
-
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
-                <tr>
-                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">3.</td>
-                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
-                    Bound in a hardcover matte finish.
-                  </td>
-                </tr>
-              </table>
-
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
-                <tr>
-                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">4.</td>
-                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
-                    ${deliveryLine}
-                  </td>
-                </tr>
-              </table>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                Please allow up to <strong style="color:#16120c; font-weight:600;">14 days</strong> for your book to arrive. If it hasn't reached you by then, contact us at <a href="mailto:support@ancestorii.com" style="color:#ab8232; text-decoration:none;">support@ancestorii.com</a> and we'll sort it out straight away.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
-                You can track your order anytime in the Orders section inside Ancestorii.
-              </p>
-
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
-                <tr>
-                  <td align="center" style="background-color:#16120c;">
-                    <a href="https://www.ancestorii.com/dashboard/orders" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
-                      Track Your Order
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">
-                — The Ancestorii Team
-              </p>
-
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
-                Ancestorii Ltd &middot; London
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
-                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`,
-  };
+    ? "Posted to your door by Express delivery (5 to 7 working days)."
+    : "Posted to your door by Standard delivery (10 to 14 working days).";
+  return orderLetter(name, bookTitle, tierName, "Memory Book", shippingMethod, [
+    { title: "We prepare your book for print", text: "Every page is checked and sent to the press." },
+    { title: "Printed on premium 200gsm gloss pages", text: "Rich colour, built to be handled for years." },
+    { title: "Bound in a hardcover matte finish", text: "A real book, made to sit on a shelf." },
+    { title: "On its way", text: deliveryLine },
+  ]);
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -619,7 +210,7 @@ serve(async (req) => {
               bookShip.method
             );
 
-            await sendEmail(customerEmail, email.subject, email.html);
+            await sendEmail(customerEmail, email, `order-${session.id}`);
           }
         } catch (emailErr) {
           console.error("Book order email failed:", emailErr);
@@ -732,7 +323,7 @@ serve(async (req) => {
               canvasShippingMethod
             );
 
-            await sendEmail(customerEmail, email.subject, email.html);
+            await sendEmail(customerEmail, email, `order-${session.id}`);
           }
         } catch (emailErr) {
           console.error("Canvas order email failed:", emailErr);
@@ -845,7 +436,7 @@ serve(async (req) => {
               acrylicShippingMethod
             );
 
-            await sendEmail(customerEmail, email.subject, email.html);
+            await sendEmail(customerEmail, email, `order-${session.id}`);
           }
         } catch (emailErr) {
           console.error("Acrylic order email failed:", emailErr);
@@ -922,7 +513,7 @@ serve(async (req) => {
 
         if (customerEmail) {
           const email = premiumUpgradeEmail(customerName);
-          await sendEmail(customerEmail, email.subject, email.html);
+          await sendEmail(customerEmail, email, `order-${session.id}`);
         }
       } catch (emailErr) {
         console.error("Premium email failed:", emailErr);
@@ -1013,7 +604,7 @@ serve(async (req) => {
         );
         if (email) {
           const mail = paymentFailedEmail(name);
-          await sendEmail(email, mail.subject, mail.html);
+          await sendEmail(email, mail, `payment-failed-${event.id}`);
         }
       } catch (emailErr) {
         console.error("Payment-failed email failed:", emailErr);
@@ -1043,7 +634,7 @@ serve(async (req) => {
         );
         if (email) {
           const mail = subscriptionCanceledEmail(name);
-          await sendEmail(email, mail.subject, mail.html);
+          await sendEmail(email, mail, `subscription-ended-${subscription.id}`);
         }
       } catch (emailErr) {
         console.error("Cancellation email failed:", emailErr);
@@ -1063,118 +654,67 @@ serve(async (req) => {
 });
 
 // ══════════════════════════════════════════════════════════
-// NEW: Canvas order confirmation email
+// Canvas and acrylic order confirmation emails
 // ══════════════════════════════════════════════════════════
-function canvasOrderEmail(name: string, canvasTitle: string, tierName: string, shippingMethod?: string): { subject: string; html: string } {
+function canvasOrderEmail(name: string, canvasTitle: string, tierName: string, shippingMethod?: string): Letter {
   const isExpress = shippingMethod === 'Express';
   const deliveryLine = isExpress
-    ? "Shipped directly to your door via Express delivery (5–7 working days)."
-    : "Shipped directly to your door via Standard delivery (10–14 working days).";
+    ? "Posted to your door by Express delivery (5 to 7 working days)."
+    : "Posted to your door by Standard delivery (10 to 14 working days).";
+  return orderLetter(name, canvasTitle, tierName, "Memory Canvas", shippingMethod, [
+    { title: "We prepare your canvas for print", text: "Your image is checked and sent to the press." },
+    { title: "Printed on 400gsm gallery-grade canvas", text: "Deep colour that holds for decades." },
+    { title: "Stretched on a 38mm bar, image wrapped", text: "Ready to hang the moment it arrives." },
+    { title: "On its way", text: deliveryLine },
+  ]);
+}
 
-  return {
-    subject: `Your memory canvas order is confirmed`,
-    html: orderConfirmationHtml(name, canvasTitle, tierName, "Memory Canvas", [
-      "We prepare your canvas for printing.",
-      "Your image is printed on 400gsm gallery-grade canvas.",
-      "Stretched on a 38mm premium stretcher bar with imagewrap finish.",
-      deliveryLine,
-    ]),
-  };
+function acrylicOrderEmail(name: string, acrylicTitle: string, tierName: string, shippingMethod?: string): Letter {
+  const isExpress = shippingMethod === 'Express';
+  const deliveryLine = isExpress
+    ? "Posted to your door by Express delivery (5 to 7 working days)."
+    : "Posted to your door by Standard delivery (10 to 14 working days).";
+  return orderLetter(name, acrylicTitle, tierName, "Acrylic Print", shippingMethod, [
+    { title: "We prepare your print for production", text: "Your image is checked and sent to the press." },
+    { title: "Printed on crystal-clear acrylic", text: "Vivid colour with real depth." },
+    { title: "Float-mount hardware included", text: "Effortless to hang." },
+    { title: "On its way", text: deliveryLine },
+  ]);
 }
 
 // ══════════════════════════════════════════════════════════
-// NEW: Acrylic order confirmation email
+// Shared order confirmation letter
 // ══════════════════════════════════════════════════════════
-function acrylicOrderEmail(name: string, acrylicTitle: string, tierName: string, shippingMethod?: string): { subject: string; html: string } {
-  const isExpress = shippingMethod === 'Express';
-  const deliveryLine = isExpress
-    ? "Shipped directly to your door via Express delivery (5–7 working days)."
-    : "Shipped directly to your door via Standard delivery (10–14 working days).";
-
-  return {
-    subject: `Your acrylic print order is confirmed`,
-    html: orderConfirmationHtml(name, acrylicTitle, tierName, "Acrylic Print", [
-      "We prepare your print for production.",
-      "Your image is printed on crystal-clear acrylic with vivid colour depth.",
-      "Float-mount hardware is included for effortless hanging.",
-      deliveryLine,
-    ]),
-  };
-}
-
-// ══════════════════════════════════════════════════════════
-// Shared order confirmation email builder
-// ══════════════════════════════════════════════════════════
-function orderConfirmationHtml(
+function orderLetter(
   name: string,
   productTitle: string,
   tierName: string,
   productLabel: string,
-  steps: string[]
-): string {
-  const stepsHtml = steps
-    .map(
-      (step, i) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
-                <tr>
-                  <td width="40" valign="top" style="font-family:Georgia, 'Times New Roman', serif; font-size:22px; font-style:italic; color:#c8a557; line-height:1.5; padding-top:1px;">${i + 1}.</td>
-                  <td style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.75;">
-                    ${step}
-                  </td>
-                </tr>
-              </table>`
-    )
-    .join("\n");
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <meta name="color-scheme" content="light only" />
-  <meta name="supported-color-schemes" content="light only" />
-  <title>Your ${productLabel.toLowerCase()} order is confirmed</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-          <tr>
-            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">Order confirmed</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">Ancestorii</p>
-            </td>
-          </tr>
-          <tr><td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td></tr>
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">Thank you${name ? `, ${name}` : ''}.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">Your ${productLabel.toLowerCase()} <em style="font-style:italic; color:#16120c;">"${productTitle}"</em> (${tierName}) is now being prepared for production.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 28px 0;">Here's what happens next:</p>
-              ${stepsHtml}
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:22px 0 22px 0;">Please allow up to <strong style="color:#16120c; font-weight:600;">14 working days</strong> for your ${productLabel.toLowerCase()} to arrive. If it hasn't reached you by then, contact us at <a href="mailto:support@ancestorii.com" style="color:#ab8232; text-decoration:none;">support@ancestorii.com</a> and we'll sort it out straight away.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">You can track your order anytime in the Orders section inside Ancestorii.</p>
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
-                <tr>
-                  <td align="center" style="background-color:#16120c;">
-                    <a href="https://www.ancestorii.com/dashboard/orders" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">Track Your Order</a>
-                  </td>
-                </tr>
-              </table>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:0;">— The Ancestorii Team</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;"><a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a></p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  shippingMethod: string | undefined,
+  list: Array<{ title: string; text: string }>,
+): Letter {
+  const lower = productLabel.toLowerCase();
+  const greeting = name ? `Thank you, ${name}.` : 'Thank you.';
+  const first = `Your ${lower} "${productTitle}" (${tierName}) is now being prepared for production.`;
+  const second = `Please allow up to 14 working days for your ${lower} to arrive. If it has not reached you by then, reply to this email and we will sort it out straight away.`;
+  return {
+    subject: `Your ${lower} order is confirmed`,
+    preheader: `"${productTitle}" is being prepared for print.`,
+    eyebrow: 'ORDER CONFIRMED',
+    heading: `Your ${lower} is on its way to print.`,
+    bodyHtml: [
+      p(`${esc(greeting)} Your ${esc(lower)} <strong>&ldquo;${esc(productTitle)}&rdquo;</strong> (${esc(tierName)}) is now being prepared for production.`),
+      p('Here is what happens next.', true),
+      steps(list),
+      p(esc(second)),
+    ].join(''),
+    bodyText: [wrap(`${greeting} ${first}`), '', 'Here is what happens next.', '', stepsText(list), '', wrap(second)].join('\n'),
+    button: { label: 'Track your order', href: `${SITE_URL}/dashboard/orders` },
+    facts: [
+      { label: 'YOUR ORDER', value: productTitle },
+      { label: 'PRODUCT', value: `${productLabel} (${tierName})` },
+      { label: 'DELIVERY', value: shippingMethod || 'Standard' },
+    ],
+    reason: `You are receiving this because you ordered a ${lower} from Ancestorii.`,
+  };
 }

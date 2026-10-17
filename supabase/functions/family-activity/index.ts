@@ -1,349 +1,154 @@
 // supabase/functions/family-activity/index.ts
-// Triggered by Database Webhooks on INSERT for "big" content:
-//   - family_members    (loved ones)     → owner_id
-//   - timelines                          → owner_id
-//   - albums                             → user_id
-//   - memory_capsules   (time capsules)  → user_id
-//   - memory_books                       → user_id
-//   - memory_canvases                    → user_id
-//   - acrylic_prints                     → user_id
+// ─────────────────────────────────────────────────────────────────────────────
+// "SOMETHING NEW IN YOUR FAMILY": tells the other members when someone adds a
+// loved one, a timeline, an album, a capsule, a Memory Book, a canvas or an
+// acrylic print.
 //
-// Sends a branded notification email to all family members EXCEPT the creator.
-// Does NOT trigger on granular content (photos, voice notes, comments, etc.)
+// Meant to be called by database triggers on those tables (none are wired at
+// the moment; wiring one is a product decision, since it emails everyone on
+// every creation). Deploys with verify_jwt off and checks the shared
+// `x-webhook-secret` (see _shared/email.ts).
+// ─────────────────────────────────────────────────────────────────────────────
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  esc,
+  json,
+  p,
+  preview,
+  send,
+  SERVICE_ROLE_KEY,
+  SITE_URL,
+  SUPABASE_URL,
+  unauthorized,
+  wrap,
+  type Letter,
+} from '../_shared/email.ts';
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const WEBHOOK_SECRET = Deno.env.get('WEBHOOK_SECRET');
+type ActivityInfo = { action: string; headline: string; what: string };
 
-// ─────────────────────────────────────────────
-// Map table names to human-readable descriptions
-// ─────────────────────────────────────────────
-interface ActivityInfo {
-  action: string;       // e.g. "created a new timeline"
-  headline: string;     // italic heading in the email
-}
-
+// deno-lint-ignore no-explicit-any
 function getActivityInfo(table: string, record: any): ActivityInfo {
+  const titled = (noun: string, title?: string | null) => (title ? `${noun} "${title}"` : noun);
   switch (table) {
     case 'family_members':
       return {
-        action: `added a new loved one${record.name ? ` — ${record.name}` : ''}`,
+        action: `added a new loved one${record.name ? `, ${record.name}` : ''}`,
         headline: 'Someone new has been added to your family.',
+        what: record.name ? `Loved one: ${record.name}` : 'A new loved one',
       };
     case 'timelines':
-      return {
-        action: `created a new timeline${record.title ? ` — "${record.title}"` : ''}`,
-        headline: 'A new timeline has been started.',
-      };
+      return { action: `started a new timeline ${titled('', record.title).trim()}`.trim(), headline: 'A new timeline has been started.', what: titled('Timeline', record.title) };
     case 'albums':
-      return {
-        action: `created a new album${record.title ? ` — "${record.title}"` : ''}`,
-        headline: 'A new album has been created.',
-      };
+      return { action: `created a new album ${titled('', record.title).trim()}`.trim(), headline: 'A new album has been created.', what: titled('Album', record.title) };
     case 'memory_capsules':
-      return {
-        action: `created a new time capsule${record.title ? ` — "${record.title}"` : ''}`,
-        headline: 'A time capsule has been sealed.',
-      };
+      return { action: `sealed a new time capsule ${titled('', record.title).trim()}`.trim(), headline: 'A time capsule has been sealed.', what: titled('Capsule', record.title) };
     case 'memory_books':
-      return {
-        action: `started a new Memory Book${record.title ? ` — "${record.title}"` : ''}`,
-        headline: 'A new Memory Book is being crafted.',
-      };
+      return { action: `started a new Memory Book ${titled('', record.title).trim()}`.trim(), headline: 'A new Memory Book is being made.', what: titled('Memory Book', record.title) };
     case 'memory_canvases':
-      return {
-        action: `created a new canvas${record.title ? ` — "${record.title}"` : ''}`,
-        headline: 'A new canvas has been created.',
-      };
+      return { action: `created a new canvas ${titled('', record.title).trim()}`.trim(), headline: 'A new canvas has been created.', what: titled('Canvas', record.title) };
     case 'acrylic_prints':
-      return {
-        action: `created a new acrylic print${record.title ? ` — "${record.title}"` : ''}`,
-        headline: 'A new acrylic print has been created.',
-      };
+      return { action: `created a new acrylic print ${titled('', record.title).trim()}`.trim(), headline: 'A new acrylic print has been created.', what: titled('Acrylic print', record.title) };
     default:
-      return {
-        action: 'added something new to the library',
-        headline: 'Something new has been added.',
-      };
+      return { action: 'added something new to the library', headline: 'Something new has been added.', what: 'Something new' };
   }
 }
 
-// ─────────────────────────────────────────────
-// Resolve the creator's user ID from the record
-// Tables use either owner_id or user_id
-// ─────────────────────────────────────────────
+// deno-lint-ignore no-explicit-any
 function getCreatorId(table: string, record: any): string | null {
-  // Tables that use owner_id: family_members, timelines
-  if (table === 'family_members' || table === 'timelines') {
-    return record.owner_id || null;
-  }
-  // Everything else uses user_id: albums, memory_capsules, memory_books,
-  // memory_canvases, acrylic_prints
+  if (table === 'family_members' || table === 'timelines') return record.owner_id || null;
   return record.user_id || null;
 }
 
-Deno.serve(async (req) => {
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
-  }
+export function letter(creatorName: string, activity: ActivityInfo, familyName: string): Letter {
+  const first = `${creatorName} just ${activity.action} in ${familyName}.`;
+  const second = 'Head over to your family library to see what is new, and add your own memories while you are there.';
+  return {
+    subject: `${creatorName} ${activity.action} in ${familyName}`,
+    preheader: activity.headline,
+    eyebrow: 'FAMILY UPDATE',
+    heading: activity.headline,
+    bodyHtml: [p(`<strong>${esc(creatorName)}</strong> just ${esc(activity.action)} in <strong>${esc(familyName)}</strong>.`), p(esc(second))].join(''),
+    bodyText: [wrap(first), '', wrap(second)].join('\n'),
+    button: { label: 'View your library', href: `${SITE_URL}/dashboard/our-family` },
+    facts: [
+      { label: 'ADDED BY', value: creatorName },
+      { label: 'WHAT', value: activity.what },
+    ],
+    reason: `You are receiving this because you are a member of ${familyName} on Ancestorii.`,
+  };
+}
 
-  if (WEBHOOK_SECRET) {
-    const authHeader = req.headers.get('x-webhook-secret');
-    if (authHeader !== WEBHOOK_SECRET) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-  }
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+Deno.serve(async (req: Request) => {
+  const denied = unauthorized(req);
+  if (denied) return denied;
+
+  // deno-lint-ignore no-explicit-any
+  let payload: { record?: any; table?: string; mode?: string };
   try {
-    const payload = await req.json();
-    const record = payload.record;
-    const table = payload.table;
-
-    if (!record) {
-      return new Response(JSON.stringify({ error: 'No record in payload' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const creatorId = getCreatorId(table, record);
-    if (!creatorId) {
-      console.log('Could not determine creator from record:', table, JSON.stringify(record));
-      return new Response(JSON.stringify({ skipped: true, reason: 'no_creator_id' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    // Get creator's profile
-    const { data: creator } = await supabase
-      .from('Profiles')
-      .select('full_name')
-      .eq('id', creatorId)
-      .single();
-
-    const creatorName = creator?.full_name || 'A family member';
-
-    // Resolve family_id — should be on the record (auto-stamped by triggers)
-    // Fallback: look up via creator's membership
-    let familyId = record.family_id || null;
-
-    if (!familyId) {
-      const { data: membership } = await supabase
-        .from('family_memberships')
-        .select('family_id')
-        .eq('user_id', creatorId)
-        .single();
-      familyId = membership?.family_id || null;
-    }
-
-    if (!familyId) {
-      console.log('Could not determine family_id for record in', table);
-      return new Response(JSON.stringify({ skipped: true, reason: 'no_family_id' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Get family name
-    const { data: family } = await supabase
-      .from('families')
-      .select('name')
-      .eq('id', familyId)
-      .single();
-
-    const familyName = family?.name || 'your family';
-
-    // Get all family members EXCEPT the creator
-    const { data: memberships } = await supabase
-      .from('family_memberships')
-      .select('user_id')
-      .eq('family_id', familyId)
-      .neq('user_id', creatorId);
-
-    if (!memberships || memberships.length === 0) {
-      return new Response(JSON.stringify({ skipped: true, reason: 'no_other_members' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Get emails for all other members
-    const memberIds = memberships.map((m) => m.user_id);
-    const { data: profiles } = await supabase
-      .from('Profiles')
-      .select('email')
-      .in('id', memberIds);
-
-    const recipientEmails = (profiles || [])
-      .map((p) => p.email)
-      .filter(Boolean) as string[];
-
-    if (recipientEmails.length === 0) {
-      return new Response(JSON.stringify({ skipped: true, reason: 'no_recipient_emails' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const activity = getActivityInfo(table, record);
-
-    // Send one email per recipient
-    const emailPromises = recipientEmails.map((email) =>
-      fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: 'Ancestorii <support@ancestorii.com>',
-          to: [email],
-          subject: `${creatorName} ${activity.action} in ${familyName}`,
-          html: generateActivityEmail(creatorName, activity, familyName),
-          text: generatePlainText(creatorName, activity, familyName),
-        }),
-      })
-    );
-
-    const results = await Promise.allSettled(emailPromises);
-    const sent = results.filter((r) => r.status === 'fulfilled').length;
-    const failed = results.filter((r) => r.status === 'rejected').length;
-
-    console.log(`Activity notification: sent ${sent}, failed ${failed} for table=${table}`);
-
-    return new Response(
-      JSON.stringify({ sent, failed, table, familyId }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
-  } catch (error) {
-    console.error('Error sending activity notification:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    payload = await req.json();
+  } catch {
+    return json({ error: 'bad_json' }, 400);
   }
+
+  if (payload.mode === 'preview') {
+    return preview(letter('Jordan Smith', getActivityInfo('albums', { title: 'Summer 1994' }), 'The Smiths'));
+  }
+
+  const record = payload.record;
+  const table = payload.table ?? '';
+  if (!record) return json({ error: 'no_record' }, 400);
+
+  const creatorId = getCreatorId(table, record);
+  if (!creatorId) return json({ skipped: true, reason: 'no_creator_id' });
+
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: creator } = await admin.from('Profiles').select('full_name').eq('id', creatorId).maybeSingle();
+  const creatorName = creator?.full_name || 'A family member';
+
+  let familyId: string | null = record.family_id || null;
+  if (!familyId) {
+    const { data: membership } = await admin.from('family_memberships').select('family_id').eq('user_id', creatorId).limit(1).maybeSingle();
+    familyId = membership?.family_id || null;
+  }
+  if (!familyId) return json({ skipped: true, reason: 'no_family_id' });
+
+  const { data: family } = await admin.from('families').select('name').eq('id', familyId).maybeSingle();
+  const familyName = family?.name || 'your family';
+
+  const { data: memberships } = await admin.from('family_memberships').select('user_id').eq('family_id', familyId).neq('user_id', creatorId);
+  if (!memberships || memberships.length === 0) return json({ skipped: true, reason: 'no_other_members' });
+
+  const { data: profiles } = await admin
+    .from('Profiles')
+    .select('email')
+    .in('id', memberships.map((m: { user_id: string }) => m.user_id));
+  const emails = (profiles || []).map((r: { email: string | null }) => r.email).filter(Boolean) as string[];
+  if (emails.length === 0) return json({ skipped: true, reason: 'no_recipient_emails' });
+
+  const activity = getActivityInfo(table, record);
+  let sent = 0;
+  let failed = 0;
+  for (const email of emails) {
+    const r = await send({
+      to: email,
+      letter: letter(creatorName, activity, familyName),
+      idempotencyKey: `activity-${table}-${record.id ?? crypto.randomUUID()}-${email}`,
+      tag: 'family-activity',
+    });
+    if (r.ok) sent++;
+    else {
+      failed++;
+      console.error(`family-activity: Resend refused (${r.status}) for ${email}: ${r.message}`);
+    }
+    await sleep(600);
+  }
+
+  console.log(`family-activity: sent ${sent}, failed ${failed} for table=${table}`);
+  return json({ sent, failed, table, familyId });
 });
-
-// ─────────────────────────────────────────────
-// Plain text version
-// ─────────────────────────────────────────────
-function generatePlainText(
-  creatorName: string,
-  activity: ActivityInfo,
-  familyName: string
-): string {
-  return `New activity in ${familyName}
-
-${creatorName} just ${activity.action}.
-
-Head to your family library to see what's new:
-https://ancestorii.com/dashboard/our-family
-
-Every family has a story worth keeping.
-
-— The Ancestorii Team
-ancestorii.com`;
-}
-
-// ─────────────────────────────────────────────
-// Branded HTML Email Template
-// ─────────────────────────────────────────────
-function generateActivityEmail(
-  creatorName: string,
-  activity: ActivityInfo,
-  familyName: string
-): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <meta name="color-scheme" content="light only" />
-  <meta name="supported-color-schemes" content="light only" />
-  <title>New activity in ${familyName}</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-
-          <!-- Letterhead -->
-          <tr>
-            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
-                A letter from
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
-                Ancestorii
-              </p>
-            </td>
-          </tr>
-
-          <!-- Gold seam -->
-          <tr>
-            <td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
-                ${activity.headline}
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                <strong style="color:#16120c;">${creatorName}</strong> just ${activity.action} in <strong style="color:#16120c;">${familyName}</strong>.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
-                Head over to your family library to see what's new — and add your own memories while you're there.
-              </p>
-
-              <!-- CTA Button -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
-                <tr>
-                  <td align="center" style="background-color:#16120c;">
-                    <a href="https://ancestorii.com/dashboard/our-family" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
-                      View Your Library
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">
-                Every family has a story worth keeping.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">
-                — The Ancestorii Team
-              </p>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
-                Ancestorii Ltd &middot; London
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
-                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-}

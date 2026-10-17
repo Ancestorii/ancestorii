@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail, p, esc, wrap, type Letter } from '@/lib/email';
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY!;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ancestorii.com';
 
 // Admin client for inserting invites (bypasses RLS)
@@ -150,24 +150,16 @@ export async function POST(req: NextRequest) {
     // 9. Send invite email via Resend
     const inviteUrl = `${SITE_URL}/invite/${invite.token}`;
 
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: 'Ancestorii <support@ancestorii.com>',
-        to: [email.toLowerCase()],
-        subject: `${inviterName} invited you to join ${familyName} on Ancestorii`,
-        html: generateInviteEmail(inviterName, familyName, inviteUrl),
-      }),
+    const emailRes = await sendEmail({
+      to: email.toLowerCase(),
+      letter: inviteLetter(inviterName, familyName, inviteUrl),
+      idempotencyKey: `invite-${invite.token}`,
+      tag: 'invite',
     });
 
     if (!emailRes.ok) {
-      const emailErr = await emailRes.json();
-      console.error('Resend error:', emailErr);
-      // Invite is created even if email fails — they can resend
+      console.error('Resend error:', emailRes.status, emailRes.message);
+      // The invite is created even if the email fails. They can resend.
     }
 
     return NextResponse.json({ success: true, token: invite.token });
@@ -181,101 +173,30 @@ export async function POST(req: NextRequest) {
 }
 
 // ─────────────────────────────────────────────
-// Branded Invite Email Template
+// The invitation letter (drawn in the shared shell, src/lib/email.ts)
 // ─────────────────────────────────────────────
-function generateInviteEmail(
-  inviterName: string,
-  familyName: string,
-  inviteUrl: string
-): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <meta name="color-scheme" content="light only" />
-  <meta name="supported-color-schemes" content="light only" />
-  <title>You're invited to Ancestorii</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-
-          <!-- Letterhead -->
-          <tr>
-            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">
-                A letter from
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">
-                Ancestorii
-              </p>
-            </td>
-          </tr>
-
-          <!-- Gold seam -->
-          <tr>
-            <td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">
-                You've been invited.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">
-                ${inviterName} has invited you to join <strong style="color:#16120c;">${familyName}</strong> on Ancestorii — a private place to preserve the stories, photos, and memories that make your family who they are.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 38px 0;">
-                Once you join, you'll be able to see and contribute to your family's shared library — photos, timelines, albums, and memory books that belong to all of you.
-              </p>
-
-              <!-- CTA Button -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
-                <tr>
-                  <td align="center" style="background-color:#16120c;">
-                    <a href="${inviteUrl}" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">
-                      Accept Invitation
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">
-                Every family has a story worth keeping.
-              </p>
-
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">
-                — The Ancestorii Team
-              </p>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">
-                Ancestorii Ltd &middot; London
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;">
-                <a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a>
-              </p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:10px 0 0 0; line-height:1.6;">
-                This invite expires in 7 days.
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+function inviteLetter(inviterName: string, familyName: string, inviteUrl: string): Letter {
+  const first = `${inviterName} has invited you to join ${familyName} on Ancestorii: a private space where your family keeps its stories, photos and voices together, between the people who were invited.`;
+  const second = 'Accept the invitation to see what is already there, add your own memories, and help build something that lasts.';
+  const third = 'This link is valid for 7 days. If you were not expecting it, you can ignore this email.';
+  return {
+    subject: `${inviterName} invited you to join ${familyName} on Ancestorii`,
+    preheader: `${inviterName} wants you in ${familyName}.`,
+    eyebrow: "YOU'RE INVITED",
+    heading: `Join ${familyName}.`,
+    bodyHtml: [
+      p(`<strong>${esc(inviterName)}</strong> has invited you to join <strong>${esc(familyName)}</strong> on Ancestorii: a private space where your family keeps its stories, photos and voices together, between the people who were invited.`),
+      p(esc(second)),
+      p(esc(third), true),
+    ].join(''),
+    bodyText: [wrap(first), '', wrap(second), '', wrap(third)].join('\n'),
+    button: { label: 'Accept the invitation', href: inviteUrl },
+    note: `If the button does not work, copy this link into your browser: ${inviteUrl}`,
+    facts: [
+      { label: 'INVITED BY', value: inviterName },
+      { label: 'FAMILY', value: familyName },
+      { label: 'LINK VALID FOR', value: '7 days' },
+    ],
+    reason: `You are receiving this because ${inviterName} entered your email address on Ancestorii.`,
+  };
 }

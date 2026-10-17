@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { ADMIN_USER_ID } from '@/lib/adminUser';
+import { sendEmail, p, esc, box, wrap } from '@/lib/email';
 
 function getAdminClient() {
   return createClient(
@@ -86,52 +87,32 @@ export async function POST(req: NextRequest) {
 
       if (authorEmail) {
         try {
-          await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          await sendEmail({
+            to: authorEmail,
+            letter: {
+              subject: `Your story is now live: ${story.title}`,
+              preheader: 'Reviewed and published on Our Stories.',
+              eyebrow: 'NOW LIVE',
+              heading: 'Your story is live.',
+              bodyHtml: [
+                p(`Hi ${esc(authorFirstName)}. Good news: your story <strong>&ldquo;${esc(story.title)}&rdquo;</strong> has been reviewed and is now live on Our Stories.`),
+                p('Other families can now read it, react to it and be moved by it. Thank you for sharing it with the community.'),
+              ].join(''),
+              bodyText: [
+                wrap(`Hi ${authorFirstName}. Good news: your story "${story.title}" has been reviewed and is now live on Our Stories.`),
+                '',
+                wrap('Other families can now read it, react to it and be moved by it. Thank you for sharing it with the community.'),
+              ].join('\n'),
+              button: { label: 'View your story', href: `https://www.ancestorii.com/stories/${story.slug}` },
+              note: 'Every memory shared is a memory kept.',
+              facts: [
+                { label: 'STORY', value: String(story.title ?? '') },
+                { label: 'STATUS', value: 'Live on Our Stories' },
+              ],
+              reason: 'You are receiving this because you published a story to Our Stories on Ancestorii.',
             },
-            body: JSON.stringify({
-              from: 'Ancestorii <support@ancestorii.com>',
-              to: [authorEmail],
-              subject: `Your story is now live — ${story.title}`,
-              html: `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
-<body style="margin:0;padding:0;background-color:#f5f1e6;font-family:Georgia,'Times New Roman',serif;color:#3d3830;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr><td align="center" style="padding:48px 16px 56px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background-color:#fdfaf5;">
-        <tr><td style="background-color:#16120c;padding:36px 40px 32px 40px;text-align:center;">
-          <p style="font-size:10px;letter-spacing:5px;color:#7a6a4f;text-transform:uppercase;margin:0 0 14px 0;">A letter from</p>
-          <p style="font-size:24px;letter-spacing:9px;color:#c8a557;text-transform:uppercase;margin:0;">Ancestorii</p>
-        </td></tr>
-        <tr><td style="background-color:#c8a557;height:2px;font-size:0;line-height:0;">&nbsp;</td></tr>
-        <tr><td style="padding:48px 40px 36px 40px;">
-          <p style="font-size:24px;font-style:italic;color:#16120c;margin:0 0 32px 0;line-height:1.4;">Hi ${authorFirstName},</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Great news — your story <strong>"${story.title}"</strong> has been reviewed and is now live on Our Stories.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Other families can now read, react to, and be inspired by your memory. Thank you for sharing it with the community.</p>
-          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 36px auto;">
-            <tr>
-              <td align="center" style="background-color:#16120c;">
-                <a href="https://www.ancestorii.com/stories/${story.slug}" target="_blank" style="display:inline-block;padding:18px 42px;font-family:Georgia,'Times New Roman',serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#c8a557;text-decoration:none;">View Your Story</a>
-              </td>
-            </tr>
-          </table>
-          <p style="font-size:15px;color:#3d3830;line-height:1.75;margin:0;font-style:italic;">Every memory shared is a memory preserved.</p>
-          <p style="font-size:16px;color:#3d3830;margin:32px 0 4px 0;">— The Ancestorii Team</p>
-        </td></tr>
-        <tr><td style="padding:28px 40px 36px 40px;text-align:center;border-top:1px solid #ebe4d5;">
-          <p style="font-size:11px;color:#a39c91;margin:0 0 6px 0;letter-spacing:2px;text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
-          <p style="font-size:12px;color:#a39c91;margin:0;"><a href="https://ancestorii.com" style="color:#ab8232;text-decoration:none;">ancestorii.com</a></p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`,
-            }),
+            idempotencyKey: `moderation-approved-${story.id}`,
+            tag: 'moderation',
           });
         } catch (e) {
           console.error('Failed to send approval email:', e);
@@ -195,56 +176,48 @@ export async function POST(req: NextRequest) {
       // Build email based on strike number
       let strikeMessage = '';
       if (newStrikeNumber === 1) {
-        strikeMessage = `<p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">This is your first strike. Everyone makes mistakes — no further action has been taken. Please review our community standards before publishing again.</p>`;
+        strikeMessage = 'This is your first strike. Everyone makes mistakes, and no further action has been taken. Please read our community standards before publishing again.';
       } else if (newStrikeNumber === 2) {
-        strikeMessage = `<p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">This is your second strike. As a result, you have been suspended from publishing to Our Stories for seven days. You can continue to use your private library as normal.</p>`;
+        strikeMessage = 'This is your second strike. As a result, you have been suspended from publishing to Our Stories for seven days. You can continue to use your private library as normal.';
       } else {
-        strikeMessage = `<p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">This is your third strike. You have been permanently banned from publishing, commenting, or interacting with Our Stories. Your private library is not affected — My Family is yours and we do not go near it.</p>`;
+        strikeMessage = 'This is your third strike. You have been permanently banned from publishing, commenting or interacting with Our Stories. Your private library is not affected. My Family is yours and we do not go near it.';
       }
 
       if (authorEmail) {
         try {
-          await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          await sendEmail({
+            to: authorEmail,
+            letter: {
+              subject: `Your story has been removed: ${story.title}`,
+              preheader: 'It did not meet the community standards for Our Stories.',
+              eyebrow: 'OUR STORIES',
+              heading: 'Your story has been removed.',
+              bodyHtml: [
+                p(`Hi ${esc(authorFirstName)}. Your story <strong>&ldquo;${esc(story.title)}&rdquo;</strong> has been reviewed and, unfortunately, does not meet our community standards for Our Stories.`),
+                box('REASON', esc(story.moderation_reason || 'Does not meet community standards.')),
+                p(esc(strikeMessage)),
+                p('If you believe this was a mistake, reply to this email and we will take another look.'),
+                p('Our Stories is a space for genuine family memories. We appreciate your understanding.', true),
+              ].join(''),
+              bodyText: [
+                wrap(`Hi ${authorFirstName}. Your story "${story.title}" has been reviewed and, unfortunately, does not meet our community standards for Our Stories.`),
+                '',
+                `Reason: ${story.moderation_reason || 'Does not meet community standards.'}`,
+                '',
+                wrap(strikeMessage),
+                '',
+                wrap('If you believe this was a mistake, reply to this email and we will take another look.'),
+                '',
+                wrap('Our Stories is a space for genuine family memories. We appreciate your understanding.'),
+              ].join('\n'),
+              facts: [
+                { label: 'STORY', value: String(story.title ?? '') },
+                { label: 'STRIKE', value: `${newStrikeNumber} of 3` },
+              ],
+              reason: 'You are receiving this because you published a story to Our Stories on Ancestorii.',
             },
-            body: JSON.stringify({
-              from: 'Ancestorii <support@ancestorii.com>',
-              to: [authorEmail],
-              subject: `Your story has been removed — ${story.title}`,
-              html: `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
-<body style="margin:0;padding:0;background-color:#f5f1e6;font-family:Georgia,'Times New Roman',serif;color:#3d3830;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr><td align="center" style="padding:48px 16px 56px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background-color:#fdfaf5;">
-        <tr><td style="background-color:#16120c;padding:36px 40px 32px 40px;text-align:center;">
-          <p style="font-size:10px;letter-spacing:5px;color:#7a6a4f;text-transform:uppercase;margin:0 0 14px 0;">A letter from</p>
-          <p style="font-size:24px;letter-spacing:9px;color:#c8a557;text-transform:uppercase;margin:0;">Ancestorii</p>
-        </td></tr>
-        <tr><td style="background-color:#c8a557;height:2px;font-size:0;line-height:0;">&nbsp;</td></tr>
-        <tr><td style="padding:48px 40px 36px 40px;">
-          <p style="font-size:24px;font-style:italic;color:#16120c;margin:0 0 32px 0;line-height:1.4;">Hi ${authorFirstName},</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Your story <strong>"${story.title}"</strong> has been reviewed and unfortunately does not meet our community standards for Our Stories.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;"><strong>Reason:</strong> ${story.moderation_reason || 'Does not meet community standards.'}</p>
-          ${strikeMessage}
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">If you believe this was a mistake, you can reply to this email and we will take another look.</p>
-          <p style="font-size:15px;color:#3d3830;line-height:1.75;margin:0;font-style:italic;">Our Stories is a space for genuine family memories. We appreciate your understanding.</p>
-          <p style="font-size:16px;color:#3d3830;margin:32px 0 4px 0;">— The Ancestorii Team</p>
-        </td></tr>
-        <tr><td style="padding:28px 40px 36px 40px;text-align:center;border-top:1px solid #ebe4d5;">
-          <p style="font-size:11px;color:#a39c91;margin:0 0 6px 0;letter-spacing:2px;text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
-          <p style="font-size:12px;color:#a39c91;margin:0;"><a href="https://ancestorii.com" style="color:#ab8232;text-decoration:none;">ancestorii.com</a></p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`,
-            }),
+            idempotencyKey: `moderation-rejected-${story.id}-${newStrikeNumber}`,
+            tag: 'moderation',
           });
         } catch (e) {
           console.error('Failed to send rejection email:', e);

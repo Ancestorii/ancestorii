@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail, internalNote, p, esc, box, wrap } from '@/lib/email';
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -194,27 +195,20 @@ export async function POST(req: NextRequest) {
 
     // Send admin notification email
     try {
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: 'Ancestorii <support@ancestorii.com>',
-          to: [process.env.ADMIN_EMAIL || 'support@ancestorii.com'],
-          subject: `[Moderation] Story flagged: ${story.title}`,
-          html: `
-            <h2>A story has been flagged for review</h2>
-            <p><strong>Title:</strong> ${story.title}</p>
-            <p><strong>Author:</strong> ${story.author_name}</p>
-            <p><strong>Category:</strong> ${result.category}</p>
-            <p><strong>Reason:</strong> ${result.reason}</p>
-            <hr />
-            <p><strong>Story body:</strong></p>
-            <p>${story.body}</p>
-          `,
-        }),
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL || 'support@ancestorii.com',
+        letter: internalNote(
+          'Story flagged for review',
+          [
+            ['Title', String(story.title ?? '')],
+            ['Author', String(story.author_name ?? '')],
+            ['Category', String(result.category ?? '')],
+            ['Reason', String(result.reason ?? '')],
+          ],
+          box('STORY BODY', esc(String(story.body ?? '')).replace(/\n/g, '<br />')),
+        ),
+        idempotencyKey: `moderation-flagged-${story_id}`,
+        tag: 'moderation',
       });
     } catch (emailErr) {
       console.error('Failed to send moderation email:', emailErr);
@@ -228,47 +222,36 @@ export async function POST(req: NextRequest) {
       if (authorEmail) {
         const authorFirstName = story.author_name?.split(' ')[0] || 'there';
 
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        await sendEmail({
+          to: authorEmail,
+          letter: {
+            subject: `Your story is being reviewed: ${story.title}`,
+            preheader: 'A quick check before it goes live. Your private library is not affected.',
+            eyebrow: 'UNDER REVIEW',
+            heading: 'Your story is being reviewed.',
+            bodyHtml: [
+              p(`Hi ${esc(authorFirstName)}. Thank you for sharing your story <strong>&ldquo;${esc(story.title)}&rdquo;</strong> on Our Stories.`),
+              p('Every story published to Our Stories is checked to make sure it meets our community standards, and yours has been set aside for a closer look by a person.'),
+              p('Please allow up to 24 hours. You will get an email as soon as a decision has been made.'),
+              p('Your private library is not affected in any way. This only applies to the public feed.', true),
+            ].join(''),
+            bodyText: [
+              wrap(`Hi ${authorFirstName}. Thank you for sharing your story "${story.title}" on Our Stories.`),
+              '',
+              wrap('Every story published to Our Stories is checked to make sure it meets our community standards, and yours has been set aside for a closer look by a person.'),
+              '',
+              wrap('Please allow up to 24 hours. You will get an email as soon as a decision has been made.'),
+              '',
+              wrap('Your private library is not affected in any way. This only applies to the public feed.'),
+            ].join('\n'),
+            facts: [
+              { label: 'STORY', value: String(story.title ?? '') },
+              { label: 'STATUS', value: 'Under review' },
+            ],
+            reason: 'You are receiving this because you published a story to Our Stories on Ancestorii.',
           },
-          body: JSON.stringify({
-            from: 'Ancestorii <support@ancestorii.com>',
-            to: [authorEmail],
-            subject: `Your story is being reviewed — ${story.title}`,
-            html: `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
-<body style="margin:0;padding:0;background-color:#f5f1e6;font-family:Georgia,'Times New Roman',serif;color:#3d3830;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr><td align="center" style="padding:48px 16px 56px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background-color:#fdfaf5;">
-        <tr><td style="background-color:#16120c;padding:36px 40px 32px 40px;text-align:center;">
-          <p style="font-size:10px;letter-spacing:5px;color:#7a6a4f;text-transform:uppercase;margin:0 0 14px 0;">A letter from</p>
-          <p style="font-size:24px;letter-spacing:9px;color:#c8a557;text-transform:uppercase;margin:0;">Ancestorii</p>
-        </td></tr>
-        <tr><td style="background-color:#c8a557;height:2px;font-size:0;line-height:0;">&nbsp;</td></tr>
-        <tr><td style="padding:48px 40px 36px 40px;">
-          <p style="font-size:24px;font-style:italic;color:#16120c;margin:0 0 32px 0;line-height:1.4;">Hi ${authorFirstName},</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Thank you for sharing your story <strong>"${story.title}"</strong> on Our Stories.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Every story published to Our Stories is checked to make sure it meets our community standards, and yours has been flagged for a manual review.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Please allow up to 24 hours for our team to review it. You will receive an email once a decision has been made.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Your private library is not affected in any way. This only applies to the public feed.</p>
-          <p style="font-size:15px;color:#3d3830;line-height:1.75;margin:0;font-style:italic;">Thank you for your patience.</p>
-          <p style="font-size:16px;color:#3d3830;margin:32px 0 4px 0;">— The Ancestorii Team</p>
-        </td></tr>
-        <tr><td style="padding:28px 40px 36px 40px;text-align:center;border-top:1px solid #ebe4d5;">
-          <p style="font-size:11px;color:#a39c91;margin:0 0 6px 0;letter-spacing:2px;text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
-          <p style="font-size:12px;color:#a39c91;margin:0;"><a href="https://ancestorii.com" style="color:#ab8232;text-decoration:none;">ancestorii.com</a></p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`,
-          }),
+          idempotencyKey: `moderation-review-${story_id}`,
+          tag: 'moderation',
         });
       }
     } catch (authorEmailErr) {

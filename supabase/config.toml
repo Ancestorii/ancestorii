@@ -388,3 +388,32 @@ verify_jwt = false
 # with the x-voice-convert-secret shared secret, not a JWT.
 [functions.convert-voice-on-upload]
 verify_jwt = false
+
+# ── Email and push functions called from Postgres ──
+# Database triggers (supabase_functions.http_request) and pg_cron jobs (net.http_post)
+# have no user JWT, and the gateway rejects the legacy service-role JWT they used to
+# carry. Each of these authenticates with the shared x-webhook-secret header instead
+# (see supabase/functions/_shared/email.ts).
+[functions.welcome-email]
+verify_jwt = false
+
+[functions.member-joined]
+verify_jwt = false
+
+[functions.prompt-answered-email]
+verify_jwt = false
+
+[functions.invite-sent-confirmation]
+verify_jwt = false
+
+[functions.family-activity]
+verify_jwt = false
+
+[functions.onboarding-drip]
+verify_jwt = false
+
+[functions.delivery-check]
+verify_jwt = false
+
+[functions.send-push]
+verify_jwt = false

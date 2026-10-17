@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail, internalNote } from '@/lib/email';
 
 function getAdminClient() {
   return createClient(
@@ -74,23 +75,14 @@ export async function POST(req: NextRequest) {
 
     // Email admin
     try {
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: 'Ancestorii <support@ancestorii.com>',
-          to: [process.env.ADMIN_EMAIL || 'support@ancestorii.com'],
-          subject: `[Report] Family memory reported: ${memory.title}`,
-          html: `
-            <h2>A family memory has been reported</h2>
-            <p><strong>Memory:</strong> ${memory.title}</p>
-            <p><strong>Reason:</strong> ${reason || 'No reason provided'}</p>
-            <p><strong>Family ID:</strong> ${memory.family_id}</p>
-          `,
-        }),
+      await sendEmail({
+        to: process.env.ADMIN_EMAIL || 'support@ancestorii.com',
+        letter: internalNote('A family memory has been reported', [
+          ['Memory', String(memory.title ?? '')],
+          ['Reason', reason || 'No reason provided'],
+          ['Family ID', String(memory.family_id ?? '')],
+        ]),
+        tag: 'report',
       });
     } catch (emailErr) {
       console.error('Failed to send report email:', emailErr);

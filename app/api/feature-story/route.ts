@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { ADMIN_USER_ID } from '@/lib/adminUser';
+import { sendEmail, p, esc, wrap } from '@/lib/email';
 
 function getAdminClient() {
   return createClient(
@@ -87,51 +88,35 @@ export async function POST(req: NextRequest) {
         const authorFirstName = story.author_name?.split(' ')[0] || 'there';
         const storyUrl = `https://www.ancestorii.com/stories/${story.slug}`;
 
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        await sendEmail({
+          to: authorEmail,
+          letter: {
+            subject: `Your story has been chosen as ${featureLabel}`,
+            preheader: `"${story.title}" is featured at the top of Our Stories.`,
+            eyebrow: 'FEATURED',
+            heading: `Chosen as ${featureLabel}.`,
+            bodyHtml: [
+              p(`Hi ${esc(authorFirstName)}. We have some wonderful news.`),
+              p(`Your story <strong>&ldquo;${esc(story.title)}&rdquo;</strong> has been chosen as our <strong>${esc(featureLabel)}</strong> on Our Stories.`),
+              p('It now sits at the top of the feed for the whole community to discover. Thank you for sharing something so meaningful.'),
+            ].join(''),
+            bodyText: [
+              `Hi ${authorFirstName}. We have some wonderful news.`,
+              '',
+              wrap(`Your story "${story.title}" has been chosen as our ${featureLabel} on Our Stories.`),
+              '',
+              wrap('It now sits at the top of the feed for the whole community to discover. Thank you for sharing something so meaningful.'),
+            ].join('\n'),
+            button: { label: 'View your story', href: storyUrl },
+            note: 'Keep writing. Your stories matter.',
+            facts: [
+              { label: 'STORY', value: String(story.title ?? '') },
+              { label: 'FEATURED AS', value: featureLabel },
+            ],
+            reason: 'You are receiving this because you published a story to Our Stories on Ancestorii.',
           },
-          body: JSON.stringify({
-            from: 'Ancestorii <support@ancestorii.com>',
-            to: [authorEmail],
-            subject: `Your story has been chosen as ${featureLabel} ✦`,
-            html: `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
-<body style="margin:0;padding:0;background-color:#f5f1e6;font-family:Georgia,'Times New Roman',serif;color:#3d3830;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr><td align="center" style="padding:48px 16px 56px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background-color:#fdfaf5;">
-        <tr><td style="background-color:#16120c;padding:36px 40px 32px 40px;text-align:center;">
-          <p style="font-size:10px;letter-spacing:5px;color:#7a6a4f;text-transform:uppercase;margin:0 0 14px 0;">A letter from</p>
-          <p style="font-size:24px;letter-spacing:9px;color:#c8a557;text-transform:uppercase;margin:0;">Ancestorii</p>
-        </td></tr>
-        <tr><td style="background-color:#c8a557;height:2px;font-size:0;line-height:0;">&nbsp;</td></tr>
-        <tr><td style="padding:48px 40px 36px 40px;">
-          <p style="font-size:24px;font-style:italic;color:#16120c;margin:0 0 32px 0;line-height:1.4;">Hi ${authorFirstName},</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">We have some wonderful news.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Your story <strong>&ldquo;${story.title}&rdquo;</strong> has been chosen as our <strong>${featureLabel}</strong> on Our Stories.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Your memory is now featured at the top of the feed for the entire community to discover. Thank you for sharing something so meaningful.</p>
-          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:32px 0;">
-            <tr><td style="background-color:#16120c;padding:14px 28px;">
-              <a href="${storyUrl}" style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#c8a557;text-decoration:none;letter-spacing:1px;text-transform:uppercase;">View Your Story</a>
-            </td></tr>
-          </table>
-          <p style="font-size:15px;color:#3d3830;line-height:1.75;margin:0;font-style:italic;">Keep writing. Your stories matter.</p>
-          <p style="font-size:16px;color:#3d3830;margin:32px 0 4px 0;">&mdash; The Ancestorii Team</p>
-        </td></tr>
-        <tr><td style="padding:28px 40px 36px 40px;text-align:center;border-top:1px solid #ebe4d5;">
-          <p style="font-size:11px;color:#a39c91;margin:0 0 6px 0;letter-spacing:2px;text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
-          <p style="font-size:12px;color:#a39c91;margin:0;"><a href="https://ancestorii.com" style="color:#ab8232;text-decoration:none;">ancestorii.com</a></p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`,
-          }),
+          idempotencyKey: `featured-${story.id}-${feature_type}`,
+          tag: 'featured',
         });
       }
     } catch (emailErr) {

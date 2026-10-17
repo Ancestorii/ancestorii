@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2?target=deno";
+import { esc, firstName, FROM_DANTE, p, send, SITE_URL, wrap, type Letter } from "../_shared/email.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -7,29 +8,12 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// ── Email helper ──
-async function sendEmail(to: string, subject: string, html: string) {
-  const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-  if (!RESEND_API_KEY || !to) return;
-
-  try {
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Ancestorii <orders@ancestorii.com>",
-        to: [to],
-        subject,
-        html,
-      }),
-    });
-    console.log(`Email sent to ${to}: ${subject}`);
-  } catch (err) {
-    console.error("Email send failed:", err);
-  }
+// ── Email helper (every letter is drawn in the shared shell, _shared/letter.ts) ──
+async function sendEmail(to: string, letter: Letter, idempotencyKey: string) {
+  if (!to) return;
+  const result = await send({ to, from: FROM_DANTE, letter, idempotencyKey, tag: 'shipped' });
+  if (!result.ok) console.error(`Resend refused (${result.status}): ${result.message}`);
+  else console.log(`Email sent to ${to}: ${letter.subject}`);
 }
 
 serve(async (req) => {
@@ -206,7 +190,7 @@ serve(async (req) => {
       // Fetch order to get customer email, book title, and check if already emailed
       const { data: order } = await supabase
         .from("orders")
-        .select("shipping_email, shipping_name, book_id, shipped_at")
+        .select("shipping_email, shipping_name, book_id, shipped_at, shipping_method")
         .eq("id", internalOrderId)
         .single();
 
@@ -221,75 +205,10 @@ serve(async (req) => {
       const bookTitle = book?.title || "your Memory Book";
 
       if (customerEmail && orderStatus === "shipped" && !wasAlreadyShipped) {
-        const trackingButton = trackingUrl
-          ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 28px auto;">
-              <tr>
-                <td align="center" style="background-color:#16120c;">
-                  <a href="${trackingUrl}" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">Track Your Book</a>
-                </td>
-              </tr>
-            </table>`
-          : "";
-
         await sendEmail(
           customerEmail,
-          `Your Memory Book is in the post`,
-          `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <meta name="color-scheme" content="light only" />
-  <meta name="supported-color-schemes" content="light only" />
-  <title>Your Memory Book is in the post</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-          <tr>
-            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">A letter from</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">Ancestorii</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td>
-          </tr>
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">Hey ${customerName},</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">It's no longer just pages on a screen — <em style="color:#16120c;">${bookTitle}</em> is now a real book. Printed, bound, and packed up.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 36px 0;">It's on its way to you now.</p>
-              ${trackingButton}
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0; font-style:italic;">When it arrives, find somewhere quiet to open it. Some moments deserve that.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">— Dante</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; color:#9a9388; margin:0; font-style:italic;">Founder, Ancestorii</p>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:36px;">
-                <tr>
-                  <td style="border-top:1px solid #ebe4d5; padding-top:22px;">
-                    <p style="font-family:Georgia, 'Times New Roman', serif; font-size:14px; color:#7a7368; line-height:1.7; margin:0; font-style:italic;">
-                      <span style="font-style:normal; color:#ab8232; letter-spacing:2px; font-size:12px;">P.S.</span>&nbsp;&nbsp;The first time you hold one of these is something. I'd love to hear about it — just reply to this email.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;"><a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a></p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`
+          shippedLetter(customerName, bookTitle, "Memory Book", trackingUrl, order?.shipping_method),
+          `shipped-book-${internalOrderId}`
         );
       }
     }
@@ -377,8 +296,8 @@ async function handleCanvasOrAcrylicOrder(
 
       await sendEmail(
         canvasOrder.shipping_email,
-        `Your Memory Canvas is in the post`,
-        shippedEmailHtml(customerName, canvasTitle, "Memory Canvas", trackingUrl, "Track Your Canvas", canvasOrder.shipping_method)
+        shippedLetter(customerName, canvasTitle, "Memory Canvas", trackingUrl, canvasOrder.shipping_method),
+        `shipped-canvas-${canvasOrder.id}`
       );
     }
 
@@ -444,8 +363,8 @@ async function handleCanvasOrAcrylicOrder(
 
       await sendEmail(
         acrylicOrder.shipping_email,
-        `Your Acrylic Print is in the post`,
-        shippedEmailHtml(customerName, acrylicTitle, "Acrylic Print", trackingUrl, "Track Your Print", acrylicOrder.shipping_method)
+        shippedLetter(customerName, acrylicTitle, "Acrylic Print", trackingUrl, acrylicOrder.shipping_method),
+        `shipped-acrylic-${acrylicOrder.id}`
       );
     }
 
@@ -457,83 +376,46 @@ async function handleCanvasOrAcrylicOrder(
 }
 
 // ══════════════════════════════════════════════════════════
-// Shared shipped email for canvas & acrylic
+// The shipped letter, for books, canvases and acrylic prints
 // ══════════════════════════════════════════════════════════
-function shippedEmailHtml(
+function shippedLetter(
   customerName: string,
   productTitle: string,
-  productLabel: string,
+  productLabel: "Memory Book" | "Memory Canvas" | "Acrylic Print",
   trackingUrl: string | null,
-  trackingCta: string,
   shippingMethod?: string
-): string {
+): Letter {
   const isExpress = shippingMethod === 'Express';
   const contactDays = isExpress ? '7 working days' : '14 working days';
-  const trackingButton = trackingUrl
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 28px auto;">
-        <tr>
-          <td align="center" style="background-color:#16120c;">
-            <a href="${trackingUrl}" target="_blank" style="display:inline-block; padding:18px 42px; font-family:Georgia, 'Times New Roman', serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#c8a557; text-decoration:none;">${trackingCta}</a>
-          </td>
-        </tr>
-      </table>`
-    : "";
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="x-apple-disable-message-reformatting" />
-  <meta name="color-scheme" content="light only" />
-  <meta name="supported-color-schemes" content="light only" />
-  <title>Your ${productLabel} is in the post</title>
-</head>
-<body style="margin:0; padding:0; background-color:#f5f1e6; font-family:Georgia, 'Times New Roman', serif; color:#3d3830; -webkit-font-smoothing:antialiased;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f1e6;">
-    <tr>
-      <td align="center" style="padding:48px 16px 56px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px; background-color:#fdfaf5;">
-          <tr>
-            <td style="background-color:#16120c; padding:36px 40px 32px 40px; text-align:center;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:10px; letter-spacing:5px; color:#7a6a4f; text-transform:uppercase; margin:0 0 14px 0;">A letter from</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; letter-spacing:9px; color:#c8a557; text-transform:uppercase; margin:0;">Ancestorii</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="background-color:#c8a557; height:2px; font-size:0; line-height:0;">&nbsp;</td>
-          </tr>
-          <tr>
-            <td style="padding:48px 40px 36px 40px;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; font-style:italic; color:#16120c; margin:0 0 32px 0; line-height:1.4;">Hey ${customerName},</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 22px 0;">It's no longer just pixels on a screen — <em style="color:#16120c;">${productTitle}</em> is now a real ${productLabel.toLowerCase()}. Printed, packed, and on its way.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; line-height:1.8; margin:0 0 36px 0;">It's heading to you now.</p>
-              ${trackingButton}
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:15px; color:#3d3830; line-height:1.75; margin:0 0 22px 0; font-style:italic;">When it arrives, find the right wall for it. Some pieces just belong somewhere.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:14px; color:#7a7368; line-height:1.75; margin:0;">If your order hasn't arrived within ${contactDays}, please contact us at <a href="mailto:support@ancestorii.com" style="color:#ab8232; text-decoration:none;">support@ancestorii.com</a>.</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:16px; color:#3d3830; margin:32px 0 4px 0;">— Dante</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:13px; color:#9a9388; margin:0; font-style:italic;">Founder, Ancestorii</p>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:36px;">
-                <tr>
-                  <td style="border-top:1px solid #ebe4d5; padding-top:22px;">
-                    <p style="font-family:Georgia, 'Times New Roman', serif; font-size:14px; color:#7a7368; line-height:1.7; margin:0; font-style:italic;">
-                      <span style="font-style:normal; color:#ab8232; letter-spacing:2px; font-size:12px;">P.S.</span>&nbsp;&nbsp;The first time you see it on your wall is something. I'd love to hear about it — just reply to this email.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:28px 40px 36px 40px; text-align:center; border-top:1px solid #ebe4d5;">
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:11px; color:#a39c91; margin:0 0 6px 0; letter-spacing:2px; line-height:1.6; text-transform:uppercase;">Ancestorii Ltd &middot; London</p>
-              <p style="font-family:Georgia, 'Times New Roman', serif; font-size:12px; color:#a39c91; margin:0; line-height:1.6;"><a href="https://ancestorii.com" style="color:#ab8232; text-decoration:none;">ancestorii.com</a></p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  const isBook = productLabel === 'Memory Book';
+  const name = firstName(customerName === 'there' ? null : customerName);
+  const greeting = name ? `${name},` : 'Hello,';
+  const first = isBook
+    ? `it is no longer just pages on a screen. "${productTitle}" is now a real book. Printed, bound, packed up, and on its way to you.`
+    : `it is no longer just pixels on a screen. "${productTitle}" is now a real ${productLabel.toLowerCase()}. Printed, packed, and on its way to you.`;
+  const second = isBook
+    ? 'When it arrives, find somewhere quiet to open it. Some moments deserve that.'
+    : 'When it arrives, find the right wall for it. Some pieces just belong somewhere.';
+  const third = `If it has not arrived within ${contactDays}, reply to this email and we will chase it for you.`;
+  const ps = isBook
+    ? 'The first time you hold one of these is something. I would love to hear about it. Just reply to this email.'
+    : 'The first time you see it on your wall is something. I would love to hear about it. Just reply to this email.';
+  return {
+    subject: `Your ${productLabel} is in the post`,
+    preheader: `"${productTitle}" has shipped.`,
+    eyebrow: 'IN THE POST',
+    heading: `Your ${productLabel} is on its way.`,
+    bodyHtml: [p(`${esc(greeting)} ${esc(first)}`), p(esc(second)), p(esc(third), true)].join(''),
+    bodyText: [wrap(`${greeting} ${first}`), '', wrap(second), '', wrap(third)].join('\n'),
+    button: trackingUrl
+      ? { label: `Track your ${isBook ? 'book' : 'print'}`, href: trackingUrl }
+      : { label: 'See your order', href: `${SITE_URL}/dashboard/orders` },
+    note: ps,
+    signature: { name: 'Dante', title: 'Founder, Ancestorii' },
+    facts: [
+      { label: 'YOUR ORDER', value: productTitle },
+      { label: 'DELIVERY', value: shippingMethod || 'Standard' },
+    ],
+    reason: `You are receiving this because you ordered a ${productLabel} from Ancestorii.`,
+  };
 }
