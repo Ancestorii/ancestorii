@@ -443,40 +443,17 @@
   gap: 20px;
 }
 
-.swipeHint {
-  display: none;
+/* Three reviews in two columns: the last one spans the row instead of leaving a gap. */
+.reviews > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
-/* Phones: one swipeable row of reviews, as before, with the next card peeking in. */
+/* Phones: the reviews stack, one under another (no sideways row). */
 @media (max-width: 599px) {
   .reviews {
-    display: flex;
-    gap: 14px;
-    margin: 32px -24px -26px;
-    padding: 4px 24px 34px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: 24px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .reviews::-webkit-scrollbar {
-    display: none;
-  }
-
-  .reviews > * {
-    flex: 0 0 min(84%, 380px);
-    scroll-snap-align: start;
-  }
-
-  .swipeHint {
-    display: block;
-    margin: 18px 0 0;
-    text-align: center;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 32px;
   }
 }
 

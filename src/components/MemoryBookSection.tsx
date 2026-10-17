@@ -58,7 +58,6 @@ const testimonials = [
   { name: 'Alison', location: 'Nevada, United States', quote: 'I walked past my dad’s room and caught him looking through his memory book again. That’s the third time this week. Ancestorii helped me turn years of photos into something he genuinely treasures.', image: '/Testimonial2.png' },
   { name: 'Nicole', location: 'Nampa, United States', quote: 'In my case, I have external hard drives full of photos I never get to see, but Ancestorii finally gave those memories a place where they can be easily enjoyed and shared.', image: '/testimonial1.png' },
   { name: 'Andrea', location: 'Dudley, United Kingdom', quote: 'I recently lost my dad, so this book became incredibly special. It captured the essence of him and the life he lived. Our family will treasure it for years to come.', image: '/testimonial4.png' },
-  { name: 'Erin', location: 'United Kingdom', quote: 'Ancestorii feels less like cloud storage and more like a living family archive. Beautifully designed and genuinely meaningful.' },
 ] as const;
 
 // How each family appears: the frame colour, caption and crop of their photo on the
@@ -69,11 +68,9 @@ const family: Record<string, { place: string; color: string; position: string; a
   Alison: { place: 'Nevada, US', color: 'var(--c1)', position: '50% 50%', avatar: '/landing/review-alison.jpg' },
   Nicole: { place: 'Nampa, US', color: 'var(--c3)', position: '50% 62%', avatar: '/landing/review-nicole.jpg' },
   Andrea: { place: 'Dudley, UK', color: 'var(--c0)', position: '58% 50%', avatar: '/landing/review-andrea.jpg' },
-  Erin: { place: 'UK', color: 'var(--c2)', position: '50% 35%', avatar: '/landing/review-erin.jpg' },
 };
 
-// Left to right on the hero wall, Alison's book in the middle. Erin has a review but no
-// photo here: hers shows the old dashboard on her laptop.
+// Left to right on the hero wall, Alison's book in the middle.
 const wall = [testimonials[1], testimonials[0], testimonials[2]];
 
 function Star() {
@@ -302,10 +299,6 @@ export default function MemoryBooksContent() {
               </figure>
             ))}
           </div>
-
-          <p className={styles.swipeHint}>
-            Swipe for more <span className={landing.arrowGlyph}>→</span>
-          </p>
         </div>
       </section>
 

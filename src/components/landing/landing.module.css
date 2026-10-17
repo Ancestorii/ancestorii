@@ -1806,37 +1806,7 @@
   background: #fff;
 }
 
-.booksFrame .storyChip {
-  left: 22px;
-  top: 22px;
-}
 
-.booksQuote {
-  margin: 24px 4px 0;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 14px;
-  font-size: 17px;
-  line-height: 1.55;
-  font-weight: 500;
-  text-wrap: pretty;
-}
-
-.booksQuoteMark {
-  grid-row: span 2;
-  height: 44px;
-  font-size: 72px;
-  line-height: 0.8;
-  font-weight: 800;
-  color: var(--c3);
-}
-
-.booksQuoteBy {
-  grid-column: 2;
-  margin-top: 8px;
-  font-size: 14px;
-  font-weight: 800;
-}
 
 @media (max-width: 899px) {
   .booksWrap {
@@ -1872,19 +1842,7 @@
     border-radius: 20px;
   }
 
-  .booksFrame .storyChip {
-    left: 15px;
-    top: 15px;
-  }
 
-  .booksQuote {
-    font-size: 16px;
-  }
-
-  .booksQuoteMark {
-    height: 36px;
-    font-size: 60px;
-  }
 
   .factList li {
     padding: 13px 0;
@@ -1923,7 +1881,7 @@
 
 /* ── Reviews ──────────────────────────────────────────────── */
 
-/* Photo, photo, quote: the hero ring's rhythm. */
+/* Three framed photos, each family with the book they made. */
 .voices {
   margin-top: clamp(40px, 4.5vw, 64px);
   display: grid;
@@ -1952,6 +1910,11 @@
   background: #fff;
 }
 
+/* Each review sets its crop: --pos, and --pos-phone for the shorter photo on phones. */
+.voicePhoto .coverImg {
+  object-position: var(--pos);
+}
+
 .voiceText {
   margin: 22px 0 0;
   font-size: 18px;
@@ -1971,108 +1934,49 @@
   font-weight: 800;
 }
 
-/* Erin has no photo: a quote card like the ones in the hero ring, as tall as its neighbours. */
-.voiceQuote {
-  align-self: stretch;
-}
-
-.voiceCard {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 30px 30px 28px;
-  border-radius: 28px;
-  background: var(--c2);
-  color: var(--ink);
-}
-
-.voiceMark {
-  height: 52px;
-  font-size: 100px;
-  line-height: 0.72;
-  font-weight: 800;
-}
-
-.voiceCardText {
-  margin: 0;
-  font-size: clamp(22px, 2.2vw, 28px);
-  line-height: 1.16;
-  letter-spacing: -0.03em;
-  font-weight: 800;
-  text-wrap: balance;
-}
-
-.voiceCardBy {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.voiceCardBy strong {
-  display: block;
-  font-weight: 800;
-}
-
-.voiceCardPlace {
-  display: block;
-  font-size: 14px;
-}
-
-.voiceAvatar {
-  position: relative;
-  width: 44px;
-  height: 44px;
-  flex: none;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 0 0 3px var(--ink);
-}
-
-/* Tablets and phones: one swipeable row, the next review peeking in. */
-@media (max-width: 899px) {
+/* Tablets: still three in a row, closer together. The photos are narrow here, so the chip
+   sits at the bottom of the photo, clear of the faces. */
+@media (min-width: 600px) and (max-width: 899px) {
   .voices {
-    grid-template-columns: none;
-    grid-auto-flow: column;
-    grid-auto-columns: min(84%, 380px);
-    gap: 16px;
-    margin-inline: -24px;
-    padding: 4px 24px 8px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: 24px;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
+    column-gap: 16px;
   }
 
-  .voices::-webkit-scrollbar {
-    display: none;
+  .voiceText {
+    font-size: 16px;
   }
 
-  .voices:focus-visible {
-    outline: 3px solid var(--c1);
-    outline-offset: -3px;
+  /* Narrow columns: the chip may wrap rather than run into its own edge (it is inline-flex,
+     so an ellipsis can't apply). */
+  .voiceFrame .storyChip {
+    top: auto;
+    bottom: 15px;
+    left: 15px;
+    max-width: calc(100% - 30px);
+    font-size: 12px;
+    white-space: normal;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+}
+
+/* Phones: one review under another (no sideways row), the photos a little shorter so the
+   section stays compact. Cards stop at 400px wide, as the photos are only ~650px wide. */
+@media (max-width: 599px) {
+  .voices {
+    grid-template-columns: minmax(0, 400px);
+    gap: 40px;
   }
 
-  .voice {
-    scroll-snap-align: start;
+  .voicePhoto {
+    aspect-ratio: 4 / 3;
+  }
+
+  .voicePhoto .coverImg {
+    object-position: var(--pos-phone, var(--pos));
   }
 
   .voiceText {
     font-size: 17px;
-  }
-
-  .voiceCard {
-    padding: 26px 24px 24px;
-  }
-}
-
-@media (min-width: 600px) and (max-width: 899px) {
-  .voices {
-    grid-auto-columns: calc((100% - 32px) / 2.4);
   }
 }
 

@@ -10,8 +10,8 @@ const FACTS = [
   { text: 'Delivered to your door, from £44.99', dot: 'var(--c3)' },
 ];
 
-// One real family with their printed book, large, in the hero ring's photo frame,
-// with Nicole's own words underneath. Phones read: heading, photo, then the facts.
+// One real family with their printed book, large, in the hero ring's photo frame (Nicole's
+// words are with her photo in the reviews). Phones read: heading, photo, then the facts.
 export default function LandingMemoryBooks() {
   return (
     <section id="books" className={styles.section}>
@@ -45,21 +45,7 @@ export default function LandingMemoryBooks() {
                 style={{ objectPosition: '50% 62%' }}
               />
             </div>
-            <span className={styles.storyChip}>
-              <span className={styles.storyChipDot} />
-              Nicole · Nampa, US
-            </span>
           </div>
-          <figcaption className={styles.booksQuote}>
-            <span className={styles.booksQuoteMark} aria-hidden="true">
-              “
-            </span>
-            <span>
-              In my case, I have external hard drives full of photos I never get to see, but Ancestorii
-              finally gave those memories a place where they can be easily enjoyed and shared.
-            </span>
-            <span className={styles.booksQuoteBy}>Nicole, Nampa, United States</span>
-          </figcaption>
         </figure>
 
         <div className={styles.booksBuy}>

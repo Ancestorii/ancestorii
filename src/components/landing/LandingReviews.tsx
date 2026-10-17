@@ -2,10 +2,11 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import styles from './landing.module.css';
 
-// Real reviews from Ancestorii families (the same words and people as on the Memory Books page),
-// in the hero ring's rhythm: photo, photo, quote. Andrea and Alison are shown with the books they
-// made; Erin has no photo, so hers is a quote card. Nicole's words sit with her photo in Memory Books.
+// Real reviews from Ancestorii families (the same words and people as on the Memory Books page):
+// three real families, each shown with the book they made.
 // Testimonial2.png and testimonial4.png are ~650px wide, so these cards stay at most ~400px.
+// `position` crops the square photo; `phonePosition` crops the shorter 4:3 photo on phones,
+// keeping faces in the frame and clear of the chip.
 const PHOTO_REVIEWS = [
   {
     name: 'Andrea',
@@ -16,6 +17,7 @@ const PHOTO_REVIEWS = [
     src: '/testimonial4.png',
     alt: 'Andrea holding her printed Ancestorii Memory Book about her dad',
     position: '58% 50%',
+    phonePosition: '58% 5%',
     frame: 'var(--c0)',
   },
   {
@@ -27,17 +29,22 @@ const PHOTO_REVIEWS = [
     src: '/Testimonial2.png',
     alt: 'Alison and her dad holding his printed Ancestorii Memory Book',
     position: '50% 30%',
+    phonePosition: '50% 15%',
     frame: 'var(--c1)',
   },
+  {
+    name: 'Nicole',
+    place: 'Nampa, United States',
+    chip: 'Nicole · Nampa, US',
+    quote:
+      'In my case, I have external hard drives full of photos I never get to see, but Ancestorii finally gave those memories a place where they can be easily enjoyed and shared.',
+    src: '/testimonial1.png',
+    alt: 'Looking through a printed Ancestorii Memory Book together',
+    position: '50% 62%',
+    phonePosition: '50% 62%',
+    frame: 'var(--c3)',
+  },
 ];
-
-const QUOTE_REVIEW = {
-  name: 'Erin',
-  place: 'United Kingdom',
-  quote:
-    'Ancestorii feels less like cloud storage and more like a living family archive. Beautifully designed and genuinely meaningful.',
-  avatar: '/landing/review-erin.jpg',
-};
 
 export default function LandingReviews() {
   return (
@@ -50,21 +57,30 @@ export default function LandingReviews() {
           </p>
         </div>
 
-        <div className={styles.voices} tabIndex={0} role="region" aria-label="Reviews">
+        <div className={styles.voices}>
           {PHOTO_REVIEWS.map((review) => (
-            <figure key={review.name} className={styles.voice} style={{ '--frame': review.frame } as CSSProperties}>
+            <figure
+              key={review.name}
+              className={styles.voice}
+              style={
+                {
+                  '--frame': review.frame,
+                  '--pos': review.position,
+                  '--pos-phone': review.phonePosition,
+                } as CSSProperties
+              }
+            >
               <div className={styles.voiceFrame}>
                 <div className={styles.voicePhoto}>
                   <Image
                     src={review.src}
                     alt={review.alt}
                     fill
-                    sizes="(max-width: 699px) 84vw, 400px"
+                    sizes="(max-width: 447px) calc(100vw - 64px), (max-width: 599px) 384px, (max-width: 899px) calc((100vw - 128px) / 3), (max-width: 1287px) calc((100vw - 144px) / 3), 382px"
                     // Loaded up front at low priority, so a fast flick never reaches an empty frame.
                     loading="eager"
                     fetchPriority="low"
                     className={styles.coverImg}
-                    style={{ objectPosition: review.position }}
                   />
                 </div>
                 <span className={styles.storyChip}>
@@ -78,32 +94,6 @@ export default function LandingReviews() {
               </figcaption>
             </figure>
           ))}
-
-          <figure className={`${styles.voice} ${styles.voiceQuote}`}>
-            <div className={styles.voiceCard}>
-              <span className={styles.voiceMark} aria-hidden="true">
-                “
-              </span>
-              <blockquote className={styles.voiceCardText}>{QUOTE_REVIEW.quote}</blockquote>
-              <figcaption className={styles.voiceCardBy}>
-                <span className={styles.voiceAvatar}>
-                  <Image
-                    src={QUOTE_REVIEW.avatar}
-                    alt=""
-                    fill
-                    sizes="44px"
-                    loading="eager"
-                    fetchPriority="low"
-                    className={styles.coverImg}
-                  />
-                </span>
-                <span>
-                  <strong>{QUOTE_REVIEW.name}</strong>
-                  <span className={styles.voiceCardPlace}>{QUOTE_REVIEW.place}</span>
-                </span>
-              </figcaption>
-            </div>
-          </figure>
         </div>
       </div>
     </section>
