@@ -41,12 +41,23 @@ export const COMPARE_PAGES: PageLink[] = [
   { href: '/compare/ancestorii-vs-tinybeans', label: 'Ancestorii vs Tinybeans' },
 ];
 
+/** The guide hub and its sections, for the footer: the hub holds every guide. */
+export const GUIDE_HUB_PAGES: PageLink[] = [
+  { href: '/guides', label: 'All guides' },
+  { href: '/guides#photos-and-archives', label: 'Photos and archives' },
+  { href: '/guides#voices-and-stories', label: 'Voices and stories' },
+  { href: '/guides#questions-to-ask', label: 'Questions to ask' },
+  { href: '/guides#remembrance', label: 'Remembrance' },
+  { href: '/guides#time-capsules-and-legacy', label: 'Time capsules and legacy' },
+  { href: '/guides#gifts-and-occasions', label: 'Gifts and occasions' },
+  { href: '/guides#family-history', label: 'Family history' },
+];
+
 export const DISCOVER_PAGES: PageLink[] = [
   { href: '/stories', label: 'Our Stories' },
   { href: '/stories/topics', label: 'Browse by topic' },
   { href: '/digital-legacy', label: 'What is a digital legacy?' },
   { href: '/living-library', label: 'What is a living library?' },
-  { href: '/guides', label: 'All guides' },
 ];
 
 export const COMPANY_PAGES: PageLink[] = [

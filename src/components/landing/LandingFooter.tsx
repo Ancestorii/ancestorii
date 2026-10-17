@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import StoreBadges from '@/components/StoreBadges';
 import CookieSettingsButton from '@/components/CookieSettingsButton';
 import { TOPICS } from '@/lib/stories/topics';
@@ -8,8 +7,7 @@ import {
   COMPARE_PAGES,
   DISCOVER_PAGES,
   FEATURE_PAGES,
-  GUIDE_GROUPS,
-  GUIDE_PAGES,
+  GUIDE_HUB_PAGES,
   PRODUCT_PAGES,
   type PageLink,
 } from '@/lib/seo/pages';
@@ -28,9 +26,9 @@ const STORY_TOPICS: PageLink[] = TOPICS.map((t) => ({
 
 const DOTS = ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)'];
 
-// The site footer: every public page, grouped. Four columns for the product, its features, the
-// comparisons and the Our Stories side; then every guide, grouped as on /guides; then the legal
-// links, cookie settings, support and socials.
+// The site footer: five columns (product, features, comparisons, the Our Stories side, and the
+// guide hub with its sections, which holds every guide), then the legal links, cookie settings,
+// support and socials.
 // `hidePricing` drops the links to pages that show prices (the app's Apple-safe /rewards page).
 export default function LandingFooter({ hidePricing = false }: { hidePricing?: boolean }) {
   const product = hidePricing ? PRODUCT_PAGES.filter((l) => !PRICE_PAGES.has(l.href)) : PRODUCT_PAGES;
@@ -40,6 +38,7 @@ export default function LandingFooter({ hidePricing = false }: { hidePricing?: b
     { title: 'Features', links: FEATURE_PAGES },
     { title: 'Compare', links: COMPARE_PAGES },
     { title: 'Discover', links: [...DISCOVER_PAGES, ...STORY_TOPICS] },
+    { title: 'Guides', links: GUIDE_HUB_PAGES },
   ];
 
   return (
@@ -63,26 +62,6 @@ export default function LandingFooter({ hidePricing = false }: { hidePricing?: b
             ))}
           </div>
         </div>
-
-        <section className={f.guides} aria-labelledby="footer-guides">
-          <div className={f.guidesHead}>
-            <h2 id="footer-guides" className={f.guidesTitle}>
-              Guides
-            </h2>
-            <p className={f.guidesLead}>
-              {GUIDE_PAGES.length} plain-English guides on keeping photos, voices and stories.
-            </p>
-            <Link href="/guides" className={f.guidesAll}>
-              All guides
-              <ArrowRight size={16} strokeWidth={2.6} aria-hidden="true" />
-            </Link>
-          </div>
-          <div className={f.guideCols}>
-            {GUIDE_GROUPS.map((group, i) => (
-              <FooterGroup key={group.title} title={group.title} links={group.links} dot={DOTS[i % 4]} compact />
-            ))}
-          </div>
-        </section>
 
         <div className={`${styles.footerBottom} ${f.bottom}`}>
           <span className={f.copy}>&copy; {new Date().getFullYear()} Ancestorii&trade;. All rights reserved.</span>
