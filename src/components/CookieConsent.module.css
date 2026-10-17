@@ -75,12 +75,36 @@
   outline-offset: 2px;
 }
 
+/* "Cookie settings" where it sits in running text (the privacy policy): looks like a link. */
+.settingsLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.settingsLink:focus-visible {
+  outline: 3px solid #2b4bff;
+  outline-offset: 2px;
+}
+
 @media (max-width: 599px) {
   .banner {
     left: 12px;
     right: 12px;
     bottom: 12px;
     padding: 14px;
+  }
+
+  /* Above the dashboard's bottom navigation and the story editor's writing help. */
+  .raised {
+    bottom: 88px;
   }
 
   .actions {

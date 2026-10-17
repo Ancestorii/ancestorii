@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
-import { CONSENT_EVENT, readConsent, type Consent } from '@/lib/consent';
+import { clearMarketingStorage, CONSENT_EVENT, readConsent, type Consent } from '@/lib/consent';
 
 // The marketing tags (GTM, Meta, Spotify) load only after the visitor accepts cookies in the
 // banner (CookieConsent); until then nothing here runs. The Reddit pixel runs inside GTM, whose
 // Reddit tag has the account's real pixel ID (a copy that used to sit here had a typo in the ID,
-// so its events went nowhere, and fixing it would have counted every visit twice).
+// so its events went nowhere).
 // The tags are about 2.4 MB of script. On phones they used to run straight after 'load'
 // (lazyOnload gets no idle phase on iOS), which is exactly when people make their first scrolls.
 // Touch devices now wait for a pause: no scrolling for 1.5s after load, the first tap (so a
@@ -19,6 +19,10 @@ const QUIET_MS = 1500;
 const TOUCH_CAP_MS = 6000;
 const DESKTOP_CAP_MS = 3000;
 const CAMPAIGN = /[?&](utm_[a-z]+|gclid|gbraid|wbraid|fbclid|rdt_cid|msclkid|ttclid)=/i;
+// Private links carry access codes in the URL, and the memory-share page's title holds a private
+// memory's title and family name: the tags never load there, whatever the visitor chose. Nor on
+// the /export pages that Puppeteer prints.
+const PRIVATE = /^\/(m|q|invite|join|answer|auth|reset-password|export)(\/|$)/;
 
 // Waits for the moment described above, then calls show() once, when the browser is idle.
 // Returns a cleanup.
@@ -38,7 +42,7 @@ function schedule(show: () => void): () => void {
     clearTimeout(quietTimer);
     clearTimeout(capTimer);
     window.removeEventListener('scroll', onScroll, true);
-    window.removeEventListener('pointerdown', inject, true);
+    window.removeEventListener('pointerdown', onTap, true);
     window.removeEventListener('load', onLoad);
     if (typeof window.requestIdleCallback === 'function') {
       idleId = window.requestIdleCallback(show, { timeout: 2000 });
@@ -63,13 +67,19 @@ function schedule(show: () => void): () => void {
     window.addEventListener('scroll', onScroll, { capture: true, passive: true });
   };
 
+  // A tap counts, except on the cookie banner or a Cookie settings button.
+  const onTap = (e: PointerEvent) => {
+    if ((e.target as Element | null)?.closest?.('[data-consent-ui]')) return;
+    inject();
+  };
+
   // The caps count from when the page was opened, so slow photos can't hold the tags back.
   const sinceOpen = performance.now();
   if (campaign) {
     inject();
   } else {
     capTimer = setTimeout(inject, Math.max(0, (touch ? TOUCH_CAP_MS : DESKTOP_CAP_MS) - sinceOpen));
-    if (touch) window.addEventListener('pointerdown', inject, { capture: true, passive: true });
+    if (touch) window.addEventListener('pointerdown', onTap, { capture: true, passive: true });
     if (document.readyState === 'complete') onLoad();
     else window.addEventListener('load', onLoad, { once: true });
   }
@@ -77,7 +87,7 @@ function schedule(show: () => void): () => void {
   return () => {
     window.removeEventListener('load', onLoad);
     window.removeEventListener('scroll', onScroll, true);
-    window.removeEventListener('pointerdown', inject, true);
+    window.removeEventListener('pointerdown', onTap, true);
     clearTimeout(quietTimer);
     clearTimeout(capTimer);
     clearTimeout(fallbackTimer);
@@ -87,17 +97,33 @@ function schedule(show: () => void): () => void {
 
 export default function DeferredTags() {
   const [ready, setReady] = useState(false);
+  const loaded = useRef(false);
 
   // Only once the visitor has accepted: straight away if they did on an earlier visit, or the
   // moment they press Accept in the banner.
   useEffect(() => {
     let stop: (() => void) | undefined;
     const start = () => {
-      if (!stop) stop = schedule(() => setReady(true));
+      if (stop || PRIVATE.test(window.location.pathname)) return;
+      stop = schedule(() => {
+        loaded.current = true;
+        setReady(true);
+      });
     };
     if (readConsent() === 'granted') start();
     const onConsent = (e: Event) => {
-      if ((e as CustomEvent<Consent>).detail === 'granted') start();
+      if ((e as CustomEvent<Consent>).detail === 'granted') {
+        start();
+        return;
+      }
+      // Taken back: cancel anything still scheduled, delete what the tags stored and, if they
+      // already run on this page, reload so they stop now. Decided by the page itself, not by
+      // the stored answer, which some browsers block.
+      const running = loaded.current || 'google_tag_manager' in window || 'fbq' in window;
+      stop?.();
+      stop = undefined;
+      clearMarketingStorage();
+      if (running) window.location.reload();
     };
     window.addEventListener(CONSENT_EVENT, onConsent);
     return () => {
@@ -113,6 +139,9 @@ export default function DeferredTags() {
         {/* 🟡 GOOGLE TAG MANAGER */}
         <Script id="gtm-head" strategy="afterInteractive">
           {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('consent', 'default', { ad_storage: 'granted', analytics_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
             j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=

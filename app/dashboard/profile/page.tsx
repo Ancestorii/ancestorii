@@ -8,6 +8,7 @@ import { ensureDisplayableImage } from '@/lib/convertImage';
 import ImageCropModal from '@/components/ImageCropModal';
 import { safeToast } from '@/lib/safeToast';
 import { ADMIN_USER_ID } from '@/lib/adminUser';
+import CookieSettingsButton from '@/components/CookieSettingsButton';
 import {
   Camera,
   MapPin,
@@ -667,6 +668,15 @@ export default function ProfilePage() {
                     }`}
                   />
                 </button>
+              </div>
+              <div className="mt-5 flex items-start justify-between gap-4 border-t border-[#EDE6DA] pt-5">
+                <div className="min-w-0">
+                  <p className="text-[14px] sm:text-[15px] lg:text-[16px] font-semibold text-[#17120E]">Cookies</p>
+                  <p className="mt-1 text-[13px] sm:text-[14px] lg:text-[15px] leading-[1.6] text-[#6F6255]">
+                    Choose whether the website can use analytics and advertising cookies.
+                  </p>
+                </div>
+                <CookieSettingsButton className="mt-1 h-[40px] flex-shrink-0 rounded-[10px] border border-[#E7DFD3] px-4 text-[13px] font-semibold text-[#17120E] transition hover:bg-[#F5F0E8]" />
               </div>
             </Card>
 

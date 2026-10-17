@@ -234,7 +234,7 @@ export default function HowItWorksContent() {
           <div className={styles.split}>
             <Prose className={styles.copy}>
               <p>
-                This is the open side of Ancestorii. When you publish a story here, anyone on the platform can read it. They can react to it. They can leave a comment. They can share it with someone who needs to hear it.
+                This is the open side of Ancestorii. When you publish a story here, anyone can read it. They can react to it. They can leave a comment. They can share it with someone who needs to hear it.
               </p>
               <p>
                 Think of it as a place for the stories you want to pass on beyond your own family. Your grandparents&rsquo; journey to a new country. The tradition your family kept alive for decades. The recipe that started arguments every Christmas. These are the memories that connect people across families, across cultures, across generations.
@@ -452,7 +452,7 @@ export default function HowItWorksContent() {
               The story is removed, you get a final warning, and you are suspended from publishing to Our Stories for seven days.
             </StrikeStep>
             <StrikeStep step="3" label="Third time" tone="pink">
-              You are permanently banned from Our Stories. You can no longer publish, comment, or interact with the public feed.
+              You are permanently banned from Our Stories. You may no longer publish, comment, or interact with the public feed.
             </StrikeStep>
           </ol>
 

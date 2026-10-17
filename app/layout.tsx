@@ -146,6 +146,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${inter.variable} ${playfair.variable} ${dmSans.variable} antialiased text-gray-900 bg-transparent min-h-screen`}
       >
         {/* No GTM <noscript> fallback: without JavaScript the cookie banner can't ask, so nothing loads. */}
+        {/* The banner comes first in the page, so keyboard users reach it first (it shows at the bottom). */}
+        <CookieConsent />
         {children}
 
         <Toaster
@@ -179,7 +181,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Marketing pixels (GTM with GA4, Google Ads and Reddit; Meta; Spotify): they load only after
             the visitor accepts in the cookie banner, and DeferredTags then decides when. */}
         <DeferredTags />
-        <CookieConsent />
       </body>
     </html>
   );

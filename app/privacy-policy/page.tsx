@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import SiteShell from '@/components/site/SiteShell';
+import CookieSettingsButton from '@/components/CookieSettingsButton';
 import { Accent, PageHero } from '@/components/site/SiteBits';
 import {
   LegalBody,
@@ -203,8 +204,9 @@ export default function PrivacyPolicyPage() {
             address, and request information is processed by our infrastructure
             providers as part of serving the Service securely. On the website,
             if you accept cookies, analytics and advertising tags also record
-            the pages you visit, how far you scroll, how long you stay and
-            whether you sign up, together with your browser, your device and an
+            the pages you visit, the links and buttons you click, how far you
+            scroll, how long you stay and whether you sign up, together with
+            your browser, your device, your approximate location and an
             identifier stored in a cookie (see Section 17). The mobile app does
             not contain analytics, advertising, or tracking software (see
             Section 23).
@@ -241,8 +243,9 @@ export default function PrivacyPolicyPage() {
             integrity, and performance of the platform. To detect and prevent
             fraud, abuse, and violations of our Terms. To improve the Service
             based on anonymised and aggregated usage insights. To measure visits
-            to the website and the results of our advertising on other platforms
-            (website only; see Section 17).
+            to the website and the results of our advertising on other
+            platforms, and to show our adverts to people who have visited the
+            website (website only, with your consent; see Section 17).
           </p>
         </Section>
 
@@ -255,21 +258,20 @@ export default function PrivacyPolicyPage() {
 
           <p>
             <strong>Performance of a contract:</strong>{' '}
-            processing necessary to provide the Service you have signed up
-            for, including account management, content storage, public feed
-            functionality, order fulfilment, and delivery of physical
-            products.
+            processing necessary to provide the Service you have signed up for,
+            including account management, content storage, public feed
+            functionality, order fulfilment, delivery of physical products, and
+            features you ask for, such as Story Assistance when you press one of
+            its buttons.
           </p>
 
           <p>
             <strong>Consent:</strong>{' '}
-            where you have given explicit consent, such as choosing to use the
-            AI Story Assistance feature, accepting analytics and advertising
-            cookies on the website, granting device permissions in the mobile
-            app, or providing optional profile information. You may withdraw
-            consent at any time through your account settings, the Cookie
-            settings link on the website, your device settings, or by contacting
-            us.
+            where you have given your consent, such as accepting analytics and
+            advertising cookies on the website, granting device permissions in
+            the mobile app, or providing optional profile information. You may
+            withdraw consent at any time with the Cookie settings link on the
+            website, in your account or device settings, or by contacting us.
           </p>
 
           <p>
@@ -391,8 +393,10 @@ export default function PrivacyPolicyPage() {
             member-joined notifications, onboarding guidance, order
             confirmations, community standards notifications, strike warnings,
             and activity notifications) are sent via Resend from
-            support@ancestorii.com. Resend receives your email address and name
-            for the purpose of delivering these communications.
+            support@ancestorii.com. Resend receives your email address, your
+            name and the content of each email (for example, a story flagged for
+            review is included in the email to our team) for the purpose of
+            delivering these communications.
           </p>
 
           <p>
@@ -510,11 +514,13 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             <strong>Right to withdraw consent:</strong>{' '}
-            where processing is based on consent (such as AI Story
-            Assistance or device permissions), you may withdraw that consent at
-            any time through your account settings or your device settings.
-            Withdrawal does not affect the lawfulness of processing carried out
-            before withdrawal.
+            where processing is based on consent (such as analytics and
+            advertising cookies on the website, or device permissions in the
+            app), you may withdraw that consent at any time with the Cookie
+            settings link on the website or in your device settings. You can
+            also turn Story Assistance off in your profile settings. Withdrawal
+            does not affect the lawfulness of processing carried out before
+            withdrawal.
           </p>
 
           <p>
@@ -679,14 +685,17 @@ export default function PrivacyPolicyPage() {
           <p>
             <strong>AI interaction data:</strong>{' '}
             Story Assistance is switched on by default, and it only sends
-            anything when you press one of its buttons. It then sends the names,
-            dates, titles and other details of what you are writing about (such
-            as an album, a capsule or a loved one), or in the Our Stories editor
-            the story you have written so far, to our AI provider to generate
-            writing suggestions. We log the type of assistance requested, token
-            usage, and response time for service-quality purposes. You can turn
-            Story Assistance off in your profile settings. We do not use your
-            content to train AI models.
+            anything when you press one of its buttons. It then sends our AI
+            provider the details of what you are writing about: for example a
+            loved one&apos;s name, relationship, dates and biography; the title
+            of an album, capsule, timeline event or Memory Book, its date and
+            the loved one it belongs to; and any text you have already written
+            for it, including, in the My Family memory editor and the Our
+            Stories editor, the title and text of the memory or story so far (in
+            Our Stories, also its topic and preview line). We log the type of
+            assistance requested, the model, token usage and response time for
+            service-quality purposes. You can turn Story Assistance off in your
+            profile settings. We do not use your content to train AI models.
           </p>
         </Section>
 
@@ -694,30 +703,34 @@ export default function PrivacyPolicyPage() {
         <Section number="14" title="Our Stories — Public Feed Data">
           <p>
             When you publish a story to Our Stories, the following data becomes
-            public: the story title, story content, any photos or media attached
-            to the story, your display name, and your profile photograph. Anyone
-            can read published stories, including people without an Ancestorii
-            account, and story pages can appear in search engines.
+            public: the story title, its preview line and text, any photos,
+            video or voice note attached to it, its topic and date, and from
+            your profile your name, profile photograph, title, location and
+            biography. Anyone can read published stories, including people
+            without an Ancestorii account, and story pages can appear in search
+            engines.
           </p>
           <p>
-            <strong>Likes, comments, and shares.</strong>{' '}
-            When you like, comment on, or share a story on Our Stories, your
-            display name and profile photograph are visible alongside that
-            interaction. Comments you write are publicly visible. You may
-            delete your own comments at any time.
+            <strong>Hearts, comments and shares.</strong>{' '}
+            When you comment on a story, your name, profile photograph and
+            profile title are shown with your comment, and comments are public.
+            Hearts and shares are shown only as totals. You may delete your own
+            comments at any time.
           </p>
           <p>
             <strong>Content review.</strong>{' '}
-            When you publish a story, its title and text are checked
+            When you publish a story, its title and main text are checked
             automatically by an AI service against our community standards,
             which prohibit religious content, political content, hate speech,
             harassment, spam, self-promotion, and any content that is not a
             genuine family memory. Stories that pass appear straight away.
             Stories that are flagged are held back and reviewed by a person at
-            Ancestorii, and we email you to say your story is being reviewed. If
-            the automatic check is unavailable, a story may appear before it has
-            been checked. The outcome of each check and review, and the reason
-            for any flag or rejection, are recorded against your account.
+            Ancestorii, and we email you to say your story is being reviewed.
+            Changes to a story that is already published appear straight away
+            and are then checked. If the automatic check cannot run, the story
+            is published without it. The outcome of each check and review, and
+            the reason for any flag or rejection, are recorded against your
+            account.
           </p>
           <p>
             <strong>Three-strike policy data.</strong>{' '}
@@ -745,12 +758,14 @@ export default function PrivacyPolicyPage() {
           <p>
             <strong>How stories are ordered.</strong>{' '}
             Our Stories shows the newest stories first by default. Readers can
-            also sort stories by Most Loved or Most Discussed, a Trending box
-            shows the most-loved recent stories, and Ancestorii may feature
-            selected stories. These use the date and the number of hearts and
-            comments, and they are the same for every reader: the feed is not
-            personalised, and we do not track or profile your reading behaviour
-            to recommend content.
+            also sort the stories they are looking at by Most Loved (hearts) or
+            Most Discussed (comments), a Trending box shows the most-loved of
+            the 50 newest stories, and each story page suggests other recent
+            stories on the same topic. These use only the date, the topic and
+            the number of hearts and comments, and they are the same for every
+            reader: the feed is not personalised, and we do not track or profile
+            your reading behaviour to recommend content. The Ancestorii team may
+            also choose stories to feature, such as Story of the Week.
           </p>
         </Section>
 
@@ -827,12 +842,13 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             <strong>Content review:</strong>{' '}
-            the title and text of stories published to Our Stories are checked
-            by Anthropic&apos;s Claude AI models to determine whether they meet
-            our community standards. Anthropic does not use this content to
-            train its models and deletes it within 30 days, unless it is flagged
-            as breaking Anthropic&apos;s own usage policies, in which case it
-            may be kept for up to two years.
+            the title and main text of stories published to Our Stories are
+            checked by Anthropic&apos;s Claude AI models to determine whether
+            they meet our community standards. Anthropic does not use this
+            content to train its models and deletes it within 30 days, unless it
+            is flagged as breaking Anthropic&apos;s usage policies (then it may
+            keep the content for up to two years and its safety scores for up to
+            seven years) or the law requires it to be kept longer.
           </p>
           <p>
             <strong>AI processing:</strong>{' '}
@@ -840,8 +856,9 @@ export default function PrivacyPolicyPage() {
             sent to Anthropic, whose Claude AI models generate the writing
             suggestions. Anthropic does not use these inputs to train its models
             and deletes them within 30 days, unless they are flagged as breaking
-            Anthropic&apos;s usage policies, in which case they may be kept for
-            up to two years.
+            Anthropic&apos;s usage policies (then they may be kept for up to two
+            years, and their safety scores for up to seven years) or the law
+            requires them to be kept longer.
           </p>
           <p>
             <strong>Hosting:</strong>{' '}
@@ -854,40 +871,67 @@ export default function PrivacyPolicyPage() {
         {/* 17 */}
         <Section number="17" title="Cookies &amp; Tracking">
           <p>
-            The Ancestorii website uses essential cookies required for the
-            platform to function, including authentication session cookies that
-            keep you logged in. These are strictly necessary.
+            The Ancestorii website uses essential cookies and browser storage
+            that it needs to work, including the session cookies that keep you
+            logged in and the record of your cookie choice
+            (ancestorii-cookie-consent). These are strictly necessary.
           </p>
           <p>
             <strong>Analytics and advertising tags.</strong>{' '}
             If you accept cookies in the banner, the website also loads Google
-            Tag Manager, which runs Google Analytics, Google Ads conversion
-            tracking and the Reddit Pixel, and it loads the Meta Pixel and the
-            Spotify Pixel. None of them load until you accept. These tags set
+            Tag Manager, which runs Google Analytics, Google Ads (conversion
+            tracking and remarketing) and the Reddit Pixel, and it loads the
+            Meta Pixel and the Spotify Pixel. None of them load until you
+            accept, and they never load on private links (such as memory-share,
+            question and invitation links) or sign-in links. These tags set
             cookies or similar identifiers in your browser and send Google,
-            Reddit, Meta and Spotify information about your visit: the pages you
-            view, how far you scroll, how long you stay, whether you sign up,
-            the page that referred you, your IP address, and your browser and
-            device. We use this to understand how the website is used and to
-            measure whether our adverts on those platforms work. Those companies
-            may also use it under their own privacy policies, for example to
-            show you adverts on their platforms.
+            Reddit, Meta and Spotify information about your visit: the address,
+            title and description of each page you view (on an Our Stories page
+            these include the story&apos;s title and opening lines), the links
+            and buttons you click, when you start or send a form, how far you
+            scroll, how long you stay, whether you sign up, the page that
+            referred you, your IP address and approximate location, and your
+            browser and device. We use this to understand how the website is
+            used, to measure whether our adverts on those platforms work, and to
+            show our adverts to people who have visited the website. Those
+            companies may also use it under their own privacy policies, for
+            example to show you adverts on their platforms.
           </p>
           <p>
-            We do not show adverts on Ancestorii. We do not send these tags your
-            name, your email address or anything you have written or uploaded,
-            and they do not run in the mobile app (see Section 23).
+            The Meta Pixel can also read contact details you type into forms on
+            the website, such as your email address, and send them to Meta in
+            hashed (scrambled) form so that Meta can match your visit to a Meta
+            account. Apart from that, we do not send these tags your name, your
+            email address or anything you keep in My Family. We do not show
+            adverts on Ancestorii, and the tags do not run in the mobile app
+            (see Section 23).
+          </p>
+          <p>
+            <strong>Cookies these tags set.</strong>{' '}
+            _ga and _ga_Q6MJREXSGE (Google Analytics, up to 400 days), _gcl_au
+            and _gcl_aw (Google Ads, 90 days), _fbp and _fbc (Meta, 90 days),
+            _rdt_uuid (Reddit, 90 days) and __spdt (Spotify, one year).
+            Google&apos;s advertising service (doubleclick.net) may also set its
+            own cookies, such as IDE. The tags also keep a few values in your
+            browser&apos;s storage, such as _gcl_ls and lastExternalReferrer.
           </p>
           <p>
             <strong>Your choices.</strong>{' '}
             Reject is as easy as Accept, and the website keeps working either
-            way. Your answer is saved in your browser, and you can change it at
-            any time with the Cookie settings link at the bottom of every page;
-            after you change it, the tags stop loading from the next page you
-            open. You can also block or delete cookies in your browser settings,
-            and control how each company uses this data for advertising in your
-            Google, Meta, Reddit and Spotify account settings. Google also
-            offers a browser add-on to opt out of Google Analytics.
+            way. Your answer is saved in your browser. You can change it at any
+            time with the Cookie settings link at the bottom of our public
+            pages, in your profile settings, or with the button below. If you
+            change your answer to Reject, the page reloads, the tags stop, and
+            we delete the cookies they set on ancestorii.com; anything these
+            companies have already received is covered by their own privacy
+            policies. You can also block or delete cookies in your browser
+            settings, and control how each company uses this data for
+            advertising in your Google, Meta, Reddit and Spotify account
+            settings. Google also offers a browser add-on to opt out of Google
+            Analytics.
+          </p>
+          <p>
+            <CookieSettingsButton label="Change your cookie settings" />
           </p>
         </Section>
 

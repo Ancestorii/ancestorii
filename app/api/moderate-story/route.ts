@@ -253,7 +253,7 @@ export async function POST(req: NextRequest) {
         <tr><td style="padding:48px 40px 36px 40px;">
           <p style="font-size:24px;font-style:italic;color:#16120c;margin:0 0 32px 0;line-height:1.4;">Hi ${authorFirstName},</p>
           <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Thank you for sharing your story <strong>"${story.title}"</strong> on Our Stories.</p>
-          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Every story published to Our Stories is checked to make sure it meets our community standards, and yours has been flagged for a manual review by our team.</p>
+          <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Every story published to Our Stories is checked to make sure it meets our community standards, and yours has been flagged for a manual review.</p>
           <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Please allow up to 24 hours for our team to review it. You will receive an email once a decision has been made.</p>
           <p style="font-size:16px;color:#3d3830;line-height:1.8;margin:0 0 22px 0;">Your private library is not affected in any way. This only applies to the public feed.</p>
           <p style="font-size:15px;color:#3d3830;line-height:1.75;margin:0;font-style:italic;">Thank you for your patience.</p>

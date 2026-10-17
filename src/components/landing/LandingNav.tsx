@@ -82,7 +82,8 @@ export default function LandingNav({
   const close = () => setOpen(false);
 
   return (
-    <header className={styles.header}>
+    // Lifted while the menu is open, so its overlay (inside the header) sits above the cookie banner.
+    <header className={styles.header} style={open ? { zIndex: 300 } : undefined}>
       <div className={styles.headerInner}>
         {/* Home loads on tap; prefetch is kept for the nav links and the sign-up/log-in actions. */}
         <Logo href="/" prefetch={false} />

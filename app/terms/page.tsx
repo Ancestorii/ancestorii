@@ -148,15 +148,15 @@ export default function TermsPage() {
             Service is built around two distinct layers:
           </p>
           <p>
-            <strong>Our Stories</strong> is the
-            public layer. It is a shared space where users publish family
-            memories that anyone on the platform can read, like, comment on,
-            and share. Our Stories is designed exclusively for genuine family
-            memories. Religious content, political content, hate speech,
-            harassment, spam, self-promotion, and commercial content are not
-            permitted. Publishing and browsing the public feed take place on
-            the website; the mobile app is a private family archive and does
-            not display public content.
+            <strong>Our Stories</strong>{' '}
+            is the public layer. It is a shared space where users publish family
+            memories that anyone can read and that signed-in users can like,
+            comment on and share. Our Stories is designed exclusively for
+            genuine family memories. Religious content, political content, hate
+            speech, harassment, spam, self-promotion, and commercial content are
+            not permitted. Publishing and browsing the public feed take place on
+            the website; the mobile app is a private family archive and does not
+            display public content.
           </p>
           <p>
             <strong>My Family</strong> is the
@@ -368,25 +368,25 @@ export default function TermsPage() {
         <Section number="9" title="Privacy &amp; Data Protection">
           <p>
             Your privacy is central to Ancestorii. We collect and process
-            personal data only as necessary to provide the Service. Personal
-            data is handled in accordance with our{' '}
-            <a href="/privacy-policy">
-              Privacy Policy
-            </a>
-            , which forms part of these Terms.
+            personal data as described in our <a href="/privacy-policy">Privacy
+            Policy</a>, which forms part of these Terms.
           </p>
           <p>
             By using the Service, you acknowledge that certain data may be
             processed by third-party service providers (including
             authentication, email delivery, payment processing, email
             validation, voice-note conversion, push notification delivery,
-            content review, and print fulfilment) as described in our Privacy
-            Policy.
+            content review, AI writing assistance, print fulfilment and, on the
+            website if you accept cookies, analytics and advertising) as
+            described in our Privacy Policy.
           </p>
           <p>
-            Content within My Family is treated as private data and is never
-            shared with third parties except as required for the fulfilment of
-            physical product orders or as required by law.
+            Content within My Family is treated as private data. It is never
+            made public or shared with users outside your family space, and it
+            is shared with third parties only where they process it on our
+            behalf to run the Service (for example storage, voice-note
+            conversion, Story Assistance when you use it, and print fulfilment
+            for your orders) or where the law requires it.
           </p>
         </Section>
 
@@ -523,8 +523,9 @@ export default function TermsPage() {
             Ancestorii integrates with third-party services for authentication,
             payment processing, email delivery, email validation, voice-note
             conversion, push notification delivery, content review, print
-            fulfilment, and AI language processing. Your use of the Service may
-            be subject to the terms and privacy policies of these third-party
+            fulfilment, AI language processing and, on the website if you accept
+            cookies, analytics and advertising. Your use of the Service may be
+            subject to the terms and privacy policies of these third-party
             providers.
           </p>
           <p>
@@ -576,11 +577,13 @@ export default function TermsPage() {
           <p>
             <strong>How stories are shown.</strong>{' '}
             Our Stories shows the newest stories first by default. Readers can
-            also sort stories by Most Loved or Most Discussed, a Trending box
-            shows the most-loved recent stories, and Ancestorii may feature
-            selected stories. These orders use the date and the number of hearts
-            and comments, and they are the same for every reader: the feed is
-            not personalised.
+            also sort the stories they are looking at by Most Loved (hearts) or
+            Most Discussed (comments), a Trending box shows the most-loved of
+            the 50 newest stories, and each story page suggests other recent
+            stories on the same topic. These use only the date, the topic and
+            the number of hearts and comments, and they are the same for every
+            reader: the feed is not personalised. The Ancestorii team may also
+            choose stories to feature, such as Story of the Week.
           </p>
           <p>
             <strong>No follower counts.</strong>{' '}
@@ -601,13 +604,14 @@ export default function TermsPage() {
           </p>
           <p>
             <strong>Content checks.</strong>{' '}
-            When you publish a story, its title and text are checked
+            When you publish a story, its title and main text are checked
             automatically against our community standards. Stories that pass
             appear straight away. Stories that are flagged are held back and
             reviewed by a person at Ancestorii, and the author is told by email.
-            If the automatic check is unavailable, a story may appear before it
-            has been checked. Any story can still be removed later if it breaks
-            these Terms or our community standards.
+            Changes to a story that is already published appear straight away
+            and are then checked. If the automatic check cannot run, the story
+            is published without it. Any story can still be removed later if it
+            breaks these Terms or our community standards.
           </p>
           <p>
             <strong>Reporting.</strong> Users may
@@ -677,18 +681,17 @@ export default function TermsPage() {
             (&quot;Story Assistance&quot;) designed to help you find words to
             describe memories, write captions, and craft introductory text for
             your content. It is switched on by default, it only runs when you
-            press one of its buttons, and you can turn it off in your account
-            settings at any time.
+            press one of its buttons, and you can turn it off in your profile settings at any time.
           </p>
           <p>
             Story Assistance generates suggestions based on the names, dates,
-            titles and other details you provide, and in the Our Stories editor
-            on the story you have written so far. All AI-generated text is
-            offered as a starting point for your own editing and is not a
-            substitute for your personal voice. You are solely responsible for
-            reviewing, editing, and approving any AI-generated content before it
-            is saved, published to Our Stories, or included in a physical
-            product.
+            titles and other details you provide and, in the My Family memory
+            editor and the Our Stories editor, on the text you have written so
+            far. All AI-generated text is offered as a starting point for your
+            own editing and is not a substitute for your personal voice. You are
+            solely responsible for reviewing, editing, and approving any
+            AI-generated content before it is saved, published to Our Stories,
+            or included in a physical product.
           </p>
           <p>
             Ancestorii does not guarantee the accuracy, completeness, or
