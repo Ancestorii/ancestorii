@@ -2,85 +2,107 @@
 
 import { useEffect, useState } from 'react';
 import Script from 'next/script';
+import { CONSENT_EVENT, readConsent, type Consent } from '@/lib/consent';
 
-// The marketing tags (GTM, Meta, Spotify) are about 2.4 MB of script. The Reddit pixel runs inside
-// GTM, whose Reddit tag has the account's real pixel ID; the copy that used to sit here had a typo
-// in the ID, so its events went nowhere, and fixing it would have counted every visit twice.
-// On phones the tags used to run straight after 'load' (lazyOnload gets no idle phase on iOS),
-// which is exactly when people make their first scrolls. Touch devices now wait for a pause: no
-// scrolling for 1.5s after load, the first tap (so a visitor who taps straight through is still
-// counted on this page), or 6s after the page was opened, whichever comes first. Desktop adds them after load (or 3s in, if
-// photos are still loading), as before. Visits from an ad or campaign link (utm_*, gclid, fbclid,
-// rdt_cid...) get them straight away, so attribution sees the landing URL.
+// The marketing tags (GTM, Meta, Spotify) load only after the visitor accepts cookies in the
+// banner (CookieConsent); until then nothing here runs. The Reddit pixel runs inside GTM, whose
+// Reddit tag has the account's real pixel ID (a copy that used to sit here had a typo in the ID,
+// so its events went nowhere, and fixing it would have counted every visit twice).
+// The tags are about 2.4 MB of script. On phones they used to run straight after 'load'
+// (lazyOnload gets no idle phase on iOS), which is exactly when people make their first scrolls.
+// Touch devices now wait for a pause: no scrolling for 1.5s after load, the first tap (so a
+// visitor who taps straight through is still counted on this page), or 6s after the page was
+// opened, whichever comes first. Desktop adds them after load (or 3s in, if photos are still
+// loading), as before. Visits from an ad or campaign link (utm_*, gclid, fbclid, rdt_cid...) get
+// them straight away, so attribution sees the landing URL.
 const QUIET_MS = 1500;
 const TOUCH_CAP_MS = 6000;
 const DESKTOP_CAP_MS = 3000;
 const CAMPAIGN = /[?&](utm_[a-z]+|gclid|gbraid|wbraid|fbclid|rdt_cid|msclkid|ttclid)=/i;
 
+// Waits for the moment described above, then calls show() once, when the browser is idle.
+// Returns a cleanup.
+function schedule(show: () => void): () => void {
+  const campaign = CAMPAIGN.test(window.location.search);
+  const touch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+  let quietTimer: ReturnType<typeof setTimeout> | undefined;
+  let capTimer: ReturnType<typeof setTimeout> | undefined;
+  let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+  let idleId: number | undefined;
+  let due = false;
+
+  // Runs once: stop watching, then add the tags when the browser is next idle.
+  const inject = () => {
+    if (due) return;
+    due = true;
+    clearTimeout(quietTimer);
+    clearTimeout(capTimer);
+    window.removeEventListener('scroll', onScroll, true);
+    window.removeEventListener('pointerdown', inject, true);
+    window.removeEventListener('load', onLoad);
+    if (typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(show, { timeout: 2000 });
+    } else {
+      fallbackTimer = setTimeout(show, 150); // Safari has no requestIdleCallback
+    }
+  };
+
+  // Every scroll restarts the quiet period. Captured, so scrolling inside the page's own
+  // scrollers counts too (their scroll events don't bubble).
+  const onScroll = () => {
+    clearTimeout(quietTimer);
+    quietTimer = setTimeout(inject, QUIET_MS);
+  };
+
+  const onLoad = () => {
+    if (!touch) {
+      inject();
+      return;
+    }
+    quietTimer = setTimeout(inject, QUIET_MS);
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+  };
+
+  // The caps count from when the page was opened, so slow photos can't hold the tags back.
+  const sinceOpen = performance.now();
+  if (campaign) {
+    inject();
+  } else {
+    capTimer = setTimeout(inject, Math.max(0, (touch ? TOUCH_CAP_MS : DESKTOP_CAP_MS) - sinceOpen));
+    if (touch) window.addEventListener('pointerdown', inject, { capture: true, passive: true });
+    if (document.readyState === 'complete') onLoad();
+    else window.addEventListener('load', onLoad, { once: true });
+  }
+
+  return () => {
+    window.removeEventListener('load', onLoad);
+    window.removeEventListener('scroll', onScroll, true);
+    window.removeEventListener('pointerdown', inject, true);
+    clearTimeout(quietTimer);
+    clearTimeout(capTimer);
+    clearTimeout(fallbackTimer);
+    if (idleId !== undefined) window.cancelIdleCallback(idleId);
+  };
+}
+
 export default function DeferredTags() {
   const [ready, setReady] = useState(false);
 
+  // Only once the visitor has accepted: straight away if they did on an earlier visit, or the
+  // moment they press Accept in the banner.
   useEffect(() => {
-    const campaign = CAMPAIGN.test(window.location.search);
-    const touch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
-    let quietTimer: ReturnType<typeof setTimeout> | undefined;
-    let capTimer: ReturnType<typeof setTimeout> | undefined;
-    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
-    let idleId: number | undefined;
-    let due = false;
-
-    // Runs once: stop watching, then add the tags when the browser is next idle.
-    const inject = () => {
-      if (due) return;
-      due = true;
-      clearTimeout(quietTimer);
-      clearTimeout(capTimer);
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('pointerdown', inject, true);
-      window.removeEventListener('load', onLoad);
-      const show = () => setReady(true);
-      if (typeof window.requestIdleCallback === 'function') {
-        idleId = window.requestIdleCallback(show, { timeout: 2000 });
-      } else {
-        fallbackTimer = setTimeout(show, 150); // Safari has no requestIdleCallback
-      }
+    let stop: (() => void) | undefined;
+    const start = () => {
+      if (!stop) stop = schedule(() => setReady(true));
     };
-
-    // Every scroll restarts the quiet period. Captured, so scrolling inside the page's own
-    // scrollers counts too (their scroll events don't bubble).
-    const onScroll = () => {
-      clearTimeout(quietTimer);
-      quietTimer = setTimeout(inject, QUIET_MS);
+    if (readConsent() === 'granted') start();
+    const onConsent = (e: Event) => {
+      if ((e as CustomEvent<Consent>).detail === 'granted') start();
     };
-
-    const onLoad = () => {
-      if (!touch) {
-        inject();
-        return;
-      }
-      quietTimer = setTimeout(inject, QUIET_MS);
-      window.addEventListener('scroll', onScroll, { capture: true, passive: true });
-    };
-
-    // The caps count from when the page was opened, so slow photos can't hold the tags back.
-    const sinceOpen = performance.now();
-    if (campaign) {
-      inject();
-    } else {
-      capTimer = setTimeout(inject, Math.max(0, (touch ? TOUCH_CAP_MS : DESKTOP_CAP_MS) - sinceOpen));
-      if (touch) window.addEventListener('pointerdown', inject, { capture: true, passive: true });
-      if (document.readyState === 'complete') onLoad();
-      else window.addEventListener('load', onLoad, { once: true });
-    }
-
+    window.addEventListener(CONSENT_EVENT, onConsent);
     return () => {
-      window.removeEventListener('load', onLoad);
-      window.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('pointerdown', inject, true);
-      clearTimeout(quietTimer);
-      clearTimeout(capTimer);
-      clearTimeout(fallbackTimer);
-      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      window.removeEventListener(CONSENT_EVENT, onConsent);
+      stop?.();
     };
   }, []);
 

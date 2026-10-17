@@ -1,0 +1,94 @@
+/* The cookie banner: a small white card pinned to the bottom of the screen. It sits above the
+   page but under the mobile menu and the dashboard's sheets (z-index 300). No animation. */
+.banner {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 290;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: #fff;
+  color: #0a0a0f;
+  box-shadow:
+    0 0 0 1px rgba(10, 10, 15, 0.08),
+    0 24px 50px -24px rgba(10, 10, 15, 0.45);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+}
+
+.text {
+  flex: 1 1 260px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.link {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Reject and Accept are the same size and weight, so saying no is as easy as saying yes. */
+.reject,
+.accept {
+  min-height: 44px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.reject {
+  background: #fff;
+  color: #0a0a0f;
+  box-shadow: inset 0 0 0 2px #0a0a0f;
+}
+
+.accept {
+  background: #0a0a0f;
+  color: #fff;
+}
+
+.reject:focus-visible,
+.accept:focus-visible,
+.link:focus-visible {
+  outline: 3px solid #2b4bff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 599px) {
+  .banner {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    padding: 14px;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .reject,
+  .accept {
+    flex: 1;
+  }
+}

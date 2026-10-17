@@ -202,11 +202,12 @@ export default function PrivacyPolicyPage() {
             limited technical data such as device type, operating system, IP
             address, and request information is processed by our infrastructure
             providers as part of serving the Service securely. On the website,
-            analytics and advertising tags also record the pages you visit, how
-            far you scroll, how long you stay and whether you sign up, together
-            with your browser, your device and an identifier stored in a cookie
-            (see Section 17). The mobile app does not contain analytics,
-            advertising, or tracking software (see Section 23).
+            if you accept cookies, analytics and advertising tags also record
+            the pages you visit, how far you scroll, how long you stay and
+            whether you sign up, together with your browser, your device and an
+            identifier stored in a cookie (see Section 17). The mobile app does
+            not contain analytics, advertising, or tracking software (see
+            Section 23).
           </p>
         </Section>
 
@@ -261,12 +262,14 @@ export default function PrivacyPolicyPage() {
           </p>
 
           <p>
-            <strong>Consent:</strong> where you
-            have given explicit consent, such as choosing to use the AI Story
-            Assistance feature, granting device permissions in the mobile app,
-            or providing optional profile information. You may withdraw consent
-            at any time through your account settings, your device settings, or
-            by contacting us.
+            <strong>Consent:</strong>{' '}
+            where you have given explicit consent, such as choosing to use the
+            AI Story Assistance feature, accepting analytics and advertising
+            cookies on the website, granting device permissions in the mobile
+            app, or providing optional profile information. You may withdraw
+            consent at any time through your account settings, the Cookie
+            settings link on the website, your device settings, or by contacting
+            us.
           </p>
 
           <p>
@@ -857,9 +860,10 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             <strong>Analytics and advertising tags.</strong>{' '}
-            The website also loads Google Tag Manager, which runs Google
-            Analytics, Google Ads conversion tracking and the Reddit Pixel, and
-            it loads the Meta Pixel and the Spotify Pixel. These tags set
+            If you accept cookies in the banner, the website also loads Google
+            Tag Manager, which runs Google Analytics, Google Ads conversion
+            tracking and the Reddit Pixel, and it loads the Meta Pixel and the
+            Spotify Pixel. None of them load until you accept. These tags set
             cookies or similar identifiers in your browser and send Google,
             Reddit, Meta and Spotify information about your visit: the pages you
             view, how far you scroll, how long you stay, whether you sign up,
@@ -876,8 +880,12 @@ export default function PrivacyPolicyPage() {
           </p>
           <p>
             <strong>Your choices.</strong>{' '}
-            You can block or delete cookies in your browser settings, and you
-            can control how each company uses this data for advertising in your
+            Reject is as easy as Accept, and the website keeps working either
+            way. Your answer is saved in your browser, and you can change it at
+            any time with the Cookie settings link at the bottom of every page;
+            after you change it, the tags stop loading from the next page you
+            open. You can also block or delete cookies in your browser settings,
+            and control how each company uses this data for advertising in your
             Google, Meta, Reddit and Spotify account settings. Google also
             offers a browser add-on to opt out of Google Analytics.
           </p>

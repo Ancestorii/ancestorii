@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, DM_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import DeferredTags from "@/components/DeferredTags";
+import CookieConsent from "@/components/CookieConsent";
 import JsonLd from "@/components/site/seo/JsonLd";
 import { FOUNDER, FOUNDER_ID } from "@/lib/seo/schema";
 
@@ -184,8 +185,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
 
-        {/* Marketing pixels (GTM, Reddit, Meta, Spotify): DeferredTags decides when they load. */}
+        {/* Marketing pixels (GTM with GA4, Google Ads and Reddit; Meta; Spotify): they load only after
+            the visitor accepts in the cookie banner, and DeferredTags then decides when. */}
         <DeferredTags />
+        <CookieConsent />
       </body>
     </html>
   );

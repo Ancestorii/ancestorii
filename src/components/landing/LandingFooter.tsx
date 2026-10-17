@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import StoreBadges from '@/components/StoreBadges';
+import CookieSettingsButton from '@/components/CookieSettingsButton';
 import { Logo } from './LandingBits';
 import footerStyles from './footer.module.css';
 import styles from './landing.module.css';
@@ -86,6 +87,7 @@ export default function LandingFooter({ hidePricing = false }: { hidePricing?: b
         <div className={styles.footerBottom}>
           <span>&copy; {new Date().getFullYear()} Ancestorii™. All rights reserved.</span>
           <div className={styles.footerContact}>
+            <CookieSettingsButton className={`${styles.footerLink} ${footerStyles.settings}`} />
             <a href="mailto:support@ancestorii.com" className={styles.footerLink}>
               support@ancestorii.com
             </a>
