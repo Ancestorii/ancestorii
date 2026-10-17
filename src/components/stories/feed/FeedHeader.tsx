@@ -15,7 +15,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 const VALUE_POINTS = [
   "Nan's secret brownie recipe. Dad's story from '98. The holiday that went completely wrong.",
   'Real moments, told in your own words, shared with people who actually care.',
-  'Two minutes to share something that matters — completely free.',
+  'Two minutes to share something that matters. Completely free.',
 ];
 
 // Pink, blue, aqua: the colours of the landing's three steps.
@@ -61,7 +61,7 @@ export default function FeedHeader({
             }
           </h1>
 
-          {/* Hook line — logged out */}
+          {/* Hook line: logged out */}
           {isAll && !isLoggedIn && (
             <p className={site.heroLead}>
               Photos sit on phones. Stories stay in your head. Voices fade.{' '}
@@ -69,7 +69,7 @@ export default function FeedHeader({
             </p>
           )}
 
-          {/* Welcome — logged in */}
+          {/* Welcome: logged in */}
           {isAll && isLoggedIn && (
             <p className={site.heroLead}>
               Thank you for being part of this community. The stories here exist because people like you chose to share them.{' '}

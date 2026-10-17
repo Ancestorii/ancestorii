@@ -7,7 +7,7 @@ import landing from '@/components/landing/landing.module.css';
 import site from '@/components/site/site.module.css';
 import styles from './rewards.module.css';
 
-// /rewards — APP HANDOFF (Apple safe).
+// /rewards: APP HANDOFF (Apple safe).
 //
 // This is the page the app's "Redeem at ancestorii.com" button points at. It is a direct
 // target of an in app link, so by rule it shows NO prices and NO upgrade/buy button. Its
@@ -54,7 +54,7 @@ export default function RewardsPage() {
             Redeem your <Accent>app rewards</Accent>
           </h1>
 
-          {/* Lead — plain, no prices */}
+          {/* Lead: plain, no prices */}
           <div className={styles.lead}>
             <p>Your family earns reward codes in the Ancestorii app as your library grows, and you redeem them here on the website.</p>
             <p>Rewards apply to your keepsake orders: Memory Books, Canvas Prints and Acrylic Prints.</p>

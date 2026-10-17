@@ -184,7 +184,7 @@ if (uploadingMedia) {
   <div className="bg-white">
     <div className="grid lg:grid-cols-[1fr_360px] gap-12 px-10 py-6">
 
-      {/* LEFT SIDE — MEDIA */}
+      {/* LEFT SIDE: MEDIA */}
 <div>
 
   {/* EMPTY STATE */}

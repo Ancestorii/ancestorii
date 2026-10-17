@@ -3,7 +3,7 @@ import { getServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  // Authenticated client — to verify who's calling
+  // Authenticated client: to verify who's calling
   const supabase = await getServerClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth?.user) {
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing token' }, { status: 400 });
   }
 
-  // Service role client — bypasses RLS for membership operations
+  // Service role client: bypasses RLS for membership operations
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'This invite is for a different email' }, { status: 403 });
   }
 
-  // 2b. One-family rule — block if user is already in a real family
+  // 2b. One-family rule: block if user is already in a real family
   const { data: currentMembership } = await admin
     .from('family_memberships')
     .select('family_id')
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     .maybeSingle();
 
   if (currentMembership) {
-    // Already in the invited family — just mark accepted and return
+    // Already in the invited family, just mark accepted and return
     if (currentMembership.family_id === invite.family_id) {
       await admin
         .from('family_invites')
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, family_id: invite.family_id });
     }
 
-    // In a different family — check if it's a solo auto-created family
+    // In a different family, check if it's a solo auto-created family
     const { count } = await admin
       .from('family_memberships')
       .select('*', { count: 'exact', head: true })

@@ -367,7 +367,7 @@ export default function HorizontalTimeline({
           );
         })}
 
-       {/* month ticks — showQuarters => Apr/Jul/Oct only; showMonths => all 12 */}
+       {/* month ticks: showQuarters => Apr/Jul/Oct only; showMonths => all 12 */}
 {(() => {
   if (!showMonths && !showQuarters) return null;
 

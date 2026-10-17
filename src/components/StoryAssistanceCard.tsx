@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Maximize2, Feather, ChevronRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAssistance } from '@/hooks/use-assistance';
 
-// ── Generic types — each page provides its own options ──
+// ── Generic types: each page provides its own options ──
 
 export type AssistOption = {
   key: string;
@@ -16,7 +16,7 @@ export type AssistOption = {
 };
 
 export interface StoryAssistanceCardProps {
-  /** The welcome heading — use the person/entity name */
+  /** The welcome heading: use the person/entity name */
   welcomeHeading: React.ReactNode;
   /** Short welcome body text */
   welcomeBody: string;
@@ -188,7 +188,7 @@ export default function StoryAssistanceCard({
               <Feather size={14} strokeWidth={1.6} />
             </div>
             <span className="text-[13px] font-semibold text-[#17120E]">Story Assistance</span>
-            <span className="text-[12px] text-[#6F6255] ml-0.5">— here if you need me</span>
+            <span className="text-[12px] text-[#6F6255] ml-0.5">Here if you need me.</span>
           </div>
         </div>
       </motion.div>

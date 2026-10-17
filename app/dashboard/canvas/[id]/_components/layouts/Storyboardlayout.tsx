@@ -34,11 +34,11 @@ export default function StoryboardLayout({
         padding: 0,
       }}
     >
-      {/* Hero — 60% */}
+      {/* Hero: 60% */}
       <div style={{ flex: '0 0 60%', minWidth: 0 }}>
         <Slot canvasId={canvasId} asset={slot0} selectedImage={selectedImage} clearSelectedImage={clearSelectedImage} onUpdate={onUpdateAsset} isExport={isExport} />
       </div>
-      {/* Right column — two stacked */}
+      {/* Right column: two stacked */}
       <div
         style={{
           flex: 1,

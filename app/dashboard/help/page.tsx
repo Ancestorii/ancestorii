@@ -48,7 +48,7 @@ export default function HelpPage() {
   }, []);
 
   // ---------------------------------------------------------
-  // 🔥 FINAL WORKING VERSION — uses supabase.functions.invoke
+  // 🔥 FINAL WORKING VERSION, uses supabase.functions.invoke
   // ---------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -274,7 +274,7 @@ export default function HelpPage() {
       </p>
 
       <p className="text-base text-gray-600 mt-4">
-        Available <strong>9:00am – 6:00pm</strong>, Monday to Saturday.
+        Available <strong>9:00am to 6:00pm</strong>, Monday to Saturday.
       </p>
 
       <p className="text-lg text-gray-600 mt-6">

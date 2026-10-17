@@ -35,7 +35,7 @@ export default function RewardCodeField({
   const [message, setMessage] = useState('');
   const wrapRef = useRef<HTMLDivElement>(null);
   // Monotonic request token: rapid tier switches / Apply clicks can put two
-  // /api/rewards/validate calls in flight — only the latest may write state.
+  // /api/rewards/validate calls in flight, only the latest may write state.
   const seqRef = useRef(0);
 
   const validate = async (raw: string) => {
@@ -60,7 +60,7 @@ export default function RewardCodeField({
       if (seq !== seqRef.current) return; // a newer request superseded this one
       if (data?.ok) {
         setStatus('ok');
-        setMessage(`${data.label} — applied at checkout`);
+        setMessage(`${data.label}, applied at checkout`);
         onChange(value);
       } else {
         setStatus('err');
@@ -77,7 +77,7 @@ export default function RewardCodeField({
     }
   };
 
-  // Eligibility depends on the chosen tier — re-check an applied code if the tier changes.
+  // Eligibility depends on the chosen tier, re-check an applied code if the tier changes.
   useEffect(() => {
     if (status === 'ok' && code.trim()) {
       validate(code);

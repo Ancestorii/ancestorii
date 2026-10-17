@@ -4,14 +4,14 @@ import type { Metadata } from "next";
 import JsonLd from '@/components/site/seo/JsonLd';
 
 export const metadata: Metadata = {
-  title: { absolute: "Our Roots — Why Ancestorii Exists" },
+  title: { absolute: "Our Roots: Why Ancestorii Exists" },
   description:
     "The personal story behind Ancestorii. Built by one person who could not stop thinking about how much families lose when nobody writes things down.",
   alternates: {
     canonical: "https://www.ancestorii.com/why-this-exists",
   },
   openGraph: {
-    title: "Our Roots — Why Ancestorii Exists",
+    title: "Our Roots: Why Ancestorii Exists",
     description:
       "The personal story behind Ancestorii. Built by one person who could not stop thinking about how much families lose when nobody writes things down.",
     url: "https://www.ancestorii.com/why-this-exists",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
         url: "/og-default.jpg",
         width: 1200,
         height: 630,
-        alt: "Ancestorii — Our Roots",
+        alt: "Ancestorii: Our Roots",
       },
     ],
     locale: "en_GB",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Our Roots — Why Ancestorii Exists",
+    title: "Our Roots: Why Ancestorii Exists",
     description:
       "The personal story behind Ancestorii. Built by one person who could not stop thinking about how much families lose when nobody writes things down.",
     images: ["/og-default.jpg"],
@@ -48,9 +48,9 @@ export default function WhyThisExistsPage() {
         data={{
           "@context": "https://schema.org",
           "@type": "AboutPage",
-          "name": "Our Roots — Why Ancestorii Exists",
+          "name": "Our Roots: Why Ancestorii Exists",
           "description":
-            "The personal story behind Ancestorii — built because every family has moments worth sharing, and most of them are never written down.",
+            "The personal story behind Ancestorii, built because every family has moments worth sharing, and most of them are never written down.",
           "url": "https://www.ancestorii.com/why-this-exists",
           "author": {
             "@type": "Person",

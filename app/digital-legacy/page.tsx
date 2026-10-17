@@ -15,7 +15,7 @@ import {
 export const metadata: Metadata = {
   title: 'Digital Legacy: Capture and Grow Your Family Story Digitally',
   description:
-    'Discover how to build a living digital legacy by capturing family stories, voices, and everyday moments as they happen — and growing a library your family can return to.',
+    'Discover how to build a living digital legacy by capturing family stories, voices, and everyday moments as they happen, and growing a library your family can return to.',
   alternates: {
     canonical: 'https://www.ancestorii.com/digital-legacy',
   },

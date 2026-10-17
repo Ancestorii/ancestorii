@@ -315,7 +315,7 @@ export default function HowItWorksContent() {
               title="The Private Feed"
               text={
                 <>
-                  Every memory your family writes appears here — photos, text, voice notes. Same visual feel as the public feed, but locked to your family. No algorithm deciding what you see. No strangers reading your stories. Just the people you trust, sharing the moments that matter.
+                  Every memory your family writes appears here: photos, text, voice notes. Same visual feel as the public feed, but locked to your family. No algorithm deciding what you see. No strangers reading your stories. Just the people you trust, sharing the moments that matter.
                 </>
               }
               color="var(--c1)"
@@ -339,7 +339,7 @@ export default function HowItWorksContent() {
               title="Multiple Perspectives"
               text={
                 <>
-                  When two people remember the same moment differently, both versions live on the same page as tabs. Nicole&rsquo;s Memory. Dante&rsquo;s Memory. Maria&rsquo;s Memory. Click a tab and the entire story changes — different words, different photos, different feelings about the same moment. That is what makes a family archive feel alive.
+                  When two people remember the same moment differently, both versions live on the same page as tabs. Nicole&rsquo;s Memory. Dante&rsquo;s Memory. Maria&rsquo;s Memory. Click a tab and the entire story changes, different words, different photos, different feelings about the same moment. That is what makes a family archive feel alive.
                 </>
               }
               color="var(--c3)"
@@ -351,7 +351,7 @@ export default function HowItWorksContent() {
               title="Invite &amp; Collaborate"
               text={
                 <>
-                  Send a question or share a link. Family members join your library and start contributing — their own memories, their own photos, their reactions and comments on yours. Everyone adds their piece. The collection grows richer because no single person holds the whole story.
+                  Send a question or share a link. Family members join your library and start contributing: their own memories, their own photos, their reactions and comments on yours. Everyone adds their piece. The collection grows richer because no single person holds the whole story.
                 </>
               }
               color="var(--c2)"
@@ -360,7 +360,7 @@ export default function HowItWorksContent() {
           </div>
 
           <p className={styles.closing}>
-            You also have albums to group memories by chapter — a wedding, a childhood home, a decade of Sunday mornings — and timelines to place a life in order, so your children do not have to guess what happened when or why it mattered.
+            You also have albums to group memories by chapter (a wedding, a childhood home, a decade of Sunday mornings) and timelines to place a life in order, so your children do not have to guess what happened when or why it mattered.
           </p>
 
           {/* ── MY HEIRLOOMS ── */}

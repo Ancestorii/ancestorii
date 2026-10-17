@@ -4,7 +4,7 @@ import Slot from '../Slot';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
- * Cascade — alternating offset columns.
+ * Cascade: alternating offset columns.
  * 4 slots (moment portrait) or 6 slots (heritage portrait).
  * Pass slotCount from the layout config.
  */
@@ -41,7 +41,7 @@ export default function CascadeLayout({
         padding: 0,
       }}
     >
-      {/* Left column — offset down */}
+      {/* Left column: offset down */}
       <div
         style={{
           flex: 1,
@@ -58,7 +58,7 @@ export default function CascadeLayout({
           </div>
         ))}
       </div>
-      {/* Right column — offset up */}
+      {/* Right column: offset up */}
       <div
         style={{
           flex: 1,

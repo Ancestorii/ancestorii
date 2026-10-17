@@ -32,9 +32,9 @@ export default function LovedOneCard({
 
   const lifespan =
     member.birth_date && !member.death_date
-      ? `${new Date(member.birth_date).getFullYear()} — Living`
+      ? `${new Date(member.birth_date).getFullYear()} to present`
       : member.birth_date && member.death_date
-      ? `${new Date(member.birth_date).getFullYear()} — ${new Date(
+      ? `${new Date(member.birth_date).getFullYear()} to ${new Date(
           member.death_date
         ).getFullYear()}`
       : "A life remembered";

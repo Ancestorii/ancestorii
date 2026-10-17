@@ -92,7 +92,7 @@ function stripHtml(html: string): string {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MAIN COMPONENT — the landing page's look (SiteShell frame)
+   MAIN COMPONENT, the landing page's look (SiteShell frame)
    ═══════════════════════════════════════════════════════════════ */
 
 export default function StoryEditorPage({
@@ -456,7 +456,7 @@ export default function StoryEditorPage({
             </div>
 
             <div className={styles.toolbarEnd}>
-              {/* Completeness — 3 segments */}
+              {/* Completeness: 3 segments */}
               <div className={styles.progress}>
                 {[0, 1, 2].map((i) => (
                   <span
@@ -502,17 +502,17 @@ export default function StoryEditorPage({
         </div>
 
         {/* ═══════════════════════════════════════════════════════
-            MAIN — editor, plus the live preview on wide screens
+            MAIN, editor, plus the live preview on wide screens
             ═══════════════════════════════════════════════════════ */}
         <div
           className={`${landing.wrap} ${styles.layout} ${
             mounted ? styles.rise : styles.preMount
           }`}
         >
-          {/* LEFT — Editor */}
+          {/* LEFT: Editor */}
           <div className={styles.editorCol}>
             {/* ═══════════════════════════════════════════
-                SECTION 1 — CATEGORY + TITLE
+                SECTION 1. CATEGORY + TITLE
                 ═══════════════════════════════════════════ */}
             <Section
               icon={<Feather size={22} strokeWidth={2.4} aria-hidden="true" />}
@@ -570,7 +570,7 @@ export default function StoryEditorPage({
             </Section>
 
             {/* ═══════════════════════════════════════════
-                SECTION 2 — WRITE YOUR STORY
+                SECTION 2. WRITE YOUR STORY
                 ═══════════════════════════════════════════ */}
             <Section
               icon={<PenLine size={22} strokeWidth={2.4} aria-hidden="true" />}
@@ -584,7 +584,7 @@ export default function StoryEditorPage({
             </Section>
 
             {/* ═══════════════════════════════════════════
-                SECTION 3 — PHOTOS & VIDEO
+                SECTION 3. PHOTOS & VIDEO
                 ═══════════════════════════════════════════ */}
             <Section
               icon={<ImageIcon size={22} strokeWidth={2.4} aria-hidden="true" />}
@@ -719,7 +719,7 @@ export default function StoryEditorPage({
             </Section>
 
             {/* ═══════════════════════════════════════════
-                SECTION 4 — VOICE NOTE (OPTIONAL)
+                SECTION 4. VOICE NOTE (OPTIONAL)
                 ═══════════════════════════════════════════ */}
             <Section
               icon={<Music size={22} strokeWidth={2.4} aria-hidden="true" />}
@@ -772,7 +772,7 @@ export default function StoryEditorPage({
             </Section>
           </div>
 
-          {/* RIGHT — Live preview (wide screens) */}
+          {/* RIGHT: Live preview (wide screens) */}
           {showPreview && (
             <aside className={styles.previewCol} aria-labelledby="live-preview-title">
               <h2
@@ -853,7 +853,7 @@ export default function StoryEditorPage({
 
         <StoryAssistanceCard
           welcomeHeading="Need help writing your story?"
-          welcomeBody="We'll ask you the right questions to help you find the words. You write it — we just help you get started."
+          welcomeBody="We'll ask you the right questions to help you find the words. You write it. We just help you get started."
           entityName="your story"
           apiEndpoint="/api/story-assist-public"
           options={[
@@ -892,7 +892,7 @@ export default function StoryEditorPage({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION WRAPPER — white card, tilted colour tile, heavy title
+   SECTION WRAPPER, white card, tilted colour tile, heavy title
    ═══════════════════════════════════════════════════════════════ */
 
 function Section({

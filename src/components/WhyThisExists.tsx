@@ -84,12 +84,12 @@ function Body({ children, className = '' }: { children: ReactNode; className?: s
 function ShareButton() {
   const [copied, setCopied] = useState(false);
   const url = 'https://www.ancestorii.com/why-this-exists';
-  const text = 'The story behind Ancestorii — why one person decided to build a place where families can share the moments that matter.';
+  const text = 'The story behind Ancestorii: why one person decided to build a place where families can share the moments that matter.';
 
   const handleShare = async () => {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({ title: 'Our Roots — Why Ancestorii Exists', text, url });
+        await navigator.share({ title: 'Our Roots: Why Ancestorii Exists', text, url });
         return;
       } catch {}
     }
@@ -207,12 +207,12 @@ export default function WhyThisExists() {
 
           <Body className={styles.column}>
             <p>
-              I called it Ancestorii. Ancestors and story, blended into one word. The double &quot;i&quot; at the end was not a stylistic choice. It stands for two people. The one telling the story and the one receiving it. Because memory does not survive alone. It only survives in the handoff — from a grandmother to a grandchild, from a father to a son, from the person who lived it to the person who will carry it forward.
+              I called it Ancestorii. Ancestors and story, blended into one word. The double &quot;i&quot; at the end was not a stylistic choice. It stands for two people. The one telling the story and the one receiving it. Because memory does not survive alone. It only survives in the handoff, from a grandmother to a grandchild, from a father to a son, from the person who lived it to the person who will carry it forward.
             </p>
           </Body>
 
           <PullQuote>
-            Ancestors + Story = Ancestorii. The double &quot;i&quot; is the handoff —{' '}
+            Ancestors + Story = Ancestorii. The double &quot;i&quot; is the handoff:{' '}
             <Accent tone="blue">the moment a story stops belonging to one person and starts belonging to a family.</Accent>
           </PullQuote>
 

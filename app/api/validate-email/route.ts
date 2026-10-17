@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.KICKBOX_API_KEY;
     if (!apiKey) {
-      // Fail open — don't block signups if env var is missing
+      // Fail open: don't block signups if env var is missing
       return NextResponse.json({ result: 'unknown', allow: true });
     }
 
@@ -20,12 +20,12 @@ export async function POST(request: Request) {
 
     const res = await fetch(url, {
       method: 'GET',
-      // Kickbox can be slow on dodgy mailservers — cap it
+      // Kickbox can be slow on dodgy mailservers, cap it
       signal: AbortSignal.timeout(5000),
     });
 
     if (!res.ok) {
-      // Kickbox down — fail open, let signup proceed
+      // Kickbox down: fail open, let signup proceed
       return NextResponse.json({ result: 'unknown', allow: true });
     }
 
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       allow,
     });
   } catch (err) {
-    // Network error / timeout — fail open
+    // Network error / timeout, fail open
     return NextResponse.json({ result: 'unknown', allow: true });
   }
 }

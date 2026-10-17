@@ -160,7 +160,7 @@ export default function PricingPage() {
             <div className={css.planHead}>
               <div className={css.planTop}>
                 <span className={site.tag} style={{ '--dot': 'var(--c1)' } as CSSProperties}>
-                  Private — Free
+                  Private · Free
                 </span>
               </div>
               <h2 className={css.planName}>My Family</h2>
@@ -190,7 +190,7 @@ export default function PricingPage() {
             <div className={css.planHead}>
               <div className={css.planTop}>
                 <span className={site.tag} style={{ '--dot': 'var(--c3)' } as CSSProperties}>
-                  Private — Premium
+                  Private · Premium
                 </span>
                 <span className={css.recommended}>Recommended</span>
               </div>

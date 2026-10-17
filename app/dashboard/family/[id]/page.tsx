@@ -170,9 +170,9 @@ export default function LovedOneProfilePage() {
       ? new Date(member.death_date).getFullYear()
       : null;
 
-    if (b && !d) return `${b} — Living`;
-    if (b && d) return `${b} — ${d}`;
-    return "—";
+    if (b && !d) return `${b} to present`;
+    if (b && d) return `${b} to ${d}`;
+    return "Dates not set";
   }, [member]);
 
   const nextCelebration = useMemo(() => {

@@ -186,7 +186,7 @@ export default async function StoryPage({ params }: Props) {
   // Fetch comments for SSR (avoids flash of "0 Comments")
   const initialComments = await getStoryComments(supabase, story.id);
 
-  // Related stories — same category first, backfill with latest to always show 4
+  // Related stories: same category first, backfill with latest to always show 4
   const RELATED_LIMIT = 4;
   let relatedRaw: { id: string; slug: string; title: string }[] = [];
 

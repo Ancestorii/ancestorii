@@ -30,7 +30,7 @@ const TOC: TocGroup[] = [
       { num: '1', title: 'About Ancestorii' },
       { num: '2', title: 'Eligibility' },
       { num: '3', title: 'Account Registration & Security' },
-      { num: '4', title: 'My Family — Private Library' },
+      { num: '4', title: 'My Family: Private Library' },
       { num: '5', title: 'Family Collaboration' },
       { num: '6', title: 'Content Ownership & Licence' },
       { num: '7', title: 'Acceptable Use' },
@@ -52,7 +52,7 @@ const TOC: TocGroup[] = [
     href: '#part-b',
     dot: 'var(--c1)',
     items: [
-      { num: '19', title: 'Our Stories — Public Feed' },
+      { num: '19', title: 'Our Stories: Public Feed' },
       { num: '20', title: 'Community Standards & Three-Strike Policy' },
       { num: '21', title: 'AI Story Assistance' },
       { num: '22', title: 'Subscriptions & Digital Access' },
@@ -216,7 +216,7 @@ export default function TermsPage() {
         </Section>
 
         {/* 4 */}
-        <Section number="4" title="My Family — Private Library">
+        <Section number="4" title="My Family: Private Library">
           <p>
             My Family is the private layer of Ancestorii. It is a closed space
             accessible only to the account holder and family members they have
@@ -559,7 +559,7 @@ export default function TermsPage() {
         </PartBanner>
 
         {/* 19 */}
-        <Section number="19" title="Our Stories — Public Feed">
+        <Section number="19" title="Our Stories: Public Feed">
           <p>
             Our Stories is a public space where users may publish family
             memories for anyone to read. By publishing a story to Our Stories,

@@ -452,7 +452,7 @@ export default function BookCanvasHeader({
               : 'You\u2019ll be redirected to secure checkout'}
           </div>
 
-          {/* Progress bar — only for export */}
+          {/* Progress bar: only for export */}
           {exporting && (
             <>
               <div

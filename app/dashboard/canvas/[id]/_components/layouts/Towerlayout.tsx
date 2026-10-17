@@ -4,7 +4,7 @@ import Slot from '../Slot';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
- * Tower — 5 images stacked vertically.
+ * Tower: 5 images stacked vertically.
  * Heritage portrait (24×72″ flipped = very tall).
  * Alternating heights: hero(2) · small(1) · medium(1.5) · small(1) · hero(2).
  */

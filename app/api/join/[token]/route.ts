@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Service role client — this endpoint is public (no auth),
+// Service role client: this endpoint is public (no auth),
 // so we need admin access to read the link
 function getAdminClient() {
   return createClient(

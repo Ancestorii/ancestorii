@@ -82,7 +82,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   shipped: { label: 'Shipped', color: '#1A6B3C', bg: '#EDFFF4' },
   delivered: { label: 'Delivered', color: '#1A6B3C', bg: '#EDFFF4' },
   cancelled: { label: 'Cancelled', color: '#8B2020', bg: '#FFF0F0' },
-  error: { label: 'Issue — Contact Support', color: '#8B2020', bg: '#FFF0F0' },
+  error: { label: 'Issue: contact support', color: '#8B2020', bg: '#FFF0F0' },
 };
 
 const CURRENCY_SYMBOL: Record<string, string> = {
@@ -202,7 +202,7 @@ export default function OrdersPage() {
   }, [supabase]);
 
   const formatDate = (iso: string | null) => {
-    if (!iso) return '—';
+    if (!iso) return 'Not yet';
     return new Date(iso).toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'short',
@@ -312,7 +312,7 @@ export default function OrdersPage() {
         )}
 
         {/* ═══════════════════════════════════
-            BOOK ORDERS (EXISTING — UNTOUCHED)
+            BOOK ORDERS (EXISTING, UNTOUCHED)
             ═══════════════════════════════════ */}
         {!loading && orders.length > 0 && (
           <>

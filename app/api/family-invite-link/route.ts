@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    // 2. Parse request — optional { regenerate: true } to revoke + create new
+    // 2. Parse request: optional { regenerate: true } to revoke + create new
     const body = await req.json().catch(() => ({}));
     const regenerate = body?.regenerate === true;
 
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 6. No active link — create one
+    // 6. No active link, create one
     const { data: newLink, error: insertError } = await admin
       .from('family_invite_links')
       .insert({

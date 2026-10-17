@@ -12,7 +12,7 @@ import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
 //
 // Android uses the OFFICIAL Google Play "Get it on Google Play" badge (public/badges/google.svg),
 // wrapped in a link to the Play Store. It is a single full-colour badge that reads on any
-// background, so — unlike the Apple badge — it does NOT switch by theme. Rendered at its
+// background, so, unlike the Apple badge, it does NOT switch by theme. Rendered at its
 // natural aspect ratio, never recoloured or stretched. Per Google's guideline the Play badge
 // is shown at the SAME height as the Apple badge (never smaller) so the two line up.
 type Props = {
@@ -30,7 +30,7 @@ export default function StoreBadges({ theme = 'light', className = '' }: Props) 
   return (
     <div className={`flex flex-wrap items-center gap-4 ${className}`}>
       <a href={APPSTORE_URL} target="_blank" rel="noopener noreferrer" className="inline-block">
-        {/* Official Apple badge — natural aspect ratio, not recoloured or stretched. */}
+        {/* Official Apple badge: natural aspect ratio, not recoloured or stretched. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={appleBadgeSrc}
@@ -41,7 +41,7 @@ export default function StoreBadges({ theme = 'light', className = '' }: Props) 
         />
       </a>
       <a href={PLAYSTORE_URL} target="_blank" rel="noopener noreferrer" className="inline-block">
-        {/* Official Google Play badge — full colour, same height as Apple, natural aspect ratio. */}
+        {/* Official Google Play badge, full colour, same height as Apple, natural aspect ratio. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/badges/google.svg"

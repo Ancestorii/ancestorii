@@ -36,7 +36,7 @@ const tables = Object.keys(defs).sort();
 // Save raw spec for reference (gitignored location handled by caller).
 fs.writeFileSync('scripts/_schema_openapi.json', JSON.stringify(spec, null, 2));
 
-console.log(`# public schema — ${tables.length} tables exposed via PostgREST\n`);
+console.log(`# public schema : ${tables.length} tables exposed via PostgREST\n`);
 for (const t of tables) {
   const def = defs[t];
   const props = def.properties || {};

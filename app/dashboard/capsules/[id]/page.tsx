@@ -467,7 +467,7 @@ function prevMedia() {
               <p className="text-gray-600 max-w-2xl">{capsule.description}</p>
             )}
 
-            {/* TAGGED PEOPLE — MATCH TIMELINES */}
+            {/* TAGGED PEOPLE: MATCH TIMELINES */}
 {taggedPeople.length > 0 && (
   <div className="mt-8 flex flex-wrap items-center gap-3">
     {taggedPeople.map((p) => (

@@ -34,7 +34,7 @@ export default function FeatureLayout({
         padding: 0,
       }}
     >
-      {/* Hero — 58% */}
+      {/* Hero: 58% */}
       <div style={{ flex: '0 0 58%', minHeight: 0 }}>
         <Slot canvasId={canvasId} asset={slot0} selectedImage={selectedImage} clearSelectedImage={clearSelectedImage} onUpdate={onUpdateAsset} isExport={isExport} />
       </div>

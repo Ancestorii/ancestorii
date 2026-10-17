@@ -1,4 +1,4 @@
-// InviteMemberDrawer.tsx — updated with Share Link + Email options
+// InviteMemberDrawer.tsx: updated with Share Link + Email options
 
 'use client';
 
@@ -78,7 +78,7 @@ export default function InviteMemberDrawer({
     if (!url) return;
 
     const shareMessage =
-      "I'm building our family's memory library on Ancestorii — come add your photos and stories.";
+      "I'm building our family's memory library on Ancestorii. Come add your photos and stories.";
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -215,7 +215,7 @@ export default function InviteMemberDrawer({
             {/* ── Share link section (primary) ── */}
             <div className="px-6 py-5">
               <p className="text-[14px] leading-[1.7] text-[#6F6255] mb-5">
-                Share a link with your family — via WhatsApp, text, Messenger, or however you stay in touch.
+                Share a link with your family via WhatsApp, text, Messenger, or however you stay in touch.
               </p>
 
               <button

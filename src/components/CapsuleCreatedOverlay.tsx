@@ -71,7 +71,7 @@ export default function CapsuleCreatedOverlay({
               transition={{ delay: 0.5, duration: 0.5 }}
               className="text-sm text-[#EADFB5] italic max-w-sm"
             >
-              Now shape it — preserve your stories, moments, and voice for your future self.
+              Now shape it: preserve your stories, moments, and voice for your future self.
             </motion.p>
           </motion.div>
         </motion.div>

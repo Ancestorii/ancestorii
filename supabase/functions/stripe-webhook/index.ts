@@ -468,7 +468,7 @@ serve(async (req) => {
         return new Response("Acrylic order handled", { status: 200 });
       }
 
-      // ── SUBSCRIPTION (existing logic — untouched) ──
+      // ── SUBSCRIPTION (existing logic, untouched) ──
       const userId =
         session.metadata?.user_id ?? session.client_reference_id;
       const planName = session.metadata?.plan;
@@ -522,7 +522,7 @@ serve(async (req) => {
       return new Response("Checkout handled", { status: 200 });
     }
 
-    // 1️⃣b checkout.session.expired — abandoned print checkout.
+    // 1️⃣b checkout.session.expired: abandoned print checkout.
     // A redeemed reward code is consumed BEFORE payment, so an abandoned/expired
     // session would otherwise burn a single-use code forever. Release it back to
     // 'issued' and cancel the dangling unpaid order. (expired and completed are

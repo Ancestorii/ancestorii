@@ -253,24 +253,24 @@ export default function MemoryEditorPage({
       <div className="flex-1 w-full">
         <div className={`w-full flex gap-6 px-5 sm:px-8 lg:px-10 xl:px-14 py-8 sm:py-10 pb-24 sm:pb-32 ${mounted ? 'rise' : 'opacity-0'}`}>
 
-          {/* LEFT — Editor */}
+          {/* LEFT: Editor */}
           <div className="flex-1 min-w-0 space-y-6">
 
-            {/* SECTION 1 — TITLE */}
+            {/* SECTION 1: TITLE */}
             <Section icon={<Feather size={15} className="text-[#B8860B]" />} title="Title">
               <div className="bg-white border border-[#E8E6E1] rounded-2xl px-5 py-4 focus-within:border-[#D4A017] focus-within:shadow-[0_0_0_3px_rgba(212,160,23,0.1)] transition-all">
                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Sunday mornings with Nan" maxLength={200} className="w-full bg-transparent outline-none text-[18px] sm:text-[20px] font-extrabold text-[#1A1A1A] placeholder:text-[#D0CEC8] caret-[#D4A017]" style={{ fontFamily: "'DM Sans', sans-serif" }} />
               </div>
             </Section>
 
-            {/* SECTION 2 — YOUR MEMORY */}
+            {/* SECTION 2: YOUR MEMORY */}
             <Section icon={<Feather size={15} className="text-[#B8860B]" />} title="Your Memory">
               <div className="bg-white border border-[#E8E6E1] rounded-2xl overflow-hidden vc-editor focus-within:border-[#D4A017] transition-colors">
                 <QuillEditor value={body} onChange={setBody} />
               </div>
             </Section>
 
-            {/* SECTION 3 — PHOTOS & VIDEO */}
+            {/* SECTION 3: PHOTOS & VIDEO */}
             <Section icon={<ImageIcon size={15} className="text-[#B8860B]" />} title="Photos & Video">
               {existingImages.length > 0 && (
                 <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2.5 mb-4">
@@ -312,7 +312,7 @@ export default function MemoryEditorPage({
               {photoLimitNotice && (<p className="mt-2 text-[12px] text-[#A9782F]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{photoLimitNotice}</p>)}
             </Section>
 
-            {/* SECTION 4 — VOICE NOTE */}
+            {/* SECTION 4: VOICE NOTE */}
             <Section icon={<Music size={15} className="text-[#B8860B]" />} title="Voice Note" optional>
               {existingVoiceUrl && !voiceFile && (
                 <div className="bg-white border border-[#E8E6E1] rounded-2xl p-4 flex items-center gap-3">
@@ -329,7 +329,7 @@ export default function MemoryEditorPage({
             </Section>
           </div>
 
-          {/* RIGHT — Live preview */}
+          {/* RIGHT: Live preview */}
           {showPreview && (
             <div className="hidden lg:block w-[340px] xl:w-[380px] flex-shrink-0">
               <div className="sticky top-[80px]">
@@ -363,7 +363,7 @@ export default function MemoryEditorPage({
 
       <StoryAssistanceCard
         welcomeHeading="Need help writing your memory?"
-        welcomeBody="We'll ask you the right questions to help you find the words. You write it — we just help you get started."
+        welcomeBody="We'll ask you the right questions to help you find the words. You write it. We just help you get started."
         entityName="your memory"
         apiEndpoint="/api/story-assist-public"
         options={[

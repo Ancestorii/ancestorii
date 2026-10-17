@@ -1,4 +1,4 @@
-// Responsive screenshot helper — usage:
+// Responsive screenshot helper : usage:
 //   node scripts/shot.mjs <url> <name> [widths]
 // e.g. node scripts/shot.mjs http://localhost:3000/stories stories-before 390,768,900,1024,1280,1440
 import puppeteer from 'puppeteer-core';

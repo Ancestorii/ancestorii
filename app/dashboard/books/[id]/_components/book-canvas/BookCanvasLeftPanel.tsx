@@ -209,7 +209,7 @@ export default function BookCanvasLeftPanel({
     }
 
     if (s.l && s.r) {
-      return `Pages ${s.l.page_number}–${s.r.page_number}`;
+      return `Pages ${s.l.page_number} to ${s.r.page_number}`;
     }
 
     if (s.l) {

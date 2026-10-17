@@ -197,7 +197,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#ffffff' }}>
 
-      {/* ══════════ HEADER — date chip + heading + edit ══════════ */}
+      {/* ══════════ HEADER: date chip + heading + edit ══════════ */}
       <div style={{ flexShrink: 0, padding: '24px 28px 18px', background: '#ffffff'}}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>

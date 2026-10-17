@@ -685,7 +685,7 @@ export default function PublicNav() {
             ))}
           </nav>
 
-          {/* Right — logged in */}
+          {/* Right: logged in */}
           {isLoggedIn && (
             <div className="pn-actions">
              {/* Search */}
@@ -765,7 +765,7 @@ export default function PublicNav() {
             </div>
           )}
 
-          {/* Right — logged out */}
+          {/* Right: logged out */}
           {!isLoggedIn && (
             <div className="pn-auth">
               <Link href="/login" className="pn-btn-login">Log In</Link>

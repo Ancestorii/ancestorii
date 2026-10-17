@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
-   Locked brand palette — Ancestorii web UI.
+   Locked brand palette, Ancestorii web UI.
    Pure white ground, ink text, gold + periwinkle accents,
    pale cool tints for depth. Light-only; no dark mode.
    (Replaces the former shadcn slate/neutral OKLCH ramp.)
@@ -40,19 +40,19 @@
   --muted-foreground: var(--ink-secondary);
   --accent: var(--surface-periwinkle);   /* subtle cool hover highlight */
   --accent-foreground: var(--ink);
-  --destructive: oklch(0.577 0.245 27.325); /* functional error red — intentionally distinct from --like */
+  --destructive: oklch(0.577 0.245 27.325); /* functional error red, intentionally distinct from --like */
   --border: var(--hairline);
   --input: var(--hairline);
   --ring: #2B4BFF;                       /* brand blue focus ring */
 
-  /* Charts — provisional on-brand mapping (gold / periwinkle / ink family); revisit with a proper dataviz pass */
+  /* Charts: provisional on-brand mapping (gold / periwinkle / ink family); revisit with a proper dataviz pass */
   --chart-1: var(--gold);
   --chart-2: var(--periwinkle);
   --chart-3: var(--ink);
   --chart-4: var(--gold-deep);
   --chart-5: #7C8AE0;
 
-  /* Sidebar — white ground, ink text, cool hover, blue focus */
+  /* Sidebar: white ground, ink text, cool hover, blue focus */
   --sidebar: #FFFFFF;
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--ink);
@@ -151,7 +151,7 @@
   --color-comment: var(--comment);
 }
 
-/* Dark theme removed — Ancestorii web UI is light-only (no dark mode, ever).
+/* Dark theme removed: Ancestorii web UI is light-only (no dark mode, ever).
    The `dark:` variant above stays defined but inert: no `.dark` class is ever
    applied, so `dark:` utilities never activate and OS dark mode cannot leak in. */
 

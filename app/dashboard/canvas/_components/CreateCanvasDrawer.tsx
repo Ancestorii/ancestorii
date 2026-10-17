@@ -480,7 +480,7 @@ export default function CreateCanvasDrawer({
                           </p>
                           {tier.key === 'heritage' && active && (
                             <p className="mt-2 text-[11px] font-bold leading-snug text-[#B42318]">
-                              UK shipping only. Please do not order The Heritage if you are based outside the United Kingdom — international shipping is not available for this size.
+                              UK shipping only. Please do not order The Heritage if you are based outside the United Kingdom. International shipping is not available for this size.
                             </p>
                           )}
                         </div>

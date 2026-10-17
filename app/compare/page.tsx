@@ -20,7 +20,7 @@ import site from '@/components/site/site.module.css';
 
 export const metadata: Metadata = {
   title: { absolute: 'Ancestorii vs Storyworth vs Remento: Which Family Memory Platform Is Right for You?' },
-  description: 'An honest comparison of Ancestorii, Storyworth, and Remento. See how a living family library compares to prompt-based book services — and decide which approach fits your family.',
+  description: 'An honest comparison of Ancestorii, Storyworth, and Remento. See how a living family library compares to prompt-based book services, and decide which approach fits your family.',
   alternates: { canonical: 'https://www.ancestorii.com/compare' },
   robots: { index: true, follow: true },
   openGraph: {
@@ -58,7 +58,7 @@ const FEATURES = [
 const QUESTIONS = [
   {
     q: 'What is the main difference between Ancestorii and Storyworth?',
-    a: 'Storyworth is a book service. One storyteller writes to prompts for a year, and those responses become a book. Ancestorii is a living library with two layers — a public feed for sharing stories with the world, and a private space only your family can see. You can also print Memory Books, Canvas Prints, and Acrylic Prints from your library whenever you want.',
+    a: 'Storyworth is a book service. One storyteller writes to prompts for a year, and those responses become a book. Ancestorii is a living library with two layers: a public feed for sharing stories with the world, and a private space only your family can see. You can also print Memory Books, Canvas Prints, and Acrylic Prints from your library whenever you want.',
   },
   {
     q: 'What is the main difference between Ancestorii and Remento?',
@@ -182,7 +182,7 @@ export default function ComparePage() {
               featured
               oneLiner="A living library with two layers, built for the whole family."
               strengths={[
-                'Two distinct spaces. Our Stories is public — share memories with the world, newest first by default, no follower counts, just real stories from real families. My Family is private — only invited family members can see what is inside.',
+                'Two distinct spaces. Our Stories is public: share memories with the world, newest first by default, no follower counts, just real stories from real families. My Family is private: only invited family members can see what is inside.',
                 'Not built around one storyteller or one year. Your whole family contributes. Timelines, albums, stories, and voice recordings grow together over time.',
                 'My Heirlooms lets you turn your library into physical keepsakes. Memory Books designed page by page in a visual editor. Canvas Prints. Acrylic Prints. Things you hold, frame, and pass down.',
                 'No prompt schedule. Optional AI writing help, Story Assistance, can suggest words but never rewrites yours. You write what you want, when you want, in your own voice.',

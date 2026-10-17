@@ -110,7 +110,7 @@ export default function BookPreviewOverlay({
     if (cur.type === 'cover') return 'Cover';
     if (cur.type === 'back_cover') return 'Back Cover';
     if (cur.type === 'single') return `Page ${cur.r.page_number}`;
-    if (cur.l && cur.r) return `Pages ${cur.l.page_number}–${cur.r.page_number}`;
+    if (cur.l && cur.r) return `Pages ${cur.l.page_number} to ${cur.r.page_number}`;
     if (cur.l) return `Page ${cur.l.page_number}`;
     return '';
   };

@@ -11,19 +11,19 @@ import landing from '@/components/landing/landing.module.css';
 import styles from '@/components/site/utility/handoff.module.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// /q/[code] — STORE REDIRECT ONLY.
+// /q/[code]: STORE REDIRECT ONLY.
 //
 // This route's single job is to bounce a visitor to the right app store. It NEVER
-// renders a web answering interface — answering happens exclusively in the app.
+// renders a web answering interface, answering happens exclusively in the app.
 //
 // If the app IS installed, the OS intercepts https://ancestorii.com/q/CODE via the
 // Universal Link / App Link verification files (/.well-known/apple-app-site-association
 // and /.well-known/assetlinks.json) BEFORE the request reaches this server, opening the
-// app directly. So this route only ever runs for people WITHOUT the app — exactly the
+// app directly. So this route only ever runs for people WITHOUT the app, exactly the
 // people who need the store.
 //
 // Store links live in ONE place: src/lib/store-links.ts (@/lib/store-links). Fill the
-// App Store id there at launch — this page and /m/[code] both import it.
+// App Store id there at launch, this page and /m/[code] both import it.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Device detection runs per request; never cache the redirect.

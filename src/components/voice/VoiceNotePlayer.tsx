@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Play, Pause, Download } from 'lucide-react';
 
 /**
- * Bar heights (0.2–1) from a seeded generator, so the server and the browser
+ * Bar heights (0.2 to 1) from a seeded generator, so the server and the browser
  * draw the same waveform. Seeded by the URL without its query string, so a
  * note keeps its shape when its signed URL is renewed.
  */
@@ -21,7 +21,7 @@ function waveformBars(src: string, count: number) {
 
 /**
  * Waveform audio player for a single voice note (signed URL).
- * Pure player row — callers provide any surrounding frame/header.
+ * Pure player row: callers provide any surrounding frame/header.
  */
 export default function VoiceNotePlayer({
   src,

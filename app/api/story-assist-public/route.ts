@@ -50,9 +50,9 @@ function buildPrompt(type: AssistType, context: Record<string, unknown>): string
 
 ${contextBlock}
 
-Write structured prompts using this EXACT format — a question on its own line, then a short paragraph beneath it (1-2 sentences max), then a blank line before the next question. Give 3-4 sections.
+Write structured prompts using this EXACT format: a question on its own line, then a short paragraph beneath it (1-2 sentences max), then a blank line before the next question. Give 3-4 sections.
 
-Focus on: where were they when this happened, who else was there, what time of day was it, what was the weather like, what were they doing just before this moment started. Every question should use details from the title and category to be specific, not generic. The short paragraphs beneath should be evocative nudges, not instructions — paint a tiny picture that makes them go "yes, that's it."
+Focus on: where were they when this happened, who else was there, what time of day was it, what was the weather like, what were they doing just before this moment started. Every question should use details from the title and category to be specific, not generic. The short paragraphs beneath should be evocative nudges, not instructions, paint a tiny picture that makes them go "yes, that's it."
 
 Do NOT write the story for them. Ask the questions that make them want to write it themselves.`;
 
@@ -61,18 +61,18 @@ Do NOT write the story for them. Ask the questions that make them want to write 
 
 ${contextBlock}
 
-Write structured prompts using this EXACT format — a question on its own line, then a short paragraph beneath it (1-2 sentences max), then a blank line before the next question. Give 3-4 sections.
+Write structured prompts using this EXACT format: a question on its own line, then a short paragraph beneath it (1-2 sentences max), then a blank line before the next question. Give 3-4 sections.
 
 Focus on: what they didn't say out loud in that moment, what they only understood years later, what sound or smell takes them straight back, who they wish had been there, what would be lost if this memory disappeared. Each question should be personal to their specific story using the title and any text they've already written. The short paragraphs beneath should be honest and quiet, not sentimental.
 
 Do NOT write the story for them. Ask the questions that make the feeling surface.`;
 
     case 'story-closing':
-      return `The user is writing a story for the public feed and needs help finding the ending. Not a summary — a landing. Help them find it by asking questions.
+      return `The user is writing a story for the public feed and needs help finding the ending. Not a summary but a landing. Help them find it by asking questions.
 
 ${contextBlock}
 
-Write structured prompts using this EXACT format — a question on its own line, then a short paragraph beneath it (1-2 sentences max), then a blank line before the next question. Give 3 sections.
+Write structured prompts using this EXACT format: a question on its own line, then a short paragraph beneath it (1-2 sentences max), then a blank line before the next question. Give 3 sections.
 
 Focus on: where are the people in this story now, what small detail from this memory do they still carry with them, if they could go back to that moment what would they notice that they missed the first time. Each question should be specific to their story. The paragraphs beneath should feel like a quiet pause, not a writing exercise.
 

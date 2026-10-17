@@ -25,7 +25,7 @@ A story FAILS if it contains ANY of the following:
 - Self-promotion or commercial content (advertising, product plugs, business promotion, affiliate links)
 - Content that is clearly not a genuine family memory (fiction, AI-generated filler, jokes, memes, news commentary, essays unrelated to family)
 
-Be reasonable. A story mentioning a church wedding, a Christmas tradition, or a family member's career in politics is fine — those are genuine memories. Flag only content where the PRIMARY PURPOSE is religious messaging, political advocacy, hate, spam, or promotion rather than sharing a family memory.
+Be reasonable. A story mentioning a church wedding, a Christmas tradition, or a family member's career in politics is fine. Those are genuine memories. Flag only content where the PRIMARY PURPOSE is religious messaging, political advocacy, hate, spam, or promotion rather than sharing a family memory.
 
 Respond with ONLY a JSON object, no markdown, no backticks, no preamble:
 {"pass": true}
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
       console.error('ANTHROPIC_API_KEY is not set');
-      // Fail open — publish anyway if AI is unavailable
+      // Fail open: publish anyway if AI is unavailable
       await admin
         .from('stories')
         .update({ status: 'published', published_at: new Date().toISOString() })
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       console.error('Moderation API error:', response.status);
-      // Fail open — publish if AI is down
+      // Fail open: publish if AI is down
       await admin
         .from('stories')
         .update({ status: 'published', published_at: new Date().toISOString() })
@@ -174,7 +174,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (result.pass) {
-      // Approved — publish immediately
+      // Approved: publish immediately
       await admin
         .from('stories')
         .update({ status: 'published', published_at: new Date().toISOString() })
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ moderation_result: 'approved' });
     }
 
-    // Flagged — set to pending_review with reason
+    // Flagged: set to pending_review with reason
     await admin
       .from('stories')
       .update({
@@ -214,7 +214,7 @@ export async function POST(req: NextRequest) {
       console.error('Failed to send moderation email:', emailErr);
     }
 
-    // Email the story author — under review notification
+    // Email the story author, under review notification
     try {
       const { data: { user: authorUser } } = await admin.auth.admin.getUserById(story.author_id);
       const authorEmail = authorUser?.email;

@@ -4,7 +4,7 @@ import Slot from '../Slot';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
- * Grid — 6 equal images.
+ * Grid: 6 equal images.
  * Pass columns=3 for landscape (3×2), columns=2 for portrait (2×3).
  */
 export default function GridLayout({

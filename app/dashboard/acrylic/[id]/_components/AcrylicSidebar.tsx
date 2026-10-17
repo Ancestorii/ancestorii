@@ -172,7 +172,7 @@ export default function Sidebar({
 
     const newRotation = current.rotation === 180 ? 0 : 180;
 
-    // Optimistic local update — flip thumbnail immediately
+    // Optimistic local update: flip thumbnail immediately
     setImages((prev) =>
       prev.map((img) =>
         img.id === imageId ? { ...img, rotation: newRotation } : img

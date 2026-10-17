@@ -4,7 +4,7 @@ import Slot from '../Slot';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
- * Centrepiece — dominant centre image flanked by 6 supporting.
+ * Centrepiece: dominant centre image flanked by 6 supporting.
  * Heritage landscape (24×72″).
  * 3 left | HERO | 3 right
  */

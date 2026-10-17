@@ -66,7 +66,7 @@ export default function DeleteFolderModal({
 
       if (dbErr) throw dbErr;
 
-      // 3) Sweep storage in one batch. Failure here doesn't unwind DB state —
+      // 3) Sweep storage in one batch. Failure here doesn't unwind DB state, 
       //    any orphans can be cleaned later, the user-facing state is correct.
       if (filePaths.length > 0) {
         await supabase.storage.from(bucket).remove(filePaths);

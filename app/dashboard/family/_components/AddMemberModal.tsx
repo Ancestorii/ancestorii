@@ -357,7 +357,7 @@ return;
             {/* AGE */}
             {ageDisplay && (
               <p className="text-sm text-[#7A8596] italic mb-6">
-                {death ? ageDisplay : `${ageDisplay} — Living`}
+                {death ? ageDisplay : `${ageDisplay} to present`}
               </p>
             )}
 

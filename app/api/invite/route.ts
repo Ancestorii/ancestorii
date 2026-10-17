@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        // In a different family — check if it's a real family (not just their auto-created solo one)
+        // In a different family, check if it's a real family (not just their auto-created solo one)
         const { count } = await admin
           .from('family_memberships')
           .select('*', { count: 'exact', head: true })

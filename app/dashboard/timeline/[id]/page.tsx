@@ -278,7 +278,7 @@ export default function TimelineDetailPage() {
       <a href="/dashboard/timeline" style={{ marginTop: 24, padding: '10px 24px', borderRadius: 10, background: '#1A1714', color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Back to Timelines</a>
     </div>
 
-    {/* LEFT — EXACT Albums container */}
+    {/* LEFT: EXACT Albums container */}
     <div className="flex-1 p-8">
       <button
         onClick={() => router.push('/dashboard/timeline')}
@@ -302,7 +302,7 @@ export default function TimelineDetailPage() {
             </p>
           )}
 
-          {/* TAGGED PEOPLE — BELOW TITLE & DESCRIPTION */}
+          {/* TAGGED PEOPLE: BELOW TITLE & DESCRIPTION */}
 {taggedPeople.length > 0 && (
   <div className="mt-8 flex flex-wrap items-center gap-3">
     {taggedPeople.map((p) => (
@@ -362,7 +362,7 @@ export default function TimelineDetailPage() {
         </div>
       </div>
 
-      {/* CONTENT — BELOW HEADER (display:none below lg: the gate above covers it, so phones skip laying it out) */}
+      {/* CONTENT: BELOW HEADER (display:none below lg: the gate above covers it, so phones skip laying it out) */}
      <div className="hidden lg:block mt-20 pt-16 pb-16">
      {events.length === 0 ? (
        <EmptyState onCreate={() => setCreateOpen(true)} />

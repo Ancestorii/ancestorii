@@ -4,7 +4,7 @@ import Slot from '../Slot';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
- * Timeline — 6 images in a chronological strip.
+ * Timeline: 6 images in a chronological strip.
  * Heritage landscape (24×72″ = extremely wide).
  * Alternating vertical offset for rhythm.
  */

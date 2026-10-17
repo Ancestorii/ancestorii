@@ -6,7 +6,7 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
- * Generations — three portrait frames stacked vertically.
+ * Generations: three portrait frames stacked vertically.
  * Heritage portrait (24×72″).
  * Each slot includes a caption for the name / generation.
  */

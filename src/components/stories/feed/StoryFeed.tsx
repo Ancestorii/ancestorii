@@ -128,7 +128,7 @@ export default function StoryFeed({
             {/* ─── Left: stories ─── */}
             <div className={feed.mainCol}>
 
-              {/* Featured Stories — show if one matches the active category */}
+              {/* Featured Stories: show if one matches the active category */}
               {activeFeatured && (
                 <FeaturedSection
                   featuredStories={featuredStories}
@@ -223,7 +223,7 @@ export default function StoryFeed({
 
                   <p className={feed.ctaText}>
                     It takes two minutes to preserve something that matters
-                    forever. Completely free — no credit card, no catch.
+                    forever. Completely free. No credit card, no catch.
                   </p>
 
                   <button
@@ -241,7 +241,7 @@ export default function StoryFeed({
               </div>
             </div>
 
-            {/* ─── Right: sidebar — hidden until 1280px, where there's room for it ─── */}
+            {/* ─── Right: sidebar: hidden until 1280px, where there's room for it ─── */}
             <div className={feed.side}>
               <div className={feed.sideSticky}>
                 <FeedSidebar
@@ -260,7 +260,7 @@ export default function StoryFeed({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   FEATURED STORIES — TABBED SECTION
+   FEATURED STORIES. TABBED SECTION
    ═══════════════════════════════════════════════════════════════ */
 
 const FEATURE_TAB_LABELS: Record<string, string> = {

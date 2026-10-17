@@ -22,7 +22,7 @@ const SITE = 'https://www.ancestorii.com';
 export const metadata: Metadata = {
   title: 'The Best Storyworth Alternative for 2026',
   description:
-    'Looking for a Storyworth alternative? See how Ancestorii compares — a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, delivering to 20 countries.',
+    'Looking for a Storyworth alternative? See how Ancestorii compares: a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, delivering to 20 countries.',
   alternates: { canonical: `${SITE}/compare/storyworth-alternative` },
   robots: { index: true, follow: true },
   openGraph: {
@@ -98,14 +98,14 @@ const FEATURES = [
   ['Core concept', 'Living library + public stories + heirlooms', 'Weekly prompts → one printed book'],
   ['Who contributes', 'The whole family', 'One storyteller per subscription'],
   ['Family app on your phone', 'Yes, free on iPhone and Android', 'No app: email, website or phone'],
-  ['Continues after the book', 'Yes — the library keeps growing', 'Only if you renew for another year'],
+  ['Continues after the book', 'Yes, the library keeps growing', 'Only if you renew for another year'],
   ['Prompt system', 'Optional questions you send when you like', '500+ questions or your own, weekly by text or email'],
-  ['Private family space', 'Yes — invite only', 'No'],
-  ['Public story feed', 'Yes — Our Stories', 'No'],
-  ['Voice recordings', 'Yes — kept in the library', 'Limited'],
+  ['Private family space', 'Yes, invite only', 'No'],
+  ['Public story feed', 'Yes, Our Stories', 'No'],
+  ['Voice recordings', 'Yes, kept in the library', 'Limited'],
   ['Book design control', 'You design every page', 'Auto compiled'],
   ['Canvas and acrylic prints', 'Yes', 'No'],
-  ['Free plan', 'Yes — free forever', 'No'],
+  ['Free plan', 'Yes, free forever', 'No'],
   ['Built in / pricing', 'United Kingdom; pounds, euros or dollars', 'United States; UK plans from £49'],
   ['Delivery', 'To 20 countries, from £4.99', 'Free US, extra internationally'],
 ];

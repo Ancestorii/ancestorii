@@ -13,7 +13,7 @@ function getAdminClient() {
 
 export async function POST(req: Request) {
   try {
-    // 1. Authenticated client — verify who's calling
+    // 1. Authenticated client: verify who's calling
     const supabase = await getServerClient();
     const { data: auth } = await supabase.auth.getUser();
 
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
     const targetFamilyId = link.family_id;
 
-    // 3. One-family rule — check current membership
+    // 3. One-family rule: check current membership
     const { data: currentMembership } = await admin
       .from('family_memberships')
       .select('family_id')
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (currentMembership) {
-      // Already in the target family — nothing to do
+      // Already in the target family, nothing to do
       if (currentMembership.family_id === targetFamilyId) {
         return NextResponse.json({
           success: true,
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         });
       }
 
-      // In a different family — check if it's a solo auto-created family
+      // In a different family, check if it's a solo auto-created family
       const { count } = await admin
         .from('family_memberships')
         .select('*', { count: 'exact', head: true })

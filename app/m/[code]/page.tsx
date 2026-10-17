@@ -12,23 +12,23 @@ import landing from '@/components/landing/landing.module.css';
 import styles from '@/components/site/utility/handoff.module.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// /m/[code] — MEMORY SHARE STORE REDIRECT (twin of /q/[code]).
+// /m/[code]: MEMORY SHARE STORE REDIRECT (twin of /q/[code]).
 //
 // This route's single job is to bounce a visitor to the right app store. It NEVER
-// renders the memory on the web — private family memories are viewed only in the app,
+// renders the memory on the web, private family memories are viewed only in the app,
 // under the recipient's own session + RLS.
 //
 // If the app IS installed, the OS intercepts https://ancestorii.com/m/CODE via the
 // Universal Link / App Link verification files (/.well-known/apple-app-site-association
 // and /.well-known/assetlinks.json) BEFORE the request reaches this server, opening the
-// app directly. So this route only runs for people WITHOUT the app — exactly the people
-// who need the store — and for link scrapers fetching the OG preview below.
+// app directly. So this route only runs for people WITHOUT the app, exactly the people
+// who need the store, and for link scrapers fetching the OG preview below.
 //
 // The OG preview comes from the anon get_memory_share RPC: title / author / family only,
 // never a join token or media. Brute-forcing the code reveals at most that preview.
 //
 // Store links live in ONE place: src/lib/store-links.ts (@/lib/store-links). Fill the
-// App Store id there at launch — this page and /q/[code] both import it.
+// App Store id there at launch, this page and /q/[code] both import it.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const dynamic = 'force-dynamic';

@@ -3,12 +3,12 @@
 import { useId } from 'react';
 
 /**
- * "Verified Family" seal — a periwinkle 16-bump scalloped flower with a metallic
+ * "Verified Family" seal: a periwinkle 16-bump scalloped flower with a metallic
  * gold ring and a bold white tick. Reproduced verbatim from the mobile app so the
  * two surfaces are pixel-identical. Drawn in a 0 0 100 100 viewBox and scales from
  * the centre, so render it at whatever size the context needs.
  *
- * Family-scoped only — it marks a FAMILY (not a person) that has reached the t5
+ * Family-scoped only: it marks a FAMILY (not a person) that has reached the t5
  * reward milestone. Render it next to the family name, never next to a member.
  */
 
@@ -28,7 +28,7 @@ export function FamilyVerifiedBadge({
   size?: number;
   className?: string;
 }) {
-  // Unique gradient ids per instance — if two badges render on one page, shared
+  // Unique gradient ids per instance, if two badges render on one page, shared
   // ids would collide and one badge would pick up the other's gradient.
   const uid = useId().replace(/:/g, '');
   const peri = `fvbPeri-${uid}`;

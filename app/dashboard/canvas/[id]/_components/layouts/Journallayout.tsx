@@ -6,7 +6,7 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
- * Journal — 2 slots.
+ * Journal: 2 slots.
  * Slot 0 = image (top 60%).
  * Slot 1 = unused as image; its caption field is the body text.
  * Slot 0's caption is the title.
@@ -69,7 +69,7 @@ export default function JournalLayout({
         fontFamily: inter.style.fontFamily,
       }}
     >
-      {/* Image — 60% */}
+      {/* Image: 60% */}
       <div style={{ flex: '0 0 60%', minHeight: 0 }}>
         <Slot
           canvasId={canvasId}

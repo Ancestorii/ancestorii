@@ -64,7 +64,7 @@ export default function OurFamilyHeader({
           </p>
 
           <div className="mt-4 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-            {/* Left — family name + meta */}
+            {/* Left: family name + meta */}
             <div className="min-w-0 flex-1">
               {editing ? (
                 <input
@@ -119,12 +119,12 @@ export default function OurFamilyHeader({
               </div>
 
               <p className="mt-4 max-w-[520px] text-[15px] leading-[1.7] text-[#6F6255]">
-                Everyone here shares your family library — the photos, timelines,
+                Everyone here shares your family library: the photos, timelines,
                 albums, and stories you&apos;re preserving together.
               </p>
             </div>
 
-            {/* Right — invite button */}
+            {/* Right: invite button */}
             {canInvite && (
               <div className="flex-shrink-0">
                 <button

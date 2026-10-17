@@ -4,7 +4,7 @@ import Slot from '../Slot';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
- * Gallery — 7 images in museum-style rows.
+ * Gallery: 7 images in museum-style rows.
  * Heritage landscape (24×72″).
  * Top row: 3 wider images (55% height).
  * Bottom row: 4 narrower images.
@@ -41,7 +41,7 @@ export default function GalleryLayout({
         padding: 0,
       }}
     >
-      {/* Top row — 3 wider (55% height) */}
+      {/* Top row: 3 wider (55% height) */}
       <div style={{ flex: '0 0 55%', display: 'flex', gap: 0, minHeight: 0 }}>
         {topRow.map((slot) => (
           <div key={slot.slot_index} style={{ flex: 1, minWidth: 0 }}>
@@ -49,7 +49,7 @@ export default function GalleryLayout({
           </div>
         ))}
       </div>
-      {/* Bottom row — 4 narrower */}
+      {/* Bottom row: 4 narrower */}
       <div style={{ flex: 1, display: 'flex', gap: 0, minHeight: 0 }}>
         {bottomRow.map((slot) => (
           <div key={slot.slot_index} style={{ flex: 1, minWidth: 0 }}>

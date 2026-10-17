@@ -22,7 +22,7 @@ function shippingOptions(currency: "GBP" | "USD" | "EUR") {
       shipping_rate_data: {
         type: "fixed_amount" as const,
         fixed_amount: { amount: SHIPPING.standard[currency], currency: cur },
-        display_name: "Standard Shipping (10–14 working days)",
+        display_name: "Standard Shipping (10 to 14 working days)",
         delivery_estimate: {
           minimum: { unit: "business_day" as const, value: 10 },
           maximum: { unit: "business_day" as const, value: 14 },
@@ -33,7 +33,7 @@ function shippingOptions(currency: "GBP" | "USD" | "EUR") {
       shipping_rate_data: {
         type: "fixed_amount" as const,
         fixed_amount: { amount: SHIPPING.express[currency], currency: cur },
-        display_name: "Express Shipping (5–7 working days)",
+        display_name: "Express Shipping (5 to 7 working days)",
         delivery_estimate: {
           minimum: { unit: "business_day" as const, value: 5 },
           maximum: { unit: "business_day" as const, value: 7 },
@@ -57,7 +57,7 @@ function rewardErrorMessage(reason?: string): string {
 }
 
 // Eligibility for free_product codes. discount_pct codes apply to any print/tier.
-// NOTE (product policy — flagged for review): 'memory_book_chapter' → Chapter book only;
+// NOTE (product policy: flagged for review): 'memory_book_chapter' → Chapter book only;
 // 'any_print_standard' → the standard (entry) tier of whichever product. Mapping:
 // book=chapter, canvas=moment, acrylic=portrait.
 function checkRewardEligibility(
@@ -71,12 +71,12 @@ function checkRewardEligibility(
     if (meta.product_key === "memory_book_chapter") {
       return product === "book" && tierKey === "chapter"
         ? { ok: true }
-        : { ok: false, message: "This reward is a free Chapter memory book — choose a Chapter book to redeem it." };
+        : { ok: false, message: "This reward is a free Chapter memory book. Choose a Chapter book to redeem it." };
     }
     if (meta.product_key === "any_print_standard") {
       return tierKey === standardTier
         ? { ok: true }
-        : { ok: false, message: "This reward covers a free print at standard size — switch to the standard tier to redeem it." };
+        : { ok: false, message: "This reward covers a free print at standard size. Switch to the standard tier to redeem it." };
     }
   }
   return { ok: false, message: "This reward code cannot be applied to this product." };

@@ -326,7 +326,7 @@ async function uploadMedia(rawFile: File) {
       file.type.startsWith('audio') ? 'audio' :
       'file';
 
-    // 🔑 INSERT ONLY — DO NOT SELECT
+    // 🔑 INSERT ONLY: DO NOT SELECT
     const { error: insertErr } = await supabase
       .from('timeline_event_media')
       .insert({

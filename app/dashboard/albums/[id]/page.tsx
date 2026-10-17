@@ -381,7 +381,7 @@ export default function Page() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN — desktop only */}
+        {/* RIGHT COLUMN: desktop only */}
           <aside className="desktop-panel" style={{ width: 500, flexShrink: 0, height: '100vh', borderLeft: '1px solid #e5ddd0', background: '#ffffff' }}>
           <StoryPanel
             selectedMedia={selectedMedia} albumId={album.id} user={user} allMedia={media} taggedPeople={taggedPeople}

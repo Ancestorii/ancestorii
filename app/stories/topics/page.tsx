@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   // The root layout's template adds " | Ancestorii"
   title: 'Browse Family Stories by Topic',
   description:
-    'Explore real family stories by topic — family, food and recipes, childhood, love, life lessons, traditions, and travel. Real memories from real families on Ancestorii.',
+    'Explore real family stories by topic: family, food and recipes, childhood, love, life lessons, traditions, and travel. Real memories from real families on Ancestorii.',
   alternates: { canonical: `${SITE}/stories/topics` },
   openGraph: {
     type: 'website',

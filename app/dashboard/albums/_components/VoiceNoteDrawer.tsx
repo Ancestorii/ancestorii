@@ -177,7 +177,7 @@ export default function VoiceNoteDrawer({
         </div>
 
         <p className="text-sm text-gray-500 mb-8">
-          Your voice will be sealed inside this memory — preserved exactly as it was.
+          Your voice will be sealed inside this memory, preserved exactly as it was.
         </p>
 
         {/* MODE TOGGLE */}

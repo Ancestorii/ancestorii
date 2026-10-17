@@ -319,7 +319,7 @@ export default function ProfilePage() {
     })();
   }, [userId]);
 
-  // Avatar — sign the private URL, then keep re-signing before it expires
+  // Avatar: sign the private URL, then keep re-signing before it expires
   // so the photo never silently disappears on a long-open tab.
   useEffect(() => {
     const path = profile?.profile_image_url;
@@ -439,7 +439,7 @@ export default function ProfilePage() {
   };
 
   const formattedDate = useMemo(() => {
-    if (!memberSince) return '—';
+    if (!memberSince) return 'Not recorded';
     return new Date(memberSince).toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'long',
@@ -647,8 +647,8 @@ export default function ProfilePage() {
                   </p>
                   <p className="mt-1.5 text-[11px] text-[#9B8E7D]">
                     {profile?.writing_assistance_enabled !== false
-                      ? 'Currently on — suggestions will appear across your library.'
-                      : 'Currently off — no suggestions will be shown.'}
+                      ? 'Currently on. Suggestions will appear across your library.'
+                      : 'Currently off. No suggestions will be shown.'}
                   </p>
                 </div>
                 <button
@@ -848,7 +848,7 @@ export default function ProfilePage() {
           <div>
             <div className="mb-6">
               <h3 className="text-[18px] sm:text-[20px] lg:text-[22px] font-bold text-[#1A1612] tracking-[-0.02em]">Nominate Stories</h3>
-              <p className="mt-1 text-[13px] sm:text-[14px] text-[#7D6F5F]">Choose which stories are featured on the feed. One story per slot — selecting a new one replaces the old.</p>
+              <p className="mt-1 text-[13px] sm:text-[14px] text-[#7D6F5F]">Choose which stories are featured on the feed. One story per slot. Selecting a new one replaces the old.</p>
             </div>
 
             {featuredLoading ? (
@@ -910,7 +910,7 @@ export default function ProfilePage() {
                             <option value="">{current ? 'Replace…' : 'Select story…'}</option>
                             {publishedStories.map((s) => (
                               <option key={s.id} value={s.id}>
-                                {s.title} — {s.author_name}
+                                {s.title} by {s.author_name}
                               </option>
                             ))}
                           </select>

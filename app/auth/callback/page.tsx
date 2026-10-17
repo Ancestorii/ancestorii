@@ -26,7 +26,7 @@ export default function AuthCallback() {
         return;
       }
 
-      // Create profile if it doesn't exist — never overwrite user's custom values
+      // Create profile if it doesn't exist, never overwrite user's custom values
       const { data: existingProfile } = await supabase
         .from('Profiles')
         .select('id')
@@ -52,7 +52,7 @@ export default function AuthCallback() {
             body: JSON.stringify({ token: inviteToken }),
           });
         } catch {
-          // Non-critical — user ends up in their own family
+          // Non-critical: user ends up in their own family
         }
         sessionStorage.removeItem('invite_token');
       }
@@ -90,7 +90,7 @@ export default function AuthCallback() {
       if (postLoginRedirect) sessionStorage.removeItem('post_login_redirect');
 
       if (inviteToken) {
-        // Invited users skip onboarding — feed already has content
+        // Invited users skip onboarding, feed already has content
         router.replace('/dashboard/our-family');
       } else {
         // Everyone else: check onboarding

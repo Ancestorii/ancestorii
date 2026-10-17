@@ -5,7 +5,7 @@ import JsonLd from '@/components/site/seo/JsonLd';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Ancestorii — Stories from Real Families',
+  title: 'Ancestorii: Stories from Real Families',
   description:
     'Every family has a story worth sharing. Share your family’s stories, photos and voices with the people who matter, read real stories from real families, and turn them into printed Memory Books. Free to start.',
   keywords: [
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     'digital legacy',
   ],
   openGraph: {
-    title: 'Ancestorii — Stories from Real Families',
+    title: 'Ancestorii: Stories from Real Families',
     description:
       'Every family has a story worth sharing. Share the stories, photos and voices that matter, and turn them into printed Memory Books.',
     url: 'https://www.ancestorii.com',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
         url: '/og-home.jpg',
         width: 1200,
         height: 630,
-        alt: 'Ancestorii — Stories from Real Families',
+        alt: 'Ancestorii: Stories from Real Families',
       },
     ],
     locale: 'en_GB',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Ancestorii — Stories from Real Families',
+    title: 'Ancestorii: Stories from Real Families',
     description:
       'Every family has a story worth sharing. Share the stories, photos and voices that matter, and turn them into printed Memory Books.',
     images: ['/og-home.jpg'],
@@ -68,7 +68,7 @@ export default async function HomePage() {
         data={{
           '@context': 'https://schema.org',
           '@type': 'WebPage',
-          name: 'Ancestorii — Stories from Real Families',
+          name: 'Ancestorii: Stories from Real Families',
           description:
             'Every family has a story worth sharing. Families share their stories, photos and voices, and turn them into printed Memory Books.',
           url: 'https://www.ancestorii.com/',

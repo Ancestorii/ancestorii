@@ -35,7 +35,7 @@ export const CANVAS_COLORS = {
 
 type PanelTab = 'media' | 'layout';
 
-/** Slot count lookup — tier-aware for cascade and mosaic */
+/** Slot count lookup: tier-aware for cascade and mosaic */
 export function getSlotCount(layoutType: string, tierKey: string): number {
   if (layoutType === 'cascade') return tierKey === 'heritage' ? 6 : 4;
   if (layoutType === 'mosaic') return tierKey === 'heritage' ? 10 : 5;

@@ -82,7 +82,7 @@ export default function SettingsPage() {
           email: marketingOptIn,
         });
       } else {
-        // No row exists yet — create one with defaults
+        // No row exists yet, create one with defaults
         const { data: newRow } = await supabase
           .from('notification_preferences')
           .upsert({
@@ -99,7 +99,7 @@ export default function SettingsPage() {
             email: marketingOptIn,
           });
         } else {
-          // Fallback — at least make toggles work visually
+          // Fallback: at least make toggles work visually
           setPrefs({
             id: 'temp',
             user_id: user.id,

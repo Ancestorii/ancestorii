@@ -119,7 +119,7 @@ export default function SignupForm() {
         return;
       }
     } catch {
-      // Validation failed — proceed anyway (fail open)
+      // Validation failed: proceed anyway (fail open)
     }
 
     try {
@@ -225,7 +225,7 @@ export default function SignupForm() {
           <h2 className={styles.stepTitle}>
             Create your <span className={site.accentBlue}>account.</span>
           </h2>
-          <p className={styles.stepText}>Almost there — just need your details.</p>
+          <p className={styles.stepText}>Almost there. Just your details now.</p>
 
           <GoogleButton onClick={handleGoogle} className={styles.firstField} />
           <p className={styles.googleNote}>

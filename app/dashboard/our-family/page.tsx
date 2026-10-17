@@ -84,7 +84,7 @@ export default function OurFamilyPage() {
     /* ── Verified-family badge: earned the t5 cosmetic reward tier ──
        Show iff a family_reward_claims row exists for this family with
        tier_key 't5'. The claim is a fire-once latch (never retracted), and
-       t5 is cosmetic so it stays 'earned' permanently — presence is enough. */
+       t5 is cosmetic so it stays 'earned' permanently, presence is enough. */
     const { data: t5Claim } = await supabase
       .from('family_reward_claims')
       .select('tier_key')
@@ -306,7 +306,7 @@ export default function OurFamilyPage() {
           <p className="text-[15px] leading-[1.8] text-[#6F6255] mb-8">
             {members.length === 1
               ? 'Invite your first family member and start preserving memories together. The more people contributing, the richer your story becomes.'
-              : `${members.length} people building one story. Keep inviting the people who shaped your life — every voice makes the library stronger.`
+              : `${members.length} people building one story. Keep inviting the people who shaped your life. Every voice makes the library stronger.`
             }
           </p>
 

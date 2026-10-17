@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       console.error('Failed to send report email:', emailErr);
     }
 
-    // Email the reporter — thank you
+    // Email the reporter: thank you
     try {
       const { data: { user: reporterUser } } = await admin.auth.admin.getUserById(user.id);
       const reporterEmail = reporterUser?.email;

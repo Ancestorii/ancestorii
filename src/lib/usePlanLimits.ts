@@ -36,7 +36,7 @@ export function usePlanLimits() {
         return;
       }
 
-      // 🔑 Active Premium plan limits — the RPC returns no rows for free users.
+      // 🔑 Active Premium plan limits, the RPC returns no rows for free users.
       const { data: limitData } = await supabase
         .rpc('get_user_plan_limits', { uid });
       const premiumRow = (Array.isArray(limitData) ? limitData[0] : limitData) as Limits | null;

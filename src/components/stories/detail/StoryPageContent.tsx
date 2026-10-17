@@ -322,7 +322,7 @@ export default function StoryPageContent({
       <section className={s.bodySection}>
         <div className={`${landing.wrap} ${s.bodyGrid}`}>
           <div className={s.bodyCol}>
-            {/* Story Body — supports both rich text (HTML) and plain text */}
+            {/* Story Body: supports both rich text (HTML) and plain text */}
             {story.body.includes('<') ? (
               <div className={s.richBody} dangerouslySetInnerHTML={{ __html: story.body }} />
             ) : (

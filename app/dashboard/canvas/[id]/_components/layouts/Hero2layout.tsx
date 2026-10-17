@@ -35,7 +35,7 @@ export default function Hero2Layout({
         padding: 0,
       }}
     >
-      {/* Hero — 55% */}
+      {/* Hero: 55% */}
       <div style={{ flex: '0 0 55%', minHeight: 0 }}>
         <Slot canvasId={canvasId} asset={slot0} selectedImage={selectedImage} clearSelectedImage={clearSelectedImage} onUpdate={onUpdateAsset} isExport={isExport} />
       </div>

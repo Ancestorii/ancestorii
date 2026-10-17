@@ -30,7 +30,7 @@ const TOC: TocGroup[] = [
       { num: '1', title: 'Information We Collect' },
       { num: '2', title: 'How We Use Your Information' },
       { num: '3', title: 'Legal Basis for Processing (UK GDPR)' },
-      { num: '4', title: 'My Family — Private Library Data' },
+      { num: '4', title: 'My Family: Private Library Data' },
       { num: '5', title: 'Family Collaboration & Shared Data' },
       { num: '6', title: 'Third-Party Services We Share Data With' },
       { num: '7', title: 'Data Storage & Security' },
@@ -47,8 +47,8 @@ const TOC: TocGroup[] = [
     dot: 'var(--c1)',
     items: [
       { num: '13', title: 'Additional Data We Collect on the Website' },
-      { num: '14', title: 'Our Stories — Public Feed Data' },
-      { num: '15', title: 'My Heirlooms — Physical Product Data' },
+      { num: '14', title: 'Our Stories: Public Feed Data' },
+      { num: '15', title: 'My Heirlooms: Physical Product Data' },
       { num: '16', title: 'Website Service Providers' },
       { num: '17', title: 'Cookies & Tracking' },
     ],
@@ -96,7 +96,7 @@ export default function PrivacyPolicyPage() {
           <p>
             At <strong>Ancestorii</strong>, your
             privacy is fundamental to our mission. We exist to help you
-            preserve life stories, memories, and personal moments — and we
+            preserve life stories, memories, and personal moments, and we
             treat that responsibility with the highest level of care.
           </p>
           <p>
@@ -194,7 +194,7 @@ export default function PrivacyPolicyPage() {
             at the point of registration, your email address may be checked
             against a third-party email verification service to confirm
             deliverability and reduce fraud. This check returns a validation
-            result only — no other personal content is shared. This applies to
+            result only. No other personal content is shared. This applies to
             sign-ups on both the website and the app.
           </p>
 
@@ -292,7 +292,7 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         {/* 4 */}
-        <Section number="4" title="My Family — Private Library Data">
+        <Section number="4" title="My Family: Private Library Data">
           <p>
             Content stored within My Family is treated as private data.
             This includes timelines, albums, stories, voice recordings,
@@ -403,7 +403,7 @@ export default function PrivacyPolicyPage() {
             <strong>Email validation:</strong>{' '}
             at registration, your email address may be checked by Kickbox to
             confirm it is deliverable and to suggest corrections for typos.
-            Only the email address is shared — no other personal data.
+            Only the email address is shared. No other personal data.
           </p>
 
           <p>
@@ -700,7 +700,7 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         {/* 14 */}
-        <Section number="14" title="Our Stories — Public Feed Data">
+        <Section number="14" title="Our Stories: Public Feed Data">
           <p>
             When you publish a story to Our Stories, the following data becomes
             public: the story title, its preview line and text, any photos,
@@ -770,7 +770,7 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         {/* 15 */}
-        <Section number="15" title="My Heirlooms — Physical Product Data">
+        <Section number="15" title="My Heirlooms: Physical Product Data">
           <p>
             When you order a physical product through My Heirlooms (Memory
             Book, Canvas Print, or Acrylic Print), the following data is
@@ -821,7 +821,7 @@ export default function PrivacyPolicyPage() {
           <p>
             <strong>Payment processing:</strong>{' '}
             payments for subscriptions and physical products are handled by
-            Stripe. Stripe receives your payment details directly — Ancestorii
+            Stripe. Stripe receives your payment details directly. Ancestorii
             does not have access to your full card information.
           </p>
           <p>

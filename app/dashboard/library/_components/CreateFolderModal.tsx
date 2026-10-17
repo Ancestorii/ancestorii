@@ -181,7 +181,7 @@ export default function CreateFolderModal({
           <p className="text-sm text-gray-500 leading-relaxed">
             {isEdit
               ? "Update this folder's name, description, or date."
-              : 'Group photos and videos together — like "Holiday 2026" or "Family Portraits".'}
+              : 'Group photos and videos together, like "Holiday 2026" or "Family Portraits".'}
           </p>
         </div>
 

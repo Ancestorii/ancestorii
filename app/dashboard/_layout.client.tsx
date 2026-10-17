@@ -57,7 +57,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 
     const uid = user.id;
 
-    // Build capsule query — must filter by family_id because
+    // Build capsule query: must filter by family_id because
     // capsule RLS has an OR clause that leaks unlocked capsules
     // from other families
     let capsuleQuery = supabase

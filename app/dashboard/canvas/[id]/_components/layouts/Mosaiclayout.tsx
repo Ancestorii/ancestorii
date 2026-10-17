@@ -4,7 +4,7 @@ import Slot from '../Slot';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
- * Mosaic — irregular asymmetric grid.
+ * Mosaic: irregular asymmetric grid.
  * 5 slots (heirloom): 2 large left + 3 stacked right.
  * 10 slots (heritage): 2 rows of 5 with varying widths.
  */
@@ -42,7 +42,7 @@ export default function MosaicLayout({
   if (slotCount <= 5) {
     return (
       <div style={{ display: 'flex', gap: 0, height: '100%', padding: 0 }}>
-        {/* Left — 2 stacked, 55% width */}
+        {/* Left: 2 stacked, 55% width */}
         <div style={{ flex: '0 0 55%', display: 'flex', flexDirection: 'column', gap: 0, minWidth: 0 }}>
           <div style={{ flex: '0 0 60%', minHeight: 0 }}>
             <Slot {...slotProps(slots[0])} />
@@ -51,7 +51,7 @@ export default function MosaicLayout({
             <Slot {...slotProps(slots[1])} />
           </div>
         </div>
-        {/* Right — 3 stacked */}
+        {/* Right: 3 stacked */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0, minWidth: 0 }}>
           {[slots[2], slots[3], slots[4]].map((s) => (
             <div key={s.slot_index} style={{ flex: 1, minHeight: 0 }}>

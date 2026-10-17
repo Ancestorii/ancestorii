@@ -17,14 +17,14 @@ export async function getServerClient() {
           try {
             cookieStore.set({ name, value, ...options });
           } catch {
-            // Server Component context — middleware refreshes the cookie on the next request
+            // Server Component context: middleware refreshes the cookie on the next request
           }
         },
         remove(name: string, options: any) {
           try {
             cookieStore.set({ name, value: '', ...options });
           } catch {
-            // Server Component context — middleware refreshes the cookie on the next request
+            // Server Component context: middleware refreshes the cookie on the next request
           }
         },
       },

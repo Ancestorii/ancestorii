@@ -6,7 +6,7 @@ import { Mic, Square, Play, Pause, Trash2, Upload, Send, Loader2, X } from 'luci
 /**
  * Record a voice note (or optionally upload an audio file), preview it, then hand
  * the resulting File to the parent via `onSubmit`. The parent owns the upload +
- * DB insert; this component only captures audio. Recordings are WebM — the
+ * DB insert; this component only captures audio. Recordings are WebM, the
  * backend converts them to M4A on upload, so no conversion happens here.
  */
 export default function VoiceRecorder({
@@ -111,7 +111,7 @@ export default function VoiceRecorder({
 
   return (
     <div className="border border-[#E8E0D2] bg-[#FDFCFA] p-3 sm:p-4">
-      {/* PREVIEW — audio captured, ready to send */}
+      {/* PREVIEW: audio captured, ready to send */}
       {file && previewUrl ? (
         <div className="flex items-center gap-3">
           <audio ref={audioRef} src={previewUrl} onEnded={() => setPlaying(false)} />

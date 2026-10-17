@@ -570,7 +570,7 @@ function drawCenteredYear(
       .filter(({ xGlobal }) => xGlobal >= windowStartX - BLEED && xGlobal <= windowEndX + BLEED);
 
     // In dense timelines, we nudge overlapping events minimally (still horizontal, but micro-offset)
-    // We do NOT change chronology — only tiny separation if two events land on same x.
+    // We do NOT change chronology, only tiny separation if two events land on same x.
     visible.sort((a, b) => a.xGlobal - b.xGlobal);
 
     const adjustedX: number[] = [];
@@ -659,7 +659,7 @@ page.drawRectangle({
 
 
 
-      // Thumb (optional) — small square on left
+      // Thumb (optional): small square on left
       const thumb = thumbForEvent[ev.id];
       const hasThumb = !!thumb;
       const pad = 10;

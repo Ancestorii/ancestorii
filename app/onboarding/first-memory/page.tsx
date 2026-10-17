@@ -271,7 +271,7 @@ export default function FirstMemoryPage() {
                 </div>
               </div>
             ) : (
-              /* Empty state — large inviting upload area */
+              /* Empty state: large inviting upload area */
               <label
                 className={`flex flex-col items-center justify-center py-16 sm:py-20 cursor-pointer transition-all ${
                   processing ? '' : 'hover:bg-[#F0E9D8]'
@@ -296,7 +296,7 @@ export default function FirstMemoryPage() {
                       Start with a photo
                     </p>
                     <p className="text-[12px] text-[#9C9488]">
-                      JPG, PNG, or HEIC — up to 10
+                      JPG, PNG or HEIC. Up to 10
                     </p>
                   </>
                 )}
@@ -341,7 +341,7 @@ export default function FirstMemoryPage() {
                 <span className="italic text-[#A9782F]">memory</span>
               </h2>
               <p className="text-[13px] text-[#8A7F72] leading-relaxed">
-                Start {familyName} with something simple — a moment you
+                Start {familyName} with something simple: a moment you
                 don&apos;t want to lose.
               </p>
             </div>

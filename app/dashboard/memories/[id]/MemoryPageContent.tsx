@@ -129,7 +129,7 @@ export default function MemoryPageContent({
 
   const handleShare = async () => {
     const url = `${window.location.origin}/dashboard/memories/${memoryId}`;
-    const text = `${activeTab.title} — a memory on Ancestorii`;
+    const text = `${activeTab.title}, a memory on Ancestorii`;
     if (navigator.share) {
       try { await navigator.share({ title: 'Ancestorii', text, url }); } catch {}
     } else {

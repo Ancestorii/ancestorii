@@ -58,7 +58,7 @@ export default function LegacyCelebration({
             backdropFilter: "blur(12px)",
           }}
         >
-          {/* Gold flecks — slow, sparse, elegant */}
+          {/* Gold flecks: slow, sparse, elegant */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {flecks.map((p) => (
               <motion.span

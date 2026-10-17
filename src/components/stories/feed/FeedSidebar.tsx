@@ -65,7 +65,7 @@ export default function FeedSidebar({
 
         <p className={feed.ctaText}>
           It takes two minutes to preserve something that matters
-          forever. Completely free — no credit card, no catch.
+          forever. Completely free. No credit card, no catch.
         </p>
 
         <button

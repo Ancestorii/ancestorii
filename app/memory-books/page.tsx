@@ -7,7 +7,7 @@ import { MEMORY_BOOK_FAQS } from '@/components/site/memory-books/faqs';
 export const metadata: Metadata = {
   title: "Memory Books: Turn Your Family Stories Into a Printed Hardcover",
   description:
-    "Design and print a custom hardcover Memory Book filled with your family's stories, photos, and voices. Full creative control — no templates, no generic layouts. Built to last generations.",
+    "Design and print a custom hardcover Memory Book filled with your family's stories, photos, and voices. Full creative control. No templates, no generic layouts. Built to last generations.",
   alternates: {
     canonical: "https://www.ancestorii.com/memory-books",
   },
@@ -36,7 +36,7 @@ export default function MemoryBooksPage() {
         data={{
           "@context": "https://schema.org", "@type": "WebPage",
           name: "Memory Books | Ancestorii",
-          description: "Design and print a custom hardcover Memory Book filled with your family's stories, photos, and voices — with full creative control over every page.",
+          description: "Design and print a custom hardcover Memory Book filled with your family's stories, photos, and voices, with full creative control over every page.",
           url: "https://www.ancestorii.com/memory-books",
           isPartOf: { "@type": "WebSite", name: "Ancestorii" },
         }}

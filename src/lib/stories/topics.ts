@@ -4,7 +4,7 @@
 // `slug` is the SEO-readable URL segment used at /stories/topics/[slug].
 // Everything else is evergreen editorial copy so each topic hub is content-rich
 // even before it fills with stories. Shared by the topic pages, the topics index,
-// and the sitemap — edit topics here only.
+// and the sitemap: edit topics here only.
 
 export type Topic = {
   key: string;

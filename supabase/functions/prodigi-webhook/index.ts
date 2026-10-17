@@ -137,7 +137,7 @@ serve(async (req) => {
     }
 
     // ══════════════════════════════════════════════════════
-    // EXISTING BOOK ORDER PROCESSING — UNTOUCHED BELOW
+    // EXISTING BOOK ORDER PROCESSING, UNTOUCHED BELOW
     // ══════════════════════════════════════════════════════
 
     const internalOrderId = priorOrder.id;
@@ -153,7 +153,7 @@ serve(async (req) => {
       updateData.prodigi_tracking_url = trackingUrl;
     }
 
-    // Only set shipped_at the first time — never overwrite
+    // Only set shipped_at the first time, never overwrite
     if (shippedAt && !wasAlreadyShipped) {
       updateData.shipped_at = shippedAt;
     }

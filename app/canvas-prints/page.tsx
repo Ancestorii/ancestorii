@@ -152,7 +152,7 @@ const SOURCES: Source[] = [
   },
   {
     publisher: 'National Institute of Standards and Technology (NIST)',
-    title: 'SI Units – Length',
+    title: 'SI Units: Length',
     href: 'https://www.nist.gov/pml/owm/si-units-length',
     date: 'updated 2025',
   },

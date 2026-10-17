@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 // validate_reward_code RPC with the REAL authenticated user id (derived server-side
 // from the verified session, never trusted from the request body), then layers the
 // same free-product eligibility check the checkout edge functions enforce. Redeeming
-// (the atomic consume) happens only in the checkout function — this never mutates.
+// (the atomic consume) happens only in the checkout function, this never mutates.
 
 const STANDARD_TIER: Record<string, string> = {
   book: 'chapter',
@@ -40,12 +40,12 @@ function checkEligibility(
     if (meta.product_key === 'memory_book_chapter') {
       return product === 'book' && tierKey === 'chapter'
         ? { ok: true }
-        : { ok: false, message: 'This reward is a free Chapter memory book — choose a Chapter book to redeem it.' };
+        : { ok: false, message: 'This reward is a free Chapter memory book. Choose a Chapter book to redeem it.' };
     }
     if (meta.product_key === 'any_print_standard') {
       return tierKey === STANDARD_TIER[product]
         ? { ok: true }
-        : { ok: false, message: 'This reward covers a free print at standard size — switch to the standard tier to redeem it.' };
+        : { ok: false, message: 'This reward covers a free print at standard size. Switch to the standard tier to redeem it.' };
     }
   }
   return { ok: false, message: 'This reward code cannot be applied to this product.' };

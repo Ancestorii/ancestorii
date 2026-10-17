@@ -136,7 +136,7 @@ export default function JoinPage() {
     setLoading(true);
 
     try {
-      // 1. Sign up — trigger creates profile + solo family
+      // 1. Sign up: trigger creates profile + solo family
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -161,7 +161,7 @@ export default function JoinPage() {
       const joinData = await joinRes.json();
 
       if (!joinRes.ok) {
-        // Signed up but join failed — still redirect, they can try again
+        // Signed up but join failed, still redirect, they can try again
         console.error('Join after signup failed:', joinData.error);
       }
 

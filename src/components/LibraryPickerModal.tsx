@@ -60,7 +60,7 @@ export default function LibraryPickerModal({
   // Filter (only used inside a folder)
   const [activeType, setActiveType] = useState<'all' | 'image' | 'video' | 'audio' | 'file' | 'other'>('all');
 
-  // Picks — persist across folder navigation, reset on modal close
+  // Picks: persist across folder navigation, reset on modal close
   const [pickedIds, setPickedIds] = useState<Set<string>>(new Set());
   const [pickedItems, setPickedItems] = useState<Record<string, LibraryPickerItem>>({});
 
@@ -119,7 +119,7 @@ export default function LibraryPickerModal({
         return;
       }
 
-      // All media for those folders — one query, sorted desc.
+      // All media for those folders, one query, sorted desc.
       // We use it for both: per-folder counts AND the cover (first row per folder).
       const folderIds = folderRows.map((f) => f.id);
       const { data: mediaData, error: mediaErr } = await supabase
@@ -353,7 +353,7 @@ export default function LibraryPickerModal({
             </button>
           </div>
 
-          {/* Type filter — only inside a folder */}
+          {/* Type filter: only inside a folder */}
           {view === 'media' && (
             <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:items-center">
               <div className="flex flex-wrap gap-2 sm:ml-auto">
@@ -446,7 +446,7 @@ export default function LibraryPickerModal({
                           ? new Date(f.folder_date).toLocaleDateString()
                           : f.created_at
                           ? new Date(f.created_at).toLocaleDateString()
-                          : '—'}
+                          : 'No date'}
                       </p>
                     </div>
                   </button>
@@ -523,7 +523,7 @@ export default function LibraryPickerModal({
                       <p className="text-xs text-[#7A8596]">
                         {item.created_at
                           ? `Added on ${new Date(item.created_at).toLocaleDateString()}`
-                          : '—'}
+                          : 'No date'}
                       </p>
                     </div>
                   </button>

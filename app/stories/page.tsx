@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 
 // The full "Our Stories" feed. It used to be the homepage; the homepage is now the landing page.
 export const metadata: Metadata = {
-  title: { absolute: 'Our Stories — Real Stories from Real Families | Ancestorii' },
+  title: { absolute: 'Our Stories: Real Stories from Real Families | Ancestorii' },
   description:
     'Real memories from real families. Read their stories, share your own, and be part of something that lasts. A living family library where every voice matters.',
   keywords: [
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     'digital legacy',
   ],
   openGraph: {
-    title: 'Our Stories — Real Stories from Real Families',
+    title: 'Our Stories: Real Stories from Real Families',
     description:
       'Real memories from real families. Read their stories, share your own, and be part of something that lasts.',
     url: 'https://www.ancestorii.com/stories',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
         url: '/og-default.jpg',
         width: 1200,
         height: 630,
-        alt: 'Ancestorii — Stories from Real Families',
+        alt: 'Ancestorii: Stories from Real Families',
       },
     ],
     locale: 'en_GB',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Our Stories — Real Stories from Real Families',
+    title: 'Our Stories: Real Stories from Real Families',
     description:
       'Real memories from real families. Read their stories, share your own, and be part of something that lasts.',
     images: ['/og-default.jpg'],
@@ -297,7 +297,7 @@ export default async function StoriesPage() {
     };
   });
 
- // Trending — top 5 stories by reaction count (bounded to recent 50)
+ // Trending: top 5 stories by reaction count (bounded to recent 50)
   const { data: trendingCandidates } = await supabase
     .from('stories')
     .select('id, slug, title')
@@ -409,9 +409,9 @@ export default async function StoriesPage() {
         data={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: 'Our Stories — Real Stories from Real Families',
+          name: 'Our Stories: Real Stories from Real Families',
           description:
-            'Browse real family memories — stories, voices, and moments shared by families around the world.',
+            'Browse real family memories: stories, voices and moments shared by families around the world.',
           url: 'https://www.ancestorii.com/stories',
           isPartOf: { '@id': 'https://www.ancestorii.com/#website' },
         }}

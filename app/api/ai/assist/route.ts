@@ -57,7 +57,7 @@ function buildPrompt(type: AssistType, context: Record<string, unknown>): string
       if (existing) {
         return `The user has started writing a bio for ${name}${relStr}. Here is what they have so far:\n\n"${existing}"\n\nContinue this naturally with 3-4 more sentences that deepen the portrait. Match their voice and tone.`;
       }
-      return `Write a warm, detailed opening for a biography about ${name}${relStr}.${context.born ? ` Born ${context.born}.` : ''}${context.died ? ` Passed ${context.died}.` : ''}\n\nWrite 4-5 sentences that feel like the opening paragraph of a loving biography. Paint a picture of who this person was — not just facts, but the feeling of being around them. The user will edit this and make it their own.`;
+      return `Write a warm, detailed opening for a biography about ${name}${relStr}.${context.born ? ` Born ${context.born}.` : ''}${context.died ? ` Passed ${context.died}.` : ''}\n\nWrite 4-5 sentences that feel like the opening paragraph of a loving biography. Paint a picture of who this person was, not just facts, but the feeling of being around them. The user will edit this and make it their own.`;
     }
 
     case 'loved-one-early-years': {
@@ -67,7 +67,7 @@ function buildPrompt(type: AssistType, context: Record<string, unknown>): string
       }
       return `Write structured prompts to help someone write about the early years of ${name}${relStr}.${context.born ? ` Born ${context.born}.` : ''}${context.died ? ` Passed ${context.died}.` : ''}
 
-Format your response EXACTLY like this pattern — a question on its own line, then a short paragraph beneath it, then a blank line before the next question. Give 4-5 sections following this pattern.
+Format your response EXACTLY like this pattern: a question on its own line, then a short paragraph beneath it, then a blank line before the next question. Give 4-5 sections following this pattern.
 
 Example of the format:
 What was home like?
@@ -88,7 +88,7 @@ Now write the real ones. Focus on: where they grew up, what school was like, chi
       }
       return `Write structured prompts to help someone write about the important moments in the life of ${name}${relStr}.${context.born ? ` Born ${context.born}.` : ''}${context.died ? ` Passed ${context.died}.` : ''}
 
-Format your response EXACTLY like this pattern — a question on its own line, then a short paragraph beneath it, then a blank line before the next question. Give 4-5 sections.
+Format your response EXACTLY like this pattern: a question on its own line, then a short paragraph beneath it, then a blank line before the next question. Give 4-5 sections.
 
 Focus on: leaving home, first job, falling in love, becoming a parent, biggest achievement, hardest loss, proudest day, the decision that changed everything. Each paragraph should be 2-3 sentences maximum. Make every question personal to ${name} using their name directly.`;
     }
@@ -100,7 +100,7 @@ Focus on: leaving home, first job, falling in love, becoming a parent, biggest a
       }
       return `Write structured prompts to help someone write about special memories of ${name}${relStr}.${context.born ? ` Born ${context.born}.` : ''}${context.died ? ` Passed ${context.died}.` : ''}
 
-Format your response EXACTLY like this pattern — a question on its own line, then a short paragraph beneath it, then a blank line before the next question. Give 4-5 sections.
+Format your response EXACTLY like this pattern: a question on its own line, then a short paragraph beneath it, then a blank line before the next question. Give 4-5 sections.
 
 Focus on: holidays that went wrong but became the best stories, family traditions, a meal they always cooked, a song that was always playing, a rainy afternoon that meant everything, the ordinary moments that turned out to be extraordinary, what you wish you had filmed. Each paragraph should be 2-3 sentences maximum. Make every question personal to ${name} using their name directly.`;
     }
@@ -112,7 +112,7 @@ Focus on: holidays that went wrong but became the best stories, family tradition
       }
       return `Write structured prompts to help someone describe who ${name}${relStr} really is as a person.${context.born ? ` Born ${context.born}.` : ''}${context.died ? ` Passed ${context.died}.` : ''}
 
-Format your response EXACTLY like this pattern — a question on its own line, then a short paragraph beneath it, then a blank line before the next question. Give 4-5 sections.
+Format your response EXACTLY like this pattern: a question on its own line, then a short paragraph beneath it, then a blank line before the next question. Give 4-5 sections.
 
 Focus on: how they carried themselves, their laugh, their stubbornness, what they always said, how they answered the phone, what drove them mad, what made them different from everyone else, how you would describe them to a stranger, what small habit was uniquely them. Each paragraph should be 2-3 sentences maximum. Make every question personal to ${name} using their name directly.`;
     }
@@ -138,7 +138,7 @@ Focus on: how they carried themselves, their laugh, their stubbornness, what the
 
 Write structured prompts to help them describe this event using the question-then-paragraph format. Give 3-4 sections.
 
-Format your response EXACTLY like this pattern — a question on its own line, then a short paragraph beneath it, then a blank line before the next question.
+Format your response EXACTLY like this pattern: a question on its own line, then a short paragraph beneath it, then a blank line before the next question.
 
 Each question should be specific to "${title || 'this event'}"${date ? ` and the date ${date}` : ''}. Ask about: what led up to it, what the moment itself felt like, who was there, and what changed afterwards. Each paragraph should be 2-3 sentences maximum. Make every question personal to ${name} using their name directly.`;
     }
@@ -173,7 +173,7 @@ Focus on: describing what was happening that day, telling the story behind a spe
       const capsuleTitle = context.capsule_title as string;
       const unlockDate = context.unlock_date as string;
 
-      return `Write a heartfelt time capsule message (two paragraphs) for a capsule called "${capsuleTitle || 'Untitled Capsule'}"${unlockDate ? ` that will be opened on ${unlockDate}` : ''}.${context.loved_one_name ? ` It is connected to ${context.loved_one_name}.` : ''}\n\nThe first paragraph should capture the present moment — what matters right now, what you want to freeze in time. The second paragraph should speak to the future — hopes, dreams, what you want the reader to know when they open this.`;
+      return `Write a heartfelt time capsule message (two paragraphs) for a capsule called "${capsuleTitle || 'Untitled Capsule'}"${unlockDate ? ` that will be opened on ${unlockDate}` : ''}.${context.loved_one_name ? ` It is connected to ${context.loved_one_name}.` : ''}\n\nThe first paragraph should capture the present moment, what matters right now, what you want to freeze in time. The second paragraph should speak to the future, hopes, dreams, what you want the reader to know when they open this.`;
     }
 
     case 'capsule-description': {
@@ -190,7 +190,7 @@ Focus on: describing what was happening that day, telling the story behind a spe
 
 Write 4 different voice note prompts. Each one should be a question header followed by a short paragraph explaining what they could say in that recording.
 
-Focus on: describing what life is like right now, sharing a message to the person who will open this, telling a story they never want forgotten, recording a promise or a wish for the future. Each suggestion should feel like a reason to press record and speak from the heart. This is a message that will be heard in the future — make it feel like that matters.`;
+Focus on: describing what life is like right now, sharing a message to the person who will open this, telling a story they never want forgotten, recording a promise or a wish for the future. Each suggestion should feel like a reason to press record and speak from the heart. This is a message that will be heard in the future, make it feel like that matters.`;
     }
 
     case 'book-intro': {
@@ -206,9 +206,9 @@ Focus on: describing what life is like right now, sharing a message to the perso
 
       return `Write a chapter introduction for a chapter called "${chapterTitle || 'Untitled Chapter'}" in a Memory Book about ${name}${relStr}.\n\n${memories?.length ? `Memories in this chapter include: ${memories.join(', ')}\n\n` : ''}Write two short paragraphs separated by a blank line.
 
-The first paragraph should set the scene for this section of the book — where we are in ${name}'s story and what this chapter holds.
+The first paragraph should set the scene for this section of the book: where we are in ${name}'s story and what this chapter holds.
 
-The second paragraph should feel like a pause before turning the page — warm, understated, and full of anticipation. Each paragraph should be 2-3 sentences maximum.`;
+The second paragraph should feel like a pause before turning the page: warm, understated, and full of anticipation. Each paragraph should be 2-3 sentences maximum.`;
     }
 
     case 'book-page-comment': {

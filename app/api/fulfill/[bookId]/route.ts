@@ -221,7 +221,7 @@ export async function POST(
         .eq('id', orderId);
 
       return NextResponse.json(
-        { error: 'Incomplete shipping address — cannot submit to Prodigi' },
+        { error: 'Incomplete shipping address: cannot submit to Prodigi' },
         { status: 400 }
       );
     }
@@ -358,7 +358,7 @@ const spineHeight = spineHeightPx;
 
       console.log('SPINE GENERATED AND UPLOADED:', spinePath);
     } catch (spineErr: any) {
-      // Spine failed — log it but don't block the order
+      // Spine failed: log it but don't block the order
       // Prodigi will use a blank spine if we don't provide one
       console.error('SPINE GENERATION FAILED (order will proceed without spine):', spineErr?.message);
     }
@@ -400,7 +400,7 @@ const spineHeight = spineHeightPx;
       .update({ status: 'submitting', pdf_storage_path: pdfPath, pdf_url: pdfUrl })
       .eq('id', orderId);
 
-    // Build assets array — always include default, add spine if generated
+    // Build assets array: always include default, add spine if generated
     const prodigiAssets: any[] = [
       {
         printArea: 'default',
@@ -473,7 +473,7 @@ const spineHeight = spineHeightPx;
     // ── 9. Update order with Prodigi details ──
     const prodigiOrderId = prodigiData?.order?.id ?? null;
 
-    // Save prodigi_order_id FIRST — this is the critical link for webhooks
+    // Save prodigi_order_id FIRST: this is the critical link for webhooks
     if (prodigiOrderId) {
       await supabase
         .from('orders')

@@ -183,7 +183,7 @@ export default function StoryAssistanceCard({
                 <Feather size={17} strokeWidth={2.4} aria-hidden="true" />
               </span>
               <span className={styles.pillTitle}>Story Assistance</span>
-              <span className={styles.pillNote}>— here if you need me</span>
+              <span className={styles.pillNote}>Here if you need me.</span>
             </div>
           </div>
         </motion.div>

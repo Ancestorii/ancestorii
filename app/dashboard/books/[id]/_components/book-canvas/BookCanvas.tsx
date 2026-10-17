@@ -450,7 +450,7 @@ const filled = pages.filter((page) =>
     : cur.type === 'single'
     ? `Page ${cur.r.page_number}`
     : cur.l && cur.r
-    ? `Pages ${cur.l.page_number}–${cur.r.page_number}`
+    ? `Pages ${cur.l.page_number} to ${cur.r.page_number}`
     : cur.l
     ? `Page ${cur.l.page_number}`
     : '';

@@ -54,7 +54,7 @@ export default function CanvasPage() {
 
   const { loading: limitsLoading, canCreate } = usePlanLimits();
 
-  const line1 = '"Put your memories where they belong — on the wall."';
+  const line1 = '"Put your memories where they belong: on the wall."';
   const line2 =
     'Create stunning premium canvases from your most treasured moments.';
 
@@ -79,7 +79,7 @@ export default function CanvasPage() {
           return;
         }
 
-        /* 1 — Fetch canvases from the helper view */
+        /* 1: Fetch canvases from the helper view */
         const { data, error } = await supabase
           .from('memory_canvases_with_asset_count')
           .select(
@@ -102,7 +102,7 @@ export default function CanvasPage() {
 
         const canvasIds = (data || []).map((c: any) => c.id);
 
-        /* 2 — Get the first asset (slot 0) for each canvas as preview */
+        /* 2: Get the first asset (slot 0) for each canvas as preview */
         let previewMap = new Map<string, string>(); // canvas_id → asset_id
 
         if (canvasIds.length > 0) {
@@ -119,7 +119,7 @@ export default function CanvasPage() {
           }
         }
 
-        /* 3 — Sign URLs for the preview assets */
+        /* 3: Sign URLs for the preview assets */
         const assetIds = Array.from(new Set(Array.from(previewMap.values())));
         let urlMap = new Map<string, string>(); // asset_id → signed URL
 
@@ -149,7 +149,7 @@ export default function CanvasPage() {
           urlMap = new Map(signedEntries.filter(([, url]) => Boolean(url)));
         }
 
-        /* 4 — Assemble final canvas list */
+        /* 4: Assemble final canvas list */
         const canvasesWithPreviews: Canvas[] = (data || []).map((c: any) => {
           const previewAssetId = previewMap.get(c.id) || null;
           return {

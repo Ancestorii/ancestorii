@@ -134,7 +134,7 @@ export default function InvitePage() {
     );
   }
 
-  // ── Valid invite — show signup form ──
+  // ── Valid invite: show signup form ──
   return (
     <AuthShell variant="signup" cards={FAMILY_CARDS}>
       {/* Headline */}
