@@ -111,6 +111,9 @@ export default function DeferredTags() {
       });
     };
     if (readConsent() === 'granted') start();
+    // No consent: clear anything left over, from visits before the banner or written by a tag as
+    // the previous page unloaded (Google Analytics rewrites its session cookie then).
+    else clearMarketingStorage();
     const onConsent = (e: Event) => {
       if ((e as CustomEvent<Consent>).detail === 'granted') {
         start();
