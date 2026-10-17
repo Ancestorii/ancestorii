@@ -1,0 +1,295 @@
+/* ============================================================
+   Voice notes and Capsules (id voices; the capsules column is id capsules).
+   Base styles are the 390px phone; min-width queries at 600, 900 and 1024px.
+   No motion, no section background: the page glow sits behind.
+   ============================================================ */
+
+/* ── Head (shared pattern B) ──────────────────────────────── */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tags + .title {
+  margin-top: 22px;
+}
+
+/* ── Where tag (shared pattern C) ─────────────────────────── */
+
+.where {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 7px 13px 7px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--ink);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.whereDot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.whereDot + .whereDot {
+  margin-left: -3px;
+}
+
+/* ── Framed photo (shared pattern D), phone values ────────── */
+
+.frame {
+  position: relative;
+  padding: 7px;
+  border-radius: 24px;
+  background: var(--frame);
+}
+
+.photo {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* ── The two columns ──────────────────────────────────────── */
+
+.pair {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 40px;
+}
+
+.voices,
+.capsules {
+  min-width: 0;
+}
+
+/* The index's Capsules tile lands here. */
+.capsules {
+  scroll-margin-top: 16px;
+}
+
+/* SmoothAnchor focuses the Capsules h3; if it ever has to focus this column, no ring either. */
+.capsules[tabindex='-1']:focus {
+  outline: none;
+}
+
+.figure {
+  margin: 0;
+}
+
+/* Dante's words under the Voice notes block: a pink quote mark, then the quote. */
+.quote {
+  margin: 24px 4px 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+}
+
+/* A fixed width (the mark's own), so the credit below can line up with the quote's text. */
+.mark {
+  width: 34px;
+  height: 34px;
+  font-size: 56px;
+  line-height: 0.8;
+  font-weight: 800;
+  color: var(--c0);
+}
+
+.quote p {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  text-wrap: pretty;
+}
+
+/* Lines up with the quote's text: the quote's 4px margin, the 34px mark and the 12px gap. */
+.quoteBy {
+  margin: 8px 0 0 calc(4px + 34px + 12px);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+/* A feature's words: where tag, h3 and a line. */
+.block {
+  margin-top: 22px;
+}
+
+.blockTitle {
+  margin: 12px 0 0;
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+
+.blockText {
+  margin: 8px 0 0;
+  max-width: 32em;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* ── The capsule card: type and colour, like the hero's quote cards ── */
+
+.capsule {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 22px;
+  border-radius: 26px;
+  background: var(--c0);
+  color: var(--ink);
+}
+
+.capsuleLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.capsuleLine {
+  margin: 14px 0 0;
+  font-size: clamp(34px, 9vw, 46px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+}
+
+.capsuleChips {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.capsuleChips li {
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.capsuleFoot {
+  margin: 20px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.capsuleFoot::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+/* ── Tablets: still stacked, the photo and the card the full width ── */
+
+@media (min-width: 600px) {
+  .frame {
+    padding: 8px;
+    border-radius: 26px;
+  }
+
+  .photo {
+    border-radius: 19px;
+  }
+}
+
+/* ── Two columns side by side, top-aligned ────────────────── */
+
+@media (min-width: 900px) {
+  .pair {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    column-gap: 40px;
+    align-items: start;
+  }
+}
+
+/* ── Desktop ──────────────────────────────────────────────── */
+
+@media (min-width: 1024px) {
+  .pair {
+    margin-top: clamp(40px, 4.5vw, 64px);
+    column-gap: clamp(40px, 5vw, 72px);
+  }
+
+  .frame {
+    padding: 10px;
+    border-radius: 32px;
+  }
+
+  .photo {
+    border-radius: 23px;
+  }
+
+  /* Keep the chip 10px inside the photo's corner, as on the 8px frame. */
+  .chip.chip {
+    left: 20px;
+    top: 20px;
+    max-width: calc(100% - 40px);
+  }
+
+  .quote p {
+    font-size: 22px;
+  }
+
+  /* 4:3 like the photo, so the card stands about as tall as the frame beside it. */
+  .capsule {
+    aspect-ratio: 4 / 3;
+    justify-content: space-between;
+    padding: 36px 36px 32px;
+    border-radius: 32px;
+  }
+
+  /* Exactly as tall as the frame, so the Voice notes and Capsules blocks start level: the frame
+     is its 4:3 photo (the column's width less 20px) plus 20px of padding, which is 75% of the
+     width plus 5px. A minimum, so longer words can still make the card taller. */
+  @supports (height: 1cqi) {
+    .capsules {
+      container-type: inline-size;
+    }
+
+    .capsule {
+      aspect-ratio: auto;
+      min-height: calc(75cqi + 5px);
+    }
+  }
+
+  .capsuleLine {
+    font-size: clamp(40px, 4.2vw, 60px);
+  }
+
+  .capsuleChips li {
+    font-size: 14px;
+  }
+}

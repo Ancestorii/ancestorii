@@ -5,11 +5,38 @@ import { ArrowRight } from 'lucide-react';
 import { TOPICS, getTopicByKey } from '@/lib/stories/topics';
 import type { LandingStory } from '@/lib/stories/landing';
 import { topicToneClass } from '@/components/site/stories-browse/topicTone';
+import { ArrowLink } from './LandingBits';
 import styles from './landing.module.css';
+import st from './stories.module.css';
 
 // Real public stories, drawn like the hero ring's photo cards at rest: each photo sits in a solid
 // colour frame with a white chip, and the words sit on white underneath.
 const FRAMES = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c0)'];
+
+// What Our Stories is, checked against the product: free to read, publish, heart, comment and
+// share; up to 10 photos and 1 video per story plus a voice note; the editor's three writing-help
+// buttons; no followers; an automatic check on publish (never "reviewed before it goes live").
+const FACTS = [
+  { text: 'Free to read, publish, heart, comment and share', dot: 'var(--c0)' },
+  { text: 'Up to 10 photos, a video and a voice note in each story', dot: 'var(--c1)' },
+  { text: 'Writing help built in: Help me start, Help me go deeper, Help me end it', dot: 'var(--c2)' },
+  {
+    text: 'No follower counts, no politics or religion, and stories are checked automatically when they’re published',
+    dot: 'var(--c3)',
+  },
+];
+
+// Where a feature works: a pink dot for the app, a blue dot for the website, both dots for both
+// (the logo's two dots). The words always show, so colour is never the only signal.
+function Where({ on }: { on: 'app' | 'web' | 'both' }) {
+  return (
+    <span className={st.where}>
+      {on !== 'web' && <span className={st.whereDot} style={{ background: 'var(--c0)' }} aria-hidden="true" />}
+      {on !== 'app' && <span className={st.whereDot} style={{ background: 'var(--c1)' }} aria-hidden="true" />}
+      {on === 'app' ? 'In the app' : on === 'web' ? 'On the website' : 'App and website'}
+    </span>
+  );
+}
 
 function byline(story: LandingStory) {
   // A no-break space keeps the dot with the name, so a wrapped byline never starts with "·".
@@ -41,7 +68,13 @@ function Cover({ story, sizes }: { story: LandingStory; sizes: string }) {
   );
 }
 
-export default function LandingStories({ stories }: { stories: LandingStory[] }) {
+export default function LandingStories({
+  stories,
+  isLoggedIn,
+}: {
+  stories: LandingStory[];
+  isLoggedIn: boolean;
+}) {
   const [lead, ...rest] = stories;
   const leadTopic = lead ? topicLabel(lead) : null;
 
@@ -49,15 +82,19 @@ export default function LandingStories({ stories }: { stories: LandingStory[] })
     <section id="stories" className={styles.section}>
       <div className={styles.wrap}>
         <div className={styles.head}>
-          <div className={styles.badge}>
-            <span className={styles.badgeDot} style={{ '--dot': 'var(--c0)' } as CSSProperties} />
-            Our Stories
+          <div className={st.tags}>
+            <span className={styles.badge}>
+              <span className={styles.badgeDot} style={{ '--dot': 'var(--c3)' } as CSSProperties} />
+              {'Our Stories\u00a0· Public'}
+            </span>
+            <Where on="web" />
           </div>
-          <h2 className={`${styles.h2} ${styles.headTitle} ${styles.storiesTitle}`}>
+          <h2 className={`${styles.h2} ${styles.headTitle} ${styles.storiesTitle} ${st.title}`}>
             Real stories from real families.
           </h2>
           <p className={styles.headLead}>
-            Shared by families on Our Stories, where anyone can read them.
+            Our Stories is the public side of Ancestorii. Anyone can read it free, without an
+            account, and you choose which of your stories go on it.
           </p>
         </div>
 
@@ -138,6 +175,14 @@ export default function LandingStories({ stories }: { stories: LandingStory[] })
           </div>
         )}
 
+        <ul className={st.facts}>
+          {FACTS.map((fact) => (
+            <li key={fact.text} style={{ '--dot': fact.dot } as CSSProperties}>
+              {fact.text}
+            </li>
+          ))}
+        </ul>
+
         <div className={styles.storiesFoot}>
           <nav className={styles.storyTopics} aria-label="Story topics">
             <span className={styles.storyTopicsLabel}>Browse by topic</span>
@@ -152,9 +197,15 @@ export default function LandingStories({ stories }: { stories: LandingStory[] })
               </Link>
             ))}
           </nav>
-          <Link href="/stories" prefetch={false} className={styles.btnGhost}>
-            Read Our Stories <ArrowRight size={18} strokeWidth={2.6} aria-hidden="true" />
-          </Link>
+          <div className={st.actions}>
+            <ArrowLink href={isLoggedIn ? '/stories/create' : '/signup'} prefetch={false}>
+              Share Your Story
+            </ArrowLink>
+            {/* The hero's pair: the outline button matches the arrow button's height and corners. */}
+            <Link href="/stories" prefetch={false} className={styles.btnOutline}>
+              Read Our Stories
+            </Link>
+          </div>
         </div>
       </div>
     </section>

@@ -14,8 +14,10 @@ export default function LandingCta({ isLoggedIn }: { isLoggedIn: boolean }) {
         <div className={styles.ctaCopy}>
           <h2 className={styles.ctaTitle}>Share a memory that lives on.</h2>
           <p className={styles.ctaLead}>
-            Free to start, no card needed. Invite your family when you&apos;re ready, and if you
-            ever want more room, Premium is £3.99 a month for the whole family.
+            Free to start, no card needed, with unlimited albums, timelines and capsules. Premium is
+            £3.99 a month for the whole family, not per person: 100GB of shared space,{' '}
+            <span style={{ whiteSpace: 'nowrap' }}>15-minute</span> videos, unlimited loved ones and
+            10% off every print.
           </p>
           <div className={styles.ctaButtons}>
             {isLoggedIn ? (

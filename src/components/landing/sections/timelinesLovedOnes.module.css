@@ -1,0 +1,388 @@
+/* ============================================================
+   Timelines and Loved Ones (#timelines).
+   Mobile first: the base is the 390px phone (.wrap is 342px there), then 600px, 900px and
+   1024px. Static: no motion and no hover effects. The section paints no background; only the
+   Loved Ones card is a solid colour.
+   ============================================================ */
+
+/* ── Head (shared pattern B) ──────────────────────────────── */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tags + .title {
+  margin-top: 22px;
+}
+
+/* ── Where tag (shared pattern C) ─────────────────────────── */
+
+.where {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 7px 13px 7px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--ink);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.whereDot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.whereDot + .whereDot {
+  margin-left: -3px;
+}
+
+/* ── Timeline: down the left on phones and small tablets ──── */
+
+.timelineFigure {
+  margin: 32px 0 0;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 30px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+/* Thumbnail on the left; the date and caption beside it, top-aligned. */
+.node {
+  position: relative;
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'photo date'
+    'photo caption';
+  column-gap: 14px;
+  align-items: start;
+}
+
+/* Each dot sits a fixed 8px from its node's top, so the segment under it runs from this dot's
+   centre (16px) to the next dot's centre (the node's height plus the 18px gap), whatever the
+   caption's length. Dots paint above the line. */
+.dot {
+  position: absolute;
+  left: -30px;
+  top: 8px;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--tone);
+}
+
+.node:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: -23px;
+  top: 16px;
+  width: 2px;
+  height: calc(100% + 18px);
+  background: var(--ink);
+}
+
+.date {
+  grid-area: date;
+  font-size: 19px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.thumbFrame {
+  grid-area: photo;
+  padding: 5px;
+  border-radius: 16px;
+  background: var(--tone);
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 11px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.caption {
+  grid-area: caption;
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.credit {
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* ── Facts and the Loved Ones card ────────────────────────── */
+
+.split {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+}
+
+/* Facts (shared pattern E). Each li holds one span, so the bold lead-in flows into its
+   sentence beside the dot. */
+.facts {
+  min-width: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.facts li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 15px 0;
+  border-top: 2px solid var(--ink);
+  font-size: 17px;
+  line-height: 1.45;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.facts li::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: calc((1.45em - 10px) / 2);
+  border-radius: 50%;
+  background: var(--dot, var(--ink));
+}
+
+.facts li:last-child {
+  border-bottom: 2px solid var(--ink);
+}
+
+.facts strong {
+  font-weight: 800;
+}
+
+@media (max-width: 599px) {
+  .facts li {
+    padding: 13px 0;
+    font-size: 16px;
+  }
+}
+
+/* Solid blue card, white text; the chapters are white cells with ink text. */
+.people {
+  min-width: 0;
+  padding: 26px 20px 28px;
+  border-radius: 26px;
+  background: var(--c1);
+  color: #fff;
+}
+
+.peopleTitle {
+  margin: 16px 0 0;
+  font-size: 26px;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.peopleText {
+  margin: 10px 0 0;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.chapters {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* Top-aligned, so a cell stretched by a longer prompt beside it keeps its prompt under its name. */
+.chapters li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  align-content: start;
+  column-gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.chapters li::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--dot);
+  grid-row: span 2;
+}
+
+.chapterName {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.chapterPrompt {
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.fine {
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* Phones: the four chapter names only, 2 by 2, without their prompts. */
+@media (max-width: 599px) {
+  .chapterPrompt {
+    display: none;
+  }
+}
+
+/* ── From 600px ───────────────────────────────────────────── */
+
+@media (min-width: 600px) {
+  .node {
+    grid-template-columns: 170px minmax(0, 1fr);
+  }
+
+  .date {
+    font-size: 24px;
+  }
+
+  .caption {
+    font-size: 16px;
+  }
+
+  .people {
+    padding: 32px;
+  }
+}
+
+/* ── From 900px: the timeline runs across ─────────────────── */
+/* One ink line at 51px; each column stacks the date (34px tall at least), the dot on the line
+   (34 + 10 + 8 = 52px to its centre), the thumbnail and the caption. A shorter caption's spare
+   height goes to the caption row, so every dot stays on the line and the frames share one top. */
+
+@media (min-width: 900px) {
+  .timeline {
+    position: relative;
+    padding: 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0 24px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 51px;
+    height: 2px;
+    background: var(--ink);
+  }
+
+  .node {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      'date'
+      'dot'
+      'photo'
+      'caption';
+  }
+
+  .node:not(:last-child)::after {
+    display: none;
+  }
+
+  .dot {
+    position: static;
+    grid-area: dot;
+    margin: 10px 0 16px;
+  }
+
+  .date {
+    min-height: 34px;
+    font-size: clamp(22px, 2vw, 28px);
+  }
+
+  .thumbFrame {
+    padding: 7px;
+    border-radius: 22px;
+  }
+
+  .thumb {
+    border-radius: 15px;
+  }
+
+  .caption {
+    margin-top: 12px;
+    font-size: 15px;
+  }
+
+  .split {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    column-gap: 32px;
+    align-items: start;
+    margin-top: clamp(48px, 5vw, 72px);
+  }
+}
+
+/* ── From 1024px ──────────────────────────────────────────── */
+
+@media (min-width: 1024px) {
+  .split {
+    column-gap: clamp(32px, 4vw, 56px);
+  }
+
+  .people {
+    padding: 40px;
+    border-radius: 32px;
+  }
+
+  .peopleTitle {
+    font-size: clamp(26px, 2.6vw, 36px);
+  }
+}

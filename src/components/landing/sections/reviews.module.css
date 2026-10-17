@@ -1,0 +1,188 @@
+/* ============================================================
+   Reviews (id reviews): three real families, each photo in a solid colour frame (4:3 on
+   phones, square from 600px).
+   Base styles are the 390px phone; min-width queries at 600 and 1024px.
+   No swipe row, no motion, no section background: the page glow sits behind.
+   ============================================================ */
+
+.list {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 36px;
+}
+
+/* Phones: one review after another, the photo full width with its chip, then the quote and the
+   name, as on the live page. */
+.review {
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'photo'
+    'quote'
+    'by';
+}
+
+/* Framed photo (shared pattern D), phone values. */
+.frame {
+  grid-area: photo;
+  position: relative;
+  padding: 7px;
+  border-radius: 24px;
+  background: var(--frame);
+}
+
+.photo {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Each review sets its crop: --pos-phone for this shorter photo, --pos for the square one. */
+.photo img {
+  object-position: var(--pos-phone, var(--pos));
+}
+
+.by {
+  grid-area: by;
+  margin-top: 14px;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.by strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.place {
+  display: block;
+  margin-top: 2px;
+}
+
+.quote {
+  grid-area: quote;
+  margin: 16px 0 0;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* ── Tablets: one row per review, the photo left of the quote ── */
+
+@media (min-width: 600px) {
+  .review {
+    grid-template-columns: minmax(0, 34fr) minmax(0, 66fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'photo quote'
+      'photo by';
+    column-gap: 28px;
+    align-items: start;
+  }
+
+  .frame {
+    padding: 8px;
+    border-radius: 26px;
+  }
+
+  .photo {
+    aspect-ratio: 1 / 1;
+    border-radius: 19px;
+  }
+
+  .photo img {
+    object-position: var(--pos);
+  }
+
+  /* Near 600px the photo is only ~160px wide, so the chip may wrap to two lines rather than
+     be clipped; wider, it stays on one line. */
+  .chip.chip {
+    display: inline-flex;
+    align-items: flex-start;
+    white-space: normal;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  .chip > span {
+    margin-top: calc((1.2em - 10px) / 2);
+  }
+
+  .quote {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .by {
+    margin-top: 12px;
+    font-size: 15px;
+  }
+
+  .by strong {
+    display: inline;
+    font-size: 15px;
+  }
+
+  .place {
+    display: inline;
+    margin: 0;
+  }
+
+  /* A no-break space, a middle dot and a space: the dot stays with the name. */
+  .place::before {
+    content: '\a0\b7\20';
+  }
+}
+
+/* ── Desktop: three columns ───────────────────────────────── */
+
+@media (min-width: 1024px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px 24px;
+    margin-top: clamp(40px, 4.5vw, 64px);
+  }
+
+  /* The tallest quote's spare height goes under the name, so the quotes start level. */
+  .review {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'photo'
+      'quote'
+      'by';
+  }
+
+  .frame {
+    border-radius: 28px;
+  }
+
+  .photo {
+    border-radius: 21px;
+  }
+
+  .quote {
+    margin-top: 22px;
+  }
+
+  .by {
+    margin-top: 14px;
+  }
+}
+
+/* Phones: on the full-width photo the chip would sit over a face (Alison's dad), and the name
+   and place are printed under each quote anyway, so it is left out below 600px. */
+@media (max-width: 599px) {
+  .chip.chip {
+    display: none;
+  }
+}

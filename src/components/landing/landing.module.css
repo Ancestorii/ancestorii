@@ -764,10 +764,12 @@
   text-wrap: pretty;
 }
 
-/* Every landing section below the hero: the same space above it. */
+/* Every landing section below the hero: the same space above it, and a little room above its
+   top when an in-page link (the feature index) jumps to it. */
 .section {
   position: relative;
   padding-top: clamp(80px, 9vw, 128px);
+  scroll-margin-top: 16px;
 }
 
 /* A section's head: optional eyebrow, the h2, and its lead stacked under it. */
@@ -794,8 +796,10 @@
   word-spacing: 0.06em;
 }
 
-/* "See how it works" moves focus to the section heading; no ring needed for that. */
-.landingMain h2[tabindex='-1']:focus {
+/* "See how it works" and the index tiles move focus to the section heading (the Capsules h3 for
+   that tile); no ring needed for that. */
+.landingMain h2[tabindex='-1']:focus,
+.landingMain h3[tabindex='-1']:focus {
   outline: none;
 }
 
@@ -832,8 +836,7 @@
   gap: 10px;
 }
 
-.trustFacts li::before,
-.factList li::before {
+.trustFacts li::before {
   content: '';
   width: 10px;
   height: 10px;
@@ -890,94 +893,6 @@
 
   .trustOutlet + .trustOutlet::before {
     display: none;
-  }
-}
-
-/* ── How it works ─────────────────────────────────────────── */
-
-.howTitle {
-  max-width: 19ch;
-}
-
-/* Three steps set as type: a big solid numeral, a title and a line, under an ink rule. */
-.howSteps {
-  list-style: none;
-  margin: clamp(48px, 5vw, 72px) 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 40px clamp(24px, 3.5vw, 48px);
-}
-
-.howStep {
-  min-width: 0;
-  padding-top: 28px;
-  border-top: 2px solid var(--ink);
-}
-
-.howNum {
-  display: block;
-  margin-left: -0.02em;
-  color: var(--num);
-  font-size: clamp(96px, 10vw, 150px);
-  line-height: 0.8;
-  letter-spacing: -0.07em;
-  font-weight: 800;
-}
-
-.howStepTitle {
-  margin: 32px 0 0;
-  text-wrap: balance;
-  font-size: clamp(24px, 2.2vw, 30px);
-  line-height: 1.1;
-  letter-spacing: -0.035em;
-  font-weight: 800;
-}
-
-.howStepText {
-  margin: 12px 0 0;
-  max-width: 26em;
-  font-size: 18px;
-  line-height: 1.55;
-  font-weight: 500;
-  text-wrap: balance;
-}
-
-/* Narrower screens: one step per row, the numeral beside the words. */
-@media (max-width: 899px) {
-  .howSteps {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-  }
-
-  .howStep {
-    display: grid;
-    grid-template-columns: clamp(64px, 13vw, 104px) minmax(0, 1fr);
-    gap: 18px;
-    padding: 24px 0 28px;
-  }
-
-  .howStep:last-child {
-    padding-bottom: 0;
-  }
-
-  .howNum {
-    font-size: clamp(76px, 15vw, 116px);
-  }
-
-  .howStepTitle {
-    margin-top: 2px;
-  }
-}
-
-@media (max-width: 599px) {
-  .howStepTitle {
-    font-size: 23px;
-  }
-
-  .howStepText {
-    margin-top: 8px;
-    font-size: 17px;
   }
 }
 
@@ -1118,7 +1033,7 @@
 }
 
 /* A photo in a solid colour frame with a white chip: the hero ring's photo card at rest.
-   Set --frame. Also used by the Memory Books and reviews photos. */
+   Set --frame. The landing's section modules reuse the chip in their own frames. */
 .storyFrame {
   position: relative;
   padding: 8px;
@@ -1347,6 +1262,13 @@
   }
 }
 
+/* Below 900px the label and the seven topics don't fit on one line: the label takes its own. */
+@media (max-width: 899px) {
+  .storyTopicsLabel {
+    flex-basis: 100%;
+  }
+}
+
 @media (min-width: 600px) and (max-width: 1099px) {
   .storyGrid {
     grid-template-columns: minmax(0, 1fr);
@@ -1474,17 +1396,11 @@
   }
 
   .storyTopicsLabel {
-    flex-basis: 100%;
     margin-bottom: 2px;
   }
 
   .storyTopicLink {
     min-height: 44px;
-  }
-
-  .storiesFoot .btnGhost {
-    justify-content: center;
-    min-height: 52px;
   }
 }
 
@@ -1639,21 +1555,29 @@
   text-wrap: balance;
 }
 
+/* No edge-fade mask: a mask over moving content costs an offscreen pass every frame. Each row
+   clips its own track instead. The 2,200px cap stays under one set of six pills (2,364px), so the
+   loop never shows a gap. */
 .marquee {
-  max-width: 2400px;
-  margin: 48px auto -24px;
-  padding-bottom: 24px;
+  max-width: 2200px;
+  margin: 48px auto 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 min(40px, 6%), #000 calc(100% - min(40px, 6%)), transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 min(40px, 6%), #000 calc(100% - min(40px, 6%)), transparent);
 }
 
 .marqueeRow {
   overflow: hidden;
-  padding-bottom: 24px;
-  margin-bottom: -24px;
+  overflow: clip;
+}
+
+/* Wider mouse screens see the rows end inside the page, so the cut edges fade out there. Touch
+   screens never match (their rows sit still), and reduced motion clears it further down. */
+@media (hover: hover) and (min-width: 2201px) {
+  .marquee {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 60px, #000 calc(100% - 60px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 60px, #000 calc(100% - 60px), transparent);
+  }
 }
 
 .marqueeTrack {
@@ -1669,17 +1593,31 @@
   transform: translateX(calc(-50% - 7px));
 }
 
-/* Solid pills, no shadows (ink on pink, orange and aqua; white on blue). */
+/* Solid pills, no shadows (ink on pink, orange and aqua; white on blue). A fixed width, so each
+   question wraps over two or three balanced lines; a row's pills stretch to its tallest and the
+   words sit centred in the height. 6 x (380 + 14) = 2,364px per set. */
 .question {
   flex: none;
-  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  width: 380px;
+  padding: 18px 24px;
   border-radius: 22px;
   background: var(--card);
   color: var(--fg);
-  font-size: clamp(19px, 1.7vw, 24px);
+  font-size: clamp(18px, 1.5vw, 21px);
+  line-height: 1.22;
   font-weight: 800;
   letter-spacing: -0.025em;
-  white-space: nowrap;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+@media (max-width: 1023px) {
+  .question {
+    width: 320px;
+    font-size: 18px;
+  }
 }
 
 .questionsMore {
@@ -1705,7 +1643,7 @@
   .question {
     display: flex;
     align-items: center;
-    max-width: min(300px, 78vw);
+    width: min(300px, 78vw);
     padding: 14px 20px;
     border-radius: 20px;
     font-size: 17px;
@@ -1721,138 +1659,6 @@
   .questionsMore {
     margin-top: 32px;
     flex-direction: column;
-  }
-}
-
-/* ── Memory Books ─────────────────────────────────────────── */
-
-.booksWrap {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  grid-template-areas:
-    'intro figure'
-    'buy figure';
-  column-gap: clamp(40px, 5vw, 72px);
-  align-items: start;
-}
-
-.booksIntro {
-  grid-area: intro;
-  align-self: end;
-  min-width: 0;
-}
-
-.booksBuy {
-  grid-area: buy;
-  min-width: 0;
-}
-
-.booksFigure {
-  grid-area: figure;
-  align-self: center;
-  min-width: 0;
-  margin: 0;
-}
-
-.booksTitle {
-  max-width: 12ch;
-}
-
-/* Facts between two ink rules, each with a round dot. */
-.factList {
-  list-style: none;
-  margin: 32px 0 0;
-  padding: 0;
-  max-width: 30em;
-}
-
-.factList li {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 15px 0;
-  border-top: 2px solid var(--ink);
-  font-size: 17px;
-  line-height: 1.4;
-  font-weight: 700;
-  text-wrap: balance;
-}
-
-.factList li::before {
-  margin-top: calc((1.4em - 10px) / 2);
-}
-
-.factList li:last-child {
-  border-bottom: 2px solid var(--ink);
-}
-
-.booksCta {
-  margin-top: 32px;
-  padding-left: 26px;
-}
-
-.booksFrame {
-  position: relative;
-  padding: 10px;
-  border-radius: 34px;
-  background: var(--frame);
-}
-
-.booksPhoto {
-  position: relative;
-  aspect-ratio: 5 / 4;
-  border-radius: 25px;
-  overflow: hidden;
-  background: #fff;
-}
-
-
-
-@media (max-width: 899px) {
-  .booksWrap {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'intro'
-      'figure'
-      'buy';
-    row-gap: 36px;
-  }
-
-  .factList {
-    margin-top: 0;
-  }
-
-  .booksPhoto {
-    aspect-ratio: 16 / 10;
-  }
-}
-
-@media (max-width: 599px) {
-  .booksWrap {
-    row-gap: 28px;
-  }
-
-  .booksFrame {
-    padding: 7px;
-    border-radius: 26px;
-  }
-
-  .booksPhoto {
-    aspect-ratio: 4 / 3;
-    border-radius: 20px;
-  }
-
-
-
-  .factList li {
-    padding: 13px 0;
-    font-size: 16px;
-  }
-}
-
-@media (max-width: 359px) {
-  .booksCta {
-    padding-left: 20px;
   }
 }
 
@@ -1877,107 +1683,6 @@
   flex: none;
   border-radius: 50%;
   background: var(--dot, var(--c2));
-}
-
-/* ── Reviews ──────────────────────────────────────────────── */
-
-/* Three framed photos, each family with the book they made. */
-.voices {
-  margin-top: clamp(40px, 4.5vw, 64px);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 32px 24px;
-  align-items: start;
-}
-
-.voice {
-  min-width: 0;
-  margin: 0;
-}
-
-.voiceFrame {
-  position: relative;
-  padding: 8px;
-  border-radius: 28px;
-  background: var(--frame);
-}
-
-.voicePhoto {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 21px;
-  overflow: hidden;
-  background: #fff;
-}
-
-/* Each review sets its crop: --pos, and --pos-phone for the shorter photo on phones. */
-.voicePhoto .coverImg {
-  object-position: var(--pos);
-}
-
-.voiceText {
-  margin: 22px 0 0;
-  font-size: 18px;
-  line-height: 1.55;
-  font-weight: 500;
-  text-wrap: pretty;
-}
-
-.voiceBy {
-  margin-top: 14px;
-  font-size: 15px;
-  font-weight: 500;
-  text-wrap: balance;
-}
-
-.voiceBy strong {
-  font-weight: 800;
-}
-
-/* Tablets: still three in a row, closer together. The photos are narrow here, so the chip
-   sits at the bottom of the photo, clear of the faces. */
-@media (min-width: 600px) and (max-width: 899px) {
-  .voices {
-    column-gap: 16px;
-  }
-
-  .voiceText {
-    font-size: 16px;
-  }
-
-  /* Narrow columns: the chip may wrap rather than run into its own edge (it is inline-flex,
-     so an ellipsis can't apply). */
-  .voiceFrame .storyChip {
-    top: auto;
-    bottom: 15px;
-    left: 15px;
-    max-width: calc(100% - 30px);
-    font-size: 12px;
-    white-space: normal;
-    line-height: 1.2;
-    text-wrap: balance;
-  }
-}
-
-/* Phones: one review under another (no sideways row), the photos a little shorter so the
-   section stays compact. Cards stop at 400px wide, as the photos are only ~650px wide. */
-@media (max-width: 599px) {
-  .voices {
-    grid-template-columns: minmax(0, 400px);
-    gap: 40px;
-  }
-
-  .voicePhoto {
-    aspect-ratio: 4 / 3;
-  }
-
-  .voicePhoto .coverImg {
-    object-position: var(--pos-phone, var(--pos));
-  }
-
-  .voiceText {
-    font-size: 17px;
-  }
 }
 
 /* Shared: review cards (the /memory-books reviews). */

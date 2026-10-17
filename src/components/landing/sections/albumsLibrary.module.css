@@ -1,0 +1,396 @@
+/* ============================================================
+   Albums and Library (#albums).
+   Mobile first: the base is the 390px phone (.wrap is 342px there), then 600px, 760px and
+   1024px. Static: no motion and no hover effects. The section paints no background; only the
+   Library card is a solid colour.
+   ============================================================ */
+
+/* ── Head (shared pattern B) ──────────────────────────────── */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tags + .title {
+  margin-top: 22px;
+}
+
+/* ── Where tag (shared pattern C) ─────────────────────────── */
+
+.where {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 7px 13px 7px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--ink);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.whereDot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.whereDot + .whereDot {
+  margin-left: -3px;
+}
+
+/* ── Head, figure and facts ───────────────────────────────── */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'head'
+    'figure'
+    'facts';
+  row-gap: 28px;
+}
+
+.headArea {
+  grid-area: head;
+  min-width: 0;
+}
+
+/* The album photo beside its fields, with the credit underneath both. */
+.figure {
+  grid-area: figure;
+  min-width: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 44fr) minmax(0, 56fr);
+  column-gap: 16px;
+  row-gap: 12px;
+  align-items: center;
+}
+
+/* Framed photo (shared pattern D), smaller on phones. */
+.frame {
+  position: relative;
+  padding: 6px;
+  border-radius: 20px;
+  background: var(--frame);
+}
+
+.photo {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Phones: the photo is too small to carry a chip. */
+@media (max-width: 599px) {
+  .chip.chip {
+    display: none;
+  }
+}
+
+.label {
+  min-width: 0;
+  margin: 0;
+  border-top: 2px solid var(--ink);
+}
+
+.row {
+  padding: 10px 0;
+  border-bottom: 2px solid var(--ink);
+}
+
+.term {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.term::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--c2);
+}
+
+.value {
+  margin: 4px 0 0;
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.credit {
+  grid-column: 1 / -1;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* ── Facts (shared pattern E) ─────────────────────────────── */
+/* Each li holds one span, so the bold lead-in flows into its sentence beside the dot. */
+
+.facts {
+  grid-area: facts;
+  min-width: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.facts li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 15px 0;
+  border-top: 2px solid var(--ink);
+  font-size: 17px;
+  line-height: 1.45;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.facts li::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: calc((1.45em - 10px) / 2);
+  border-radius: 50%;
+  background: var(--dot, var(--ink));
+}
+
+.facts li:last-child {
+  border-bottom: 2px solid var(--ink);
+}
+
+.facts strong {
+  font-weight: 800;
+}
+
+@media (max-width: 599px) {
+  .facts li {
+    padding: 13px 0;
+    font-size: 16px;
+  }
+}
+
+/* ── Library card (solid aqua, ink text) ──────────────────── */
+
+.library {
+  margin-top: 32px;
+  padding: 24px 20px 26px;
+  border-radius: 26px;
+  background: var(--c3);
+  color: var(--ink);
+}
+
+.libraryTitle {
+  margin: 14px 0 0;
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.libraryFacts {
+  text-wrap: pretty;
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.libraryFacts li {
+  display: flex;
+  gap: 10px;
+}
+
+.libraryFacts li::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: calc((1.4em - 10px) / 2);
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.fine {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* ── Very small phones: the figure stacks ─────────────────── */
+
+@media (max-width: 359px) {
+  .figure {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .frame {
+    max-width: 240px;
+  }
+}
+
+/* ── From 600px ───────────────────────────────────────────── */
+
+@media (min-width: 600px) {
+  .figure {
+    grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
+    column-gap: 28px;
+  }
+
+  .frame {
+    padding: 8px;
+    border-radius: 26px;
+  }
+
+  .photo {
+    border-radius: 19px;
+  }
+
+  .row {
+    padding: 14px 0;
+  }
+
+  .term {
+    font-size: 12px;
+  }
+
+  .value {
+    font-size: clamp(19px, 2vw, 24px);
+  }
+
+  /* Facts two by two, each under its own ink rule. */
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+  }
+
+  .facts li:last-child {
+    border-bottom: 0;
+  }
+
+  .library {
+    padding: 30px;
+  }
+}
+
+/* ── From 760px: the Library facts run in three columns ───── */
+
+@media (min-width: 760px) {
+  .libraryFacts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 24px;
+  }
+
+  .libraryFacts li {
+    flex-direction: column;
+  }
+
+  .libraryFacts li::before {
+    margin-top: 0;
+  }
+}
+
+/* ── From 1024px ──────────────────────────────────────────── */
+/* Head over facts on the left, the figure centred beside them, then the Library card. */
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-areas:
+      'head figure'
+      'facts figure';
+    column-gap: clamp(40px, 5vw, 72px);
+    row-gap: 32px;
+    align-items: start;
+  }
+
+  /* The head sits in a column here, so its title is a size down. */
+  .title.title {
+    font-size: clamp(38px, 4.2vw, 58px);
+  }
+
+  .figure {
+    align-self: center;
+    grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+  }
+
+  .facts {
+    display: block;
+  }
+
+  .facts li:last-child {
+    border-bottom: 2px solid var(--ink);
+  }
+
+  /* Where tag, title and fine print on the left, the facts on the right. Should the facts ever
+     run taller, the extra height goes under the fine print, so the left column stays together. */
+  .library {
+    margin-top: 56px;
+    padding: 36px 40px;
+    border-radius: 32px;
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'where facts'
+      'title facts'
+      'fine facts';
+    column-gap: 40px;
+    align-content: start;
+  }
+
+  /* As a grid item the pill would stretch to the column's width. */
+  .libraryWhere {
+    grid-area: where;
+    justify-self: start;
+  }
+
+  .libraryTitle {
+    grid-area: title;
+    font-size: 30px;
+  }
+
+  .libraryFacts {
+    grid-area: facts;
+    margin-top: 0;
+    font-size: 17px;
+  }
+
+  .fine {
+    grid-area: fine;
+  }
+}

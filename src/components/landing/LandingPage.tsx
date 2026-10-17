@@ -3,11 +3,15 @@ import { jakarta } from './fonts';
 import LandingNav from './LandingNav';
 import LandingHero from './LandingHero';
 import LandingTrust from './LandingTrust';
-import LandingHowItWorks from './LandingHowItWorks';
-import LandingStories from './LandingStories';
+import FeatureIndex from './sections/FeatureIndex';
+import MyFamily from './sections/MyFamily';
 import LandingQuestions from './LandingQuestions';
-import LandingMemoryBooks from './LandingMemoryBooks';
-import LandingReviews from './LandingReviews';
+import AlbumsLibrary from './sections/AlbumsLibrary';
+import TimelinesLovedOnes from './sections/TimelinesLovedOnes';
+import VoicesCapsules from './sections/VoicesCapsules';
+import LandingStories from './LandingStories';
+import Heirlooms from './sections/Heirlooms';
+import Reviews from './sections/Reviews';
 import LandingCta from './LandingCta';
 import LandingFooter from './LandingFooter';
 import styles from './landing.module.css';
@@ -32,11 +36,15 @@ export default function LandingPage({
       <main className={styles.landingMain}>
         <LandingHero isLoggedIn={isLoggedIn} />
         <LandingTrust />
-        <LandingHowItWorks />
-        <LandingStories stories={stories} />
+        <FeatureIndex />
+        <MyFamily />
         <LandingQuestions />
-        <LandingMemoryBooks />
-        <LandingReviews />
+        <AlbumsLibrary />
+        <TimelinesLovedOnes />
+        <VoicesCapsules />
+        <LandingStories stories={stories} isLoggedIn={isLoggedIn} />
+        <Heirlooms />
+        <Reviews />
         <LandingCta isLoggedIn={isLoggedIn} />
       </main>
 

@@ -1,0 +1,223 @@
+/* ============================================================
+   Feature index (#how): eight solid-colour tiles, one for each
+   area of the product, each jumping to the section that shows it.
+   Mobile first: base styles are the 390px phone (.wrap is 342px),
+   then min-width 600px and 1024px. Tokens come from the landing root.
+   ============================================================ */
+
+/* ── Head (shared pattern) ────────────────────────────────── */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tags + .title {
+  margin-top: 22px;
+}
+
+/* ── Where tag (shared pattern) ───────────────────────────── */
+/* Pink dot = in the app, blue dot = on the website, both dots = both. */
+
+.where {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 7px 13px 7px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--ink);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.whereDot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.whereDot + .whereDot {
+  margin-left: -3px;
+}
+
+/* ── Tiles ────────────────────────────────────────────────── */
+/* Phones: compact rows, the title and line beside a round arrow button. The where pill is
+   hidden and its words close the line instead. Each tile sets --tile and --tile-fg on its li. */
+
+.grid {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.item {
+  min-width: 0;
+}
+
+.tile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px;
+  grid-template-areas:
+    'title arrow'
+    'line arrow';
+  column-gap: 14px;
+  row-gap: 4px;
+  align-items: center;
+  height: 100%;
+  padding: 15px 14px 15px 18px;
+  border-radius: 22px;
+  background: var(--tile);
+  color: var(--tile-fg);
+}
+
+/* After .where, so it wins on phones. */
+.tileWhere {
+  display: none;
+}
+
+.tileTitle {
+  grid-area: title;
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.tileLine {
+  grid-area: line;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+/* Phones: 'App and website' or 'On the website' stays whole; the line breaks after the dot. */
+.whereWords {
+  white-space: nowrap;
+}
+
+.arrow {
+  grid-area: arrow;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 359px) {
+  .tileTitle {
+    font-size: 18px;
+  }
+}
+
+/* Tablets: two columns of cards, the where pill top left and the arrow pinned bottom right. */
+@media (min-width: 600px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 180px;
+    padding: 20px 20px 18px 22px;
+    border-radius: 26px;
+  }
+
+  /* Last in the markup (so link names start with the feature), first on screen. */
+  .tileWhere {
+    display: inline-flex;
+    order: -1;
+  }
+
+  .whereInline {
+    display: none;
+  }
+
+  .tileTitle {
+    margin-top: 14px;
+    font-size: 22px;
+  }
+
+  /* The bottom margin keeps at least 16px between the line and the arrow. */
+  .tileLine {
+    margin-top: 6px;
+    margin-bottom: 16px;
+    font-size: 15px;
+  }
+
+  .arrow {
+    margin-top: auto;
+    align-self: flex-end;
+  }
+}
+
+/* Desktop: four columns by two rows. */
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: clamp(40px, 4.5vw, 64px);
+  }
+
+  .tile {
+    min-height: 236px;
+    padding: 22px 22px 22px 24px;
+    border-radius: 28px;
+  }
+
+  .tileTitle {
+    margin-top: 22px;
+    font-size: clamp(22px, 2vw, 27px);
+  }
+
+  .tileLine {
+    font-size: 16px;
+  }
+
+  .arrow {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ── Motion: the only motion in this section ─────────────── */
+/* A small lift on hover, for mouse screens only. Touch screens get no transition at all:
+   press feedback snaps on, as everywhere on the landing. */
+
+@media (hover: hover) {
+  .tile {
+    transition: transform 0.2s ease;
+  }
+
+  .tile:hover {
+    transform: translateY(-3px);
+  }
+}
+
+/* After the hover rules, so it wins while pressed. */
+.tile:active {
+  transform: scale(0.98);
+  transition: none;
+}
