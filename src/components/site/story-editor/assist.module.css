@@ -581,7 +581,7 @@
   width: 7px;
   height: 7px;
   flex: none;
-  border-radius: 2px;
+  border-radius: 50%;
   background: var(--c0);
 }
 

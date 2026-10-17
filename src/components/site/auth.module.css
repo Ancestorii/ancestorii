@@ -41,6 +41,23 @@
 .signup .glowPink { right: -18%; }
 .signup .glowBlue { left: -20%; }
 
+/* Stacked (form above the cards): the glows were placed by a share of the tall stacked page
+   but sized by its width, so the pink one sat above the page and the blue one below it.
+   Pin pink to the top edge and blue to the bottom edge instead, as they appear on desktop. */
+@media (max-width: 1039px) {
+  .glowPink {
+    top: 0;
+    width: 130vw;
+    transform: translateY(-40%);
+  }
+
+  .glowBlue {
+    bottom: 0;
+    width: 140vw;
+    transform: translateY(45%);
+  }
+}
+
 /* ── Form column ──────────────────────────────────────────── */
 
 .formCol {

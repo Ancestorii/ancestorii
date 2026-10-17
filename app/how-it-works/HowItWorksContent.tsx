@@ -327,7 +327,7 @@ export default function HowItWorksContent() {
               title="Question Prompts"
               text={
                 <>
-                  Pick from dozens of curated questions across chapters like Growing Up, Holidays, Around the Table, and The Stories We Always Retell. Send a question to a family member. When they answer, their memory appears in your feed. They do not even need an account — they click the link, write their answer, and they are in.
+                  Pick from dozens of curated questions across chapters like Growing Up, Holidays, Around the Table, and The Stories We Always Retell. Send a question to a family member. They answer it in the Ancestorii app on their phone, and their memory appears in your feed.
                 </>
               }
               color="var(--c0)"

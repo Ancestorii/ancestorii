@@ -50,7 +50,7 @@ const FAQ = [
   },
   {
     q: 'Is there a StoryWorth alternative in the UK?',
-    a: 'Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii uses no prompts at all, so you write and record freely at your own pace.',
+    a: 'Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
   },
   {
     q: 'How is Ancestorii different from StoryWorth?',
@@ -98,7 +98,7 @@ const FEATURES = [
   ['Who contributes', 'The whole family', 'One storyteller per subscription'],
   ['Family app on your phone', 'Yes, free on iPhone and Android', 'Storyteller app only'],
   ['Continues after the book', 'Yes — the library keeps growing', 'No — ends after a year'],
-  ['Prompt system', 'None — write freely', '500+ fixed email prompts'],
+  ['Prompt system', 'Optional questions you send when you like', '500+ fixed email prompts'],
   ['Private family space', 'Yes — invite only', 'No'],
   ['Public story feed', 'Yes — Our Stories', 'No'],
   ['Voice recordings', 'Yes — kept in the library', 'Limited'],
@@ -233,7 +233,7 @@ export default function StoryworthAlternativePage() {
               A library that lasts.
             </>
           }
-          lead={"Free to start. No credit card. No prompts. Built in the UK."}
+          lead={"Free to start. No credit card. No prompt schedule. Built in the UK."}
           primary={{ href: '/signup', label: 'Start For Free' }}
           note={"Free forever · No credit card · Takes 2 minutes"}
         />

@@ -4,14 +4,14 @@
    sits inside SiteShell, whose landing root class provides the
    tokens: --c0 pink, --c1 blue, --c2 orange, --c3 aqua, --ink,
    --hairline-ring, and Plus Jakarta Sans.
-   Text is ink, or white on pink/blue; ink on orange/aqua.
+   Text is ink, or white on blue; ink on pink, orange and aqua.
    ============================================================ */
 
 /* ── Colours ──────────────────────────────────────────────── */
 
 .tonePink {
   --tone: var(--c0);
-  --tone-fg: #fff;
+  --tone-fg: var(--ink);
 }
 
 .toneBlue {
@@ -33,7 +33,7 @@
    like the step tiles on the landing page. */
 .rotate > :nth-child(4n + 1) {
   --tone: var(--c0);
-  --tone-fg: #fff;
+  --tone-fg: var(--ink);
   --tilt: -4deg;
 }
 
@@ -213,7 +213,7 @@
   align-items: center;
   justify-content: center;
   background: var(--tone, var(--c0));
-  color: var(--tone-fg, #fff);
+  color: var(--tone-fg, var(--ink));
   font-size: 21px;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -391,7 +391,7 @@
   top: calc(14px + 0.75em - 5px);
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--tone, var(--c0));
 }
 
@@ -657,7 +657,7 @@
   width: 9px;
   height: 9px;
   flex: none;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--tone, var(--c0));
 }
 

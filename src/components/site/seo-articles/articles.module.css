@@ -5,7 +5,7 @@
    Everything sits inside SiteShell, so the landing tokens apply:
    --c0 pink, --c1 blue, --c2 orange, --c3 aqua, --ink,
    --hairline-ring, and Plus Jakarta Sans.
-   Text is ink, or white on ink/pink/blue; hierarchy comes from
+   Text is ink, or white on ink and blue; hierarchy comes from
    size and weight, never from greys.
    ============================================================ */
 
@@ -13,7 +13,7 @@
 
 .pink {
   --tone: var(--c0);
-  --tone-fg: #fff;
+  --tone-fg: var(--ink);
 }
 
 .blue {
@@ -387,7 +387,7 @@ table.cmp thead th.cornerHead {
   top: 0.58em;
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--tone, var(--c0));
 }
 

@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import StoreBadges from '@/components/StoreBadges';
 import QuestionMarquee, { type MarqueeQuestion } from './QuestionMarquee';
 import styles from './landing.module.css';
 
@@ -22,7 +24,8 @@ const QUESTIONS = [
 ];
 
 const PALETTE = ['#FF2D87', '#2B4BFF', '#FF7A1A', '#12D3AC'];
-const DARK_TEXT = [false, false, true, true];
+// Ink on pink, orange and aqua; white only on blue.
+const DARK_TEXT = [true, false, true, true];
 
 // Same colour rotation as the design: each row starts two colours further on.
 const ROWS: MarqueeQuestion[][] = QUESTIONS.map((row, r) =>
@@ -32,24 +35,32 @@ const ROWS: MarqueeQuestion[][] = QUESTIONS.map((row, r) =>
   })
 );
 
+// Sending a question is the app's own feature: the sender picks or writes one, the relative
+// answers it in the app (see app/q/[code]) and the sender is emailed when it's answered
+// (supabase/functions/prompt-answered-email).
 export default function LandingQuestions() {
   return (
-    <section className={styles.questionsSection}>
+    <section className={styles.section}>
       <div className={styles.wrap}>
-        <h2 className={`${styles.h2} ${styles.questionsTitle}`}>
+        <h2 className={`${styles.h2} ${styles.headTitle} ${styles.questionsTitle}`}>
           Not sure where to start?{' '}
-          <span className={styles.questionsAccent}>Start with a question.</span>
+          <span className={styles.questionsAccent}>Send them a question.</span>
         </h2>
+        <p className={styles.questionsLead}>
+          Pick one of ours or write your own in the Ancestorii app, and send it to Mum, Grandad or
+          anyone in the family. They answer on their phone, and you get an email when they do.
+        </p>
       </div>
 
       <QuestionMarquee rows={ROWS} />
 
-      <div className={styles.questionsMore}>
+      <div className={`${styles.wrap} ${styles.questionsMore}`}>
+        <StoreBadges theme="light" className={styles.questionsBadges} />
         <Link
           href="/guides/questions-to-ask-your-parents-about-their-life"
           className={styles.btnGhost}
         >
-          See more questions to ask <span className={styles.arrowGlyph}>→</span>
+          More questions to ask <ArrowRight size={18} strokeWidth={2.6} aria-hidden="true" />
         </Link>
       </div>
     </section>

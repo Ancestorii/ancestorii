@@ -25,7 +25,7 @@
   width: 10px;
   height: 10px;
   flex: none;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--c3);
 }
 
@@ -134,10 +134,10 @@
   text-wrap: pretty;
 }
 
-/* Tile colours: white symbols on pink and blue, ink on orange and aqua. */
+/* Tile colours: white symbols on blue, ink on pink, orange and aqua. */
 .pink {
   --tile: var(--c0);
-  --tile-fg: #fff;
+  --tile-fg: var(--ink);
 }
 
 .blue {

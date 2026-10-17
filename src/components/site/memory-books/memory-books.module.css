@@ -341,7 +341,7 @@
   padding: clamp(30px, 3.4vw, 46px);
   border-radius: 30px;
   background: var(--c0);
-  color: #fff;
+  color: var(--ink);
   transform: rotate(-2deg);
   box-shadow: 0 40px 70px -40px rgba(10, 10, 15, 0.6);
 }
@@ -520,7 +520,7 @@
   height: 10px;
   flex: none;
   margin-top: 0.4em;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--dot);
 }
 

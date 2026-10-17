@@ -254,7 +254,7 @@
   width: 9px;
   height: 9px;
   flex: none;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--dot, var(--c0));
 }
 
@@ -428,7 +428,7 @@
   top: 0.6em;
   width: 0.5em;
   height: 0.5em;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--c0);
 }
 
@@ -529,7 +529,7 @@
   width: 6px;
   height: 6px;
   flex: none;
-  border-radius: 2px;
+  border-radius: 50%;
   background: var(--c0);
 }
 
@@ -678,7 +678,7 @@
   height: 10px;
   flex: none;
   margin-top: 0.4em;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--dot);
 }
 

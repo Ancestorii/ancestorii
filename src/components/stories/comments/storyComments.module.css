@@ -66,7 +66,7 @@
   width: 9px;
   height: 9px;
   margin-right: 9px;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--c1);
   vertical-align: 1px;
 }
@@ -170,7 +170,7 @@
 
 .tone1 {
   --av: var(--c0);
-  --av-fg: #fff;
+  --av-fg: var(--ink);
 }
 
 .tone2 {

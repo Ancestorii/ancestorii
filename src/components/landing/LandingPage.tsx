@@ -2,6 +2,7 @@ import type { LandingStory } from '@/lib/stories/landing';
 import { jakarta } from './fonts';
 import LandingNav from './LandingNav';
 import LandingHero from './LandingHero';
+import LandingTrust from './LandingTrust';
 import LandingHowItWorks from './LandingHowItWorks';
 import LandingStories from './LandingStories';
 import LandingQuestions from './LandingQuestions';
@@ -27,8 +28,9 @@ export default function LandingPage({
 
       <LandingNav isLoggedIn={isLoggedIn} />
 
-      <main>
+      <main className={styles.landingMain}>
         <LandingHero isLoggedIn={isLoggedIn} />
+        <LandingTrust />
         <LandingHowItWorks />
         <LandingStories stories={stories} />
         <LandingQuestions />

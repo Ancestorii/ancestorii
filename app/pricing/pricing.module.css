@@ -7,11 +7,11 @@
    Plus Jakarta Sans.
    ============================================================ */
 
-/* Solid colour tones for tiles and pills: white marks on pink and
-   blue, ink marks on orange and aqua. */
+/* Solid colour tones for tiles and pills: white marks on blue,
+   ink marks on pink, orange and aqua. */
 .pink {
   --tone: var(--c0);
-  --tone-fg: #fff;
+  --tone-fg: var(--ink);
 }
 
 .blue {
@@ -135,7 +135,7 @@
   width: 9px;
   height: 9px;
   flex: none;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--c0);
 }
 

@@ -302,7 +302,7 @@
   width: 9px;
   height: 9px;
   flex: none;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--c3);
 }
 
@@ -475,7 +475,7 @@
   display: block;
   width: 8px;
   height: 8px;
-  border-radius: 4px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.55);
   transition: width 0.3s ease, background-color 0.3s ease;
 }
@@ -735,7 +735,7 @@
   top: 0.62em;
   width: 0.5em;
   height: 0.5em;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--c0);
 }
 
@@ -911,7 +911,7 @@
   width: 9px;
   height: 9px;
   flex: none;
-  border-radius: 3px;
+  border-radius: 50%;
   background: var(--c0);
 }
 
@@ -999,7 +999,7 @@
 
 .fallbackPink {
   --fallback-bg: var(--c0);
-  --fallback-fg: #fff;
+  --fallback-fg: var(--ink);
 }
 
 .cardStats {

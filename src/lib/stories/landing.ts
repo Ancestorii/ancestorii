@@ -128,7 +128,9 @@ export async function getLandingStories(
   );
 
   return ordered.map((s, i) => {
-    const excerpt = s.excerpt?.trim() || shorten(plainText(s.body ?? ''), 140);
+    // A one-line subtitle ("My special birthday") sells nothing: use the story's opening instead.
+    const own = s.excerpt?.trim() ?? '';
+    const excerpt = own.length >= 40 ? shorten(own, 140) : shorten(plainText(s.body ?? ''), 140) || own;
     let badge: LandingStory['badge'] = 'Our Stories';
     if (i === 0) {
       if (featured && s.id === featured.id) badge = 'Featured story';

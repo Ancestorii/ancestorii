@@ -1,7 +1,10 @@
 import Link from 'next/link';
+import StoreBadges from '@/components/StoreBadges';
 import { ArrowLink } from './LandingBits';
 import styles from './landing.module.css';
 
+// The page's one dark block. Plain about money: free to start (no card), Premium £3.99 a month
+// per family, as on /pricing.
 export default function LandingCta({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <section id="get-started" className={styles.ctaSection}>
@@ -11,8 +14,8 @@ export default function LandingCta({ isLoggedIn }: { isLoggedIn: boolean }) {
         <div className={styles.ctaCopy}>
           <h2 className={styles.ctaTitle}>Share a memory that lives on.</h2>
           <p className={styles.ctaLead}>
-            It takes two minutes to preserve something that matters forever. Completely free, no
-            credit card, no catch.
+            Free to start, no card needed. Invite your family when you&apos;re ready, and if you
+            ever want more room, Premium is £3.99 a month for the whole family.
           </p>
           <div className={styles.ctaButtons}>
             {isLoggedIn ? (
@@ -28,6 +31,7 @@ export default function LandingCta({ isLoggedIn }: { isLoggedIn: boolean }) {
               See pricing
             </Link>
           </div>
+          <StoreBadges theme="dark" className={styles.ctaBadges} />
         </div>
       </div>
     </section>

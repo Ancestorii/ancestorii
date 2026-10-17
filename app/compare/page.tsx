@@ -41,7 +41,7 @@ const FEATURES = [
   ['Voice recordings', 'Yes — stored in library', 'Yes — phone recording', 'Yes — voice and video'],
   ['Who contributes', 'Whole family', 'One storyteller', 'One storyteller'],
   ['Family app on your phone', 'Yes, free on iPhone and Android', 'Storyteller app only', 'Storyteller app only'],
-  ['Prompt system', 'No — write freely', '500+ email prompts', 'Weekly prompts'],
+  ['Prompt system', 'Optional questions you send when you like', '500+ email prompts', 'Weekly prompts'],
   ['AI rewrites your words', 'No', 'No', 'Yes'],
   ['Continues after the book', 'Yes — library keeps growing', 'No', 'No'],
   ['Algorithm or follower counts', 'No — stories shown in order', 'N/A', 'N/A'],
@@ -73,7 +73,7 @@ const QUESTIONS = [
   },
   {
     q: 'Is Ancestorii a good alternative to StoryWorth in the UK?',
-    a: 'Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii does not use prompts at all — you write and record freely at your own pace.',
+    a: 'Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
   },
 ];
 
@@ -167,7 +167,7 @@ export default function ComparePage() {
                 'Two distinct spaces. Our Stories is public — share memories with the world, no algorithms, no follower counts, just real stories from real families. My Family is private — only invited family members can see what is inside.',
                 'Not built around one storyteller or one year. Your whole family contributes. Timelines, albums, stories, and voice recordings grow together over time.',
                 'My Heirlooms lets you turn your library into physical keepsakes. Memory Books designed page by page in a visual editor. Canvas Prints. Acrylic Prints. Things you hold, frame, and pass down.',
-                'No prompts. No AI rewriting your words. You write what you want, when you want, in your own voice.',
+                'No prompt schedule. No AI rewriting your words. You write what you want, when you want, in your own voice.',
                 'There is a free Ancestorii app for your phone, so the whole family can add photos, stories, and voices from anywhere. It is on iPhone and Android.',
                 'Built in the UK. Worldwide delivery on all physical products.',
               ]}
@@ -223,7 +223,7 @@ export default function ComparePage() {
               A library that lasts.
             </>
           }
-          lead={"Free to start. No credit card. No prompts. No AI rewriting your words."}
+          lead={"Free to start. No credit card. No prompt schedule. No AI rewriting your words."}
           primary={{ href: '/signup', label: 'Start For Free' }}
           note={"Free forever · No credit card · Takes 2 minutes"}
         />

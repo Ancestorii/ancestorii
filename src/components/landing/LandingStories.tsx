@@ -1,17 +1,34 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { TOPICS, getTopicByKey } from '@/lib/stories/topics';
 import type { LandingStory } from '@/lib/stories/landing';
+import { topicToneClass } from '@/components/site/stories-browse/topicTone';
 import styles from './landing.module.css';
 
+// Real public stories, drawn like the hero ring's photo cards at rest: each photo sits in a solid
+// colour frame with a white chip, and the words sit on white underneath.
+const FRAMES = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c0)'];
 
 function byline(story: LandingStory) {
-  return story.authorTitle ? `By ${story.authorName} · ${story.authorTitle}` : `By ${story.authorName}`;
+  // A no-break space keeps the dot with the name, so a wrapped byline never starts with "·".
+  return story.authorTitle ? `By ${story.authorName}\u00a0· ${story.authorTitle}` : `By ${story.authorName}`;
 }
 
 function topicLabel(story: LandingStory) {
   return story.category ? getTopicByKey(story.category)?.label ?? null : null;
+}
+
+function Cover({ story, sizes }: { story: LandingStory; sizes: string }) {
+  return story.coverUrl ? (
+    <Image src={story.coverUrl} alt="" fill sizes={sizes} className={styles.coverImg} />
+  ) : (
+    // No photo: a solid frame-coloured panel with a quote mark, never a stock image.
+    <div className={styles.storyFallback} aria-hidden="true">
+      “
+    </div>
+  );
 }
 
 export default function LandingStories({ stories }: { stories: LandingStory[] }) {
@@ -19,110 +36,80 @@ export default function LandingStories({ stories }: { stories: LandingStory[] })
   const leadTopic = lead ? topicLabel(lead) : null;
 
   return (
-    <section id="stories" className={styles.storiesSection}>
+    <section id="stories" className={styles.section}>
       <div className={styles.wrap}>
-        <div className={styles.sectionHead}>
-          <h2 className={`${styles.h2} ${styles.storiesTitle}`}>Real stories from real families.</h2>
-          <Link href="/stories" className={styles.btnGhost}>
-            Read all stories <span className={styles.arrowGlyph}>→</span>
-          </Link>
+        <div className={styles.head}>
+          <div className={styles.badge}>
+            <span className={styles.badgeDot} style={{ '--dot': 'var(--c0)' } as CSSProperties} />
+            Our Stories
+          </div>
+          <h2 className={`${styles.h2} ${styles.headTitle} ${styles.storiesTitle}`}>
+            Real stories from real families.
+          </h2>
+          <p className={styles.headLead}>
+            Shared by families on Our Stories, where anyone can read them.
+          </p>
         </div>
 
-        <nav className={styles.topics} aria-label="Story topics">
-          <Link href="/stories" className={`${styles.topic} ${styles.topicActive}`}>
-            All Stories
-          </Link>
-          {TOPICS.map((topic) => (
-            <Link key={topic.key} href={`/stories/topics/${topic.slug}`} className={styles.topic}>
-              {topic.label}
-            </Link>
-          ))}
-        </nav>
-
         {lead && (
-          <div
-            className={styles.storiesGrid}
-            style={rest.length ? undefined : { gridTemplateColumns: 'minmax(0, 1fr)' }}
-          >
+          <div className={`${styles.storyGrid} ${rest.length ? '' : styles.storyGridSolo}`}>
             <Link
               href={`/stories/${lead.slug}`}
-              className={styles.featured}
-              style={{ '--card': 'var(--c0)' } as CSSProperties}
+              className={styles.storyLead}
+              style={{ '--frame': 'var(--c0)' } as CSSProperties}
+              aria-labelledby={`story-${lead.slug}`}
             >
-              <div className={styles.featuredMedia}>
-                {lead.coverUrl ? (
-                  <Image
-                    src={lead.coverUrl}
-                    alt=""
-                    fill
-                    sizes="(max-width: 767px) 100vw, (max-width: 1099px) 56vw, 620px"
-                    className={styles.coverImg}
-                  />
-                ) : (
-                  <div
-                    className={styles.mediaFallback}
-                    style={{ '--fallback-bg': '#FFFFFF', '--fallback-fg': 'var(--c0)' } as CSSProperties}
-                    aria-hidden="true"
-                  >
-                    “
-                  </div>
-                )}
-                <span className={styles.featuredBadge}>
+              <div className={`${styles.storyFrame} ${styles.storyFrameLead}`}>
+                <div className={styles.storyPhoto}>
+                  <Cover story={lead} sizes="(max-width: 699px) 100vw, (max-width: 1099px) 54vw, 610px" />
+                </div>
+                <span className={styles.storyChip}>
+                  <span className={styles.storyChipDot} />
                   {leadTopic ? `${lead.badge} · ${leadTopic}` : lead.badge}
                 </span>
               </div>
-              <div className={styles.featuredBody}>
-                <div className={styles.featuredTitle}>{lead.title}</div>
-                {lead.excerpt && <p className={styles.featuredExcerpt}>{lead.excerpt}</p>}
-                <div className={styles.featuredMeta}>
+              <div className={styles.storyLeadBody}>
+                <h3 id={`story-${lead.slug}`} className={styles.storyLeadTitle}>
+                  {lead.title}
+                </h3>
+                {lead.excerpt && <p className={styles.storyLeadExcerpt}>{lead.excerpt}</p>}
+                <p className={styles.storyLeadMeta}>
                   <span>{byline(lead)}</span>
-                  <span>
-                    Read story <span className={styles.arrowGlyph}>→</span>
+                  <span className={styles.storyRead}>
+                    Read story <ArrowRight size={17} strokeWidth={2.6} aria-hidden="true" />
                   </span>
-                </div>
+                </p>
               </div>
             </Link>
 
             {rest.length > 0 && (
-              <div className={styles.smallGrid}>
-                {rest.map((story) => {
-                  const color = 'var(--c0)';
+              <div className={styles.storyList}>
+                {rest.map((story, i) => {
                   const topic = topicLabel(story);
                   return (
                     <Link
                       key={story.slug}
                       href={`/stories/${story.slug}`}
-                      className={styles.storyCard}
-                      style={{ '--card': color } as CSSProperties}
+                      className={styles.storyItem}
+                      style={{ '--frame': FRAMES[i % FRAMES.length] } as CSSProperties}
+                      aria-labelledby={`story-${story.slug}`}
                     >
-                      <div className={styles.storyMedia}>
-                        {story.coverUrl ? (
-                          <Image
-                            src={story.coverUrl}
-                            alt=""
-                            fill
-                            sizes="(max-width: 599px) 40vw, (max-width: 1099px) 50vw, 310px"
-                            className={styles.coverImg}
-                          />
-                        ) : (
-                          <div
-                            className={styles.mediaFallback}
-                            style={{ '--fallback-bg': color, '--fallback-fg': '#FFFFFF' } as CSSProperties}
-                            aria-hidden="true"
-                          >
-                            “
-                          </div>
+                      <div className={styles.storyFrame}>
+                        <div className={styles.storyPhoto}>
+                          <Cover story={story} sizes="(max-width: 599px) 40vw, (max-width: 1099px) 46vw, 420px" />
+                        </div>
+                        {topic && (
+                          <span className={styles.storyChip}>
+                            <span className={styles.storyChipDot} />
+                            {topic}
+                          </span>
                         )}
                       </div>
-                      <div className={styles.storyBody}>
-                        {topic && (
-                          <div className={styles.storyTopic}>
-                            <span className={styles.storyTopicDot} />
-                            {topic}
-                          </div>
-                        )}
-                        <div className={styles.storyTitle}>{story.title}</div>
-                        <div className={styles.storyBy}>{byline(story)}</div>
+                      <div className={styles.storyItemBody}>
+                        <h3 id={`story-${story.slug}`} className={styles.storyItemTitle}>
+                          {story.title}
+                        </h3>
+                        <p className={styles.storyItemBy}>{byline(story)}</p>
                       </div>
                     </Link>
                   );
@@ -131,6 +118,24 @@ export default function LandingStories({ stories }: { stories: LandingStory[] })
             )}
           </div>
         )}
+
+        <div className={styles.storiesFoot}>
+          <nav className={styles.storyTopics} aria-label="Story topics">
+            <span className={styles.storyTopicsLabel}>Browse by topic</span>
+            {TOPICS.map((topic) => (
+              <Link
+                key={topic.key}
+                href={`/stories/topics/${topic.slug}`}
+                className={`${styles.storyTopicLink} ${topicToneClass(topic.key)}`}
+              >
+                {topic.label}
+              </Link>
+            ))}
+          </nav>
+          <Link href="/stories" className={styles.btnGhost}>
+            Read Our Stories <ArrowRight size={18} strokeWidth={2.6} aria-hidden="true" />
+          </Link>
+        </div>
       </div>
     </section>
   );
