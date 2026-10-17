@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import { createClient } from '@supabase/supabase-js';
+import { prodigiCallbackUrl } from '@/lib/prodigiCallback';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -175,6 +176,7 @@ export async function POST(
       body: JSON.stringify({
         shippingMethod: order.shipping_method || 'Standard',
         idempotencyKey: `ancestorii-canvas-${orderId}`,
+        callbackUrl: prodigiCallbackUrl(),
         merchantReference: orderId,
         recipient: {
           name: order.shipping_name || 'Customer',

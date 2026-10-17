@@ -417,3 +417,7 @@ verify_jwt = false
 
 [functions.send-push]
 verify_jwt = false
+
+# Prodigi calls this with ?secret=<FULFILL_SECRET> in the callbackUrl we give each order.
+[functions.prodigi-webhook]
+verify_jwt = false

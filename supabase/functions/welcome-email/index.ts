@@ -32,7 +32,7 @@ import {
 export function letter(name: string | null, email: string, familyName: string | null): Letter {
   const greeting = name ? `Welcome, ${name}.` : 'Welcome.';
   const opening =
-    "I'm Dante, and I built Ancestorii because the stories in my own family kept slipping away. You now have a private place where your family's stories, voices and photos live together, and where the people you invite can add their own.";
+    "Ancestorii was built because the stories in one family kept slipping away. You now have a private place where your family's stories, voices and photos live together, and where the people you invite can add their own.";
   const list = [
     {
       title: 'Write your first memory',

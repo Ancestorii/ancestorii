@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import { createClient } from '@supabase/supabase-js';
+import { prodigiCallbackUrl } from '@/lib/prodigiCallback';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -425,6 +426,7 @@ const spineHeight = spineHeightPx;
       body: JSON.stringify({
         shippingMethod: 'Standard',
         idempotencyKey: `ancestorii-${orderId}`,
+        callbackUrl: prodigiCallbackUrl(),
         merchantReference: orderId,
         recipient: {
           name: order.shipping_name || 'Customer',

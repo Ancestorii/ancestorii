@@ -4,10 +4,10 @@
 // loved one, a timeline, an album, a capsule, a Memory Book, a canvas or an
 // acrylic print.
 //
-// Meant to be called by database triggers on those tables (none are wired at
-// the moment; wiring one is a product decision, since it emails everyone on
-// every creation). Deploys with verify_jwt off and checks the shared
-// `x-webhook-secret` (see _shared/email.ts).
+// Called by the "family-activity" database triggers (AFTER INSERT on those tables and
+// on family_memories; the statements are kept in supabase/sql/webhook-triggers.sql).
+// Only new things: comments, hearts and added perspectives never email.
+// Deploys with verify_jwt off and checks the shared `x-webhook-secret`.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -29,20 +29,30 @@ type ActivityInfo = { action: string; headline: string; what: string };
 
 // deno-lint-ignore no-explicit-any
 function getActivityInfo(table: string, record: any): ActivityInfo {
-  const titled = (noun: string, title?: string | null) => (title ? `${noun} "${title}"` : noun);
+  // A missing title, or the editors' default ('Untitled Memory Book'), is left out.
+  const titled = (noun: string, title?: string | null) => {
+    const t = (title ?? '').trim();
+    return t && !/^untitled/i.test(t) ? `${noun} "${t}"` : noun;
+  };
   switch (table) {
+    case 'family_memories':
+      return {
+        action: `shared a new memory ${titled('', record.title).trim()}`.trim(),
+        headline: 'A new memory has been shared.',
+        what: titled('Memory', record.title),
+      };
     case 'family_members':
       return {
-        action: `added a new loved one${record.name ? `, ${record.name}` : ''}`,
+        action: `added a new loved one${record.full_name ? `, ${record.full_name}` : ''}`,
         headline: 'Someone new has been added to your family.',
-        what: record.name ? `Loved one: ${record.name}` : 'A new loved one',
+        what: record.full_name ? `Loved one: ${record.full_name}` : 'A new loved one',
       };
     case 'timelines':
       return { action: `started a new timeline ${titled('', record.title).trim()}`.trim(), headline: 'A new timeline has been started.', what: titled('Timeline', record.title) };
     case 'albums':
       return { action: `created a new album ${titled('', record.title).trim()}`.trim(), headline: 'A new album has been created.', what: titled('Album', record.title) };
     case 'memory_capsules':
-      return { action: `sealed a new time capsule ${titled('', record.title).trim()}`.trim(), headline: 'A time capsule has been sealed.', what: titled('Capsule', record.title) };
+      return { action: `created a new time capsule ${titled('', record.title).trim()}`.trim(), headline: 'A new time capsule has been created.', what: titled('Time capsule', record.title) };
     case 'memory_books':
       return { action: `started a new Memory Book ${titled('', record.title).trim()}`.trim(), headline: 'A new Memory Book is being made.', what: titled('Memory Book', record.title) };
     case 'memory_canvases':
@@ -57,6 +67,7 @@ function getActivityInfo(table: string, record: any): ActivityInfo {
 // deno-lint-ignore no-explicit-any
 function getCreatorId(table: string, record: any): string | null {
   if (table === 'family_members' || table === 'timelines') return record.owner_id || null;
+  if (table === 'family_memories') return record.author_id || null;
   return record.user_id || null;
 }
 
@@ -101,6 +112,11 @@ Deno.serve(async (req: Request) => {
   const table = payload.table ?? '';
   if (!record) return json({ error: 'no_record' }, 400);
 
+  // A memory added as another side of an existing one, or the onboarding sample, is not news.
+  if (table === 'family_memories' && (record.parent_memory_id || record.is_onboarding)) {
+    return json({ skipped: true, reason: 'perspective_or_onboarding' });
+  }
+
   const creatorId = getCreatorId(table, record);
   if (!creatorId) return json({ skipped: true, reason: 'no_creator_id' });
 
@@ -134,7 +150,8 @@ Deno.serve(async (req: Request) => {
   const activity = getActivityInfo(table, record);
   let sent = 0;
   let failed = 0;
-  for (const email of emails) {
+  for (const [i, email] of emails.entries()) {
+    if (i > 0) await sleep(600);
     const r = await send({
       to: email,
       letter: letter(creatorName, activity, familyName),
@@ -146,7 +163,6 @@ Deno.serve(async (req: Request) => {
       failed++;
       console.error(`family-activity: Resend refused (${r.status}) for ${email}: ${r.message}`);
     }
-    await sleep(600);
   }
 
   console.log(`family-activity: sent ${sent}, failed ${failed} for table=${table}`);

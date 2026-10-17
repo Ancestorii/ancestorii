@@ -1,6 +1,18 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2?target=deno";
-import { esc, firstName, FROM_DANTE, p, send, SITE_URL, wrap, type Letter } from "../_shared/email.ts";
+import { esc, firstName, FROM_DANTE, p, secretMatches, send, SITE_URL, wrap, type Letter } from "../_shared/email.ts";
+
+// AUTHENTICATION. Prodigi sends no Supabase JWT, so this deploys with verify_jwt off. Every
+// order we submit carries a callbackUrl ending in ?secret=<hash> (src/lib/prodigiCallback.ts),
+// and a call without that secret is refused here. The hash is sha256(FULFILL_SECRET + ":prodigi-callback"),
+// derived here the same way, so the value Prodigi stores and the gateway logs cannot be used
+// to call the fulfil routes themselves.
+async function callbackSecret(): Promise<string> {
+  const bytes = new TextEncoder().encode(`${Deno.env.get("FULFILL_SECRET") ?? ""}:prodigi-callback`);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+const PRODIGI_CALLBACK_SECRET = Deno.env.get("FULFILL_SECRET") ? await callbackSecret() : "";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +33,15 @@ serve(async (req) => {
     return new Response("ok", { headers: CORS_HEADERS });
   }
 
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
+  const given = new URL(req.url).searchParams.get("secret") ?? "";
+  if (!secretMatches(given, PRODIGI_CALLBACK_SECRET)) {
+    console.error("Prodigi webhook refused: bad or missing secret");
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   try {
     const SUPABASE_URL = Deno.env.get("NEXT_PUBLIC_SUPABASE_URL");
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -31,7 +52,9 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
     const payload = await req.json();
-    console.log("PRODIGI PAYLOAD:", JSON.stringify(payload));
+    // Logged without callbackUrl: Prodigi echoes the whole order, secret and all.
+    const { callbackUrl: _callbackUrl, ...orderForLog } = payload?.data?.order ?? {};
+    console.log("PRODIGI PAYLOAD:", JSON.stringify({ ...payload, data: { ...payload?.data, order: orderForLog } }));
 
     const eventType = payload?.type;
     const prodigiOrder = payload?.data?.order;
