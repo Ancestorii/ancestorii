@@ -22,7 +22,7 @@ export function LogoMark({ className = '' }: { className?: string }) {
 }
 
 // The font class keeps the wordmark in Plus Jakarta Sans outside the landing too (dashboard, onboarding).
-export function Logo({ href }: { href?: string }) {
+export function Logo({ href, prefetch }: { href?: string; prefetch?: boolean }) {
   const className = `${styles.logo} ${jakarta.className}`;
   const content = (
     <>
@@ -34,7 +34,7 @@ export function Logo({ href }: { href?: string }) {
   if (!href) return <div className={className}>{content}</div>;
 
   return (
-    <Link href={href} className={className} aria-label="Ancestorii home">
+    <Link href={href} prefetch={prefetch} className={className} aria-label="Ancestorii home">
       {content}
     </Link>
   );

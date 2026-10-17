@@ -200,6 +200,32 @@ main * {
   -webkit-backdrop-filter: none !important;
 }
 
+/* Drawer scrims keep their blur only with a mouse (desktop): on touch screens a
+   full-viewport backdrop blur re-renders every frame while the drawer animates.
+   Not named backdrop-blur*, or the rule above would strip it everywhere. */
+@media (hover: hover) and (pointer: fine) {
+  .scrim-blur {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Frosted controls over photos, videos and the timeline: frosted with a mouse, as before;
+   on touch screens a slightly more solid fill instead of a blur that re-renders every frame. */
+.frost-badge { background: rgba(0, 0, 0, 0.55); }
+.frost-button { background: rgba(0, 0, 0, 0.6); }
+.frost-pill { background: rgba(255, 255, 255, 0.97); }
+
+@media (hover: hover) and (pointer: fine) {
+  .frost-badge { background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(8px); }
+  .frost-button { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); }
+  .frost-pill {
+    background: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+}
+
 /* Remove scroll snapping (can feel glitchy on mobile) */
 main {
   scroll-snap-type: none !important;
@@ -226,7 +252,26 @@ html {
   width: 100%;
   height: 4px; /* 🔥 thicker */
 
-  /* brand gradient; it ends on pink again so the moving loop has no seam */
+  /* the moving gradient is a ::before strip that slides on the compositor
+     (animating background-position repainted the bar every frame);
+     plain pink shows if the strip is ever late. NProgress itself drives
+     this element's transform, so the bar keeps its size and position. */
+  overflow: hidden;
+  background: #FF2D87;
+
+  z-index: 9999;
+}
+
+/* brand gradient; it ends on pink again so the moving loop has no seam.
+   Two 200%-wide tiles on a 400%-wide strip: sliding it one tile (50%) in
+   0.6s is the old background-position speed (4 bar widths per 1.2s) */
+#nprogress .bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -200%;
+  width: 400%;
   background: linear-gradient(
     90deg,
     #FF2D87,
@@ -234,11 +279,9 @@ html {
     #2B4BFF,
     #FF2D87
   );
-
-  background-size: 200% 100%;
-  animation: nprogress-move 1.2s linear infinite;
-
-  z-index: 9999;
+  background-size: 50% 100%;
+  background-repeat: repeat-x;
+  animation: nprogress-move 0.6s linear infinite;
 }
 
 /* remove default peg + spinner */
@@ -252,10 +295,10 @@ html {
 
 /* 🔥 animation */
 @keyframes nprogress-move {
-  0% {
-    background-position: 200% 0;
+  from {
+    transform: translateX(0);
   }
-  100% {
-    background-position: -200% 0;
+  to {
+    transform: translateX(50%);
   }
 }

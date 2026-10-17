@@ -263,9 +263,10 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
               : <img src={selectedMedia.signed_url || ''} alt="" style={{ width: '100%', height: 'auto', display: 'block' }} />
             }
             {realType !== 'video' && (
-              <button onClick={() => onLightbox(selectedMedia)} style={{
+              <button onClick={() => onLightbox(selectedMedia)} className="frost-button" style={{
                 position: 'absolute', top: 10, right: 10, width: 36, height: 36, borderRadius: '50%',
-                background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', border: 'none',
+                // frost-button: frosted with a mouse; solid on touch, where the blur re-rendered over the photo while scrolling
+                border: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
               }}>
                 <Maximize2 size={14} color="white" />

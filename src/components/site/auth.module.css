@@ -11,7 +11,7 @@
   display: flex;
   flex-wrap: wrap;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 .glow {
@@ -96,12 +96,12 @@
 @media (min-width: 1040px) {
   .formMiddle:has(input) {
     padding-top: max(48px, calc(50vh - 389px));
-    padding-top: max(48px, calc(50dvh - 389px));
+    padding-top: max(48px, calc(50svh - 389px));
   }
 
   .signup .formMiddle:has(input) {
     padding-top: max(40px, calc(50vh - 419px));
-    padding-top: max(40px, calc(50dvh - 419px));
+    padding-top: max(40px, calc(50svh - 419px));
   }
 }
 

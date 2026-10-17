@@ -1,10 +1,14 @@
 import type { ReactNode } from 'react';
+import dynamic from 'next/dynamic';
 import LandingFooter from '@/components/landing/LandingFooter';
 import { jakarta } from '@/components/landing/fonts';
 import landing from '@/components/landing/landing.module.css';
 import SiteNav from './SiteNav';
-import StoriesUserBar from './StoriesUserBar';
 import styles from './site.module.css';
+
+// Only Our Stories pages show the signed-in bar; loading it on demand keeps supabase-js out of
+// every other public page's JavaScript.
+const StoriesUserBar = dynamic(() => import('./StoriesUserBar'));
 
 /**
  * Frame for every public page except the landing page itself: the landing's own nav and

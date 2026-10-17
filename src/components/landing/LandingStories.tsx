@@ -22,7 +22,17 @@ function topicLabel(story: LandingStory) {
 
 function Cover({ story, sizes }: { story: LandingStory; sizes: string }) {
   return story.coverUrl ? (
-    <Image src={story.coverUrl} alt="" fill sizes={sizes} className={styles.coverImg} />
+    // Loaded up front at low priority, so a fast flick never reaches an empty frame
+    // (lazy photos pop in late on Safari).
+    <Image
+      src={story.coverUrl}
+      alt=""
+      fill
+      sizes={sizes}
+      loading="eager"
+      fetchPriority="low"
+      className={styles.coverImg}
+    />
   ) : (
     // No photo: a solid frame-coloured panel with a quote mark, never a stock image.
     <div className={styles.storyFallback} aria-hidden="true">
@@ -51,17 +61,22 @@ export default function LandingStories({ stories }: { stories: LandingStory[] })
           </p>
         </div>
 
+        {/* Stories, topics and the feed link load on tap: none of them prefetch as they scroll into view. */}
         {lead && (
           <div className={`${styles.storyGrid} ${rest.length ? '' : styles.storyGridSolo}`}>
             <Link
               href={`/stories/${lead.slug}`}
+              prefetch={false}
               className={styles.storyLead}
               style={{ '--frame': 'var(--c0)' } as CSSProperties}
               aria-labelledby={`story-${lead.slug}`}
             >
               <div className={`${styles.storyFrame} ${styles.storyFrameLead}`}>
                 <div className={styles.storyPhoto}>
-                  <Cover story={lead} sizes="(max-width: 699px) 100vw, (max-width: 1099px) 54vw, 610px" />
+                  <Cover
+                    story={lead}
+                    sizes="(max-width: 599px) calc(100vw - 62px), (max-width: 699px) 100vw, (max-width: 1099px) 54vw, 610px"
+                  />
                 </div>
                 <span className={styles.storyChip}>
                   <span className={styles.storyChipDot} />
@@ -90,13 +105,17 @@ export default function LandingStories({ stories }: { stories: LandingStory[] })
                     <Link
                       key={story.slug}
                       href={`/stories/${story.slug}`}
+                      prefetch={false}
                       className={styles.storyItem}
                       style={{ '--frame': FRAMES[i % FRAMES.length] } as CSSProperties}
                       aria-labelledby={`story-${story.slug}`}
                     >
                       <div className={styles.storyFrame}>
                         <div className={styles.storyPhoto}>
-                          <Cover story={story} sizes="(max-width: 599px) 40vw, (max-width: 1099px) 46vw, 420px" />
+                          <Cover
+                            story={story}
+                            sizes="(max-width: 599px) calc(40vw - 29px), (max-width: 1099px) 46vw, 420px"
+                          />
                         </div>
                         {topic && (
                           <span className={styles.storyChip}>
@@ -126,13 +145,14 @@ export default function LandingStories({ stories }: { stories: LandingStory[] })
               <Link
                 key={topic.key}
                 href={`/stories/topics/${topic.slug}`}
+                prefetch={false}
                 className={`${styles.storyTopicLink} ${topicToneClass(topic.key)}`}
               >
                 {topic.label}
               </Link>
             ))}
           </nav>
-          <Link href="/stories" className={styles.btnGhost}>
+          <Link href="/stories" prefetch={false} className={styles.btnGhost}>
             Read Our Stories <ArrowRight size={18} strokeWidth={2.6} aria-hidden="true" />
           </Link>
         </div>

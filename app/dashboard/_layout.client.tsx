@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useRef, useState, useCallback } from 'react';
+import { ReactNode, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
@@ -27,7 +27,6 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [libraryMediaCount, setLibraryMediaCount] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
@@ -221,35 +220,6 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     return () => window.removeEventListener('family-members-updated', handleMemberCount);
   }, []);
 
-  const scrolledRef = useRef(false);
-  const rafRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!hydrated) return;
-
-    const onScroll = () => {
-      if (rafRef.current) return;
-
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = null;
-
-        const next = window.scrollY > 30;
-        if (next !== scrolledRef.current) {
-          scrolledRef.current = next;
-          setScrolled(next);
-        }
-      });
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [hydrated]);
-
   useEffect(() => {
     if (!hydrated) return;
     if (typeof window !== 'undefined') {
@@ -341,7 +311,8 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   if (memoriesOpen || heirloomsOpen || accountOpen) {
     document.body.style.overflow = "hidden";
   } else {
-    document.body.style.overflow = "auto";
+    // clear it rather than "auto", which overrode body's overflow-x:hidden and let pages wobble sideways
+    document.body.style.overflow = "";
   }
 }, [memoriesOpen, heirloomsOpen, accountOpen]);
 
@@ -418,15 +389,19 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 />
 </aside>
 )}
+{/* Below lg main is not a scroll container (globals.css gives every main overflow-y:auto): the document scrolls, with no nested scroller */}
 <main
   className={`
     ${hideSidebar ? '' : collapsed ? 'lg:ml-[80px]' : 'lg:ml-[272px]'}
     min-h-screen
     bg-white
+    max-lg:overflow-x-clip max-lg:overflow-y-visible
   `}
 >
   {children}
 </main>
+    {/* Mobile sheets: a transform string (not y) lets Motion run the slide on the compositor,
+        and the scrims skip backdrop blur, which re-renders the whole screen every frame */}
     {/* ================= MEMORIES ================= */}
     <AnimatePresence>
       {memoriesOpen && (
@@ -435,13 +410,13 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="lg:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
-          style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(15,26,46,0.25)' }}
+          style={{ backgroundColor: 'rgba(15,26,46,0.32)' }}
           onClick={() => setMemoriesOpen(false)}
         >
           <motion.div
-            initial={{ y: "100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "100%", opacity: 0 }}
+            initial={{ transform: 'translateY(100%)', opacity: 0 }}
+            animate={{ transform: 'translateY(0%)', opacity: 1 }}
+            exit={{ transform: 'translateY(100%)', opacity: 0 }}
             transition={{ type: "spring", damping: 32, stiffness: 260 }}
             className="w-full max-w-[300px] sm:max-w-[420px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 sm:px-6 pt-3 pb-5"
             onClick={(e) => e.stopPropagation()}
@@ -474,7 +449,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                   return (
                     <motion.div
                       key={item.href}
-                      variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                      variants={{ hidden: { opacity: 0, transform: 'translateY(6px)' }, show: { opacity: 1, transform: 'translateY(0px)' } }}
                     >
                       <Link
   href={item.href}
@@ -519,13 +494,13 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="lg:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
-          style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(15,26,46,0.25)' }}
+          style={{ backgroundColor: 'rgba(15,26,46,0.32)' }}
           onClick={() => setHeirloomsOpen(false)}
         >
           <motion.div
-            initial={{ y: "100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "100%", opacity: 0 }}
+            initial={{ transform: 'translateY(100%)', opacity: 0 }}
+            animate={{ transform: 'translateY(0%)', opacity: 1 }}
+            exit={{ transform: 'translateY(100%)', opacity: 0 }}
             transition={{ type: "spring", damping: 32, stiffness: 260 }}
             className="w-full max-w-[300px] sm:max-w-[420px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 sm:px-6 pt-3 pb-5"
             onClick={(e) => e.stopPropagation()}
@@ -557,7 +532,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                 return (
                   <motion.div
                     key={item.href}
-                    variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                    variants={{ hidden: { opacity: 0, transform: 'translateY(6px)' }, show: { opacity: 1, transform: 'translateY(0px)' } }}
                   >
                     <Link
                       href={item.href}
@@ -601,13 +576,13 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="lg:hidden fixed inset-0 z-[300] flex items-end justify-center px-3 pb-[72px]"
-          style={{ backdropFilter: 'blur(6px)', backgroundColor: 'rgba(15,26,46,0.4)' }}
+          style={{ backgroundColor: 'rgba(15,26,46,0.45)' }}
           onClick={() => setAccountOpen(false)}
         >
           <motion.div
-            initial={{ y: "100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "100%", opacity: 0 }}
+            initial={{ transform: 'translateY(100%)', opacity: 0 }}
+            animate={{ transform: 'translateY(0%)', opacity: 1 }}
+            exit={{ transform: 'translateY(100%)', opacity: 0 }}
             transition={{ type: "spring", damping: 32, stiffness: 260 }}
             className="w-full max-w-[300px] sm:max-w-[420px] rounded-[24px] bg-white border border-[#D4AF37]/40 shadow-[0_-8px_40px_rgba(15,32,64,0.18)] px-4 sm:px-6 pt-3 pb-5"
             onClick={(e) => e.stopPropagation()}
@@ -639,7 +614,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                 return (
                   <motion.div
                     key={item.href}
-                    variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                    variants={{ hidden: { opacity: 0, transform: 'translateY(6px)' }, show: { opacity: 1, transform: 'translateY(0px)' } }}
                   >
                     <Link
   href={item.href}

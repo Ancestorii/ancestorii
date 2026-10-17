@@ -60,6 +60,9 @@ export default function LandingReviews() {
                     alt={review.alt}
                     fill
                     sizes="(max-width: 699px) 84vw, 400px"
+                    // Loaded up front at low priority, so a fast flick never reaches an empty frame.
+                    loading="eager"
+                    fetchPriority="low"
                     className={styles.coverImg}
                     style={{ objectPosition: review.position }}
                   />
@@ -84,7 +87,15 @@ export default function LandingReviews() {
               <blockquote className={styles.voiceCardText}>{QUOTE_REVIEW.quote}</blockquote>
               <figcaption className={styles.voiceCardBy}>
                 <span className={styles.voiceAvatar}>
-                  <Image src={QUOTE_REVIEW.avatar} alt="" fill sizes="44px" className={styles.coverImg} />
+                  <Image
+                    src={QUOTE_REVIEW.avatar}
+                    alt=""
+                    fill
+                    sizes="44px"
+                    loading="eager"
+                    fetchPriority="low"
+                    className={styles.coverImg}
+                  />
                 </span>
                 <span>
                   <strong>{QUOTE_REVIEW.name}</strong>

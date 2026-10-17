@@ -34,6 +34,8 @@ const COLUMNS = [
 ];
 
 // `hidePricing` drops the Pricing link (the app's Apple-safe /rewards page shows no prices).
+// The Our Stories links skip prefetch: those pages are rendered per request, so a prefetch brought
+// nothing back. The static pages keep it, as before.
 export default function LandingFooter({ hidePricing = false }: { hidePricing?: boolean }) {
   const columns = hidePricing
     ? COLUMNS.map((col) => ({ ...col, links: col.links.filter((link) => link.href !== '/pricing') }))
@@ -44,7 +46,7 @@ export default function LandingFooter({ hidePricing = false }: { hidePricing?: b
       <div className={styles.wrap}>
         <div className={styles.footerTop}>
           <div className={styles.footerBrand}>
-            <Logo href="/" />
+            <Logo href="/" prefetch={false} />
             <p className={styles.footerTagline}>Your family&apos;s greatest stories. Told together.</p>
             {/* Official store badges (see StoreBadges for the artwork rules). */}
             <StoreBadges theme="light" className={styles.footerBadges} />
@@ -55,7 +57,12 @@ export default function LandingFooter({ hidePricing = false }: { hidePricing?: b
               <nav key={col.heading} className={styles.footerCol} aria-label={col.heading}>
                 <span className={styles.footerHeading}>{col.heading}</span>
                 {col.links.map((link) => (
-                  <Link key={link.href} href={link.href} className={styles.footerLink}>
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    prefetch={link.href.startsWith('/stories') ? false : undefined}
+                    className={styles.footerLink}
+                  >
                     {link.label}
                   </Link>
                 ))}

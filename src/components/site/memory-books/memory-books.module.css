@@ -104,6 +104,20 @@
   }
 }
 
+/* Touch screens: the reflection sits on the card's face (the same box) instead of the
+   composited 3D card, and the card is flat, so the reflection is painted once into the
+   card's layer rather than redrawn by the compositor on every scroll frame. Same pixels. */
+@media (hover: none), (pointer: coarse) {
+  .wallCard {
+    -webkit-box-reflect: initial; /* not "none": Chrome rejects that value and would keep the reflection */
+    transform-style: flat;
+  }
+
+  .wallFace {
+    -webkit-box-reflect: below 14px linear-gradient(transparent 72%, rgba(255, 255, 255, 0.28));
+  }
+}
+
 /* The caption is the figure's own figcaption, laid over the photo inside the 8px frame. */
 .wallCard > .wallCaption {
   left: 18px;

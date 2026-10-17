@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Heart, MessageCircle, Play, ArrowRight } from 'lucide-react';
 import feed from '@/components/site/stories-browse/feed.module.css';
 import { getTimeAgo, plainTextFromHtml } from '@/lib/stories/format';
+import LinkPending from './LinkPending';
 
 const CATEGORY_LABELS: Record<string, string> = {
   family: 'Family', food_and_recipes: 'Food & Recipes', childhood: 'Childhood',
@@ -28,25 +29,25 @@ export default function HeroCard({
   overlineLabel?: string | null;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  // Mouse screens still grow the card for a portrait photo once it loads (phones and tablets get
+  // their final shape from the first paint, in feed.module.css).
   const [isPortrait, setIsPortrait] = useState(false);
+  const wideMedia = !coverUrl || coverType === 'video';
 
  const strippedBody = plainTextFromHtml(body);
   const preview = excerpt || (strippedBody.length > 260 ? strippedBody.slice(0, 260).trim() + '…' : strippedBody);
   const initials = authorName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const timeAgo = publishedAt ? getTimeAgo(publishedAt) : '';
 
-  const handleImageLoad = (img: HTMLImageElement) => {
-    setImageLoaded(true);
-    if (img.naturalHeight > img.naturalWidth) setIsPortrait(true);
-  };
-
   return (
     <Link
       href={`/stories/${slug}`}
+      // A story page is rendered per request, so a prefetch brought nothing back.
+      prefetch={false}
       className={`${feed.featured} ${isPortrait ? feed.featuredPortrait : ''}`}
     >
       {/* ── Photo ── */}
-      <div className={feed.featuredMedia}>
+      <div className={`${feed.featuredMedia} ${wideMedia ? feed.featuredMediaWide : ''}`}>
         {coverUrl && coverType === 'video' ? (
           <video
             src={coverUrl}
@@ -58,9 +59,14 @@ export default function HeroCard({
         ) : coverUrl ? (
           <Image
             src={coverUrl} alt="" fill preload
-            sizes="(max-width: 767px) 100vw, (max-width: 1279px) 54vw, 470px"
+            // Phones crop the photo into a 4:5 frame, so a landscape photo is drawn about twice the
+            // frame's width: size for that, or it turns soft.
+            sizes="(max-width: 767px) calc(200vw - 136px), (max-width: 1279px) 54vw, 470px"
             className={`${feed.cover} ${feed.featuredCover} ${imageLoaded ? feed.coverShown : feed.coverHidden}`}
-            onLoad={(e) => handleImageLoad(e.currentTarget)}
+            onLoad={(e) => {
+              setImageLoaded(true);
+              if (e.currentTarget.naturalHeight > e.currentTarget.naturalWidth) setIsPortrait(true);
+            }}
           />
         ) : (
           <div className={`${feed.fallback} ${feed.fallbackLight}`}>
@@ -136,6 +142,8 @@ export default function HeroCard({
           </span>
         </div>
       </div>
+
+      <LinkPending />
     </Link>
   );
 }

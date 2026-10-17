@@ -362,8 +362,8 @@ export default function TimelineDetailPage() {
         </div>
       </div>
 
-      {/* CONTENT — BELOW HEADER */}
-     <div className="mt-20 pt-16 pb-16">
+      {/* CONTENT — BELOW HEADER (display:none below lg: the gate above covers it, so phones skip laying it out) */}
+     <div className="hidden lg:block mt-20 pt-16 pb-16">
      {events.length === 0 ? (
        <EmptyState onCreate={() => setCreateOpen(true)} />
       ) : (

@@ -95,7 +95,8 @@ The Book/Canvas/Acrylic **editors** live under `app/dashboard/{books|canvas|acry
 
 - Toasts: use `safeToast` (`@/lib/safeToast`), which dedupes identical messages within 2.5s — not `react-hot-toast` directly. The root `<Toaster>` is configured in `app/layout.tsx`.
 - Motion: the landing and public pages (`src/components/landing/`, `src/components/site/`) animate only `transform`/`opacity`, with CSS or the Web Animations API (`element.animate()`), so motion runs on the compositor: the hero ring, the question marquee and the account pages' floating cards have no per-frame JavaScript, and pause off screen. Scrolling is native: no smooth-scroll library. Framer Motion is used mainly in the dashboard. Three.js, GSAP and Lenis have been removed.
-- Analytics pixels (GTM, Reddit, Meta, Spotify) are injected in the root layout with `strategy="lazyOnload"` (after load, when the browser is idle); the Puppeteer export explicitly blocks those network requests so they don't pollute PDFs.
+- Phones and tablets (`@media (hover: none), (pointer: coarse)`) get a lighter version of the same look: the hero ring's reflection is painted on each card's face (not the moving card), `.ringView` clips, and the question pills sit still (wrapped) instead of drifting. Any element with a never-ending transform animation needs a tight `overflow: clip` box, or Chrome/Safari give every section after it its own layer. Measure with `scripts/shots/perf/` (gitignored: layers, scroll traces, pixel diffs).
+- Analytics pixels (GTM, Reddit, Meta, Spotify) are injected by `src/components/DeferredTags.tsx` in the root layout: right after load on desktop and on campaign visits (utm_*, gclid, fbclid…), and on touch devices once scrolling has paused for 1.5s (6s at most). The Puppeteer export explicitly blocks those network requests so they don't pollute PDFs.
 
 ## Environment variables
 

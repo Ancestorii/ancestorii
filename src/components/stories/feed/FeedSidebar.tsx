@@ -93,6 +93,8 @@ export default function FeedSidebar({
               <Link
                 key={story.slug}
                 href={`/stories/${story.slug}`}
+                // A story page is rendered per request, so a prefetch brought nothing back.
+                prefetch={false}
                 className={feed.trendItem}
               >
                 <div className={feed.trendThumb}>

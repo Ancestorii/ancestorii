@@ -87,17 +87,18 @@ export default function MemberDetailDrawer({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          // scrim-blur (globals.css) blurs only with a mouse; on touch it re-rendered the whole screen every frame
+          className="scrim-blur fixed inset-0 z-[200] flex items-center justify-center p-4"
           style={{
             background: 'rgba(22,18,12,0.45)',
-            backdropFilter: 'blur(8px)',
           }}
           onClick={onClose}
         >
+          {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.96 }}
+            initial={{ opacity: 0, transform: 'translateY(30px) scale(0.96)' }}
+            animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
+            exit={{ opacity: 0, transform: 'translateY(30px) scale(0.96)' }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className="w-full max-w-[480px] rounded-[20px] bg-white shadow-[0_24px_60px_rgba(22,18,12,0.25)] overflow-hidden"
             onClick={(e) => e.stopPropagation()}

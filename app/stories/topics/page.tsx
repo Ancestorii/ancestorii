@@ -128,6 +128,8 @@ export default async function TopicsIndexPage() {
                   <Link
                     key={t.slug}
                     href={`/stories/topics/${t.slug}`}
+                    // A topic page is rendered per request, so a prefetch brought nothing back.
+                    prefetch={false}
                     className={`${topics.topicCard} ${topicToneClass(t.key)}`}
                   >
                     <div className={topics.topicPanel}>

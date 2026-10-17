@@ -267,7 +267,7 @@ export default function HorizontalTimeline({
         viewBox={`0 0 ${width * 2} ${height + 40}`}
         style={{ display: 'block', background: 'transparent', overflow: 'visible' }}
       >
-       {/* premium light gold rail with soft golden shadow */}
+       {/* premium light gold rail (no drop-shadow: globals.css forces filter:none inside main, so it never showed) */}
 <line
   x1={-100}
   y1={midY}
@@ -276,10 +276,6 @@ export default function HorizontalTimeline({
   stroke="#E8C875"           // lighter, champagne-style gold
   strokeWidth={5}
   strokeLinecap="round"
-  style={{
-    filter:
-      'drop-shadow(0 2px 4px rgba(212,175,55,0.35)) drop-shadow(0 0 6px rgba(212,175,55,0.25))',
-  }}
 />
 
 
@@ -345,16 +341,11 @@ export default function HorizontalTimeline({
     strokeWidth={1}
   />
 
-  {/* Warm rich gold core with gentle pulsating glow */}
+  {/* Warm rich gold core. No pulsing glow: globals.css forces filter:none inside main,
+      so it never showed, but its infinite animation still ran every frame */}
   <circle
     r={9}
     fill="#D4AF37"
-    style={{
-      filter:
-        'drop-shadow(0 0 6px rgba(218,165,32,0.65)) drop-shadow(0 0 10px rgba(218,165,32,0.45))',
-      animation: 'goldGlow 3.5s ease-in-out infinite',
-      transformOrigin: 'center',
-    }}
   />
 </g>
 
@@ -449,30 +440,14 @@ export default function HorizontalTimeline({
             </feMerge>
           </filter>
         </defs>
-
-        <style>
-  {`
-    @keyframes goldGlow {
-      0%, 100% {
-        filter: drop-shadow(0 0 6px rgba(218,165,32,0.55))
-                drop-shadow(0 0 10px rgba(218,165,32,0.35));
-      }
-      50% {
-        filter: drop-shadow(0 0 10px rgba(218,165,32,0.9))
-                drop-shadow(0 0 16px rgba(218,165,32,0.65));
-      }
-    }
-  `}
-</style>
       </svg>
 
       {/* Zoom & Pan Controls */}
       <div
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2"
+        // frost-pill: frosted with a mouse, as before; near-opaque on touch tablets, where the blur
+        // re-rendered behind the pill on every pan/zoom frame
+        className="frost-pill fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2"
         style={{
-          background: 'rgba(255,255,255,0.92)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
           border: '1.5px solid #E8E2D6',
           borderRadius: 14,
           padding: '6px 8px',

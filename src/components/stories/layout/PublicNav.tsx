@@ -208,10 +208,15 @@ export default function PublicNav() {
           z-index: 100;
           background: ${BG};
           font-family: 'DM Sans', sans-serif;
-          transition: box-shadow 0.3s ease;
         }
         .pn-root.scrolled {
           box-shadow: 0 1px 24px rgba(0,0,0,0.04);
+        }
+        /* Touch screens skip the shadow fade: animating it repaints the sticky bar mid-scroll. */
+        @media (hover: hover) and (pointer: fine) {
+          .pn-root {
+            transition: box-shadow 0.3s ease;
+          }
         }
 
         .pn-inner {
@@ -531,8 +536,8 @@ export default function PublicNav() {
         .pn-backdrop {
           position: absolute;
           inset: 0;
-          background: rgba(0,0,0,0.2);
-          backdrop-filter: blur(4px);
+          /* a touch darker instead of a blur, which re-renders the whole screen while the drawer slides */
+          background: rgba(0,0,0,0.3);
         }
         .pn-drawer {
           position: absolute;

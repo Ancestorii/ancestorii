@@ -109,7 +109,8 @@ function VideoCard({ media, isSelected, onClick, onDoubleClick }: { media: Media
       <video key={media.signed_url || media.id} src={media.signed_url || ''} playsInline preload="metadata" muted style={{ width: '100%', display: 'block' }} />
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.18), transparent)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-        <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* frost-badge: frosted with a mouse; solid on touch, where the blur re-rendered over the video while scrolling */}
+        <div className="frost-badge" style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Play size={20} fill="white" stroke="none" />
         </div>
       </div>

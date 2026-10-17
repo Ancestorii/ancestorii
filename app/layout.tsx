@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, DM_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import Script from "next/script";
+import DeferredTags from "@/components/DeferredTags";
 
 // Keep: this registers the global "Inter" face that the dashboard's font-[Inter] classes and the
 // 800-weight Memory Book cover titles (editor and print export) rely on.
@@ -93,80 +94,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
   <link rel="help" href="/llms.txt" type="text/plain" />
-
-  {/* Marketing pixels load once the page has finished loading and the browser is idle
-      (lazyOnload), so they never compete with the first scroll or tap. */}
-
-  {/* 🟡 GOOGLE TAG MANAGER */}
-        <Script id="gtm-head" strategy="lazyOnload">
-          {`
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id=GTM-PWNN6NGL'+dl;
-            f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-PWNN6NGL');
-          `}
-        </Script>
-
-        {/* 🔴 REDDIT PIXEL */}
-        <Script id="reddit-pixel" strategy="lazyOnload">
-          {`
-!function(w,d){
-  if(!w.rdt){
-    var p=w.rdt=function(){
-      p.sendEvent ? p.sendEvent.apply(p,arguments) : p.callQueue.push(arguments)
-    };
-    p.callQueue=[];
-    var t=d.createElement("script");
-    t.src="https://www.redditstatic.com/ads/pixel.js";
-    t.async=!0;
-    var s=d.getElementsByTagName("script")[0];
-    s.parentNode.insertBefore(t,s);
-  }
-}(window,document);
-rdt('init','a2_ibovuqrsg8y0');
-rdt('track','PageVisit');
-          `}
-        </Script>
-
-        {/* 🔵 META PIXEL */}
-        <Script id="meta-pixel" strategy="lazyOnload">
-          {`
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '2096190511177765');
-            fbq('track', 'PageView');
-          `}
-        </Script>
-
-        {/* 🟢 SPOTIFY PIXEL */}
-        <Script id="spotify-pixel" strategy="lazyOnload">
-          {`
-            (function(w, d){
-              var id='spdt-capture', n='script';
-              if (!d.getElementById(id)) {
-                w.spdt =
-                  w.spdt ||
-                  function() {
-                    (w.spdt.q = w.spdt.q || []).push(arguments);
-                  };
-                var e = d.createElement(n); e.id = id; e.async=1;
-                e.src = 'https://pixel.byspotify.com/ping.min.js';
-                var s = d.getElementsByTagName(n)[0];
-                s.parentNode.insertBefore(e, s);
-              }
-              w.spdt('conf', { key: '21575df569e94d379a6107e35a8d3553' });
-              w.spdt('view');
-            })(window, document);
-          `}
-        </Script>
 
         {/* 🟢 ORGANIZATION SCHEMA (entity node) */}
         <Script
@@ -260,6 +187,9 @@ rdt('track','PageVisit');
             },
           }}
         />
+
+        {/* Marketing pixels (GTM, Reddit, Meta, Spotify): DeferredTags decides when they load. */}
+        <DeferredTags />
       </body>
     </html>
   );

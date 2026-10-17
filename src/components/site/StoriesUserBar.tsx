@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Session } from '@supabase/supabase-js';
-import { getBrowserClient } from '@/lib/supabase/browser';
 import StoriesBarView, { type StorySearchResult } from './stories-bar/StoriesBarView';
 import { useStoryNotifications } from './stories-bar/useStoryNotifications';
 
@@ -29,29 +28,39 @@ export default function StoriesUserBar({ isLoggedIn }: { isLoggedIn?: boolean })
   const userId = user?.id ?? null;
   const notifications = useStoryNotifications(signedIn);
 
-  // ── Session (as SiteNav reads it) ──
+  // ── Session ──
   useEffect(() => {
-    const supabase = getBrowserClient();
+    // The server found no signed-in reader, so there is no bar: don't start the auth client.
+    if (isLoggedIn === false) return;
     let active = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (active) setSession(data.session);
-    });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
-      if (active) setSession(next);
-    });
+    let unsubscribe = () => {};
+    // The client is created only for a reader the server didn't already rule out.
+    (async () => {
+      const { getBrowserClient } = await import('@/lib/supabase/browser');
+      if (!active) return;
+      const supabase = getBrowserClient();
+      supabase.auth.getSession().then(({ data }) => {
+        if (active) setSession(data.session);
+      });
+      const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+        if (active) setSession(next);
+      });
+      unsubscribe = () => data.subscription.unsubscribe();
+    })();
     return () => {
       active = false;
-      data.subscription.unsubscribe();
+      unsubscribe();
     };
-  }, []);
+  }, [isLoggedIn]);
 
   // ── Avatar (exactly as PublicNav loads it, and again on 'profile-image-updated') ──
   useEffect(() => {
     if (!userId) return;
-    const supabase = getBrowserClient();
     let active = true;
 
     const getUser = async () => {
+      const { getBrowserClient } = await import('@/lib/supabase/browser');
+      const supabase = getBrowserClient();
       const { data } = await supabase.auth.getUser();
       if (data?.user) {
         const { data: profile } = await supabase
@@ -97,6 +106,7 @@ export default function StoriesUserBar({ isLoggedIn }: { isLoggedIn?: boolean })
       return;
     }
     debounceRef.current = setTimeout(async () => {
+      const { getBrowserClient } = await import('@/lib/supabase/browser');
       const supabase = getBrowserClient();
       const { data } = await supabase
         .from('stories')
@@ -121,6 +131,7 @@ export default function StoriesUserBar({ isLoggedIn }: { isLoggedIn?: boolean })
   };
 
   const handleLogout = async () => {
+    const { getBrowserClient } = await import('@/lib/supabase/browser');
     const supabase = getBrowserClient();
     await supabase.auth.signOut({ scope: 'local' });
     setSession(null);

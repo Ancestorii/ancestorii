@@ -359,7 +359,14 @@
   border-radius: 30px;
   background: var(--card, var(--c0));
   box-shadow: 0 40px 70px -40px rgba(10, 10, 15, 0.5);
-  transition: background-color 0.35s ease;
+}
+
+/* With a mouse the frame colour fades with the photo, as before; touch screens switch it at
+   once (fading it repainted the frame on every frame of a swipe). */
+@media (hover: hover) and (pointer: fine) {
+  .frame {
+    transition: background-color 0.35s ease;
+  }
 }
 
 .stage {

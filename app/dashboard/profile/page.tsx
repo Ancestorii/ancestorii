@@ -560,7 +560,7 @@ export default function ProfilePage() {
           TABS
          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="bg-white border-b border-[#EDE8DF] sticky top-0 z-10">
-        <div className="mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12 flex gap-0">
+        <div className="mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12 flex gap-0 overflow-x-auto [scrollbar-width:none]">
           <TabButton active={activeTab === 'details'} onClick={() => setActiveTab('details')} icon={<UserIcon size={14} strokeWidth={1.8} />} label="Profile Details" />
           <TabButton active={activeTab === 'stories'} onClick={() => setActiveTab('stories')} icon={<FileText size={14} strokeWidth={1.8} />} label={`My Stories${stories.length > 0 ? ` (${stories.length})` : ''}`} />
           {isAdmin && (

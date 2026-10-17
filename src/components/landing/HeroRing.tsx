@@ -257,7 +257,7 @@ export default function HeroRing({ cards }: { cards: RingCard[] }) {
                     fill
                     // The landscape photos are cropped to fill portrait cards, so each is drawn about
                     // twice the card's width (a 250px card shows a ~480px-wide photo).
-                    sizes="(max-width: 850px) 320px, (max-width: 1250px) 40vw, 480px"
+                    sizes="(max-width: 599px) 250px, (max-width: 850px) 320px, (max-width: 1250px) 40vw, 480px"
                     loading="eager"
                     draggable={false}
                     className={styles.coverImg}

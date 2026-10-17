@@ -250,7 +250,6 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
       className={`fixed inset-0 z-[200] flex items-center justify-center transition-opacity duration-300 ${
         open ? 'bg-black/40 opacity-100' : 'opacity-0 pointer-events-none'
       }`}
-      style={{ willChange: 'opacity' }}
       onClick={onClose}
     >
       <div

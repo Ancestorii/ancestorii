@@ -7,6 +7,7 @@ import { Heart, MessageCircle, Play, ImageIcon } from 'lucide-react';
 import feed from '@/components/site/stories-browse/feed.module.css';
 import { topicToneClass } from '@/components/site/stories-browse/topicTone';
 import { getTimeAgo, plainTextFromHtml } from '@/lib/stories/format';
+import LinkPending from './LinkPending';
 
 const CATEGORY_LABELS: Record<string, string> = {
   family: 'Family',
@@ -74,6 +75,8 @@ export default function StoryCard({
   return (
     <Link
       href={`/stories/${slug}`}
+      // A story page is rendered per request, so a prefetch brought nothing back.
+      prefetch={false}
       className={`${feed.card} ${topicToneClass(category)}`}
     >
       {/* Cover image */}
@@ -91,7 +94,9 @@ export default function StoryCard({
             src={coverUrl}
             alt=""
             fill
-            sizes="(max-width: 639px) 100vw, (max-width: 959px) 50vw, (max-width: 1279px) 34vw, 420px"
+            // The card's width in both grids: the feed has three columns from 960px, the
+            // topic pages only from 1000px, so 50vw holds to 999px.
+            sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 999px) 50vw, (max-width: 1279px) 34vw, 420px"
             className={`${feed.cover} ${imageLoaded ? feed.coverShown : feed.coverHidden}`}
             onLoad={() => setImageLoaded(true)}
           />
@@ -199,6 +204,8 @@ export default function StoryCard({
           )}
         </div>
       </div>
+
+      <LinkPending />
     </Link>
   );
 }

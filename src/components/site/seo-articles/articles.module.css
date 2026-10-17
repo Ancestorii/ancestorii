@@ -165,17 +165,31 @@
 
 /* ── Comparison tables (site.tableWrap + site.table) ──────── */
 
-/* While a table scrolls sideways (phones), a soft ink shadow sits on the wrapper's right
-   edge; a white cover that scrolls with the content hides it once the end is reached. */
+/* On phones the wider tables scroll sideways, and a soft ink shadow on the wrapper's right
+   edge shows there is more. It stays on the edge, with no white cover scrolling with the
+   content: a background-attachment: local layer made the table repaint on every scroll step. */
 div.tableScroll {
-  background-color: #fff;
-  background-image:
-    linear-gradient(to left, #fff 35%, rgba(255, 255, 255, 0)),
-    linear-gradient(to left, rgba(10, 10, 15, 0.14), rgba(10, 10, 15, 0));
-  background-position: right center, right center;
-  background-size: 44px 100%, 18px 100%;
-  background-repeat: no-repeat;
-  background-attachment: local, scroll;
+  background: #fff;
+}
+
+/* Only where each table overflows: the 680px one below 700px, the 520px one below 568px
+   (520px plus the page's 24px gutters). */
+@media (max-width: 699px) {
+  div.tableScroll:has(> table.cmpWide) {
+    background-image: linear-gradient(to left, rgba(10, 10, 15, 0.14), rgba(10, 10, 15, 0));
+    background-position: right center;
+    background-size: 18px 100%;
+    background-repeat: no-repeat;
+  }
+}
+
+@media (max-width: 567px) {
+  div.tableScroll:has(> table.cmpMid) {
+    background-image: linear-gradient(to left, rgba(10, 10, 15, 0.14), rgba(10, 10, 15, 0));
+    background-position: right center;
+    background-size: 18px 100%;
+    background-repeat: no-repeat;
+  }
 }
 
 div.tableScroll:focus-visible {

@@ -324,6 +324,8 @@ export default async function TopicPage({ params }: Props) {
                 <Link
                   key={t.slug}
                   href={`/stories/topics/${t.slug}`}
+                  // A topic page is rendered per request, so a prefetch brought nothing back.
+                  prefetch={false}
                   className={landing.topic}
                 >
                   {t.label}

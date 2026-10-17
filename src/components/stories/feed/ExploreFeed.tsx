@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useLayoutEffect, useRef } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import StoryFeed, { type FeedStory } from '@/components/stories/feed/StoryFeed';
 import type { TrendingStory, PopularTopic } from '@/components/stories/feed/FeedSidebar';
@@ -14,6 +14,14 @@ type StoryMediaRow = {
 };
 
 export type FeaturedStory = FeedStory & { feature_type: string };
+
+// Where the topic pills are on screen (top) and in the page (doc).
+function tabsPosition(root: HTMLElement | null) {
+  const tabs = root?.querySelector(`.${feed.tabs}`);
+  if (!tabs) return null;
+  const top = tabs.getBoundingClientRect().top;
+  return { top, doc: top + window.scrollY };
+}
 
 export default function ExploreFeed({
   initialStories,
@@ -39,6 +47,12 @@ export default function ExploreFeed({
   const [hasMore, setHasMore] = useState(initialStories.length >= pageSize);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  // Where the topic pills were just before a topic change re-rendered the feed; null when no
+  // topic change is in flight. The hero above them changes height with the topic (and goes
+  // when a topic has no stories), so the page is scrolled to keep the tapped pill under the
+  // finger.
+  const tabsBefore = useRef<{ top: number; doc: number } | null>(null);
 
  const fetchStories = useCallback(
     async (category: string, sort: string, offset: number = 0) => {
@@ -172,15 +186,35 @@ export default function ExploreFeed({
 
   const handleCategoryChange = useCallback(
     async (key: string) => {
+      // Touch screens only: the tapped pill stays under the finger. With a mouse the page
+      // behaves as it always has.
+      const keepPill = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+      tabsBefore.current = keepPill ? tabsPosition(rootRef.current) : null;
       setActiveCategory(key);
       setIsFiltering(true);
       const data = await fetchStories(key, sortBy, 0);
+      // The reader may have scrolled while the stories loaded: start from where the pills are now.
+      if (keepPill) tabsBefore.current = tabsPosition(rootRef.current);
       setStories(data);
       setHasMore(data.length >= pageSize);
       setIsFiltering(false);
     },
     [fetchStories, sortBy, pageSize]
   );
+
+  // After the new hero renders, and again when the new stories arrive: if the pills moved in
+  // the page (scrolling never does that, so the reader's own scroll is left alone), scroll by
+  // how far they moved on screen, which allows for any scroll anchoring the browser did.
+  // Before paint, and instant: html's scroll-behavior is auto (globals.css).
+  useLayoutEffect(() => {
+    const before = tabsBefore.current;
+    if (!before) return;
+    const now = tabsPosition(rootRef.current);
+    if (now && Math.abs(now.doc - before.doc) >= 1 && now.top !== before.top) {
+      window.scrollBy(0, now.top - before.top);
+    }
+    if (!isFiltering) tabsBefore.current = null;
+  }, [activeCategory, stories, isFiltering]);
 
   const handleSortChange = useCallback(
     async (value: string) => {
@@ -203,7 +237,7 @@ export default function ExploreFeed({
   }, [fetchStories, activeCategory, sortBy, stories.length, pageSize]);
 
   return (
-    <div className={isFiltering ? feed.filtering : ''}>
+    <div ref={rootRef} className={isFiltering ? feed.filtering : ''}>
       {/* The topic pills sit under the hero, inside StoryFeed (onCategoryChange below). */}
       <StoryFeed
         stories={stories}

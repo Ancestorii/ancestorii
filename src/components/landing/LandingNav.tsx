@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Logo } from './LandingBits';
@@ -22,6 +23,7 @@ export default function LandingNav({
   hidePricing?: boolean;
 }) {
   const links = hidePricing ? NAV_LINKS.filter((link) => link.href !== '/pricing') : NAV_LINKS;
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -82,7 +84,8 @@ export default function LandingNav({
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <Logo href="/" />
+        {/* Home loads on tap; prefetch is kept for the nav links and the sign-up/log-in actions. */}
+        <Logo href="/" prefetch={false} />
 
         <nav className={styles.navLinks} aria-label="Main">
           {links.map((link) => (
@@ -118,6 +121,10 @@ export default function LandingNav({
               // Measured here, before anything changes, so it costs no extra layout.
               scrollbar.current = window.innerWidth - document.documentElement.clientWidth;
               setOpen(true);
+              // The menu sits hidden on every page, so its links skip viewport prefetch;
+              // warm them here instead, as the menu opens.
+              const actions = isLoggedIn ? ['/dashboard/home'] : ['/login', '/signup'];
+              for (const href of [...links.map((link) => link.href), ...actions]) router.prefetch(href);
             }}
           >
             <Menu size={22} strokeWidth={2.4} aria-hidden="true" />
@@ -158,6 +165,7 @@ export default function LandingNav({
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch={false}
                 className={styles.menuLink}
                 onClick={close}
               >
@@ -169,15 +177,15 @@ export default function LandingNav({
 
           <div className={styles.menuActions}>
             {isLoggedIn ? (
-              <Link href="/dashboard/home" className={styles.menuSignup} onClick={close}>
+              <Link href="/dashboard/home" prefetch={false} className={styles.menuSignup} onClick={close}>
                 My Family
               </Link>
             ) : (
               <>
-                <Link href="/login" className={styles.menuLogin} onClick={close}>
+                <Link href="/login" prefetch={false} className={styles.menuLogin} onClick={close}>
                   Log In
                 </Link>
-                <Link href="/signup" className={styles.menuSignup} onClick={close}>
+                <Link href="/signup" prefetch={false} className={styles.menuSignup} onClick={close}>
                   Start For Free
                 </Link>
               </>

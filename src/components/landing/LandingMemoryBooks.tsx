@@ -37,7 +37,10 @@ export default function LandingMemoryBooks() {
                 src="/testimonial1.png"
                 alt="Looking through a printed Ancestorii Memory Book together"
                 fill
-                sizes="(max-width: 899px) 100vw, 720px"
+                sizes="(max-width: 599px) calc(100vw - 62px), (max-width: 899px) 100vw, (max-width: 1288px) 52vw, 670px"
+                // Loaded up front at low priority, so a fast flick never reaches an empty frame.
+                loading="eager"
+                fetchPriority="low"
                 className={styles.coverImg}
                 style={{ objectPosition: '50% 62%' }}
               />

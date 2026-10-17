@@ -62,11 +62,35 @@
   margin-top: clamp(24px, 3.5vw, 48px);
 }
 
-/* While a topic or sort is loading. */
+/* While a topic or sort is loading nothing takes taps. With a mouse the feed fades as before;
+   on touch screens a white veil over the results dims them instead (fading the whole feed
+   re-rastered every photo under it; the veil paints once). */
 .filtering {
-  opacity: 0.6;
   pointer-events: none;
-  transition: opacity 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .filtering {
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .filtering .feed::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: #fff;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .filtering .tabs,
+  .filtering .sort {
+    opacity: 0.6;
+  }
 }
 
 /* ── Hero ─────────────────────────────────────────────────── */
@@ -373,6 +397,18 @@
   opacity: 1;
 }
 
+/* Touch screens: the photo shows as soon as it is decoded, with no fade, so flicking
+   through the feed never starts an opacity animation (and a new layer) per photo. */
+@media (hover: none) {
+  .coverHidden {
+    opacity: 1;
+  }
+
+  .cover {
+    transition: none;
+  }
+}
+
 .coverVideo {
   position: absolute;
   inset: 0;
@@ -537,16 +573,22 @@
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* 4:5 from the first paint, the shape a portrait lead used to switch to once its photo had
+   loaded (pushing the feed down about 200px on a phone). Faces stay in frame: the photo is
+   held near its top when cropped top to bottom, and centred when cropped at the sides. */
 .featuredMedia {
   position: relative;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 5;
   border-radius: 22px;
   overflow: hidden;
   background: #fff;
 }
 
-.featuredPortrait .featuredMedia {
-  aspect-ratio: 4 / 5;
+/* Video and no-photo leads never changed shape, so they keep the wide frame on phones. */
+@media (max-width: 767px) {
+  .featuredMediaWide {
+    aspect-ratio: 16 / 10;
+  }
 }
 
 .featuredCover {
@@ -694,8 +736,7 @@
     min-height: 500px;
   }
 
-  .featuredMedia,
-  .featuredPortrait .featuredMedia {
+  .featuredMedia {
     flex: 1 1 54%;
     aspect-ratio: auto;
   }
@@ -876,6 +917,22 @@
 
   .featured:hover .readMore {
     gap: 12px;
+  }
+}
+
+/* Tablets: the height a portrait lead used to grow to once its photo loaded, from the start,
+   so nothing below it jumps. Mouse screens keep the old 450px that grows for a portrait photo. */
+@media (min-width: 768px) and (hover: none), (min-width: 768px) and (pointer: coarse) {
+  .featured {
+    min-height: 500px;
+  }
+}
+
+/* Touch screens: a tapped card dims at once while its story loads (LinkPending marks it). */
+@media (hover: none), (pointer: coarse) {
+  .card:has(> [data-pending]),
+  .featured:has(> [data-pending]) {
+    opacity: 0.7;
   }
 }
 

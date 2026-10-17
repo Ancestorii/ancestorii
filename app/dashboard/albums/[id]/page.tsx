@@ -99,6 +99,18 @@ export default function Page() {
     loadUser();
   }, [albumId]);
 
+  /* ── phones/tablets: the page scrolls as a document there, so hold it still behind the
+        story sheet, the upload drawer and the people tagger (they don't lock it themselves) ── */
+  useEffect(() => {
+    if (!(selectedMedia || uploadOpen || taggerOpen)) return;
+    if (!window.matchMedia('(max-width: 1023px)').matches) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [selectedMedia, uploadOpen, taggerOpen]);
+
   async function loadUser() {
     const {
       data: { user },
@@ -325,6 +337,13 @@ export default function Page() {
         .filter-btn:hover { background: #f1ece4; }
         @media (max-width: 1023px) { .desktop-panel { display: none !important; } }
         @media (min-width: 1024px) { .mobile-panel-backdrop { display: none !important; } .mobile-panel-sheet { display: none !important; } }
+        /* phones/tablets: the document scrolls instead of a 100vh box with its own nested scroller; desktop keeps both panes */
+        @media (max-width: 1023px) {
+          .album-shell { height: auto !important; min-height: 100vh; overflow: visible !important; }
+          .album-left > .album-scroll { flex: none !important; overflow: visible !important; }
+        }
+        /* the story sheet keeps scrolling inside itself instead of dragging the page behind it */
+        .mobile-panel-sheet .album-scroll { overscroll-behavior: contain; }
       `}</style>
 
       <AlbumAI
@@ -334,9 +353,9 @@ export default function Page() {
         taggedPeopleNames={taggedPeople.map((p) => p.full_name)}
       />
 
-      <div style={{ height: '100vh', overflow: 'hidden', background: '#f6f1e8', display: 'flex', fontFamily: "'DM Sans', sans-serif" }}>
+      <div className="album-shell" style={{ height: '100vh', overflow: 'hidden', background: '#f6f1e8', display: 'flex', fontFamily: "'DM Sans', sans-serif" }}>
         {/* LEFT COLUMN */}
-        <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <div className="album-left" style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
           <div className="album-scroll" style={{ flex: 1, overflowY: 'auto' }}>
             <AlbumHeader
               album={album}

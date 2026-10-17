@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Image, { getImageProps } from 'next/image';
 import Link from 'next/link';
 import { getTopicByKey } from '@/lib/stories/topics';
 import {
@@ -85,6 +85,11 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 // Photo frames take the landing's four colours in turn.
 const FRAME_COLORS = ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)'];
+
+// The main photo's width: the screen width on phones (the 4:5 frame crops landscape photos, so
+// they need more than the frame's own width), the 560px column on small tablets, then the photo
+// column. The photos either side are fetched with it too, so the browser picks the same file.
+const STAGE_SIZES = '(max-width: 599px) 100vw, (max-width: 759px) 560px, 44vw';
 
 /* ═══════════════════════════════════════════════════════════════
    MAIN COMPONENT
@@ -409,7 +414,13 @@ export default function StoryPageContent({
           {relatedStories.length > 0 ? (
             <div className={s.moreGrid}>
               {relatedStories.map((rs) => (
-                <Link key={rs.slug} href={`/stories/${rs.slug}`} className={landing.storyCard}>
+                <Link
+                  key={rs.slug}
+                  href={`/stories/${rs.slug}`}
+                  // A story page is rendered per request, so a prefetch brought nothing back.
+                  prefetch={false}
+                  className={landing.storyCard}
+                >
                   <div className={landing.storyMedia}>
                     {rs.coverUrl ? (
                       <Image
@@ -625,12 +636,29 @@ function HeroImageCarousel({
   const [isHovered, setIsHovered] = useState(false);
 
   const goTo = (index: number) => {
+    // Tapping the dot of the photo already showing used to blank it (no new load to fade it back in).
+    if (index === activeImage) return;
     setImageLoaded(false);
     setActiveImage(index);
   };
 
   const goNext = () => goTo((activeImage + 1) % images.length);
   const goPrev = () => goTo((activeImage - 1 + images.length) % images.length);
+
+  // Once the photo on show has loaded, fetch the ones either side into the cache, so a swipe
+  // or an arrow shows the next photo straight away instead of waiting on the network.
+  useEffect(() => {
+    if (!imageLoaded || images.length < 2) return;
+    const next = (activeImage + 1) % images.length;
+    const prev = (activeImage - 1 + images.length) % images.length;
+    for (const i of next === prev ? [next] : [next, prev]) {
+      const { props } = getImageProps({ src: images[i].url, alt: '', fill: true, sizes: STAGE_SIZES });
+      const img = new window.Image();
+      if (props.sizes) img.sizes = props.sizes;
+      if (props.srcSet) img.srcset = props.srcSet;
+      img.src = props.src;
+    }
+  }, [imageLoaded, activeImage, images]);
 
   const touchStart = useRef<number | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -667,7 +695,7 @@ function HeroImageCarousel({
             alt={images[activeImage].alt || title}
             fill
             preload
-            sizes="(max-width: 599px) 100vw, (max-width: 759px) 560px, 44vw"
+            sizes={STAGE_SIZES}
             className={`${s.stageImg} ${imageLoaded ? s.stageImgIn : ''}`}
             onLoad={() => setImageLoaded(true)}
           />

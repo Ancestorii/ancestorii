@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
@@ -94,7 +92,7 @@ function FamilyWall() {
           const angle = `calc(var(--half) * ${wall.length - 1 - 2 * i})`;
           return (
             <figure key={t.name} className={styles.wallCard} style={{ '--card': f.color, '--a': angle } as CSSProperties}>
-              <div className={landing.photoCard}>
+              <div className={`${landing.photoCard} ${styles.wallFace}`}>
                 <div className={landing.photoCardInner}>
                   <Image
                     src={t.image}
