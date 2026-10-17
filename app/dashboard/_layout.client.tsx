@@ -10,7 +10,6 @@ import SidebarContent from "@/components/dashboard/SidebarContent";
 import BottomNavigation from "@/components/dashboard/BottomNavigation";
 import PublicNav from '@/components/stories/layout/PublicNav';
 import { motion, AnimatePresence } from "framer-motion";
-import ProgressBar from '@/components/ProgressBar';
 import NProgress from 'nprogress';
 
 
@@ -338,7 +337,6 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 
  return (
   <>
-    <ProgressBar />
 
     <div className="antialiased bg-white text-gray-900" suppressHydrationWarning>
 

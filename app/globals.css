@@ -250,7 +250,7 @@ html {
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px; /* 🔥 thicker */
+  height: 3px;
 
   /* the moving gradient is a ::before strip that slides on the compositor
      (animating background-position repainted the bar every frame);
@@ -293,7 +293,6 @@ html {
   display: none;
 }
 
-/* 🔥 animation */
 @keyframes nprogress-move {
   from {
     transform: translateX(0);

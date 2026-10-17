@@ -1,9 +1,11 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Playfair_Display, DM_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import DeferredTags from "@/components/DeferredTags";
 import CookieConsent from "@/components/CookieConsent";
+import NavigationProgress from "@/components/NavigationProgress";
 import JsonLd from "@/components/site/seo/JsonLd";
 import { FOUNDER, FOUNDER_ID } from "@/lib/seo/schema";
 
@@ -147,6 +149,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         {/* No GTM <noscript> fallback: without JavaScript the cookie banner can't ask, so nothing loads. */}
         {/* The banner comes first in the page, so keyboard users reach it first (it shows at the bottom). */}
+        {/* The pink bar along the top while the next page loads (reads the URL, so it sits in Suspense). */}
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         <CookieConsent />
         {children}
 
