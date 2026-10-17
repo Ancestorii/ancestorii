@@ -1,7 +1,7 @@
 import { getServerClient } from '@/lib/supabase/server';
 import { getLandingStories } from '@/lib/stories/landing';
 import LandingPage from '@/components/landing/LandingPage';
-import Script from 'next/script';
+import JsonLd from '@/components/site/seo/JsonLd';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -64,12 +64,8 @@ export default async function HomePage() {
   return (
     <>
       {/* WebPage schema (WebSite + Organization entity nodes live in the root layout) */}
-      <Script
-        id="webpage-schema"
-        type="application/ld+json"
-        strategy="afterInteractive"
-      >
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'WebPage',
           name: 'Ancestorii — Stories from Real Families',
@@ -77,8 +73,8 @@ export default async function HomePage() {
             'Every family has a story worth sharing. Families share their stories, photos and voices, and turn them into printed Memory Books.',
           url: 'https://www.ancestorii.com/',
           isPartOf: { '@id': 'https://www.ancestorii.com/#website' },
-        })}
-      </Script>
+        }}
+      />
 
       <LandingPage stories={stories} isLoggedIn={!!user} />
     </>

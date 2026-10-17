@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { isValidElement, type CSSProperties, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Check } from 'lucide-react';
 import {
@@ -83,6 +83,24 @@ export function Kicker({ children, dot = 'var(--c0)' }: { children: ReactNode; d
  * left column, the reading column on the right. `wide`: kicker and title on top, then
  * full-width content (tables, card grids).
  */
+/** The plain text of a heading, so long ones can be set a step smaller. */
+function textOf(node: ReactNode): string {
+  if (node == null || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(textOf).join('');
+  if (isValidElement(node)) return textOf((node.props as { children?: ReactNode }).children);
+  return '';
+}
+
+/** Question headings run long: past 24 characters they go a step smaller, past 40 two steps, so
+ *  they keep to two or three lines in the split layout's heading column. */
+function titleSize(title: ReactNode) {
+  const length = textOf(title).replace(/\s+/g, ' ').trim().length;
+  if (length > 40) return a.titleSm;
+  if (length > 24) return a.titleMd;
+  return '';
+}
+
 export function ArticleSection({
   id,
   kicker,
@@ -106,7 +124,7 @@ export function ArticleSection({
       <div className={a.head}>
         {kicker && <Kicker dot={dot}>{kicker}</Kicker>}
         {title && (
-          <h2 id={headingId} className={`${landing.h2} ${a.title}`}>
+          <h2 id={headingId} className={`${landing.h2} ${a.title} ${titleSize(title)}`}>
             {title}
           </h2>
         )}
@@ -146,13 +164,16 @@ export function ArticleCta({
   lead,
   primary,
   note,
+  size,
 }: {
   title: ReactNode;
   lead?: ReactNode;
   primary: CtaLink;
   note?: ReactNode;
+  /** 'md' sets a longer two-line title a step smaller, as the guides' closing slab does. */
+  size?: 'lg' | 'md';
 }) {
-  return <ClosingCta wide title={title} lead={lead} primary={primary} note={note} />;
+  return <ClosingCta wide size={size} title={title} lead={lead} primary={primary} note={note} />;
 }
 
 /** A big pull quote standing on its own between two sections. */

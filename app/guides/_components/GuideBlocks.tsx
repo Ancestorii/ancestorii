@@ -40,7 +40,7 @@ export function Points({ children }: { children: ReactNode }) {
   );
 }
 
-export function Point({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: ReactNode }) {
+export function Point({ icon: Icon, title, children }: { icon: LucideIcon; title: ReactNode; children: ReactNode }) {
   return (
     <li className={`${g.card} ${g.item}`}>
       <span className={g.tile} aria-hidden="true">
@@ -104,13 +104,16 @@ export function QuestionSet({
   icon: Icon,
   title,
   questions,
+  tone,
 }: {
   icon: LucideIcon;
   title: string;
   questions: string[];
+  /** For a section with a single set: its colour, so consecutive sections still take turns. */
+  tone?: GuideTone;
 }) {
   return (
-    <div className={`${g.card} ${g.set}`}>
+    <div className={`${g.card} ${g.set} ${tone ? TONE_CLASS[tone] : ''}`}>
       <div className={g.setHead}>
         <span className={g.tile} aria-hidden="true">
           <Icon size={26} strokeWidth={2.4} />
@@ -153,7 +156,7 @@ export function Compare({ labels, children }: { labels: [string, string]; childr
   );
 }
 
-export function CompareRow({ left, right }: { left: string; right: string }) {
+export function CompareRow({ left, right }: { left: ReactNode; right: ReactNode }) {
   return (
     <div className={g.compareRow} role="row">
       <div className={`${g.compareCell} ${g.compareNo}`} role="cell">
@@ -224,6 +227,8 @@ export function GuideCard({
   tone: GuideTone;
   featured?: boolean;
 }) {
+  // The featured guide leads the page (h2); the others sit under their section's h2.
+  const Title = featured ? 'h2' : 'h3';
   return (
     <Link href={href} className={`${g.guide} ${TONE_CLASS[tone]} ${featured ? g.guideFeatured : ''}`}>
       <div className={g.guidePanel}>
@@ -233,7 +238,7 @@ export function GuideCard({
       </div>
       <div className={g.guideBody}>
         <span className={g.guideTag}>{num}</span>
-        <h2 className={g.guideTitle}>{title}</h2>
+        <Title className={g.guideTitle}>{title}</Title>
         <p className={g.guideDesc}>{desc}</p>
         <span className={g.guideArrow} aria-hidden="true">
           <span className={g.guideArrowTile}>→</span>

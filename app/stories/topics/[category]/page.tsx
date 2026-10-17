@@ -2,9 +2,9 @@ import { getServerClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 import SiteShell from '@/components/site/SiteShell';
 import { Accent, Eyebrow } from '@/components/site/SiteBits';
+import JsonLd from '@/components/site/seo/JsonLd';
 import StoryCard from '@/components/stories/feed/StoryCard';
 import TopicsCta from '@/components/site/stories-browse/TopicsCta';
 import { toneClass, topicToneClass } from '@/components/site/stories-browse/topicTone';
@@ -191,8 +191,8 @@ export default async function TopicPage({ params }: Props) {
   return (
     <>
       {/* CollectionPage + ItemList of the topic's stories */}
-      <Script id="topic-collection-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
           '@id': url,
@@ -211,11 +211,11 @@ export default async function TopicPage({ params }: Props) {
               })),
             },
           }),
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="topic-breadcrumb-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'BreadcrumbList',
           itemListElement: [
@@ -223,8 +223,8 @@ export default async function TopicPage({ params }: Props) {
             { '@type': 'ListItem', position: 2, name: 'Topics', item: `${SITE}/stories/topics` },
             { '@type': 'ListItem', position: 3, name: topic.label, item: url },
           ],
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell isLoggedIn={isLoggedIn} storiesBar>
         {/* HERO */}

@@ -1,202 +1,335 @@
 # Ancestorii
 
-> Ancestorii is a family memory preservation platform where families collect, organise, and preserve their photos, stories, voice recordings, and life timelines in a private, shared library — and optionally publish stories to a public feed for others to discover and enjoy. The name blends "Ancestors" and "Story" into one word. The double "i" at the end represents two people: the one telling the story and the one receiving it — because memory only survives in the handoff.
+> Ancestorii is a family memory platform, made in the UK, with two layers: My Family, a private space where invited relatives keep their photos, videos, voice notes, written memories, timelines and time capsules together, and Our Stories, a free public feed of real family stories that anyone can read. Families can also turn their photos into printed keepsakes: hardcover Memory Books, canvas prints and acrylic prints. It works on the website and in a free iPhone and Android app, with one login for both. The Free plan needs no card, and Premium is £3.99 a month for the whole family.
 
-## What Ancestorii Does
+## What Ancestorii is
 
-Ancestorii solves the problem of family memories being scattered across phones, hard drives, shoeboxes, cloud folders, and social media feeds where they get lost, buried, or stripped of meaning. It gives families a single, private, shared space to store and organise everything — photos, written stories, audio voice recordings, and life timelines — so nothing is forgotten and future generations can access it all.
+Family memories end up scattered across phones, hard drives, shoeboxes, group chats and social media, where they get buried or lose their meaning. Ancestorii gives a family one private place for them: written memories with photos, video and voice notes; a profile for each person who shaped the family; albums, timelines and time capsules; and a shared Library for the photos and videos the family wants to keep and print. Relatives join by invitation and add their own memories, and when two people remember the same moment differently, both versions are kept side by side. Families can publish chosen stories to Our Stories, the free public feed, and order printed keepsakes designed from their own photos. Ancestorii calls this a living library rather than a digital vault: a vault holds files, while a living library keeps the people, stories and voices behind them and grows as the family adds to it. The name blends "ancestors" and "story". The double "i" stands for two people, the one telling the story and the one receiving it, because memory survives in the handoff.
 
-The platform is not cloud storage. Cloud storage keeps files. Ancestorii keeps meaning. Every memory connects to a person. Every person connects to a timeline. Every timeline tells a story that a family can follow, add to, and return to over years and generations.
+## The two layers
 
-The platform has two layers:
+1. **Our Stories (public, free for everyone)**: a public feed of real family stories at https://www.ancestorii.com/stories. Anyone can read it without an account, and story pages can appear in search engines. Members can publish their own stories, give hearts, comment and share, free forever. Our Stories is on the website only.
+2. **My Family (private)**: the family's own space. Only people invited into the family space can see it, and nothing in it becomes public unless a member chooses to publish it as a story on Our Stories. It has a Free plan (no card needed) and one paid plan, Premium, at £3.99 a month for the whole family.
 
-1. **Our Stories (Public — Free)**: A public feed where families share real stories for anyone to read, react to, and comment on. Stories are shareable and discoverable. No algorithms, no follower counts. Story categories include Family, Recipes, Childhood, Love, Life Lessons, Traditions, and Travel.
+## Features
 
-2. **My Family (Private)**: A shared family library where invited members upload photos, record voice notes, write stories, build life timelines, and organise memories into albums and capsules. Only invited family members can see this content. This is the core of the platform.
+### My Family (private)
 
-## The Living Library Concept
+- **Private family feed**: write a memory in your own words, with up to 10 photos, one video and a voice note, and it appears in a feed that only your family can see. Relatives give hearts, comment in writing or by voice, and add their own voice notes. The feed is in the iPhone and Android app; single memories also open on the website from notifications and emails.
+- **Multiple perspectives**: when relatives remember the same moment differently, each can add their own version to the same memory, shown side by side as tabs.
+- **Questions**: send a relative one of 46 ready-made questions in 10 chapters (Growing Up; Holidays & Traditions; Around the Table; Love & Relationships; Life Lessons; The Stories We Retell; Work & Purpose; Adventures & Travel; Only You Would Know; Music & Hobbies), or write your own. They answer in the app, the answer is saved as a memory marked "In response to" your question, and you get an email. Question links are time-limited. Questions are sent and answered in the app only; on a phone without the app, the link opens the App Store or Google Play.
+- **Loved Ones**: a private profile for each person who shaped your family, living or passed: photo, relationship, birth and death dates, a life story in four chapters (Early years, Important moments, Special memories, Who they are) and the albums, timelines and capsules they appear in. The Free plan includes 1 Loved One profile; Premium includes unlimited. Website and app.
+- **Albums**: group photos and videos, then give each picture a date, a story thread the family adds to, and voice notes. Unlimited on every plan. Website and app.
+- **Timelines**: lay out a life in dated events with photos, video, family comments and voice notes, and download the timeline as a PDF on the website. Unlimited on every plan. In the app, and on the website on screens at least 1,024 pixels wide.
+- **Capsules (digital time capsules)**: seal photos, videos, a letter and voice notes until a date you choose. Once sealed, a capsule shows as locked with a countdown, and Ancestorii won't let you open or edit it until that date, when it opens for the family automatically. The seal is there to keep a surprise, not to guard a secret. Unlimited on every plan. Website.
+- **Library**: one shared library for the photos and videos the family uploads to it, sorted into folders. Photos can be picked from it for albums, capsules, timelines and printed keepsakes, and photos uploaded while designing a print are saved to it too (in Uncategorised). Photos uploaded straight into an album, capsule or timeline stay there and are not copied into the Library. iPhone HEIC photos are converted to JPEG automatically. Website.
+- **Voice notes**: record or upload voice notes on album photos, timeline moments, capsules, private memories and Our Stories posts. Every new recording is converted to M4A so it plays on any phone. Website and app.
+- **Invite family**: Owners and Admins invite relatives with one reusable share link (to send by WhatsApp or text) or a personal email invite, which expires after 7 days. There is no limit on family members on any plan. The roles are Owner, Admin and Member; everyone in the family space sees everything in it, and only the person who added something can delete it. Inviting happens on the website, and sending a question from the app can invite someone too.
+- **Story Assistance (optional writing help)**: AI suggestions, made with Claude by Anthropic, that offer guiding questions, openings, captions and short drafts on Loved Ones, albums, timelines, capsules, Memory Books, memories and Our Stories. You choose what to keep, and it never rewrites your words automatically. It is on by default and can be switched off in your profile settings. Ancestorii's privacy policy says inputs are not used to train AI models. Website.
+- **Rewards**: as a family saves memories together, it unlocks rewards: a Verified Family badge at 5 memories, print discounts from 10% up to 50%, and free prints at higher milestones (some need at least two family members contributing). Reward codes are earned in the app, are single-use, last 7 days and are redeemed at print checkout on the website. Delivery is still charged, and a reward code replaces the Premium discount rather than adding to it.
+- **Notifications**: in-app notifications and phone push in the app when someone hearts or comments on a memory, adds their side of it or joins the family, plus emails, for example when a relative answers your question, someone joins the family, someone comments on your public story, or a print order is confirmed and shipped.
 
-Ancestorii describes itself as a "living library" rather than a digital vault. The difference: a vault holds files — a photo of a grandmother has the same status as a tax return. A living library connects memories to people, gives photos context and stories, lets multiple family members contribute, and grows over time. You open a vault to retrieve a file. You open a living library because you want to remember.
+### Our Stories (public)
 
-Traditional storage organises by file type or date. A living library organises by meaning and relationships. A photo links to a person, a person links to a timeline, a timeline tells a life story. Nothing sits alone.
+- **Reading**: free, with no account needed. Stories are grouped into seven topics: Family, Food & Recipes, Childhood, Love, Life Lessons, Traditions and Travel, each with its own page.
+- **Feed order**: newest stories first by default, and everyone sees the same feed: it is not personalised and there are no follower counts. Readers can sort by Most Loved (hearts) or Most Discussed (comments), a Trending Stories box shows the most-loved recent stories, and the Ancestorii team can feature a story.
+- **Publishing**: a title, a topic, a short preview and the story itself, with up to 10 photos, one video (up to 5 minutes on Free, 15 on Premium) and a voice note. Optional writing help offers "Help me start", "Help me go deeper" and "Help me end it".
+- **Hearts, comments and sharing**: readers give hearts, reply in comment threads and share stories, and the author is notified.
+- **Community standards**: only genuine family memories. No religious or political content, hate speech, harassment, discrimination, spam, self-promotion or commercial content. Each story is checked automatically when it is published, using Claude by Anthropic: stories that pass go live straight away, and flagged stories wait for a person to review them. Signed-in readers can report a story. A three-strike policy applies to the public feed only: first, removal and an email explaining why; second, removal, a final warning and a 7-day publishing suspension; third, a permanent ban from Our Stories. Strikes never affect a family's private My Family space.
+- **Always your choice**: nothing from My Family goes public unless you publish it, and you can take a published story down at any time.
 
-## Key Features
+### Printed keepsakes (Heirlooms)
 
-- **Photo Albums**: Upload, organise, and share family photos in themed albums. Supports HEIC conversion, drag-and-drop uploads, and masonry grid layouts.
-- **Voice Notes / Voice Capsules**: Record and store family members' voices — capture accents, laughter, tone, personality, and spoken stories. Voice carries presence in ways photographs cannot.
-- **Written Stories**: A rich text story editor for writing and publishing family narratives, with excerpt fields, cover images, voice note attachments, and a stepped creation flow.
-- **Timelines**: Build visual life timelines for family members with key dates, milestones, and events.
-- **Family Collaboration**: Invite family members to contribute to a shared library. Multiple members can upload, organise, and add to the same family space. Unlimited family profiles on all plans.
-- **Memory Books (Physical Product)**: Turn your family's photos and stories into professionally printed hardcover books. Designed page by page using a visual editor with multiple page layouts (Portrait, Duo, Grid, Feature) and cover layouts (Classic, FullBleed, Trio). Printed on 200gsm gloss pages with a hardcover matte finish. Full creative control — no rigid question-and-answer templates, no auto-generated layouts. From £44.99.
-- **Canvas Prints (Physical Product)**: Museum-grade family photos on stretched canvas. Three size tiers available. From £29.99.
-- **Acrylic Prints (Physical Product)**: HD UV print behind polished acrylic glass. Three size tiers available. From £39.99.
-- **Public Story Feed**: Browse and discover family stories published by other users. Stories have reactions, comments, and are fully shareable with Open Graph metadata. Trending stories and popular topics are surfaced.
-- **Notifications**: In-app and email notifications for reactions, comments, and family activity.
+Memory Books, canvas prints and acrylic prints, designed on the website from the family Library. Sizes, prices and delivery are under "Printed keepsakes: prices and delivery" below.
 
-## Pricing
+## Where each feature works
 
-### Our Stories (Public Layer)
-- **Free forever.** Read stories, like, comment, share, and publish your own stories publicly. No algorithms, no follower counts, no ads.
+- **iPhone and Android app**: the private family feed (writing and reading memories), questions (sending and answering) and earning rewards, plus albums, timelines, voice notes and Loved Ones profiles.
+- **Website**: Our Stories (reading, publishing, hearts and comments), capsules, the Library, inviting family, Story Assistance, upgrading to Premium, designing and ordering printed keepsakes and redeeming reward codes, plus albums, timelines (on screens at least 1,024 pixels wide), voice notes and Loved Ones profiles.
+- **One account**: the same email and password work in the app and on the website. The app is free and has no in-app purchases.
 
-### My Family — Free Plan (Private Layer)
-- £0, no credit card needed.
-- 1GB storage.
-- Unlimited timelines, albums, and capsules.
-- 20MB max file size.
-- 5 minute video length.
-- Unlimited family profiles.
+## Plans and pricing
 
-### My Family — Premium Plan (Private Layer)
-- £3.99/month (€4.99/month, $5.99/month). A single monthly plan.
-- 100GB storage.
-- Unlimited timelines, albums, and capsules.
-- 10GB max file size.
-- 15 minute video length.
-- Unlimited family profiles.
-- Priority support.
-- Early access to new features.
-- 10% off all physical products (Heirlooms).
+### Our Stories: free forever
 
-### Physical Products (Heirlooms)
-- Pay per product. No subscription required. Premium members save 10%.
-- **Memory Book**: From £44.99. A hardcover book you design page by page.
-- **Canvas Print**: From £29.99. Museum-grade photo on stretched canvas.
-- **Acrylic Print**: From £39.99. HD UV print behind polished acrylic glass.
+Reading, hearts, comments, sharing and publishing your own stories are free for everyone. Reading needs no account.
 
-### What You Will Never Pay For
-- Reading, liking, commenting, and sharing on Our Stories.
-- Accessing your private library after downgrading — memories stay intact.
-- Viewing everything you have built, even on the free plan.
-- Your data — Ancestorii does not sell it, rent it, or show ads.
-- Support — Premium gets priority, but everyone gets help.
+### My Family: Free plan
 
-## How Ancestorii Compares
+- £0, with no card needed. It is not a trial and has no end date.
+- 1 GB storage allowance, shared by the whole family.
+- File size allowance of up to 20 MB per file.
+- Videos up to 5 minutes long.
+- Unlimited albums, timelines and capsules.
+- 1 Loved One profile.
+- No limit on family members.
 
-### vs Cloud Storage (Dropbox, Google Drive, iCloud)
-Cloud storage keeps files in folders. Ancestorii is built around people, not file paths. Every entry holds a story. Timelines follow a life. You find a memory and you feel something, not just locate a file.
+### My Family: Premium plan
 
-### vs Social Media (Instagram, Facebook, Shared Albums)
-Social media is built for engagement, not memory. Algorithms decide what you see. What matters today is gone tomorrow. Public by default. Ancestorii is quiet, private, and permanent. No feeds, no noise, no strangers. Built to last decades, not days. Private by design.
+- £3.99 a month per family (or €4.99 or $5.99 a month, chosen on the Plans page). One subscription covers everyone in the family space, not just one person.
+- 100 GB storage allowance, shared by the whole family.
+- File size allowance of up to 10 GB per file.
+- Videos up to 15 minutes long.
+- Unlimited albums, timelines and capsules.
+- Unlimited Loved One profiles.
+- No limit on family members.
+- Priority support and early access to new features.
+- 10% off Memory Books, canvas prints and acrylic prints, applied automatically at checkout.
+- Monthly only: there is no annual plan and no free trial. Upgrading happens on the website.
 
-### vs Genealogy Platforms (Ancestry, MyHeritage)
-Genealogy platforms focus on records, lineage, names, and dates — not personality or lived experience. Ancestorii preserves voice, stories, and real moments. The character behind the dates. You find the voice, not just the name.
+### Cancelling and downgrading
 
-### vs Memory Book Services (StoryWorth, Remento)
-Most memory book services use a question-and-answer format to auto-generate a book from responses. Ancestorii gives full creative control. You decide the layout, the stories, the photos, and the structure. Your book looks exactly the way you want it to.
+Premium can be cancelled at any time through the Help page form or by emailing support@ancestorii.com. It lasts to the end of the billing period, then the family returns to the Free plan, and partial periods are not refunded. Nothing is deleted: everything stays viewable, and only new uploads beyond the Free allowances pause.
 
-## Who Ancestorii Is For
+### No ads
 
-- Families who do not want their history scattered across phones or lost when someone upgrades a device.
-- Parents, grandparents, and anyone who understands that stories disappear quietly if they are not preserved properly.
-- Adult children who want to capture their parents' and grandparents' stories, voices, and photos before it is too late.
+Ancestorii shows no ads and does not sell, rent or trade personal data.
+
+## Printed keepsakes: prices and delivery
+
+Printed keepsakes are paid for per order, with no subscription needed. They are designed on the website, then printed and shipped by Prodigi, Ancestorii's print partner. Every price is for one item, plus delivery.
+
+### Memory Books: from £44.99 plus delivery
+
+- An A4 landscape hardcover book (297 × 210 mm) with a matte-finish cover and 200gsm gloss pages, designed page by page.
+- Three sizes: A Chapter, 24 pages, £44.99 ($59.99, €49.99); A Story, 36 pages, £54.99 ($74.99, €64.99), the most popular; A Legacy, 48 pages, £64.99 ($84.99, €74.99). The size can't be changed once a book is started.
+- Five page layouts (Portrait, Landscape, Duo, Grid, Feature), three front covers (Classic, Full Bleed, Trio), three back covers (Blank, Dedication, Photo + Message) and a spine with your own text and colours. Each photo can have a subheading and a written comment.
+- Preview the book spread by spread, and download a free PDF of the design.
+- The printed book holds photos and written words. It has no audio or QR codes.
+- Each order prints one copy. For more copies, place the order again; delivery is charged on each order.
+
+### Canvas prints: from £99.99 plus delivery
+
+- The Moment, 16 × 36 in, £99.99 ($139.99, €119.99); The Heirloom, 20 × 32 in, £129.99 ($179.99, €154.99), the recommended size; The Heritage, 24 × 72 in, £169.99 ($229.99, €199.99), delivered to UK addresses only.
+- 400gsm canvas on a 38mm stretcher bar, with an image wrap finish (the picture carries on around the sides).
+- Landscape or portrait, chosen at the start, with 1 to 10 photos in layouts that vary by size and orientation.
+
+### Acrylic prints: from £99.99 plus delivery
+
+- The Portrait, 16 × 24 in, £99.99 ($139.99, €119.99); The Centrepiece, 24 × 24 in, £149.99 ($199.99, €179.99), the recommended size; The Masterpiece, 24 × 36 in, £199.99 ($269.99, €239.99).
+- The photo is printed behind a crystal-clear acrylic panel, with float-mount hanging hardware included.
+- Three layouts: Solo (1 photo), Duo (2 photos) and Grid (4 photos).
+
+### Delivery, currency and orders
+
+- Delivery is charged on every order. Standard delivery costs £4.99 ($5.99, €5.99) and takes an estimated 10 to 14 working days. Canvas and acrylic prints can also go Express for £8.99 ($10.99, €9.99), an estimated 5 to 7 working days. Delivery times are estimates, not guarantees.
+- Prints are delivered to 20 countries: the United Kingdom, Ireland, the United States, Canada, Australia, New Zealand, Germany, France, Spain, Italy, the Netherlands, Belgium, Austria, Switzerland, Sweden, Denmark, Norway, Finland, Portugal and Poland. The Heritage canvas is delivered to UK addresses only.
+- Orders are charged in pounds, euros or US dollars, chosen automatically at checkout.
+- Premium families get 10% off automatically. Discounts don't stack: a reward code replaces the Premium discount.
+- Printing starts as soon as payment goes through, so orders can't be cancelled after checkout. Prints are made to order and are replaced or refunded only if they arrive damaged, defective or materially different from the order, reported within 14 days of delivery with photos.
+- Customers get an order confirmation email, a shipping email with a tracking link, and an Orders page that follows each order.
+
+## Privacy and data
+
+- My Family is private to the members of each family space, and that rule is enforced in the database, not just in the app. Private photos, videos and voice notes are kept in private storage and shown through short-lived signed links.
+- Our Stories is public by design: anyone can read published stories and see their photos.
+- You keep ownership of everything you upload. Ancestorii holds only the limited licence it needs to run the service, make print files and show what you choose to publish.
+- No ads, and personal data is not sold, rented or traded.
+- Accounts are for people aged 16 or over, and under-18s need a parent's consent.
+- To delete an account, go to Profile, then Delete Account, in the app, or email support@ancestorii.com from the address you registered with.
+- The data controller is Ancestorii Ltd, registered with the UK Information Commissioner's Office (ICO registration ZC149600).
+
+## The app
+
+- Free on iPhone (https://apps.apple.com/app/id6784750387) and Android (https://play.google.com/store/apps/details?id=com.ancestorii.app).
+- In the app: the private family feed, questions, albums, timelines, voice notes, Loved Ones profiles and rewards.
+- On the website: Our Stories, capsules, the Library, upgrades and printed keepsake orders.
+- No in-app purchases. The same email and password work in the app and on the website.
+
+## Who Ancestorii is for
+
+- Families who don't want their history scattered across phones or lost when someone changes a device.
+- Adult children who want to capture their parents' and grandparents' stories, voices and photos while they can.
+- Parents and grandparents who want to pass their stories on in their own words.
 - Anyone who has been meaning to write things down but never has.
-- People who lost a grandparent or family member and realised too late how much went with them.
-- Families looking for meaningful, personalised gifts (Memory Books, canvas prints, acrylic prints).
-- People who have tried notebooks, cloud drives, shared albums, and none of them stuck.
+- People who have lost someone and want to keep their memory, voice and stories together.
+- Families looking for a meaningful, personal gift: a Memory Book, a canvas print or an acrylic print.
 
-## Founder and Origin Story
+## How Ancestorii compares
 
-Ancestorii was built by Dante Leon, a 27-year-old solo founder based in the United Kingdom. Dante works full time as an aircraft mechanic for British Airways on a four-days-on, four-days-off shift rotation. On his days off, he builds Ancestorii. Every feature, every page, and every word on the site was built by one person, on a laptop, in between maintaining aircraft and walking his dog.
+- **Cloud photo storage (Google Photos, iCloud, Dropbox)**: built to back up every file. Ancestorii keeps the story, the date and the voices behind the photos that matter, in a private space the family adds to. The two work well side by side.
+- **Group chats and social media (WhatsApp, Facebook groups)**: built for conversation, so photos get buried in the scroll, and Facebook is funded by ads. Ancestorii is ad-free and private to the family you invite, and memories stay organised by person, album and timeline.
+- **Genealogy sites (Ancestry, MyHeritage)**: built for researching records and building family trees. Ancestorii keeps the family's own photos, voices and stories, and is not a genealogy research service. They work well together.
+- **Prompt-and-book services (StoryWorth, Remento)**: built around one storyteller answering prompts to make a book. Ancestorii is a private space the whole family adds to over time, and any printed book is one you design yourself, page by page.
+- **Baby journals (Tinybeans)**: built to share one child's photos with family. Ancestorii is for every generation's photos, voices and stories.
 
-Dante holds a first-class degree and a master's in Aircraft Maintenance Engineering. He self-taught full-stack development specifically to build Ancestorii after searching for a platform that brought together stories, photos, voice recordings, and timelines in one private family space and finding nothing that did.
+## Founder
 
-The motivation was personal. Dante was scared of losing the small things — the way his grandmother hummed while cooking, the way his mum laughs at her own jokes before reaching the punchline, the stories told at family gatherings that live in people's heads and nowhere else. He built Ancestorii because he could not stop thinking about how much families lose when nobody writes things down.
+Ancestorii was founded in 2025 by Dante Leon, its sole founder, in the United Kingdom. Dante works full time as an aircraft mechanic for British Airways on a four-days-on, four-days-off rota, and builds Ancestorii on his days off, on his own, on a laptop, with no team or investors. He built it because he was scared of losing the small things: the way his grandmother hummed while she cooked and described the village she grew up in, and the sound of his mum laughing at her own jokes before she reached the punchline. He could not find one place that held the story, the photo and the voice together. His letter about why he built it is at https://www.ancestorii.com/why-this-exists, and Ancestorii's guides are written under his name.
 
-Ancestorii launched in August 2025. It was not built to chase a trend or fill a gap in the market. It was built because the founder could not find anything like it and believed the most important stories in the world are not the ones that make the news — they are the ones told around kitchen tables.
+- LinkedIn: https://www.linkedin.com/in/dante-leon-10baaa17a/
+- Reddit: https://www.reddit.com/user/keepingmemories/ (u/keepingmemories)
 
-## Frequently Asked Questions
+## Company and contact
 
-**Who is Ancestorii really for?**
-For families who do not want their history scattered across phones or lost when someone upgrades a device. Parents, grandparents, and anyone who understands that stories disappear quietly if they are not preserved properly.
-
-**How is this different from Google Photos or cloud storage?**
-Cloud storage keeps files. Ancestorii gives those files meaning. Timelines follow a life. Albums organise chapters. Voice capsules preserve tone and personality. This is a structured living library, not a storage folder.
-
-**How do people usually begin?**
-Most start small. One person. One milestone. One memory explained properly. The library grows naturally from there. It is not about uploading everything at once. It is about protecting meaning while it still exists.
-
-**Is my family library private?**
-Yes. Everything in the My Family library is private by default. Nothing is visible outside the people you personally invite. The public Our Stories feed is a separate, opt-in layer.
-
-**Who owns the content I upload?**
-You do. Always. Your memories, recordings, and photographs remain yours. Ancestorii simply provides the structure and protection to preserve them.
-
-**What happens if I stop paying?**
-Nothing is deleted. Your library remains accessible. If you exceed free plan limits, new creation pauses until you upgrade again. Your archive stays intact.
-
-**Can other family members contribute?**
-Yes. You can invite family members to add their own photos, stories, and voice recordings to the shared library. Everyone contributes, but you stay in control of who has access.
-
-**Why include voice recordings?**
-Because voice carries presence. Tone, humour, warmth. The things photographs cannot hold. Years from now, hearing someone speak matters more than seeing another picture.
-
-**Is this built for long-term preservation?**
-Yes. The structure, privacy model, and continuity approach are designed so your family library remains accessible and meaningful across generations.
-
-**How is a Memory Book different from a regular photo book?**
-Photo books display images. Memory Books preserve stories. Each page can combine photographs with written context, personal reflections, and the meaning behind a moment — not just the image itself.
-
-**Do I need design experience for Memory Books?**
-No. The visual editor is built so anyone can arrange pages naturally. Drag photos, add text, adjust layouts. The design stays clean without needing professional skills.
-
-**Can I order multiple copies of a Memory Book?**
-Yes. Once your book is designed, order as many copies as you need — for family members, as gifts, or to keep for different branches of your family.
-
-## Guides and Resources
-
-Ancestorii publishes practical guides on capturing family memories:
-
-- **How to Preserve Family Memories**: A starting point for anyone who has been meaning to write things down but never has. Start with the memory you are most afraid of losing, write three sentences about it, ask someone to tell you a story, add context to one photo, and put it somewhere that lasts.
-- **How to Save Family Voices**: A guide to recording family voices while life is happening. Voice is the first thing we forget — we lose the way someone laughed before we lose their face. Practical tips on what to record and how to do it naturally.
-- **How to Record Family Stories**: Simple ways to capture stories that only get told when a certain person is in the room. Includes conversation-starting questions that unlock decades of stories.
-- **What to Do with Old Family Photos**: A guide on turning scattered images into something meaningful. Scanning is not preserving — a scanned photo with no context is just a higher resolution mystery.
-- **Living Library vs Digital Vault**: Understanding why storing files and preserving meaning are two completely different things.
+- Ancestorii Ltd, registered in England and Wales, based in London.
+- Support: support@ancestorii.com
+- Instagram: https://www.instagram.com/ancestorii_official/
+- Facebook: https://www.facebook.com/profile.php?id=61586259749930
 
 ## Technology
 
-Built with Next.js (App Router), TypeScript, Tailwind CSS, Supabase (database, auth, storage), and Stripe for payments. Print products are fulfilled through Prodigi. PDF generation via Browserless. Email via Resend. Email validation via Kickbox.
+Ancestorii is built with Next.js and Supabase. Payments go through Stripe, printed keepsakes are made and shipped by Prodigi, emails are sent with Resend, and Story Assistance and the Our Stories checks use Claude, made by Anthropic.
 
-## Important Pages
+## Frequently asked questions
 
-- [Homepage / Our Stories Feed](https://www.ancestorii.com/)
-- [Pricing](https://www.ancestorii.com/pricing)
-- [How It Works](https://www.ancestorii.com/how-it-works)
-- [Memory Books](https://www.ancestorii.com/memory-books)
-- [Compare Ancestorii](https://www.ancestorii.com/compare)
-- [Best StoryWorth Alternative](https://www.ancestorii.com/compare/storyworth-alternative)
-- [Why This Exists — Founder Story](https://www.ancestorii.com/why-this-exists)
-- [Living Library](https://www.ancestorii.com/living-library)
-- [Digital Legacy](https://www.ancestorii.com/digital-legacy)
-- [Browse Stories by Topic](https://www.ancestorii.com/stories/topics)
-- [Guides](https://www.ancestorii.com/guides)
+**Is Ancestorii free?**
+Yes, to start. Our Stories is free forever, and My Family has a Free plan with no card needed: a 1 GB family storage allowance, unlimited albums, timelines and capsules, and 1 Loved One profile. Premium costs £3.99 a month for the whole family.
 
-## Guides
+**Is my family space private?**
+Yes. Only the people invited into your family space can see My Family. Nothing in it appears on Our Stories, in search results or anywhere public unless you choose to publish it as a story.
 
-- [How to Preserve Family Memories](https://www.ancestorii.com/guides/how-to-preserve-family-memories)
-- [How to Save Family Voices](https://www.ancestorii.com/guides/how-to-save-family-voices)
-- [How to Record Family Stories](https://www.ancestorii.com/guides/how-to-record-family-stories)
-- [What to Do with Old Family Photos](https://www.ancestorii.com/guides/what-to-do-with-old-family-photos)
-- [Living Library vs Digital Vault](https://www.ancestorii.com/guides/living-library-vs-digital-vault)
-- [Questions to Ask Your Parents About Their Life](https://www.ancestorii.com/guides/questions-to-ask-your-parents-about-their-life)
-- [What to Write in a Memory Book](https://www.ancestorii.com/guides/what-to-write-in-a-memory-book)
+**How many family members can join?**
+There is no limit on family members on either plan, and Premium covers the whole family under one subscription.
 
-## Stories by Topic
+**Do I need the app?**
+For some things. The private family feed and questions are in the free iPhone and Android app. Our Stories, capsules, the Library, upgrades and print orders are on the website. Albums, timelines, voice notes and Loved Ones work in both.
 
-- [Family](https://www.ancestorii.com/stories/topics/family)
-- [Food & Recipes](https://www.ancestorii.com/stories/topics/food-and-recipes)
-- [Childhood](https://www.ancestorii.com/stories/topics/childhood)
-- [Love](https://www.ancestorii.com/stories/topics/love)
-- [Life Lessons](https://www.ancestorii.com/stories/topics/life-lessons)
-- [Traditions](https://www.ancestorii.com/stories/topics/traditions)
-- [Travel](https://www.ancestorii.com/stories/topics/travel)
+**What happens if I stop paying for Premium?**
+Nothing is deleted. The family returns to the Free plan at the end of the billing period, everything stays viewable, and only new uploads beyond the Free allowances pause.
 
-## Social
+**Who owns what I upload?**
+You do. Ancestorii holds only the limited licence it needs to run the service.
 
-- [Instagram](https://www.instagram.com/ancestorii_official/)
-- [Facebook](https://www.facebook.com/profile.php?id=61586259749930)
-- [Twitter / X](https://twitter.com/ancestorii)
+**Does Ancestorii use AI?**
+In two places. Story Assistance is optional writing help that suggests questions, openings and short drafts you can use or ignore, and it can be switched off. Each story published to Our Stories is also checked automatically against the community standards.
 
-## Legal
+**Can I order more than one copy of a Memory Book?**
+Yes, by placing the order again. Each order prints one copy, and delivery is charged on each order.
 
-- [Privacy Policy](https://www.ancestorii.com/privacy-policy)
-- [Terms of Service](https://www.ancestorii.com/terms)
+**Does a printed Memory Book include voice recordings?**
+No. Printed books hold photos and written words. Voice notes stay in the family's Ancestorii space.
+
+**Where do you deliver printed keepsakes?**
+To 20 countries: the UK and Ireland, 14 more countries in Europe, the United States, Canada, Australia and New Zealand. The Heritage canvas is delivered to UK addresses only.
+
+**How is Ancestorii different from Ancestry?**
+Ancestry is for researching records and building a family tree. Ancestorii is for keeping your family's own photos, voices and stories. The two work well together.
+
+## Key pages
+
+### Main pages
+
+- [Home](https://www.ancestorii.com/): What Ancestorii is: a private space for family memories, a free public story feed and printed keepsakes. Free to start.
+- [Our Stories](https://www.ancestorii.com/stories): The free public feed of real family stories. Anyone can read; members can publish, give hearts and comment.
+- [Browse stories by topic](https://www.ancestorii.com/stories/topics): Our Stories by topic: Family, Food & Recipes, Childhood, Love, Life Lessons, Traditions and Travel.
+- [Features](https://www.ancestorii.com/features): Every Ancestorii feature, where it works (app or website) and the limits on each plan.
+- [Pricing](https://www.ancestorii.com/pricing): The Free plan, Premium at £3.99 a month per family, and the printed keepsakes.
+- [How It Works](https://www.ancestorii.com/how-it-works): How My Family, the app, questions and Our Stories work, and the community standards for the public feed.
+- [Why Ancestorii exists](https://www.ancestorii.com/why-this-exists): The founder's letter: why Dante Leon built Ancestorii.
+- [What is a living library?](https://www.ancestorii.com/living-library): What a living library is, and how it differs from simple digital storage.
+- [What is a digital legacy?](https://www.ancestorii.com/digital-legacy): How to build a digital legacy by capturing family stories, voices and everyday moments as they happen.
+
+### Features
+
+- [Private family feed (My Family)](https://www.ancestorii.com/features/private-family-feed): A private, ad-free feed of family memories with photos, video and voice notes, in the free iPhone and Android app.
+- [Family questions](https://www.ancestorii.com/features/family-questions): Send a relative one of 46 ready-made questions, or your own, and get their answer back as a memory.
+- [Loved Ones](https://www.ancestorii.com/features/loved-ones): A private page for each person in your family, living or passed, with their life story in four chapters.
+- [Family photo albums](https://www.ancestorii.com/features/family-photo-albums): Albums where each picture keeps its date, its story and voice notes. Unlimited on every plan.
+- [Family timeline](https://www.ancestorii.com/features/family-timeline): Lay out a loved one's life in dated events with photos, video and voice notes, and download it as a PDF.
+- [Digital time capsule](https://www.ancestorii.com/features/digital-time-capsule): Seal photos, videos, a letter and voice notes until a date you choose. Unlimited on every plan.
+- [Family library](https://www.ancestorii.com/features/family-library): One shared library for the family's photos and videos, in folders: 1 GB free or 100 GB on Premium.
+- [Voice notes](https://www.ancestorii.com/features/voice-notes): Record or upload voice notes on photos, timeline moments, capsules and memories.
+- [Invite family](https://www.ancestorii.com/features/invite-family): Invite relatives with a reusable link or an email invite. No limit on members.
+- [Writing help (Story Assistance)](https://www.ancestorii.com/features/writing-help): Optional AI writing help with guiding questions and short drafts. Switch it off any time.
+- [Our Stories](https://www.ancestorii.com/features/our-stories): How to publish a family story on the free public feed, with photos, a video and a voice note.
+
+### Printed keepsakes
+
+- [Memory Books](https://www.ancestorii.com/memory-books): Design an A4 landscape hardcover book of family photos and words, page by page. From £44.99 plus delivery.
+- [Canvas prints](https://www.ancestorii.com/canvas-prints): A large family photo canvas with 1 to 10 photos, in three sizes. From £99.99 plus delivery.
+- [Acrylic prints](https://www.ancestorii.com/acrylic-prints): Family photos behind crystal-clear acrylic, with float-mount hanging included. From £99.99 plus delivery.
+
+### Comparisons
+
+- [Ancestorii vs StoryWorth vs Remento](https://www.ancestorii.com/compare): A side-by-side look at a family library and prompt-based book services.
+- [StoryWorth alternative](https://www.ancestorii.com/compare/storyworth-alternative): How a living family library compares with StoryWorth's prompt service.
+- [Remento alternative](https://www.ancestorii.com/compare/remento-alternative): Remento turns one storyteller's recordings into a book; Ancestorii is a private library the whole family adds to.
+- [Best family memory apps](https://www.ancestorii.com/compare/best-family-memory-apps): Eight apps for family photos, voices and stories, compared on price, free plans and printing.
+- [Ancestorii vs Ancestry](https://www.ancestorii.com/compare/ancestorii-vs-ancestry): Records and family trees, or your family's own photos, voices and stories, and how to use both.
+- [Ancestorii vs Google Photos](https://www.ancestorii.com/compare/ancestorii-vs-google-photos): Backing up every photo, or keeping the stories, dates and voices behind the ones that matter.
+- [Ancestorii vs iCloud Shared Albums](https://www.ancestorii.com/compare/ancestorii-vs-icloud-shared-albums): How iCloud Shared Albums compare for families after the iOS 27 changes.
+- [Ancestorii vs a private Facebook group](https://www.ancestorii.com/compare/ancestorii-vs-facebook-groups): A free, ad-funded Facebook group or an ad-free private family library.
+- [Ancestorii vs WhatsApp](https://www.ancestorii.com/compare/ancestorii-vs-whatsapp): Keep the family chat, and give the memories their own home.
+- [Ancestorii vs Tinybeans](https://www.ancestorii.com/compare/ancestorii-vs-tinybeans): A journal for one child's photos, or an archive for every generation.
+
+### Guides
+
+- [Guides](https://www.ancestorii.com/guides): Every Ancestorii guide, grouped by theme.
+- [Living library vs digital vault](https://www.ancestorii.com/guides/living-library-vs-digital-vault): Why storing files and preserving meaning are two completely different things.
+
+### Guides: photos and archives
+
+- [What to do with old family photos](https://www.ancestorii.com/guides/what-to-do-with-old-family-photos): Turn scattered images into something your family actually wants to return to.
+- [How to digitise old photos](https://www.ancestorii.com/guides/how-to-digitize-old-photos): The scan settings archives use: 300 dpi for most prints, a TIFF master, dated file names and two copies.
+- [How to scan photos with your phone](https://www.ancestorii.com/guides/how-to-scan-photos-with-your-phone): Soft daylight, a glare-free app and the phone held square: good scans without a scanner.
+- [How to digitise slides and negatives](https://www.ancestorii.com/guides/how-to-digitize-slides-and-negatives): Film needs far more resolution than a print. How to scan it, and how to spot vinegar syndrome early.
+- [How to digitise old home videos](https://www.ancestorii.com/guides/how-to-digitize-home-videos): Copy VHS and camcorder tapes yourself, send cine film to a specialist, and keep the right files.
+- [How to organise family photos](https://www.ancestorii.com/guides/how-to-organize-family-photos): Gather every photo in one place, keep the best of each, name files by date and tag the people.
+- [How to label old photos, and what to write](https://www.ancestorii.com/guides/how-to-label-old-photos): Soft pencil on the back edge, never ballpoint or sticky labels, and the who, where and when.
+- [How to store old photos so they last](https://www.ancestorii.com/guides/how-to-store-old-photos): Keep them cool, dry, dark and steady, in the right boxes, and out of lofts and damp cellars.
+- [How long do photos last?](https://www.ancestorii.com/guides/how-long-do-photos-last): Prints, slides, discs and drives all age differently: what lasts, what fades and what can fail.
+- [How to back up family photos](https://www.ancestorii.com/guides/how-to-back-up-family-photos): The 3-2-1 rule: three copies, on two kinds of storage, with one kept away from home.
+- [How to preserve old letters and documents](https://www.ancestorii.com/guides/how-to-preserve-old-letters-and-documents): Store them flat in acid-free folders, never laminate or tape them, and scan each page for the family to read.
+
+### Guides: voices and stories
+
+- [How to preserve family memories](https://www.ancestorii.com/guides/how-to-preserve-family-memories): A starting point for anyone who has been meaning to write things down but never has.
+- [How to record family stories](https://www.ancestorii.com/guides/how-to-record-family-stories): Simple ways to capture the stories that only get told when a certain person is in the room.
+- [How to save family voices](https://www.ancestorii.com/guides/how-to-save-family-voices): Because the way someone tells a story matters as much as the story itself.
+- [How to digitise cassette tapes](https://www.ancestorii.com/guides/how-to-digitize-cassette-tapes): Tape has a limited life. How to record cassettes to WAV at home and keep the files safe.
+- [How to get your family to share their memories](https://www.ancestorii.com/guides/how-to-get-family-to-share-memories): Ask one small question at a time, let them answer from their phone, and welcome different versions of a story.
+- [How to write a life story](https://www.ancestorii.com/guides/how-to-write-a-life-story): Start with a timeline, gather stories in their own words, then shape them into chapters with photos.
+- [How to preserve family recipes](https://www.ancestorii.com/guides/how-to-preserve-family-recipes): Scan the handwritten card, add modern measurements and cook it with the person who made it.
+- [What to write in a memory book](https://www.ancestorii.com/guides/what-to-write-in-a-memory-book): How to fill the blank page so the finished book is one your family actually returns to.
+
+### Guides: questions to ask
+
+- [Questions to ask your parents about their life](https://www.ancestorii.com/guides/questions-to-ask-your-parents-about-their-life): Thirty questions, grouped by theme, for asking while you still can.
+- [Questions to ask your mum](https://www.ancestorii.com/guides/questions-to-ask-your-mum): Her childhood, her own mother, her work and the years before you, with Mothering Sunday ideas.
+- [Questions to ask your dad](https://www.ancestorii.com/guides/questions-to-ask-your-dad): His childhood, his own father, his first jobs and the stories he rarely tells, with Father's Day ideas.
+- [Questions to ask your grandparents, decade by decade](https://www.ancestorii.com/guides/questions-to-ask-your-grandparents): Questions tied to moments they lived through, from rationing to the 1953 Coronation and Decimal Day.
+- [How to interview your grandparents](https://www.ancestorii.com/guides/how-to-interview-your-grandparents): Pick one theme, ask open questions, record with a clip-on mic and agree in writing how it's used.
+
+### Guides: remembrance
+
+- [How to keep memories of a loved one alive](https://www.ancestorii.com/guides/how-to-keep-memories-of-a-loved-one-alive): Save their voice and messages, write their stories down while they're fresh and keep talking about them.
+- [How to save voicemails from a loved one](https://www.ancestorii.com/guides/how-to-save-voicemails-from-a-loved-one): Networks can erase voicemail. How to keep their messages as audio files, on iPhone, Android and landlines.
+- [How to save text messages from a loved one](https://www.ancestorii.com/guides/how-to-save-text-messages-from-a-loved-one): Stop your phone deleting old chats, then keep your own copies of their texts and WhatsApp messages.
+- [How to make a memorial book](https://www.ancestorii.com/guides/how-to-make-a-memorial-book): Gather photos and memories from the family, put the pages in the order of their life and leave time to print.
+- [How to write a eulogy](https://www.ancestorii.com/guides/how-to-write-a-eulogy): Five to ten minutes and two or three true stories: how to gather them, shape it and get through it.
+
+### Guides: time capsules and legacy
+
+- [What to put in a time capsule](https://www.ancestorii.com/guides/what-to-put-in-a-time-capsule): Letters, named photos, today's front page and your voices, plus what to leave out and which container to use.
+- [How to write a legacy letter](https://www.ancestorii.com/guides/how-to-write-a-legacy-letter): Pass on your stories, values and hopes rather than possessions: what to include and where to keep it.
+- [What happens to your photos when you die?](https://www.ancestorii.com/guides/what-happens-to-your-photos-when-you-die): Without a plan, cloud photos can be locked away or deleted. The legacy settings at Apple, Google and Facebook.
+
+### Guides: gifts and occasions
+
+- [Gifts for grandparents that mean something](https://www.ancestorii.com/guides/gifts-for-grandparents): Photo books, framed prints, recorded voices and time together, plus when Grandparents' Day falls.
+- [80th birthday ideas that celebrate a whole life](https://www.ancestorii.com/guides/80th-birthday-ideas): A memory book of eight decades, letters from the family and a party built around their stories.
+- [Wedding anniversary gifts by year](https://www.ancestorii.com/guides/anniversary-gift-ideas-by-year): Paper, cotton and leather through to ruby, gold and diamond: the traditional British list, with gift ideas.
+- [Family tradition ideas worth starting](https://www.ancestorii.com/guides/family-traditions-ideas): Small, repeatable traditions, from the same photo every birthday to a recipe cooked on the same day each year.
+
+### Guides: family history
+
+- [Family history vs family tree: what's the difference?](https://www.ancestorii.com/guides/family-history-vs-family-tree): A tree records who connects to whom; family history tells who they were. How the two fit together.
+- [How to start researching your family history](https://www.ancestorii.com/guides/how-to-start-researching-your-family-history): Begin with living relatives, then work back through UK certificates, census returns and the 1939 Register.
+- [How to create a family archive](https://www.ancestorii.com/guides/how-to-create-a-family-archive): Decide what to keep, store the originals safely, digitise the best and note who, what, when and why.
+
+### Our Stories topics
+
+- [Family](https://www.ancestorii.com/stories/topics/family): Stories about family and where we come from.
+- [Food & Recipes](https://www.ancestorii.com/stories/topics/food-and-recipes): Family recipes and the meals that stayed with us.
+- [Childhood](https://www.ancestorii.com/stories/topics/childhood): Stories of childhood and the summers that felt endless.
+- [Love](https://www.ancestorii.com/stories/topics/love): Love stories, and how they began.
+- [Life Lessons](https://www.ancestorii.com/stories/topics/life-lessons): Life lessons, earned the long way.
+- [Traditions](https://www.ancestorii.com/stories/topics/traditions): Family traditions and the rituals we keep.
+- [Travel](https://www.ancestorii.com/stories/topics/travel): Travel stories and the journeys that shaped us.
+
+### Legal and account
+
+- [Privacy Policy](https://www.ancestorii.com/privacy-policy): How Ancestorii collects, uses, stores and protects personal data on the website and in the app.
+- [Terms & Conditions](https://www.ancestorii.com/terms): The terms for the website, the app, printed products and services.
+- [Delete your account](https://www.ancestorii.com/delete-account): How to delete an Ancestorii account.

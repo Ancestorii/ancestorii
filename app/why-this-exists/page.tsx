@@ -1,7 +1,7 @@
 import WhyThisExists from "@/components/WhyThisExists";
 import SiteShell from '@/components/site/SiteShell';
 import type { Metadata } from "next";
-import Script from "next/script";
+import JsonLd from '@/components/site/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: { absolute: "Our Roots — Why Ancestorii Exists" },
@@ -44,12 +44,8 @@ export const metadata: Metadata = {
 export default function WhyThisExistsPage() {
   return (
     <>
-      <Script
-        id="aboutpage-schema"
-        type="application/ld+json"
-        strategy="afterInteractive"
-      >
-        {JSON.stringify({
+      <JsonLd
+        data={{
           "@context": "https://schema.org",
           "@type": "AboutPage",
           "name": "Our Roots — Why Ancestorii Exists",
@@ -73,8 +69,8 @@ export default function WhyThisExistsPage() {
             "@type": "Organization",
             "name": "Ancestorii"
           }
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <WhyThisExists />

@@ -1,7 +1,7 @@
 import SiteShell from '@/components/site/SiteShell';
 import MemoryBooksContent from '@/components/MemoryBookSection';
 import type { Metadata } from "next";
-import Script from "next/script";
+import JsonLd from '@/components/site/seo/JsonLd';
 import { MEMORY_BOOK_FAQS } from '@/components/site/memory-books/faqs';
 
 export const metadata: Metadata = {
@@ -32,17 +32,17 @@ export const metadata: Metadata = {
 export default function MemoryBooksPage() {
   return (
     <>
-      <Script id="memory-books-webpage-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           "@context": "https://schema.org", "@type": "WebPage",
           name: "Memory Books | Ancestorii",
           description: "Design and print a custom hardcover Memory Book filled with your family's stories, photos, and voices — with full creative control over every page.",
           url: "https://www.ancestorii.com/memory-books",
           isPartOf: { "@type": "WebSite", name: "Ancestorii" },
-        })}
-      </Script>
-      <Script id="memory-books-product-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+        }}
+      />
+      <JsonLd
+        data={{
           "@context": "https://schema.org", "@type": "Product",
           name: "Ancestorii Memory Book",
           description: "A custom-designed, professionally printed hardcover book containing your family's stories, photos, and memories.",
@@ -50,18 +50,18 @@ export default function MemoryBooksPage() {
           url: "https://www.ancestorii.com/memory-books",
           category: "Books > Custom & Personalised Books",
           offers: { "@type": "Offer", priceCurrency: "GBP", availability: "https://schema.org/InStock", url: "https://www.ancestorii.com/memory-books" },
-        })}
-      </Script>
-      <Script id="memory-books-faq-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+        }}
+      />
+      <JsonLd
+        data={{
           "@context": "https://schema.org", "@type": "FAQPage",
           mainEntity: MEMORY_BOOK_FAQS.map(({ q, a }) => ({
             "@type": "Question",
             name: q,
             acceptedAnswer: { "@type": "Answer", text: a },
           })),
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <MemoryBooksContent />

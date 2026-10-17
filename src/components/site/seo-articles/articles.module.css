@@ -78,6 +78,16 @@
   overflow-wrap: break-word;
 }
 
+/* Long question headings, a step (and two steps) smaller than the landing's h2: see titleSize()
+   in ArticleBits. Doubled so they beat .h2 whatever order the sheets load in. */
+.title.titleMd {
+  font-size: clamp(32px, 3.6vw, 52px);
+}
+
+.title.titleSm {
+  font-size: clamp(30px, 3vw, 44px);
+}
+
 /* ── Split sections: heading (or photo) on the left, reading column on the right ── */
 
 .split {
@@ -307,11 +317,23 @@ table.cmp thead th.cornerHead {
 }
 
 .tableNote {
+  max-width: 760px;
   margin: 22px 0 0;
   font-size: 16px;
   line-height: 1.55;
   font-weight: 600;
   text-wrap: pretty;
+}
+
+/* A link in a table note or a check row looks like every other link in running copy
+   (site.textLink), even where a page leaves the class off. */
+.tableNote a,
+.checkRow a {
+  font-weight: 800;
+  color: var(--c1);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 /* ── Platform cards (/compare) ────────────────────────────── */
@@ -594,5 +616,45 @@ table.cmp thead th.cornerHead {
     width: 56px;
     height: 56px;
     border-radius: 18px;
+  }
+}
+
+/* ── Link cards (/compare "More comparisons") ─────────────── */
+
+/* A site.card that is a link, ending in the guides index's ink arrow tile. Only transform
+   moves on hover. */
+.linkCard {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.linkArrow {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.linkArrowTile {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  transition: transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .linkCard:hover {
+    transform: translateY(-4px);
+  }
+
+  .linkCard:hover .linkArrowTile {
+    transform: translateX(3px);
   }
 }

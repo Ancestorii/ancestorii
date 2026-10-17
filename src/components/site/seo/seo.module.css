@@ -1,0 +1,268 @@
+/* ============================================================
+   Shared SEO page pieces (KeyFacts, Sources, AuthorBox).
+   Drawn with the landing page's tokens from SiteShell:
+   --c0 pink, --c1 blue, --c2 orange, --c3 aqua, --ink,
+   --hairline-ring. Text is ink; markers are round dots.
+   ============================================================ */
+
+/* ── Key facts ────────────────────────────────────────────── */
+
+.facts {
+  margin: 0;
+  padding: 26px 24px 24px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+}
+
+/* The radius stays at 26px, like every guide card; only the padding grows. */
+@media (min-width: 1100px) {
+  .facts {
+    padding: 30px 32px 28px;
+  }
+}
+
+.factsTitle {
+  margin: 0;
+  font-size: clamp(21px, 1.8vw, 26px);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+
+.factsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.factsList li {
+  --dot: var(--c0);
+  position: relative;
+  padding-left: 24px;
+  font-size: 16.5px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.factsList li:nth-child(4n + 2) { --dot: var(--c1); }
+.factsList li:nth-child(4n + 3) { --dot: var(--c2); }
+.factsList li:nth-child(4n + 4) { --dot: var(--c3); }
+
+.factsList li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.5em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--dot);
+}
+
+.factsList strong {
+  font-weight: 800;
+}
+
+.factsList a,
+.authorBio a {
+  font-weight: 700;
+  color: var(--c1);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* ── Sources ──────────────────────────────────────────────── */
+
+.sources {
+  margin: 0;
+}
+
+.sourcesTitle {
+  margin: 0;
+  font-size: clamp(24px, 2.2vw, 30px);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.sourcesList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: sources;
+}
+
+.sourcesList li {
+  position: relative;
+  padding-left: 30px;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  counter-increment: sources;
+}
+
+.sourcesList li::before {
+  content: counter(sources) '.';
+  position: absolute;
+  left: 0;
+  font-weight: 800;
+  color: var(--c1);
+}
+
+.sourcesPublisher {
+  font-weight: 800;
+}
+
+/* "(checked 17 October 2026)" drops to the next line whole rather than splitting. */
+.sourcesDate {
+  white-space: nowrap;
+}
+
+/* A soft underline, so a long list does not read as a wall of black rules. */
+.sourcesList a {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: rgba(10, 10, 15, 0.3);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .sourcesList a:hover {
+    color: var(--c1);
+    text-decoration-color: currentColor;
+  }
+}
+
+/* ── Author ───────────────────────────────────────────────── */
+
+.author {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 24px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring), 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+}
+
+/* Initials on ink with the logo's pink and blue dots. */
+.authorMark {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.authorDotPink,
+.authorDotBlue {
+  position: absolute;
+  top: -2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+}
+
+.authorDotPink {
+  right: 10px;
+  background: var(--c0);
+}
+
+.authorDotBlue {
+  right: -4px;
+  background: var(--c1);
+}
+
+.authorBody {
+  min-width: 0;
+}
+
+.authorName {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.authorName strong {
+  font-weight: 800;
+}
+
+.authorBio {
+  margin: 8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.authorMeta {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.authorLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.authorLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  transition: transform 0.2s ease;
+}
+
+.authorLinkDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+@media (hover: hover) {
+  .authorLink:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 520px) {
+  .author {
+    flex-direction: column;
+    gap: 14px;
+    padding: 22px 20px;
+  }
+}

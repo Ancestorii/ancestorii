@@ -1,7 +1,7 @@
 import { getServerClient } from '@/lib/supabase/server';
 import SiteShell from '@/components/site/SiteShell';
 import ExploreFeed from '@/components/stories/feed/ExploreFeed';
-import Script from 'next/script';
+import JsonLd from '@/components/site/seo/JsonLd';
 import type { Metadata } from 'next';
 
 // The full "Our Stories" feed. It used to be the homepage; the homepage is now the landing page.
@@ -405,12 +405,8 @@ export default async function StoriesPage() {
   return (
     <>
       {/* WebPage schema (WebSite + Organization entity nodes live in the root layout) */}
-      <Script
-        id="webpage-schema"
-        type="application/ld+json"
-        strategy="afterInteractive"
-      >
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
           name: 'Our Stories — Real Stories from Real Families',
@@ -418,8 +414,8 @@ export default async function StoriesPage() {
             'Browse real family memories — stories, voices, and moments shared by families around the world.',
           url: 'https://www.ancestorii.com/stories',
           isPartOf: { '@id': 'https://www.ancestorii.com/#website' },
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell isLoggedIn={isLoggedIn} storiesBar>
         <ExploreFeed

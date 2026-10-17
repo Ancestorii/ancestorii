@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
+import JsonLd from '@/components/site/seo/JsonLd';
+import { AuthorBox } from '@/components/site/seo/SeoBits';
+import { FOUNDER } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { Step, Steps } from '../_components/GuideBlocks';
 
@@ -17,31 +19,31 @@ export const metadata: Metadata = {
 export default function PreserveFamilyMemoriesPage() {
   return (
     <>
-      <Script id="article-schema-preserve-memories" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'Article',
           headline: 'How to capture and grow family memories',
           description: 'A practical guide to capturing stories, voices, and meaningful moments while life is happening.',
-          author: { '@type': 'Organization', name: 'Ancestorii' },
+          author: FOUNDER,
           publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
           mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/how-to-preserve-family-memories' },
           datePublished: '2026-02-10', dateModified: '2026-05-22',
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="breadcrumb-schema-preserve-memories" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
             { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
             { '@type': 'ListItem', position: 3, name: 'How to Preserve Family Memories', item: 'https://www.ancestorii.com/guides/how-to-preserve-family-memories' },
           ],
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="howto-schema-preserve" type="application/ld+json" strategy="afterInteractive">
-  {JSON.stringify({
+      <JsonLd
+  data={{
     '@context': 'https://schema.org',
     '@type': 'HowTo',
     name: 'How to preserve family memories',
@@ -78,8 +80,8 @@ export default function PreserveFamilyMemoriesPage() {
         text: 'Not a notes app. Not a text message. Not a Google Doc that nobody will ever open again. Put it somewhere intentional, structured, and private. Somewhere your family can find it in ten years without having to search through folders.',
       },
     ],
-  })}
-</Script>
+  }}
+/>
 
       <SiteShell>
         <GuideArticle
@@ -166,6 +168,9 @@ export default function PreserveFamilyMemoriesPage() {
               A family library is not built in a weekend. It is built one memory at a time, over months and years. The important thing is that you begin. Because every memory you capture today is one your grandchildren will not have to guess about.
             </p>
           </Prose>
+          <div style={{ marginTop: 'clamp(64px, 8vw, 104px)' }}>
+            <AuthorBox updated="22 May 2026" />
+          </div>
         </GuideArticle>
 
         <GuideCta
@@ -173,7 +178,7 @@ export default function PreserveFamilyMemoriesPage() {
             <>
               One memory today.
               <br />
-              <Accent tone="pink">A lifetime preserved.</Accent>
+              <Accent tone="pink">A life preserved.</Accent>
             </>
           }
         >

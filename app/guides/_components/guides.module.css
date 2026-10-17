@@ -55,6 +55,32 @@
   --tilt: 4deg;
 }
 
+/* A card given its own tone keeps it (a section that holds a single question set), so
+   consecutive sections still walk through the four colours. */
+.rotate > .tonePink {
+  --tone: var(--c0);
+  --tone-fg: var(--ink);
+  --tilt: -4deg;
+}
+
+.rotate > .toneBlue {
+  --tone: var(--c1);
+  --tone-fg: #fff;
+  --tilt: 3deg;
+}
+
+.rotate > .toneOrange {
+  --tone: var(--c2);
+  --tone-fg: var(--ink);
+  --tilt: -3deg;
+}
+
+.rotate > .toneAqua {
+  --tone: var(--c3);
+  --tone-fg: var(--ink);
+  --tilt: 4deg;
+}
+
 /* ── Hero ─────────────────────────────────────────────────── */
 
 .hero {
@@ -162,6 +188,7 @@
 
 .section {
   margin-top: clamp(64px, 8vw, 104px);
+  scroll-margin-top: 24px;
 }
 
 .h2 {
@@ -765,6 +792,77 @@
   .guideGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Wide screens: six narrow columns, so a section never ends on a ragged row. Two cards
+   left over share the last row; one left over spans it, its panel beside the words as on
+   the featured guide, and as wide as the panels above it. */
+@media (min-width: 1000px) {
+  .guideGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .guideGrid > * {
+    grid-column: span 2;
+  }
+
+  .guideGrid > :nth-last-child(2):nth-child(3n + 1),
+  .guideGrid > :last-child:nth-child(3n + 2) {
+    grid-column: span 3;
+  }
+
+  .guideGrid > :last-child:nth-child(3n + 1) {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  .guideGrid > :last-child:nth-child(3n + 1) .guidePanel {
+    flex: 0 0 calc((100% - 40px) / 3 - 20px);
+    height: auto;
+    min-height: 190px;
+    margin: 10px;
+  }
+
+  .guideGrid > :last-child:nth-child(3n + 1) .guideBody {
+    justify-content: center;
+    padding: 28px 36px 28px 18px;
+  }
+
+  .guideGrid > :last-child:nth-child(3n + 1) .guideArrow {
+    margin-top: 0;
+  }
+}
+
+/* Two columns: a card left on its own spans the row the same way. */
+@media (min-width: 600px) and (max-width: 999px) {
+  .guideGrid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  .guideGrid > :last-child:nth-child(odd) .guidePanel {
+    flex: 0 0 calc((100% - 20px) / 2 - 20px);
+    height: auto;
+    min-height: 190px;
+    margin: 10px;
+  }
+
+  .guideGrid > :last-child:nth-child(odd) .guideBody {
+    justify-content: center;
+    padding: 28px 36px 28px 18px;
+  }
+
+  .guideGrid > :last-child:nth-child(odd) .guideArrow {
+    margin-top: 0;
+  }
+}
+
+/* Under the featured guide: a pill for each section, linking down to it. */
+.jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
 }
 
 @media (max-width: 599px) {

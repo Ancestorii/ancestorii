@@ -26,7 +26,7 @@ const OUR_STORIES_FEATURES = [
   'Read stories from families everywhere',
   'Like, comment, and share memories',
   'Publish your own stories publicly',
-  'No algorithms or follower counts',
+  'Newest first, no follower counts',
 ];
 
 const MY_FAMILY_FREE_FEATURES = [
@@ -35,8 +35,8 @@ const MY_FAMILY_FREE_FEATURES = [
   { t: 'Unlimited albums', on: true },
   { t: 'Unlimited capsules', on: true },
   { t: '20MB max file size', on: true },
-  { t: '5 min video length', on: true },
-  { t: 'Unlimited family profiles', on: true },
+  { t: '5\u00a0min video length', on: true },
+  { t: '1 Loved Ones profile', on: true },
   { t: 'Priority support', on: false },
   { t: 'Early access to features', on: false },
   { t: '10% off heirlooms', on: false },
@@ -48,8 +48,8 @@ const MY_FAMILY_PREMIUM_FEATURES = [
   'Unlimited albums',
   'Unlimited capsules',
   '10GB max file size',
-  '15 min video length',
-  'Unlimited family profiles',
+  '15\u00a0min video length',
+  'Unlimited Loved Ones profiles',
   'Priority support',
   'Early access to features',
   '10% off all heirlooms',
@@ -57,9 +57,9 @@ const MY_FAMILY_PREMIUM_FEATURES = [
 
 // Each heirloom on a solid colour panel with its symbol, like the landing's steps.
 const HEIRLOOMS: { name: string; price: string; desc: string; Icon: LucideIcon; tone: string; tilt: string }[] = [
-  { name: 'Memory Book', price: 'From £44.99', desc: 'A hardcover book you design page by page. Three tiers available. Your stories, your photos, your layout.', Icon: BookOpen, tone: css.orange, tilt: '-4deg' },
-  { name: 'Canvas Print', price: 'From £29.99', desc: 'Museum grade photo on stretched canvas. The kind of image that belongs on a wall, not buried in a camera roll.', Icon: ImageIcon, tone: css.blue, tilt: '3deg' },
-  { name: 'Acrylic Print', price: 'From £39.99', desc: 'HD UV print behind polished acrylic glass. Vivid colour, clean edges, permanent weight.', Icon: Gem, tone: css.aqua, tilt: '-3deg' },
+  { name: 'Memory Book', price: 'From £44.99 + delivery', desc: 'A hardcover book you design page by page. Three tiers available. Your stories, your photos, your layout.', Icon: BookOpen, tone: css.orange, tilt: '-4deg' },
+  { name: 'Canvas Print', price: 'From £99.99 + delivery', desc: 'Museum grade photo on stretched canvas. The kind of image that belongs on a wall, not buried in a camera roll.', Icon: ImageIcon, tone: css.blue, tilt: '3deg' },
+  { name: 'Acrylic Print', price: 'From £99.99 + delivery', desc: 'HD UV print behind polished acrylic glass. Vivid colour, clean edges, permanent weight.', Icon: Gem, tone: css.aqua, tilt: '-3deg' },
 ];
 
 const NEVER_PAY_FOR: { line: string; Icon: LucideIcon; tone: string; tilt: string }[] = [
@@ -250,7 +250,7 @@ export default function PricingPage() {
                   <p className={css.productPrice}>{p.price}</p>
                   <p className={css.productDesc}>{p.desc}</p>
                   <Link
-                    href={p.name === 'Memory Book' ? '/memory-books' : '/signup'}
+                    href={p.name === 'Memory Book' ? '/memory-books' : p.name === 'Canvas Print' ? '/canvas-prints' : '/acrylic-prints'}
                     className={css.productLink}
                   >
                     Learn more <span className={landing.arrowGlyph}>→</span>

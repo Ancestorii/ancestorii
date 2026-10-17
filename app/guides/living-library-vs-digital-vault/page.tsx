@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
+import JsonLd from '@/components/site/seo/JsonLd';
+import { AuthorBox } from '@/components/site/seo/SeoBits';
+import { FOUNDER } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { Compare, CompareRow } from '../_components/GuideBlocks';
 
@@ -17,28 +19,28 @@ export const metadata: Metadata = {
 export default function LivingLibraryVsVaultPage() {
   return (
     <>
-      <Script id="article-schema-living-library" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'Article',
           headline: 'Living library vs digital vault',
           description: 'Understanding the difference between storing memories and helping them grow.',
-          author: { '@type': 'Organization', name: 'Ancestorii' },
+          author: FOUNDER,
           publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
           mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/living-library-vs-digital-vault' },
           datePublished: '2026-02-17', dateModified: '2026-05-22',
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="breadcrumb-schema-living-library" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
             { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
             { '@type': 'ListItem', position: 3, name: 'Living Library vs Digital Vault', item: 'https://www.ancestorii.com/guides/living-library-vs-digital-vault' },
           ],
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <GuideArticle
@@ -116,14 +118,17 @@ export default function LivingLibraryVsVaultPage() {
               If your goal is to keep files safe, a vault works. If your goal is to keep your family&apos;s story alive, readable, and growing, you need something different. You need a space that cares about what is inside it, not just that it is there.
             </p>
           </Prose>
+          <div style={{ marginTop: 'clamp(64px, 8vw, 104px)' }}>
+            <AuthorBox updated="22 May 2026" />
+          </div>
         </GuideArticle>
 
         <GuideCta
           title={
             <>
-              Your family deserves more
+              Give your family
               <br />
-              <Accent tone="pink">than a locked folder.</Accent>
+              <Accent tone="pink">more than a vault.</Accent>
             </>
           }
         >

@@ -1,6 +1,6 @@
 import SiteShell from '@/components/site/SiteShell';
 import type { Metadata } from 'next';
-import Script from 'next/script';
+import JsonLd from '@/components/site/seo/JsonLd';
 import PricingContent from './PricingContent';
 
 export const metadata: Metadata = {
@@ -15,13 +15,13 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <>
-      <Script id="pricing-schema" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'SoftwareApplication',
           name: 'Ancestorii',
           applicationCategory: 'LifestyleApplication',
-          operatingSystem: 'iOS, Web',
+          operatingSystem: 'iOS, Android, Web',
           url: 'https://www.ancestorii.com',
           description:
             'Ancestorii is a private family library where you can build timelines, albums and capsules to preserve memories for future generations.',
@@ -54,8 +54,8 @@ export default function PricingPage() {
               name: 'Ancestorii Premium - USD',
             },
           ],
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <PricingContent />

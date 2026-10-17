@@ -1,7 +1,7 @@
 import { getServerClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import Script from 'next/script';
+import JsonLd from '@/components/site/seo/JsonLd';
 import SiteShell from '@/components/site/SiteShell';
 import StoryPageContent from '@/components/stories/detail/StoryPageContent';
 import { getStoryComments } from '@/lib/stories/queries';
@@ -272,12 +272,8 @@ export default async function StoryPage({ params }: Props) {
 
   return (
     <>
-      <Script
-        id="story-schema"
-        type="application/ld+json"
-        strategy="afterInteractive"
-      >
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'Article',
           headline: story.title,
@@ -306,8 +302,8 @@ export default async function StoryPage({ params }: Props) {
               userInteractionCount: commentCount ?? 0,
             },
           ],
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell isLoggedIn={isLoggedIn} storiesBar>
           <StoryPageContent

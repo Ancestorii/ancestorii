@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
+import JsonLd from '@/components/site/seo/JsonLd';
 import SiteShell from '@/components/site/SiteShell';
 import HowItWorksContent from './HowItWorksContent';
 
@@ -15,15 +15,15 @@ export const metadata: Metadata = {
 export default function HowItWorksPage() {
   return (
     <>
-      <Script id="how-it-works-schema" type="application/ld+json">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'WebPage',
           name: 'How It Works | Ancestorii',
           description:
             'A detailed guide to how the Ancestorii platform works: structure, privacy, security, and continuity.',
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <HowItWorksContent />

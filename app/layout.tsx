@@ -2,8 +2,9 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Playfair_Display, DM_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import Script from "next/script";
 import DeferredTags from "@/components/DeferredTags";
+import JsonLd from "@/components/site/seo/JsonLd";
+import { FOUNDER, FOUNDER_ID } from "@/lib/seo/schema";
 
 // Keep: this registers the global "Inter" face that the dashboard's font-[Inter] classes and the
 // 800-weight Memory Book cover titles (editor and print export) rely on.
@@ -96,12 +97,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   <link rel="help" href="/llms.txt" type="text/plain" />
 
         {/* 🟢 ORGANIZATION SCHEMA (entity node) */}
-        <Script
-          id="org-schema"
-          type="application/ld+json"
-          strategy="afterInteractive"
-        >
-          {JSON.stringify({
+        <JsonLd
+          data={{
             "@context": "https://schema.org",
             "@type": "Organization",
             "@id": "https://www.ancestorii.com/#organization",
@@ -114,7 +111,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               "@type": "ImageObject",
               url: "https://www.ancestorii.com/logo.png",
             },
-            founder: { "@type": "Person", name: "Dante Leon" },
+            founder: { "@id": FOUNDER_ID },
             email: "support@ancestorii.com",
             sameAs: [
               "https://www.instagram.com/ancestorii_official/",
@@ -124,16 +121,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // sameAs link strengthens how AI engines recognise Ancestorii as one
               // distinct entity. See SEO-GROWTH-PLAYBOOK.md.
             ],
-          })}
-        </Script>
+          }}
+        />
+
+        {/* FOUNDER SCHEMA (the Person node the Organization's founder points to) */}
+        <JsonLd data={{ "@context": "https://schema.org", ...FOUNDER }} />
 
         {/* 🟢 WEBSITE SCHEMA (linked to the Organization entity) */}
-        <Script
-          id="website-schema"
-          type="application/ld+json"
-          strategy="afterInteractive"
-        >
-          {JSON.stringify({
+        <JsonLd
+          data={{
             "@context": "https://schema.org",
             "@type": "WebSite",
             "@id": "https://www.ancestorii.com/#website",
@@ -141,8 +137,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             url: "https://www.ancestorii.com",
             inLanguage: "en-GB",
             publisher: { "@id": "https://www.ancestorii.com/#organization" },
-          })}
-        </Script>
+          }}
+        />
       </head>
 
       <body

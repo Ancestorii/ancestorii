@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
+import JsonLd from '@/components/site/seo/JsonLd';
+import { AuthorBox } from '@/components/site/seo/SeoBits';
+import { FOUNDER } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { GuideFigure, Step, Steps } from '../_components/GuideBlocks';
 
@@ -18,31 +20,31 @@ export const metadata: Metadata = {
 export default function WhatToWriteInAMemoryBookPage() {
   return (
     <>
-      <Script id="article-schema-memory-book" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'Article',
           headline: 'What to write in a memory book',
           description: 'A practical guide to what to write in a memory book and what to include on every page.',
-          author: { '@type': 'Organization', name: 'Ancestorii' },
+          author: FOUNDER,
           publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
           mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/what-to-write-in-a-memory-book' },
           datePublished: '2026-06-20', dateModified: '2026-06-20',
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="breadcrumb-schema-memory-book" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
             { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
             { '@type': 'ListItem', position: 3, name: 'What to Write in a Memory Book', item: 'https://www.ancestorii.com/guides/what-to-write-in-a-memory-book' },
           ],
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="howto-schema-memory-book" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'HowTo',
           name: 'What to write in a memory book',
@@ -54,8 +56,8 @@ export default function WhatToWriteInAMemoryBookPage() {
             { '@type': 'HowToStep', position: 4, name: 'Include the people, not just the events', text: 'Describe what someone was like, not only what they did. A turn of phrase, a habit, a kindness. That is what people forget first.' },
             { '@type': 'HowToStep', position: 5, name: 'End each page with why it is here', text: 'A single line on why this memory earned its place tells the next generation what mattered to you, and why.' },
           ],
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <GuideArticle
@@ -149,6 +151,9 @@ export default function WhatToWriteInAMemoryBookPage() {
               is a good place to begin.
             </p>
           </Prose>
+          <div style={{ marginTop: 'clamp(64px, 8vw, 104px)' }}>
+            <AuthorBox updated="20 June 2026" />
+          </div>
         </GuideArticle>
 
         <GuideCta

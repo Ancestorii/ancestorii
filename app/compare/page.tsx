@@ -1,6 +1,7 @@
+import Link from 'next/link';
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import SiteShell from '@/components/site/SiteShell';
+import JsonLd from '@/components/site/seo/JsonLd';
 import { Accent } from '@/components/site/SiteBits';
 import {
   ArticleCta,
@@ -11,7 +12,10 @@ import {
   PlatformCard,
   PlatformList,
   QuoteBlock,
+  TableNote,
 } from '@/components/site/seo-articles/ArticleBits';
+import articles from '@/components/site/seo-articles/articles.module.css';
+import site from '@/components/site/site.module.css';
 
 export const metadata: Metadata = {
   title: { absolute: 'Ancestorii vs StoryWorth vs Remento: Which Family Memory Platform Is Right for You?' },
@@ -20,33 +24,33 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   openGraph: {
     title: 'Ancestorii vs StoryWorth vs Remento | Honest Comparison',
-    description: 'Compare the three leading family memory platforms side by side.',
+    description: 'Compare three family memory platforms side by side.',
     url: 'https://www.ancestorii.com/compare',
     siteName: 'Ancestorii',
     images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii vs StoryWorth vs Remento comparison' }],
     locale: 'en_GB',
     type: 'website',
   },
-  twitter: { card: 'summary_large_image', title: 'Ancestorii vs StoryWorth vs Remento', description: 'An honest comparison of the three leading family memory platforms.', images: ['/og-default.jpg'] },
+  twitter: { card: 'summary_large_image', title: 'Ancestorii vs StoryWorth vs Remento', description: 'An honest comparison of three family memory platforms.', images: ['/og-default.jpg'] },
 };
 
 const FEATURES = [
   ['Core concept', 'Living library + public stories + physical heirlooms', 'Weekly prompts → printed book', 'Voice recordings → AI written book'],
-  ['Public sharing', 'Yes — Our Stories feed', 'No', 'No'],
-  ['Private family space', 'Yes — My Family, invite only', 'No', 'No'],
+  ['Public sharing', 'Yes: Our Stories feed', 'No', 'No'],
+  ['Private family space', 'Yes: My Family, invite only', 'No', 'No'],
   ['Digital library', 'Timelines, albums, stories, profiles', 'No', 'No'],
-  ['Printed book', 'Memory Book — you design every page', 'Auto compiled hardcover', 'Auto compiled with QR codes'],
+  ['Printed book', 'Memory Book: you design every page', 'Auto compiled hardcover', 'Auto compiled with QR codes'],
   ['Canvas prints', 'Yes', 'No', 'No'],
   ['Acrylic prints', 'Yes', 'No', 'No'],
-  ['Voice recordings', 'Yes — stored in library', 'Yes — phone recording', 'Yes — voice and video'],
+  ['Voice recordings', 'Yes: stored in library', 'Yes: phone recording', 'Yes: voice and video'],
   ['Who contributes', 'Whole family', 'One storyteller', 'One storyteller'],
-  ['Family app on your phone', 'Yes, free on iPhone and Android', 'Storyteller app only', 'Storyteller app only'],
+  ['Family app on your phone', 'Yes: free on iPhone and Android', 'No app: email, website or phone', 'No app: a link by email or text'],
   ['Prompt system', 'Optional questions you send when you like', '500+ email prompts', 'Weekly prompts'],
-  ['AI rewrites your words', 'No', 'No', 'Yes'],
-  ['Continues after the book', 'Yes — library keeps growing', 'No', 'No'],
-  ['Algorithm or follower counts', 'No — stories shown in order', 'N/A', 'N/A'],
+  ['AI rewrites your words', 'No: optional AI writing help suggests, never rewrites', 'No', 'Yes'],
+  ['Continues after the book', 'Yes: library keeps growing', 'Only if you renew', 'Only if you renew'],
+  ['Feed order and follower counts', 'Newest first by default, no follower counts', 'N/A', 'N/A'],
   ['Religion and politics', 'Not allowed on public feed', 'N/A', 'N/A'],
-  ['Worldwide shipping', 'Ships worldwide', 'Free US, extra internationally', 'Free US, extra internationally'],
+  ['Delivery', 'To 20 countries, from £4.99', 'Free US, extra internationally', 'Free US, extra internationally'],
   ['Built in', 'United Kingdom', 'United States', 'United States'],
 ];
 
@@ -57,7 +61,7 @@ const QUESTIONS = [
   },
   {
     q: 'What is the main difference between Ancestorii and Remento?',
-    a: 'Remento records your voice and uses AI to rewrite it into a polished book. Ancestorii does not use AI to rewrite anything. Your words stay your words. And instead of ending with a single book, your library keeps growing and you can create physical heirlooms from it at any point.',
+    a: 'Remento records your voice and uses AI to rewrite it into a polished book. Ancestorii never rewrites your words. Its optional writing help, Story Assistance, can suggest openings and captions, and you choose what to keep. Your words stay your words. And instead of a year of recordings and a single book, your library keeps growing and you can create physical heirlooms from it at any point.',
   },
   {
     q: 'Which platform gives you the most control over the book?',
@@ -73,34 +77,47 @@ const QUESTIONS = [
   },
   {
     q: 'Is Ancestorii a good alternative to StoryWorth in the UK?',
-    a: 'Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
+    a: 'Yes. Ancestorii is built in the UK, charges in pounds, euros or dollars, and delivers its prints to 20 countries, including the UK. StoryWorth is US based, and as of October\u00a02026 its UK plans start at £49. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
   },
+];
+
+// The other comparison pages, each summed up from its own description.
+const MORE_COMPARISONS = [
+  { href: '/compare/storyworth-alternative', label: 'StoryWorth alternative', text: 'A year of weekly questions and one book, or a family library that keeps growing.' },
+  { href: '/compare/remento-alternative', label: 'Remento alternative', text: "One storyteller's recordings turned into a book, or a private library the whole family adds to." },
+  { href: '/compare/best-family-memory-apps', label: 'Best family memory apps', text: 'Eight apps for family photos, voices and stories, compared on price, free plans and printing.' },
+  { href: '/compare/ancestorii-vs-ancestry', label: 'Ancestorii vs Ancestry', text: "Researching records and a family tree, or keeping your family's own photos, voices and stories." },
+  { href: '/compare/ancestorii-vs-google-photos', label: 'Ancestorii vs Google Photos', text: 'Backing up every photo, or keeping the stories, dates and voices behind the ones that matter.' },
+  { href: '/compare/ancestorii-vs-icloud-shared-albums', label: 'Ancestorii vs iCloud Shared Albums', text: "How Apple's shared albums compare for keeping family photos." },
+  { href: '/compare/ancestorii-vs-whatsapp', label: 'Ancestorii vs a WhatsApp family group', text: 'Where to keep family memories so they do not get buried in the chat.' },
+  { href: '/compare/ancestorii-vs-facebook-groups', label: 'Ancestorii vs a private Facebook group', text: 'A free group funded by ads, or an ad-free private family library.' },
+  { href: '/compare/ancestorii-vs-tinybeans', label: 'Ancestorii vs Tinybeans', text: "Sharing a child's photos with family, or keeping every generation's photos, voices and stories." },
 ];
 
 export default function ComparePage() {
   return (
     <>
-      <Script id="compare-webpage-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'WebPage',
           name: 'Ancestorii vs StoryWorth vs Remento',
           description: 'An honest, side-by-side comparison of three different approaches to preserving family stories.',
           url: 'https://www.ancestorii.com/compare',
           isPartOf: { '@type': 'WebSite', name: 'Ancestorii' },
-        })}
-      </Script>
+        }}
+      />
 
       {/* Built from the questions the page shows, so the two can never differ. */}
-      <Script id="compare-faq-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'FAQPage',
           mainEntity: QUESTIONS.map((item) => ({
             '@type': 'Question',
             name: item.q,
             acceptedAnswer: { '@type': 'Answer', text: item.a },
           })),
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <ArticleHero
@@ -164,12 +181,12 @@ export default function ComparePage() {
               featured
               oneLiner="A living library with two layers, built for the whole family."
               strengths={[
-                'Two distinct spaces. Our Stories is public — share memories with the world, no algorithms, no follower counts, just real stories from real families. My Family is private — only invited family members can see what is inside.',
+                'Two distinct spaces. Our Stories is public — share memories with the world, newest first by default, no follower counts, just real stories from real families. My Family is private — only invited family members can see what is inside.',
                 'Not built around one storyteller or one year. Your whole family contributes. Timelines, albums, stories, and voice recordings grow together over time.',
                 'My Heirlooms lets you turn your library into physical keepsakes. Memory Books designed page by page in a visual editor. Canvas Prints. Acrylic Prints. Things you hold, frame, and pass down.',
-                'No prompt schedule. No AI rewriting your words. You write what you want, when you want, in your own voice.',
-                'There is a free Ancestorii app for your phone, so the whole family can add photos, stories, and voices from anywhere. It is on iPhone and Android.',
-                'Built in the UK. Worldwide delivery on all physical products.',
+                'No prompt schedule. Optional AI writing help, Story Assistance, can suggest words but never rewrites yours. You write what you want, when you want, in your own voice.',
+                'There is a free Ancestorii app for your phone, so the whole family can add photos, memories, and voices from anywhere. It is on iPhone and Android.',
+                'Built in the UK. Delivery to 20 countries on all physical products, except the Heritage canvas (UK only).',
               ]}
               bestFor="Families who want more than a book. A private digital library that grows with every generation, a public space to share stories with the world, and physical heirlooms whenever you are ready."
             />
@@ -199,6 +216,7 @@ export default function ComparePage() {
             size="wide"
             labelledBy="side-by-side-title"
           />
+          <TableNote>Last checked against StoryWorth&apos;s and Remento&apos;s own websites on 17&nbsp;October&nbsp;2026.</TableNote>
         </ArticleSection>
 
         {/* Common questions */}
@@ -215,6 +233,31 @@ export default function ComparePage() {
           <FaqBlock items={QUESTIONS} variant="open" />
         </ArticleSection>
 
+        {/* Every other comparison page, one card each */}
+        <ArticleSection
+          id="more-comparisons"
+          layout="wide"
+          kicker={"More comparisons"}
+          dot="var(--c2)"
+          title={
+            <>
+              Something <Accent tone="pink">else in mind?</Accent>
+            </>
+          }
+        >
+          <div className={site.grid3}>
+            {MORE_COMPARISONS.map((item) => (
+              <Link key={item.href} href={item.href} className={`${site.card} ${articles.linkCard}`}>
+                <h3 className={site.cardTitle}>{item.label}</h3>
+                <p className={site.cardText}>{item.text}</p>
+                <span className={articles.linkArrow} aria-hidden="true">
+                  <span className={articles.linkArrowTile}>→</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </ArticleSection>
+
         <ArticleCta
           title={
             <>
@@ -225,7 +268,7 @@ export default function ComparePage() {
           }
           lead={"Free to start. No credit card. No prompt schedule. No AI rewriting your words."}
           primary={{ href: '/signup', label: 'Start For Free' }}
-          note={"Free forever · No credit card · Takes 2 minutes"}
+          note={"Free forever · No credit card · Takes 2\u00a0minutes"}
         />
       </SiteShell>
     </>

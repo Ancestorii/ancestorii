@@ -197,7 +197,7 @@ export default function HowItWorksContent() {
               title="In the app"
               text={
                 <>
-                  Your family writes and shares stories, adds photos and voice notes, answers questions, and earns rewards as your library grows. The app is on iPhone and Android.
+                  Your family writes and shares memories, adds photos and voice notes, answers questions, and earns rewards as your library grows. The app is on iPhone and Android.
                 </>
               }
               color="var(--c0)"
@@ -259,11 +259,11 @@ export default function HowItWorksContent() {
 
           {/* ── Rules as cards ── */}
           <ul className={styles.cardGrid}>
-            <RuleCard title="There is no algorithm." Icon={ListOrdered} tone="pink" tilt="-4deg">
-              Stories appear in the order they are published. Nobody&rsquo;s memory gets buried because it did not perform well. Nobody&rsquo;s story gets boosted because it went viral. Every family gets the same treatment.
+            <RuleCard title="Newest stories come first." Icon={ListOrdered} tone="pink" tilt="-4deg">
+              That is the default. Readers can choose to sort by Most Loved or Most Discussed instead, and a Trending box shows the most-loved recent stories. Nothing is tailored to you.
             </RuleCard>
             <RuleCard title="There are no follower counts." Icon={HeartHandshake} tone="blue" tilt="3deg">
-              You are not building an audience. You are not competing with anyone. There are no metrics, no vanity numbers, no pressure to perform. You share a memory because it matters to you, and that is enough.
+              You are not building an audience. Readers can heart a story or leave a comment, but there is no pressure to perform. You share a memory because it matters to you, and that is enough.
             </RuleCard>
             <RuleCard title="There is no religion or politics." Icon={Ban} tone="orange" tilt="-3deg">
               This is a hard rule. Our Stories exists for memories only. Faith and political views are personal, and they belong in personal conversations. Not here. This space is for the stuff that brings families together, not the stuff that tears people apart.
@@ -327,7 +327,7 @@ export default function HowItWorksContent() {
               title="Question Prompts"
               text={
                 <>
-                  Pick from dozens of curated questions across chapters like Growing Up, Holidays, Around the Table, and The Stories We Always Retell. Send a question to a family member. They answer it in the Ancestorii app on their phone, and their memory appears in your feed.
+                  Pick from dozens of curated questions across chapters like Growing Up, Holidays &amp; Traditions, Around the Table, and The Stories We Retell. Send a question to a family member. They answer it in the Ancestorii app on their phone, and their memory appears in your feed.
                 </>
               }
               color="var(--c0)"
@@ -423,7 +423,7 @@ export default function HowItWorksContent() {
                 Our Stories is a shared space. And shared spaces only work when everyone agrees on what belongs there.
               </p>
               <p>
-                Every story published to the public feed is reviewed before it goes live. If it does not meet our standards, it does not appear. Simple as that.
+                Stories published to the public feed are checked automatically. Anything flagged is held back until a person has reviewed it, and if it does not meet our standards, it does not appear.
               </p>
               <p>
                 We review for religious or political content of any kind, hate speech, harassment, discriminatory language, spam, self promotion, commercial content, and anything that is not a genuine family memory. If it is not a memory, it does not belong.

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import StoreBadges from '@/components/StoreBadges';
 import { Logo } from './LandingBits';
+import footerStyles from './footer.module.css';
 import styles from './landing.module.css';
 
 const COLUMNS = [
@@ -17,7 +18,10 @@ const COLUMNS = [
     heading: 'Product',
     links: [
       { href: '/how-it-works', label: 'How It Works' },
+      { href: '/features', label: 'All Features' },
       { href: '/memory-books', label: 'Memory Books' },
+      { href: '/canvas-prints', label: 'Canvas Prints' },
+      { href: '/acrylic-prints', label: 'Acrylic Prints' },
       { href: '/pricing', label: 'Pricing' },
       { href: '/compare', label: 'Compare Platforms' },
     ],
@@ -33,12 +37,15 @@ const COLUMNS = [
   },
 ];
 
-// `hidePricing` drops the Pricing link (the app's Apple-safe /rewards page shows no prices).
+// Pages that show prices.
+const PRICE_PAGES = new Set(['/pricing', '/features', '/canvas-prints', '/acrylic-prints']);
+
+// `hidePricing` drops the links to pages that show prices (the app's Apple-safe /rewards page shows no prices).
 // The Our Stories links skip prefetch: those pages are rendered per request, so a prefetch brought
 // nothing back. The static pages keep it, as before.
 export default function LandingFooter({ hidePricing = false }: { hidePricing?: boolean }) {
   const columns = hidePricing
-    ? COLUMNS.map((col) => ({ ...col, links: col.links.filter((link) => link.href !== '/pricing') }))
+    ? COLUMNS.map((col) => ({ ...col, links: col.links.filter((link) => !PRICE_PAGES.has(link.href)) }))
     : COLUMNS;
 
   return (
@@ -52,9 +59,14 @@ export default function LandingFooter({ hidePricing = false }: { hidePricing?: b
             <StoreBadges theme="light" className={styles.footerBadges} />
           </div>
 
-          <div className={styles.footerCols}>
+          {/* On phones the long Product column spans two rows beside Discover and Company (footer.module.css). */}
+          <div className={`${styles.footerCols} ${footerStyles.cols}`}>
             {columns.map((col) => (
-              <nav key={col.heading} className={styles.footerCol} aria-label={col.heading}>
+              <nav
+                key={col.heading}
+                className={`${styles.footerCol} ${col.links.length > 5 ? footerStyles.tall : ''}`}
+                aria-label={col.heading}
+              >
                 <span className={styles.footerHeading}>{col.heading}</span>
                 {col.links.map((link) => (
                   <Link

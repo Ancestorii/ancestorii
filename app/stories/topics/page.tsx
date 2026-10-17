@@ -1,10 +1,10 @@
 import { getServerClient } from '@/lib/supabase/server';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
 import { ArrowRight } from 'lucide-react';
 import SiteShell from '@/components/site/SiteShell';
 import { Accent } from '@/components/site/SiteBits';
+import JsonLd from '@/components/site/seo/JsonLd';
 import TopicsCta from '@/components/site/stories-browse/TopicsCta';
 import { topicIcon, topicToneClass } from '@/components/site/stories-browse/topicTone';
 import landing from '@/components/landing/landing.module.css';
@@ -60,8 +60,8 @@ export default async function TopicsIndexPage() {
 
   return (
     <>
-      <Script id="topics-collection-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
           '@id': `${SITE}/stories/topics`,
@@ -79,19 +79,19 @@ export default async function TopicsIndexPage() {
               url: `${SITE}/stories/topics/${t.slug}`,
             })),
           },
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="topics-breadcrumb-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org',
           '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
             { '@type': 'ListItem', position: 2, name: 'Topics', item: `${SITE}/stories/topics` },
           ],
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell isLoggedIn={isLoggedIn} storiesBar>
         {/* HERO */}

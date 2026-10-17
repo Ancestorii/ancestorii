@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
+import JsonLd from '@/components/site/seo/JsonLd';
+import { AuthorBox } from '@/components/site/seo/SeoBits';
+import { FOUNDER } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { Compare, CompareRow, GuideFigure } from '../_components/GuideBlocks';
 
@@ -17,28 +19,28 @@ export const metadata: Metadata = {
 export default function OldFamilyPhotosPage() {
   return (
     <>
-      <Script id="article-schema-old-photos" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'Article',
           headline: 'What to do with old family photos',
           description: 'A practical guide on how to preserve old family photos by adding context, stories, and meaning.',
-          author: { '@type': 'Organization', name: 'Ancestorii' },
+          author: FOUNDER,
           publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
           mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/what-to-do-with-old-family-photos' },
           datePublished: '2026-02-10', dateModified: '2026-05-22',
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="breadcrumb-schema-old-photos" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
             { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
             { '@type': 'ListItem', position: 3, name: 'What to Do with Old Family Photos', item: 'https://www.ancestorii.com/guides/what-to-do-with-old-family-photos' },
           ],
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <GuideArticle
@@ -137,6 +139,9 @@ export default function OldFamilyPhotosPage() {
             A photo with three sentences of context{' '}
             <Accent tone="blue">is worth more than a thousand without.</Accent>
           </PullQuote>
+          <div style={{ marginTop: 'clamp(64px, 8vw, 104px)' }}>
+            <AuthorBox updated="22 May 2026" />
+          </div>
         </GuideArticle>
 
         <GuideCta
@@ -144,7 +149,7 @@ export default function OldFamilyPhotosPage() {
             <>
               Give your photos
               <br />
-              <Accent tone="pink">the story they deserve.</Accent>
+              <Accent tone="pink">their story back.</Accent>
             </>
           }
         >

@@ -1,0 +1,20 @@
+/* ============================================================
+   Footer columns on phones (below 600px), next to landing.module.css's footerCols and
+   footerCol. Product has seven links, so it takes one column across two rows while
+   Discover and Company stack in the other: no hole under Discover, and Company never
+   sits alone on a row of its own. One column below 352px, two from 352px, three from
+   516px (each column a top-aligned list, as on desktop).
+   The selectors are doubled so they win whatever order the two sheets load in.
+   ============================================================ */
+
+@media (max-width: 599px) {
+  .cols.cols {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 24px;
+    grid-auto-flow: dense;
+  }
+
+  .tall.tall {
+    grid-row: span 2;
+  }
+}

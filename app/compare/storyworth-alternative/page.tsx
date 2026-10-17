@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import { CalendarX2, ListChecks, MapPin, UserRound } from 'lucide-react';
 import SiteShell from '@/components/site/SiteShell';
+import JsonLd from '@/components/site/seo/JsonLd';
 import { Accent } from '@/components/site/SiteBits';
 import site from '@/components/site/site.module.css';
 import {
@@ -21,7 +21,7 @@ const SITE = 'https://www.ancestorii.com';
 export const metadata: Metadata = {
   title: 'The Best StoryWorth Alternative for 2026',
   description:
-    'Looking for a StoryWorth alternative? See how Ancestorii compares — a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, ships worldwide.',
+    'Looking for a StoryWorth alternative? See how Ancestorii compares — a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, delivering to 20 countries.',
   alternates: { canonical: `${SITE}/compare/storyworth-alternative` },
   robots: { index: true, follow: true },
   openGraph: {
@@ -50,7 +50,7 @@ const FAQ = [
   },
   {
     q: 'Is there a StoryWorth alternative in the UK?',
-    a: 'Yes. Ancestorii is built in the UK, charges in pounds, and ships all physical products worldwide. StoryWorth is US based, charges in dollars, and its prompts lean American. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
+    a: 'Yes. Ancestorii is built in the UK, charges in pounds, euros or dollars, and delivers its prints to 20 countries, including the UK. StoryWorth is US based, and as of October 2026 its UK plans start at £49. Ancestorii has no prompt schedule: you write and record freely at your own pace, and send a family member a question only when you want one.',
   },
   {
     q: 'How is Ancestorii different from StoryWorth?',
@@ -58,7 +58,7 @@ const FAQ = [
   },
   {
     q: 'Is Ancestorii cheaper than StoryWorth?',
-    a: 'Ancestorii has a free forever plan, so you can build a family library at no cost and only pay if you choose to print something or upgrade. StoryWorth charges a yearly fee per book. The two are priced around different ideas, so the better question is whether you want one book or a library that lasts.',
+    a: 'Ancestorii has a free forever plan, so you can build a family library at no cost and only pay if you choose to print something or upgrade. As of October 2026, StoryWorth\'s UK plans start at £49 for a year of weekly questions and one hardcover book. The two are priced around different ideas, so the better question is whether you want one book or a library that lasts.',
   },
   {
     q: 'Can the whole family contribute, not just one person?',
@@ -66,29 +66,29 @@ const FAQ = [
   },
   {
     q: 'Does my content disappear after the book is printed?',
-    a: 'No. With StoryWorth the experience ends with the book. With Ancestorii the library is the core of the product and keeps growing after any book is printed. You can create more heirlooms from it at any point in the future.',
+    a: 'No. With StoryWorth, the plan ends with the book unless you renew for another year. With Ancestorii the library is the core of the product and keeps growing after any book is printed. You can create more heirlooms from it at any point in the future.',
   },
 ];
 
 const REASONS = [
   {
     title: 'It is built around one storyteller.',
-    text: 'StoryWorth works beautifully for a single person writing to prompts, but it is not designed for a whole family contributing together.',
+    text: 'StoryWorth works beautifully for a single person writing to prompts. Each subscription covers one storyteller and one book, and collaborative books need a higher plan.',
     Icon: UserRound,
   },
   {
     title: 'It ends.',
-    text: 'After a year, the book is printed and the experience is over. There is no living library that keeps growing as life carries on.',
+    text: 'After a year, the plan ends with the book unless you renew for another year. There is no living library that keeps growing as life carries on.',
     Icon: CalendarX2,
   },
   {
-    title: 'The prompts are fixed.',
-    text: 'Some people love them. Others find that being asked the same set questions produces tidy answers rather than the stories they actually wanted to tell.',
+    title: 'It runs on weekly prompts.',
+    text: 'Some people love them. Others find that a question every week produces tidy answers rather than the stories they actually wanted to tell.',
     Icon: ListChecks,
   },
   {
-    title: 'It is priced in dollars and built for the US.',
-    text: 'For families in the UK and elsewhere, the prompts, the pricing, and the shipping all assume you are somewhere you are not.',
+    title: 'It is built for the US.',
+    text: 'Shipping is included only within the US. Elsewhere it costs extra, and some countries collect customs or import fees from the recipient on delivery.',
     Icon: MapPin,
   },
 ];
@@ -96,53 +96,53 @@ const REASONS = [
 const FEATURES = [
   ['Core concept', 'Living library + public stories + heirlooms', 'Weekly prompts → one printed book'],
   ['Who contributes', 'The whole family', 'One storyteller per subscription'],
-  ['Family app on your phone', 'Yes, free on iPhone and Android', 'Storyteller app only'],
-  ['Continues after the book', 'Yes — the library keeps growing', 'No — ends after a year'],
-  ['Prompt system', 'Optional questions you send when you like', '500+ fixed email prompts'],
+  ['Family app on your phone', 'Yes, free on iPhone and Android', 'No app: email, website or phone'],
+  ['Continues after the book', 'Yes — the library keeps growing', 'Only if you renew for another year'],
+  ['Prompt system', 'Optional questions you send when you like', '500+ questions or your own, weekly by text or email'],
   ['Private family space', 'Yes — invite only', 'No'],
   ['Public story feed', 'Yes — Our Stories', 'No'],
   ['Voice recordings', 'Yes — kept in the library', 'Limited'],
   ['Book design control', 'You design every page', 'Auto compiled'],
   ['Canvas and acrylic prints', 'Yes', 'No'],
   ['Free plan', 'Yes — free forever', 'No'],
-  ['Built in / pricing', 'United Kingdom, in pounds', 'United States, in dollars'],
-  ['Worldwide shipping', 'Ships worldwide', 'Free US, extra internationally'],
+  ['Built in / pricing', 'United Kingdom; pounds, euros or dollars', 'United States; UK plans from £49'],
+  ['Delivery', 'To 20 countries, from £4.99', 'Free US, extra internationally'],
 ];
 
 export default function StoryworthAlternativePage() {
   return (
     <>
-      <Script id="sw-alt-webpage-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'WebPage',
           name: 'The best StoryWorth alternative',
           description: 'How Ancestorii compares to StoryWorth as a way to preserve family stories.',
           url: `${SITE}/compare/storyworth-alternative`,
           isPartOf: { '@id': `${SITE}/#website` },
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="sw-alt-breadcrumb-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
             { '@type': 'ListItem', position: 2, name: 'Compare', item: `${SITE}/compare` },
             { '@type': 'ListItem', position: 3, name: 'StoryWorth alternative', item: `${SITE}/compare/storyworth-alternative` },
           ],
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="sw-alt-faq-schema" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'FAQPage',
           mainEntity: FAQ.map((item) => ({
             '@type': 'Question',
             name: item.q,
             acceptedAnswer: { '@type': 'Answer', text: item.a },
           })),
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <ArticleHero
@@ -160,7 +160,7 @@ export default function StoryworthAlternativePage() {
           intro={[
             'StoryWorth helped make family storytelling mainstream, and it does one thing genuinely well. It sends a weekly prompt to one person for a year, then turns their answers into a hardcover book. If that is exactly what you want, it is a lovely gift.',
             'But many families want something the book model cannot give them. A space the whole family can add to. Something that keeps going after the twelve months are up. Stories in their own words rather than answers to set prompts. That is the gap Ancestorii was built to fill.',
-            'There is also a free Ancestorii app for your phone, so the whole family can add photos, stories, and voices from anywhere. It is on iPhone and Android.',
+            'There is also a free Ancestorii app for your phone, so the whole family can add photos, memories, and voices from anywhere. It is on iPhone and Android.',
           ]}
           cta={{ href: '/signup', label: 'Start For Free' }}
         />
@@ -204,7 +204,7 @@ export default function StoryworthAlternativePage() {
             labelledBy="side-by-side-title"
           />
           <TableNote>
-            Want the full picture?{' '}
+            StoryWorth details last checked on its own website on 17 October 2026. Want the full picture?{' '}
             <Link href="/compare" className={site.textLink}>
               Compare Ancestorii, StoryWorth, and Remento side by side.
             </Link>

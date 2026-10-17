@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import {
   Cake,
   CookingPot,
@@ -13,6 +12,9 @@ import {
 } from 'lucide-react';
 import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
+import JsonLd from '@/components/site/seo/JsonLd';
+import { AuthorBox } from '@/components/site/seo/SeoBits';
+import { FOUNDER } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { Point, Points, Tip, Tips } from '../_components/GuideBlocks';
 
@@ -28,28 +30,28 @@ export const metadata: Metadata = {
 export default function SaveFamilyVoicesPage() {
   return (
     <>
-      <Script id="article-schema-voices" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'Article',
           headline: 'How to capture family voices',
           description: 'A practical guide to capturing and preserving family voices.',
-          author: { '@type': 'Organization', name: 'Ancestorii' },
+          author: FOUNDER,
           publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
           mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/how-to-save-family-voices' },
           datePublished: '2026-02-10', dateModified: '2026-05-22',
-        })}
-      </Script>
+        }}
+      />
 
-      <Script id="breadcrumb-schema-voices" type="application/ld+json" strategy="afterInteractive">
-        {JSON.stringify({
+      <JsonLd
+        data={{
           '@context': 'https://schema.org', '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
             { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
             { '@type': 'ListItem', position: 3, name: 'How to Save Family Voices', item: 'https://www.ancestorii.com/guides/how-to-save-family-voices' },
           ],
-        })}
-      </Script>
+        }}
+      />
 
       <SiteShell>
         <GuideArticle
@@ -142,14 +144,17 @@ export default function SaveFamilyVoicesPage() {
             You do not need perfect audio.{' '}
             <Accent tone="blue">You just need to press record before it is too late.</Accent>
           </PullQuote>
+          <div style={{ marginTop: 'clamp(64px, 8vw, 104px)' }}>
+            <AuthorBox updated="22 May 2026" />
+          </div>
         </GuideArticle>
 
         <GuideCta
           title={
             <>
-              Capture a voice while it&apos;s
+              Capture a voice
               <br />
-              <Accent tone="pink">still here to be heard.</Accent>
+              <Accent tone="pink">while it&apos;s still here.</Accent>
             </>
           }
         >

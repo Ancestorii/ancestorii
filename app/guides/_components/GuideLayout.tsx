@@ -87,10 +87,10 @@ export function GuideArticle({
   );
 }
 
-/** A titled part of a guide. */
-export function GuideSection({ title, children }: { title: ReactNode; children: ReactNode }) {
+/** A titled part of a guide. `id` lets a link jump straight to it. */
+export function GuideSection({ id, title, children }: { id?: string; title: ReactNode; children: ReactNode }) {
   return (
-    <section className={g.section}>
+    <section id={id} className={g.section}>
       <h2 className={g.h2}>{title}</h2>
       <div className={g.sectionBody}>{children}</div>
     </section>
