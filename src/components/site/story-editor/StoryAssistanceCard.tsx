@@ -237,7 +237,7 @@ export default function StoryAssistanceCard({
             transition={{ duration: 0.3, ease: 'easeOut' }}
             className={step === 'welcome' ? styles.mWelcome : styles.mSheet}
           >
-            <div className={styles.surface} data-lenis-prevent>
+            <div className={styles.surface}>
               {step === 'welcome' ? (
                 <div>
                   <div className={styles.mHead}>
@@ -346,7 +346,7 @@ export default function StoryAssistanceCard({
             cursor: isDragging ? 'grabbing' : 'grab',
           }}
         >
-          <div className={styles.deskCard} data-lenis-prevent>
+          <div className={styles.deskCard}>
             {/* Control buttons */}
             <div className={`${styles.ctrls} ${styles.deskCtrls}`}>
               <button
@@ -561,7 +561,7 @@ function CardContent({
 
             {suggestion && !isLoading && (
               <>
-                <div className={styles.suggestion} data-lenis-prevent>
+                <div className={styles.suggestion}>
                   {suggestion.split('\n\n').filter(Boolean).map((paragraph, idx) => {
                     const trimmed = paragraph.trim();
                     const isQuestion = trimmed.endsWith('?') && trimmed.length < 120;

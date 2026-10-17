@@ -180,6 +180,13 @@
   color: var(--ink);
   cursor: pointer;
   margin-left: 4px;
+  touch-action: manipulation;
+  transition: transform 0.12s ease;
+}
+
+/* Instant feedback on tap, before the menu itself appears. */
+.menuButton:active {
+  transform: scale(0.92);
 }
 
 @media (hover: hover) {
@@ -223,13 +230,13 @@
   background: rgba(10, 10, 15, 0.4);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
 }
 
 .menuOverlay[data-open='true'] {
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.25s ease, visibility 0s;
+  transition: opacity 0.2s ease, visibility 0s;
 }
 
 .menuPanel {
@@ -244,7 +251,7 @@
   background: #fff;
   box-shadow: 0 30px 60px -30px rgba(10, 10, 15, 0.6);
   transform: translateY(-14px);
-  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .menuOverlay[data-open='true'] .menuPanel {

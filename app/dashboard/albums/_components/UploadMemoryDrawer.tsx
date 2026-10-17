@@ -280,7 +280,7 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
         </div>
 
         {/* Drop zone / Preview area */}
-        <div className="px-6 flex-1 overflow-y-auto min-h-0" data-lenis-prevent>
+        <div className="px-6 flex-1 overflow-y-auto min-h-0">
           {!hasFiles ? (
             <div
               ref={dropRef}

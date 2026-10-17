@@ -240,7 +240,6 @@ export default function StoryAssistanceCard({
         >
           <div
             className="rounded-[16px] overflow-hidden overflow-y-auto"
-            data-lenis-prevent
             style={{
               maxHeight: 'calc(100vh - 80px)',
               background: 'linear-gradient(180deg, rgba(255,253,248,0.97) 0%, rgba(250,245,235,0.97) 100%)',
@@ -364,7 +363,7 @@ export default function StoryAssistanceCard({
 
         {/* Card body */}
         <div
-          className="relative rounded-[24px] overflow-hidden sa-card-inner" data-lenis-prevent
+          className="relative rounded-[24px] overflow-hidden sa-card-inner"
           style={{
             background: 'linear-gradient(180deg, rgba(255,253,248,0.95) 0%, rgba(250,245,235,0.95) 100%)',
             backdropFilter: 'blur(20px)',
@@ -648,7 +647,7 @@ function CardContent({
 
             {suggestion && !isLoading && (
               <>
-                <div className="rounded-[14px] border border-[#EAD8B8] bg-[#FFFDF9] sa-suggestion-padding space-y-4" data-lenis-prevent>
+                <div className="rounded-[14px] border border-[#EAD8B8] bg-[#FFFDF9] sa-suggestion-padding space-y-4">
                   {suggestion.split('\n\n').filter(Boolean).map((paragraph, idx) => {
                     const trimmed = paragraph.trim();
                     const isQuestion = trimmed.endsWith('?') && trimmed.length < 120;

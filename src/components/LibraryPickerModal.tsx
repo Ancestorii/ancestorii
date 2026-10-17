@@ -380,7 +380,7 @@ export default function LibraryPickerModal({
         </div>
 
         {/* Body */}
-        <div className="px-6 sm:px-8 py-6 flex-1 min-h-0 overflow-y-auto" data-lenis-prevent>
+        <div className="px-6 sm:px-8 py-6 flex-1 min-h-0 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-16 text-[#5B6473]">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />

@@ -94,8 +94,8 @@ The Book/Canvas/Acrylic **editors** live under `app/dashboard/{books|canvas|acry
 ## UI conventions
 
 - Toasts: use `safeToast` (`@/lib/safeToast`), which dedupes identical messages within 2.5s — not `react-hot-toast` directly. The root `<Toaster>` is configured in `app/layout.tsx`.
-- Motion: the landing and public pages (`src/components/landing/`, `src/components/site/`) animate with CSS and small vanilla scripts (the hero ring is CSS 3D transforms driven by `requestAnimationFrame`); Framer Motion is used mainly in the dashboard; Lenis provides smooth scroll via `app/providers/LenisProvider`. Three.js (react-three-fiber/drei/postprocessing) and GSAP have been removed.
-- Analytics pixels (GTM, Reddit, Meta, Spotify) are injected in the root layout; the Puppeteer export explicitly blocks those network requests so they don't pollute PDFs.
+- Motion: the landing and public pages (`src/components/landing/`, `src/components/site/`) animate only `transform`/`opacity`, with CSS or the Web Animations API (`element.animate()`), so motion runs on the compositor: the hero ring, the question marquee and the account pages' floating cards have no per-frame JavaScript, and pause off screen. Scrolling is native: no smooth-scroll library. Framer Motion is used mainly in the dashboard. Three.js, GSAP and Lenis have been removed.
+- Analytics pixels (GTM, Reddit, Meta, Spotify) are injected in the root layout with `strategy="lazyOnload"` (after load, when the browser is idle); the Puppeteer export explicitly blocks those network requests so they don't pollute PDFs.
 
 ## Environment variables
 

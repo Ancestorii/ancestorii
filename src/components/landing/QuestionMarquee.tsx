@@ -5,9 +5,12 @@ import styles from './landing.module.css';
 
 export type MarqueeQuestion = { text: string; color: string; fg: string };
 
+const SPEED = 38; // px per second, as in the design
+
 /**
  * Two rows of question pills drifting in opposite directions. A row eases to a stop
  * while the pointer is over it. Each row renders its questions twice so the loop is seamless.
+ * The drift runs as Web Animations on the compositor, so it costs no main-thread work per frame.
  */
 export default function QuestionMarquee({ rows }: { rows: MarqueeQuestion[][] }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -15,27 +18,74 @@ export default function QuestionMarquee({ rows }: { rows: MarqueeQuestion[][] })
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const tracks = Array.from(root.querySelectorAll<HTMLElement>('[data-track]'));
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const state = tracks.map(() => ({ x: 0, speed: reduce ? 0 : 1, hover: false, period: 0 }));
+    const state = tracks.map(() => ({ anim: null as Animation | null, period: 0, rate: 1, target: 1, raf: 0 }));
+    let visible = true;
 
-    // One loop = distance from the first pill to the first pill of the repeated set.
-    const measure = () => {
-      tracks.forEach((track, i) => {
-        const half = track.children.length / 2;
-        const first = track.children[0] as HTMLElement | undefined;
-        const repeat = track.children[half] as HTMLElement | undefined;
-        state[i].period = first && repeat ? repeat.offsetLeft - first.offsetLeft : 0;
+    // Pause while off screen.
+    const sync = () => {
+      state.forEach(({ anim }) => {
+        if (!anim) return;
+        if (visible && anim.playState !== 'running') anim.play();
+        if (!visible && anim.playState === 'running') anim.pause();
       });
     };
 
-    const listeners = tracks.map((track, i) => {
-      const enter = () => {
-        state[i].hover = true;
+    // One loop = distance from the first pill to the first pill of the repeated set.
+    const build = () => {
+      tracks.forEach((track, i) => {
+        const s = state[i];
+        const half = track.children.length / 2;
+        const first = track.children[0] as HTMLElement | undefined;
+        const repeat = track.children[half] as HTMLElement | undefined;
+        const period = first && repeat ? repeat.offsetLeft - first.offsetLeft : 0;
+        if (!period || period === s.period) return;
+        // Keep the row where it is when the loop length changes.
+        const progress = s.anim && typeof s.anim.currentTime === 'number' ? (s.anim.currentTime % (s.period / SPEED * 1000)) / (s.period / SPEED * 1000) : 0;
+        s.anim?.cancel();
+        s.period = period;
+        const from = i % 2 ? -period : 0;
+        const to = i % 2 ? 0 : -period;
+        const duration = (period / SPEED) * 1000;
+        s.anim = track.animate(
+          [{ transform: `translate3d(${from}px,0,0)` }, { transform: `translate3d(${to}px,0,0)` }],
+          { duration, iterations: Infinity, easing: 'linear' }
+        );
+        s.anim.currentTime = progress * duration;
+        s.anim.playbackRate = s.rate;
+      });
+      sync();
+    };
+
+    // Ease a row to a stop on hover and back up after, like the original (≈0.3s).
+    const ease = (i: number) => {
+      const s = state[i];
+      cancelAnimationFrame(s.raf);
+      let last = performance.now();
+      const step = (now: number) => {
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        s.rate += (s.target - s.rate) * (1 - Math.pow(0.94, dt * 60));
+        if (Math.abs(s.target - s.rate) < 0.01) s.rate = s.target;
+        s.anim?.updatePlaybackRate(s.rate);
+        if (s.rate !== s.target) s.raf = requestAnimationFrame(step);
       };
-      const leave = () => {
-        state[i].hover = false;
+      s.raf = requestAnimationFrame(step);
+    };
+
+    const listeners = tracks.map((track, i) => {
+      // Mouse only: a finger passing over a row while scrolling shouldn't stop it.
+      const enter = (e: PointerEvent) => {
+        if (e.pointerType === 'touch') return;
+        state[i].target = 0;
+        ease(i);
+      };
+      const leave = (e: PointerEvent) => {
+        if (e.pointerType === 'touch') return;
+        state[i].target = 1;
+        ease(i);
       };
       track.addEventListener('pointerenter', enter);
       track.addEventListener('pointerleave', leave);
@@ -45,48 +95,23 @@ export default function QuestionMarquee({ rows }: { rows: MarqueeQuestion[][] })
       };
     });
 
-    const ro = new ResizeObserver(measure);
-    tracks.forEach((track) => ro.observe(track));
-    measure();
-
-    // The loop only runs while the rows are on screen (and never with reduced motion).
-    let visible = true;
-    let raf = 0;
-    let last = performance.now();
-    const loop = (now: number) => {
-      if (!visible) {
-        raf = 0;
-        return;
-      }
-      raf = requestAnimationFrame(loop);
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      tracks.forEach((track, i) => {
-        const s = state[i];
-        if (!s.period) return;
-        s.speed += ((s.hover ? 0 : 1) - s.speed) * 0.06;
-        s.x = (s.x + dt * 38 * s.speed) % s.period;
-        const x = i % 2 ? -s.period + s.x : -s.x;
-        track.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
-      });
-    };
-    const start = () => {
-      if (reduce || raf) return;
-      last = performance.now();
-      raf = requestAnimationFrame(loop);
-    };
-
     const io = new IntersectionObserver((entries) => {
       const entry = entries[entries.length - 1];
       if (!entry) return;
       visible = entry.isIntersecting;
-      if (visible) start();
+      sync();
     });
     io.observe(root);
-    start();
+
+    const ro = new ResizeObserver(build);
+    tracks.forEach((track) => ro.observe(track));
+    build();
 
     return () => {
-      cancelAnimationFrame(raf);
+      state.forEach((s) => {
+        cancelAnimationFrame(s.raf);
+        s.anim?.cancel();
+      });
       io.disconnect();
       ro.disconnect();
       listeners.forEach((off) => off());

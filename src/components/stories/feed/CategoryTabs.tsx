@@ -29,7 +29,6 @@ export default function CategoryTabs({
       <div
         ref={scrollRef}
         className={feed.tabsScroll}
-        data-lenis-prevent
         role="group"
         aria-label="Story topics"
       >

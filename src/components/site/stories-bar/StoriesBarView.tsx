@@ -298,7 +298,6 @@ export default function StoriesBarView({
               aria-labelledby={ids.label}
               className={styles.results}
               hidden={!resultsOpen}
-              data-lenis-prevent
             >
               {results.map((result, i) => (
                 <Link
@@ -359,7 +358,7 @@ export default function StoriesBarView({
                 )}
               </div>
 
-              <div className={styles.notesBody} aria-busy={notificationsLoading} data-lenis-prevent>
+              <div className={styles.notesBody} aria-busy={notificationsLoading}>
                 {notificationsLoading ? (
                   <div className={styles.loading}>
                     <span className={styles.spinner} aria-hidden="true" />

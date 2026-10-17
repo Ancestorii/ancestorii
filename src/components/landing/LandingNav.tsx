@@ -27,12 +27,15 @@ export default function LandingNav({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const wasOpen = useRef(false);
+  const scrollbar = useRef(0);
 
   // Lock page scroll, close on Escape, and move focus in and out of the menu.
   useEffect(() => {
     if (open) {
       wasOpen.current = true;
+      // Where a scrollbar takes up room, keep the page from shifting sideways when it goes.
       document.body.style.overflow = 'hidden';
+      if (scrollbar.current > 0) document.body.style.paddingRight = `${scrollbar.current}px`;
       closeButtonRef.current?.focus({ preventScroll: true });
       const onKey = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -55,6 +58,7 @@ export default function LandingNav({
       return () => {
         window.removeEventListener('keydown', onKey);
         document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
       };
     }
     if (wasOpen.current) {
@@ -110,7 +114,11 @@ export default function LandingNav({
             aria-label="Open menu"
             aria-expanded={open}
             aria-controls="landing-menu"
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              // Measured here, before anything changes, so it costs no extra layout.
+              scrollbar.current = window.innerWidth - document.documentElement.clientWidth;
+              setOpen(true);
+            }}
           >
             <Menu size={22} strokeWidth={2.4} aria-hidden="true" />
           </button>
@@ -121,7 +129,6 @@ export default function LandingNav({
         id="landing-menu"
         className={styles.menuOverlay}
         data-open={open}
-        data-lenis-prevent
         onClick={close}
       >
         <div

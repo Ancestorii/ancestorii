@@ -89,7 +89,7 @@ export default function LegalToc({ groups, label }: { groups: TocGroup[]; label:
 
   return (
     <nav className={css.toc} aria-label={label}>
-      <div ref={boxRef} className={css.tocScroll} data-lenis-prevent>
+      <div ref={boxRef} className={css.tocScroll}>
         {groups.map((group, gi) => (
           <div key={group.label ?? gi} className={css.tocGroup}>
             {group.label && group.href && (

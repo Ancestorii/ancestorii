@@ -248,7 +248,7 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
       </div>
 
       {/* ══════════ SCROLLABLE BODY ══════════ */}
-      <div className="album-scroll" data-lenis-prevent style={{ flex: 1, overflowY: 'auto', padding: '0 28px 32px' }}>
+      <div className="album-scroll" style={{ flex: 1, overflowY: 'auto', padding: '0 28px 32px' }}>
 
         {/* ── Image / Video ── */}
         <div style={{ paddingTop: 24 }}>

@@ -95,7 +95,7 @@ export default function SidebarContent({
         <div className="pt-[16px]" />
 
         {/* ─── NAVIGATION ─── */}
-        <nav className="flex-1 overflow-y-auto px-[12px] pt-[28px] pb-4 sidebar-scroll" data-lenis-prevent>
+        <nav className="flex-1 overflow-y-auto px-[12px] pt-[28px] pb-4 sidebar-scroll">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem href="/dashboard/our-family" label="My Family" Icon={Users} onClick={closeDrawer} />
 

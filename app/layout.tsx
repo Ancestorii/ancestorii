@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, DM_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import Script from "next/script";
-import LenisProvider from "./providers/LenisProvider";
 
 // Keep: this registers the global "Inter" face that the dashboard's font-[Inter] classes and the
 // 800-weight Memory Book cover titles (editor and print export) rely on.
@@ -95,8 +94,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
   <link rel="help" href="/llms.txt" type="text/plain" />
 
+  {/* Marketing pixels load once the page has finished loading and the browser is idle
+      (lazyOnload), so they never compete with the first scroll or tap. */}
+
   {/* 🟡 GOOGLE TAG MANAGER */}
-        <Script id="gtm-head" strategy="afterInteractive">
+        <Script id="gtm-head" strategy="lazyOnload">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -108,7 +110,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
 
         {/* 🔴 REDDIT PIXEL */}
-        <Script id="reddit-pixel" strategy="afterInteractive">
+        <Script id="reddit-pixel" strategy="lazyOnload">
           {`
 !function(w,d){
   if(!w.rdt){
@@ -129,7 +131,7 @@ rdt('track','PageVisit');
         </Script>
 
         {/* 🔵 META PIXEL */}
-        <Script id="meta-pixel" strategy="afterInteractive">
+        <Script id="meta-pixel" strategy="lazyOnload">
           {`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -145,7 +147,7 @@ rdt('track','PageVisit');
         </Script>
 
         {/* 🟢 SPOTIFY PIXEL */}
-        <Script id="spotify-pixel" strategy="afterInteractive">
+        <Script id="spotify-pixel" strategy="lazyOnload">
           {`
             (function(w, d){
               var id='spdt-capture', n='script';
@@ -229,9 +231,7 @@ rdt('track','PageVisit');
           />
         </noscript>
 
-        <LenisProvider>
-          {children}
-        </LenisProvider>
+        {children}
 
         <Toaster
           position="top-right"

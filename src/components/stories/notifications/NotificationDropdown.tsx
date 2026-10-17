@@ -107,7 +107,7 @@ export default function NotificationDropdown({
         </div>
 
         {/* List */}
-        <div className="max-h-[400px] overflow-y-auto" data-lenis-prevent>
+        <div className="max-h-[400px] overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-10">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#DCC7A4] border-t-[#C8A557]" />

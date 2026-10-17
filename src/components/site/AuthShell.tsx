@@ -24,23 +24,36 @@ export default function AuthShell({
   const clusterRef = useRef<HTMLDivElement>(null);
   const list = cards ?? (variant === 'signup' ? SIGNUP_CARDS : LOGIN_CARDS);
 
-  // Each card bobs gently on its own sine wave (never with reduced motion).
+  // Each card bobs gently on its own sine wave (never with reduced motion): translateY(sin(t·sp + p)·a).
+  // It runs as a Web Animation on the compositor (ease-in-out-sine between -a and +a), so it costs no
+  // main-thread work per frame, and it pauses while the cards are off screen (phones show them below the form).
   useEffect(() => {
     const cluster = clusterRef.current;
     if (!cluster || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const els = Array.from(cluster.querySelectorAll<HTMLElement>('[data-float]'));
-    const t0 = performance.now();
-    let raf = 0;
-    const loop = () => {
-      raf = requestAnimationFrame(loop);
-      const t = (performance.now() - t0) / 1000;
-      els.forEach((el) => {
-        const [a, sp, p] = (el.dataset.float ?? '0,0,0').split(',').map(Number);
-        el.style.transform = `translateY(${(Math.sin(t * sp + p) * a).toFixed(2)}px)`;
+    const anims = Array.from(cluster.querySelectorAll<HTMLElement>('[data-float]')).map((el) => {
+      const [a, sp, p] = (el.dataset.float ?? '0,0,0').split(',').map(Number);
+      const half = (Math.PI / sp) * 1000; // ms from the lowest point to the highest
+      const anim = el.animate([{ transform: `translateY(${-a}px)` }, { transform: `translateY(${a}px)` }], {
+        duration: half,
+        iterations: Infinity,
+        direction: 'alternate',
+        easing: 'cubic-bezier(0.37, 0, 0.63, 1)',
       });
+      // Start at phase p: the animation is at -a when sp·t + p = -π/2.
+      anim.currentTime = (((p + Math.PI / 2) / sp) * 1000) % (2 * half);
+      return anim;
+    });
+    const io = new IntersectionObserver((entries) => {
+      const entry = entries[entries.length - 1];
+      if (!entry) return;
+      anims.forEach((anim) => (entry.isIntersecting ? anim.play() : anim.pause()));
+    });
+    // The cluster itself is a zero-size anchor; watch the column the cards fill.
+    io.observe(cluster.parentElement ?? cluster);
+    return () => {
+      io.disconnect();
+      anims.forEach((anim) => anim.cancel());
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
   }, []);
 
   return (
@@ -81,7 +94,7 @@ export default function AuthShell({
                     style={{ width: card.w, height: card.h, '--card': card.color } as CSSProperties}
                   >
                     <div className={styles.photoCardInner}>
-                      <Image src={card.src} alt="" fill sizes="300px" className={styles.photoImg} />
+                      <Image src={card.src} alt="" fill sizes="520px" className={styles.photoImg} />
                       <span className={styles.photoLabel}>{card.label}</span>
                     </div>
                   </div>

@@ -337,7 +337,7 @@ export default function Page() {
       <div style={{ height: '100vh', overflow: 'hidden', background: '#f6f1e8', display: 'flex', fontFamily: "'DM Sans', sans-serif" }}>
         {/* LEFT COLUMN */}
         <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-          <div className="album-scroll" data-lenis-prevent style={{ flex: 1, overflowY: 'auto' }}>
+          <div className="album-scroll" style={{ flex: 1, overflowY: 'auto' }}>
             <AlbumHeader
               album={album}
               taggedPeople={taggedPeople}
