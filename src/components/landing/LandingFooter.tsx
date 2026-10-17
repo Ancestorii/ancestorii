@@ -1,93 +1,100 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import StoreBadges from '@/components/StoreBadges';
 import CookieSettingsButton from '@/components/CookieSettingsButton';
+import { TOPICS } from '@/lib/stories/topics';
+import {
+  COMPANY_PAGES,
+  COMPARE_PAGES,
+  DISCOVER_PAGES,
+  FEATURE_PAGES,
+  GUIDE_GROUPS,
+  GUIDE_PAGES,
+  PRODUCT_PAGES,
+  type PageLink,
+} from '@/lib/seo/pages';
+import FooterGroup from './FooterGroup';
 import { Logo } from './LandingBits';
-import footerStyles from './footer.module.css';
+import f from './footer.module.css';
 import styles from './landing.module.css';
-
-const COLUMNS = [
-  {
-    heading: 'Discover',
-    links: [
-      { href: '/stories', label: 'Explore Stories' },
-      { href: '/stories/topics', label: 'Browse by Topic' },
-      { href: '/digital-legacy', label: 'What is a Digital Legacy?' },
-      { href: '/living-library', label: 'What is a Living Library?' },
-    ],
-  },
-  {
-    heading: 'Product',
-    links: [
-      { href: '/how-it-works', label: 'How It Works' },
-      { href: '/features', label: 'All Features' },
-      { href: '/memory-books', label: 'Memory Books' },
-      { href: '/canvas-prints', label: 'Canvas Prints' },
-      { href: '/acrylic-prints', label: 'Acrylic Prints' },
-      { href: '/pricing', label: 'Pricing' },
-      { href: '/compare', label: 'Compare Platforms' },
-    ],
-  },
-  {
-    heading: 'Company',
-    links: [
-      { href: '/why-this-exists', label: 'Why Ancestorii Exists' },
-      { href: '/guides', label: 'Guides' },
-      { href: '/privacy-policy', label: 'Privacy Policy' },
-      { href: '/terms', label: 'Terms & Conditions' },
-    ],
-  },
-];
 
 // Pages that show prices.
 const PRICE_PAGES = new Set(['/pricing', '/features', '/canvas-prints', '/acrylic-prints']);
 
-// `hidePricing` drops the links to pages that show prices (the app's Apple-safe /rewards page shows no prices).
-// The Our Stories links skip prefetch: those pages are rendered per request, so a prefetch brought
-// nothing back. The static pages keep it, as before.
+const STORY_TOPICS: PageLink[] = TOPICS.map((t) => ({
+  href: `/stories/topics/${t.slug}`,
+  label: `${t.label.replace(' & ', ' and ')} stories`,
+}));
+
+const DOTS = ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)'];
+
+// The site footer: every public page, grouped. Four columns for the product, its features, the
+// comparisons and the Our Stories side; then every guide, grouped as on /guides; then the legal
+// links, cookie settings, support and socials.
+// `hidePricing` drops the links to pages that show prices (the app's Apple-safe /rewards page).
 export default function LandingFooter({ hidePricing = false }: { hidePricing?: boolean }) {
-  const columns = hidePricing
-    ? COLUMNS.map((col) => ({ ...col, links: col.links.filter((link) => !PRICE_PAGES.has(link.href)) }))
-    : COLUMNS;
+  const product = hidePricing ? PRODUCT_PAGES.filter((l) => !PRICE_PAGES.has(l.href)) : PRODUCT_PAGES;
+
+  const columns: { title: string; links: PageLink[] }[] = [
+    { title: 'Product', links: product },
+    { title: 'Features', links: FEATURE_PAGES },
+    { title: 'Compare', links: COMPARE_PAGES },
+    { title: 'Discover', links: [...DISCOVER_PAGES, ...STORY_TOPICS] },
+  ];
 
   return (
     <footer className={styles.footer}>
       <div className={styles.wrap}>
-        <div className={styles.footerTop}>
-          <div className={styles.footerBrand}>
+        <div className={`${styles.footerTop} ${f.top}`}>
+          <div className={`${styles.footerBrand} ${f.brand}`}>
             <Logo href="/" prefetch={false} />
             <p className={styles.footerTagline}>Your family&apos;s greatest stories. Told together.</p>
+            <p className={f.brandLine}>
+              A private space for the people you invite, a public feed for the stories you choose to
+              share, and prints made from your family&apos;s photos.
+            </p>
             {/* Official store badges (see StoreBadges for the artwork rules). */}
             <StoreBadges theme="light" className={styles.footerBadges} />
           </div>
 
-          {/* On phones the long Product column spans two rows beside Discover and Company (footer.module.css). */}
-          <div className={`${styles.footerCols} ${footerStyles.cols}`}>
-            {columns.map((col) => (
-              <nav
-                key={col.heading}
-                className={`${styles.footerCol} ${col.links.length > 5 ? footerStyles.tall : ''}`}
-                aria-label={col.heading}
-              >
-                <span className={styles.footerHeading}>{col.heading}</span>
-                {col.links.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    prefetch={link.href.startsWith('/stories') ? false : undefined}
-                    className={styles.footerLink}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
+          <div className={f.cols}>
+            {columns.map((col, i) => (
+              <FooterGroup key={col.title} title={col.title} links={col.links} dot={DOTS[i % 4]} />
             ))}
           </div>
         </div>
 
-        <div className={styles.footerBottom}>
-          <span>&copy; {new Date().getFullYear()} Ancestorii™. All rights reserved.</span>
+        <section className={f.guides} aria-labelledby="footer-guides">
+          <div className={f.guidesHead}>
+            <h2 id="footer-guides" className={f.guidesTitle}>
+              Guides
+            </h2>
+            <p className={f.guidesLead}>
+              {GUIDE_PAGES.length} plain-English guides on keeping photos, voices and stories.
+            </p>
+            <Link href="/guides" className={f.guidesAll}>
+              All guides
+              <ArrowRight size={16} strokeWidth={2.6} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className={f.guideCols}>
+            {GUIDE_GROUPS.map((group, i) => (
+              <FooterGroup key={group.title} title={group.title} links={group.links} dot={DOTS[i % 4]} compact />
+            ))}
+          </div>
+        </section>
+
+        <div className={`${styles.footerBottom} ${f.bottom}`}>
+          <span className={f.copy}>&copy; {new Date().getFullYear()} Ancestorii&trade;. All rights reserved.</span>
+          <nav className={f.legal} aria-label="Company">
+            {COMPANY_PAGES.filter((l) => l.href !== '/why-this-exists').map((link) => (
+              <Link key={link.href} href={link.href} className={styles.footerLink}>
+                {link.label}
+              </Link>
+            ))}
+            <CookieSettingsButton className={`${styles.footerLink} ${f.settings}`} />
+          </nav>
           <div className={styles.footerContact}>
-            <CookieSettingsButton className={`${styles.footerLink} ${footerStyles.settings}`} />
             <a href="mailto:support@ancestorii.com" className={styles.footerLink}>
               support@ancestorii.com
             </a>
