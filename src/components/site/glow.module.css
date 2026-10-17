@@ -1,0 +1,87 @@
+/* ============================================================
+   Soft pink and logo-blue glows behind every public page, all
+   the way down (the landing and every SiteShell page; the account
+   screens keep their own corner glows). The ground stays pure
+   white; the colour sits at the page edges and the reading column
+   stays white.
+
+   Four static radial gradients on the page root, alpha baked into
+   the stops: pink-left, blue-right, blue-left, pink-right. They all
+   share one repeat (period) and sit a quarter-period apart, so down
+   each side the glows take turns pink, blue, pink... and the right
+   side is offset from the left. Each glow is shorter than the gap
+   to the next one on its side, so pink and blue never overlap (an
+   overlap mixes into lilac, which isn't a brand colour).
+
+   Painted with the page itself: no layer, no filter, no animation,
+   so phones scroll past them for free.
+   ============================================================ */
+
+/* Desktop: period 2200px; each glow 920-880px tall, centred 60px outside the edge. */
+.glowPage.glowPage {
+  /* Doubled class: beats the landing root's `background: #fff` whatever order the sheets load in. */
+  background-color: #fff;
+  background-image:
+    radial-gradient(560px 460px, rgb(255 45 135 / 0.13), rgb(255 45 135 / 0)),
+    radial-gradient(540px 440px, rgb(43 75 255 / 0.12), rgb(43 75 255 / 0)),
+    radial-gradient(540px 440px, rgb(43 75 255 / 0.12), rgb(43 75 255 / 0)),
+    radial-gradient(560px 460px, rgb(255 45 135 / 0.13), rgb(255 45 135 / 0));
+  background-repeat: repeat-y;
+  background-size:
+    1120px 2200px,
+    1080px 2200px,
+    1080px 2200px,
+    1120px 2200px;
+  /* Centres down the page: pink-left 300 and pink top-right, then blue-right 850 (beside the hero's
+     blue wash), blue-left 1400, pink-right 1950, repeating, so each glow matches the hero glow it meets. */
+  background-position:
+    -620px 1400px,
+    calc(100% + 600px) 1950px,
+    -600px 300px,
+    calc(100% + 620px) 850px;
+}
+
+/* Tablets: period 1700px; glows reach about 280px in, so the middle of the screen stays white. */
+@media (max-width: 1099px) {
+  .glowPage.glowPage {
+    background-image:
+      radial-gradient(340px 400px, rgb(255 45 135 / 0.13), rgb(255 45 135 / 0)),
+      radial-gradient(320px 390px, rgb(43 75 255 / 0.12), rgb(43 75 255 / 0)),
+      radial-gradient(320px 390px, rgb(43 75 255 / 0.12), rgb(43 75 255 / 0)),
+      radial-gradient(340px 400px, rgb(255 45 135 / 0.13), rgb(255 45 135 / 0));
+    background-size:
+      680px 1700px,
+      640px 1700px,
+      640px 1700px,
+      680px 1700px;
+    /* Pink in the top corners, blue beside the hero's blue wash. */
+    background-position:
+      -400px 650px,
+      calc(100% + 380px) 225px,
+      -380px 1500px,
+      calc(100% + 400px) 1075px;
+  }
+}
+
+/* Phones: period 1300px; glows reach about 150px in from each edge, so text sits on white. */
+@media (max-width: 699px) {
+  .glowPage.glowPage {
+    background-image:
+      radial-gradient(200px 300px, rgb(255 45 135 / 0.12), rgb(255 45 135 / 0)),
+      radial-gradient(190px 290px, rgb(43 75 255 / 0.11), rgb(43 75 255 / 0)),
+      radial-gradient(190px 290px, rgb(43 75 255 / 0.11), rgb(43 75 255 / 0)),
+      radial-gradient(200px 300px, rgb(255 45 135 / 0.12), rgb(255 45 135 / 0));
+    background-size:
+      400px 1300px,
+      380px 1300px,
+      380px 1300px,
+      400px 1300px;
+    /* Pink at the top on both sides, under the pink top glow, and blue beside the hero's blue wash:
+       a blue pool under the pink glow (or the reverse) mixed into lavender. */
+    background-position:
+      -250px 650px,
+      calc(100% + 240px) 325px,
+      -240px 0px,
+      calc(100% + 250px) 975px;
+  }
+}

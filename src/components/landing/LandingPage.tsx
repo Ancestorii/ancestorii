@@ -11,6 +11,7 @@ import LandingReviews from './LandingReviews';
 import LandingCta from './LandingCta';
 import LandingFooter from './LandingFooter';
 import styles from './landing.module.css';
+import pageGlow from '@/components/site/glow.module.css';
 
 export default function LandingPage({
   stories,
@@ -20,7 +21,7 @@ export default function LandingPage({
   isLoggedIn: boolean;
 }) {
   return (
-    <div className={`${jakarta.variable} ${styles.page}`}>
+    <div className={`${jakarta.variable} ${styles.page} ${pageGlow.glowPage}`}>
       <div className={styles.glows} aria-hidden="true">
         <div className={styles.glowTop} />
         <div className={styles.glowBottom} />

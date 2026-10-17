@@ -4,6 +4,7 @@ import LandingFooter from '@/components/landing/LandingFooter';
 import { jakarta } from '@/components/landing/fonts';
 import landing from '@/components/landing/landing.module.css';
 import SiteNav from './SiteNav';
+import pageGlow from './glow.module.css';
 import styles from './site.module.css';
 
 // Only Our Stories pages show the signed-in bar; loading it on demand keeps supabase-js out of
@@ -30,7 +31,7 @@ export default function SiteShell({
   hidePricing?: boolean;
 }) {
   return (
-    <div className={`${jakarta.variable} ${landing.page}`}>
+    <div className={`${jakarta.variable} ${landing.page} ${pageGlow.glowPage}`}>
       {glow && (
         <div className={landing.glows} aria-hidden="true">
           <div className={landing.glowTop} />
