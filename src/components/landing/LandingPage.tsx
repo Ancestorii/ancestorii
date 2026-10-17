@@ -5,13 +5,13 @@ import LandingHero from './LandingHero';
 import LandingTrust from './LandingTrust';
 import FeatureIndex from './sections/FeatureIndex';
 import MyFamily from './sections/MyFamily';
+import Reviews from './sections/Reviews';
 import LandingQuestions from './LandingQuestions';
 import AlbumsLibrary from './sections/AlbumsLibrary';
 import TimelinesLovedOnes from './sections/TimelinesLovedOnes';
 import VoicesCapsules from './sections/VoicesCapsules';
 import LandingStories from './LandingStories';
 import Heirlooms from './sections/Heirlooms';
-import Reviews from './sections/Reviews';
 import LandingCta from './LandingCta';
 import LandingFooter from './LandingFooter';
 import styles from './landing.module.css';
@@ -38,13 +38,13 @@ export default function LandingPage({
         <LandingTrust />
         <FeatureIndex />
         <MyFamily />
+        <Reviews />
         <LandingQuestions />
         <AlbumsLibrary />
         <TimelinesLovedOnes />
         <VoicesCapsules />
         <LandingStories stories={stories} isLoggedIn={isLoggedIn} />
         <Heirlooms />
-        <Reviews />
         <LandingCta isLoggedIn={isLoggedIn} />
       </main>
 

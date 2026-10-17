@@ -129,7 +129,7 @@ const FACTS = [
 ];
 
 // The three printed products with their real sizes and prices, then delivery, the Premium
-// discount and family rewards. No photos: the reviewers holding their books come straight after.
+// discount and family rewards. No photos: the reviewers holding their books sit higher up the page.
 // Each product links to its own page under its price; the button at the foot is for Memory Books.
 export default function Heirlooms() {
   return (
