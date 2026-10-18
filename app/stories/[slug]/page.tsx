@@ -6,15 +6,12 @@ import SiteShell from '@/components/site/SiteShell';
 import StoryPageContent from '@/components/stories/detail/StoryPageContent';
 import { getStoryComments } from '@/lib/stories/queries';
 import { plainTextFromHtml } from '@/lib/stories/format';
+import { sanitizeRichText } from '@/lib/richText/server';
 
+// An allow-list (sanitize-html) instead of the old regex clean-up, which let <img/onerror=...>
+// and javascript: links through. Plain-text bodies stay as typed (they are shown as text).
 function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-    .replace(/<iframe\b[^>]*>.*?<\/iframe>/gi, '')
-    .replace(/<object\b[^>]*>.*?<\/object>/gi, '')
-    .replace(/<embed\b[^>]*>/gi, '')
-    .replace(/<link\b[^>]*>/gi, '');
+  return html.includes('<') ? sanitizeRichText(html) : html;
 }
 
 type Props = {

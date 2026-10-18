@@ -41,6 +41,7 @@ import {
   type Tone,
 } from '@/components/dashboard/ui/AppBits';
 import s from './memoryEditor.module.css';
+import { sanitizeRichTextClient } from '@/lib/richText/client';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
@@ -489,7 +490,7 @@ function QuillEditor({ value, onChange }: { value: string; onChange: (html: stri
   const { quill, quillRef } = useQuill({ theme: 'snow', modules: { toolbar: [['bold', 'italic', 'underline'], [{ list: 'bullet' }, { list: 'ordered' }]] }, placeholder: 'Start writing your memory...' });
   const lastAppliedRef = useRef('');
   useEffect(() => { if (!quill) return; const handler = () => { const html = quill.root.innerHTML; lastAppliedRef.current = html; onChange(html); }; quill.on('text-change', handler); return () => { quill.off('text-change', handler); }; }, [quill, onChange]);
-  useEffect(() => { if (!quill) return; const current = quill.root.innerHTML; const next = value || ''; if (current !== next && lastAppliedRef.current !== next) { quill.root.innerHTML = next; lastAppliedRef.current = next; } }, [quill, value]);
+  useEffect(() => { if (!quill) return; const current = quill.root.innerHTML; const next = value || ''; if (current !== next && lastAppliedRef.current !== next) { quill.root.innerHTML = sanitizeRichTextClient(next); lastAppliedRef.current = next; } }, [quill, value]);
   return <div ref={quillRef} />;
 }
 

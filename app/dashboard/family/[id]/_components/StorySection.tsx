@@ -7,6 +7,7 @@ import { getBrowserClient } from "@/lib/supabase/browser";
 import { useQuill } from "react-quilljs";
 import Image from "next/image";
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { sanitizeRichTextClient } from '@/lib/richText/client';
 import { safeToast as toast } from '@/lib/safeToast';
 import {
   Plus,
@@ -474,7 +475,9 @@ function StoryEditorCard({
     const next = htmlValue || "";
 
     if (current !== next && lastAppliedValueRef.current !== next) {
-      quill.root.innerHTML = next;
+      // Cleaned first: innerHTML runs inline handlers (an onerror in a stored chapter would run
+      // for every family member who opens this page).
+      quill.root.innerHTML = sanitizeRichTextClient(next);
       lastAppliedValueRef.current = next;
     }
   }, [quill, htmlValue]);

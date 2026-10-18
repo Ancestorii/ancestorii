@@ -47,6 +47,7 @@ import { usePlanLimits } from '@/lib/usePlanLimits';
 import StoryAssistanceCard from '@/components/site/story-editor/StoryAssistanceCard';
 import { useQuill } from 'react-quilljs';
 import 'quill/dist/quill.snow.css';
+import { sanitizeRichTextClient } from '@/lib/richText/client';
 
 /* ═══════════════════════════════════════════════════════════════
    TYPES
@@ -986,7 +987,8 @@ function QuillEditor({
     const current = quill.root.innerHTML;
     const next = value || '';
     if (current !== next && lastAppliedRef.current !== next) {
-      quill.root.innerHTML = next;
+      // Cleaned first: innerHTML runs inline handlers.
+      quill.root.innerHTML = sanitizeRichTextClient(next);
       lastAppliedRef.current = next;
     }
   }, [quill, value]);

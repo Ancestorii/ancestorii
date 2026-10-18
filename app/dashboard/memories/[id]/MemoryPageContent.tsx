@@ -879,20 +879,9 @@ function getTimeAgo(dateStr: string): string {
   if (diffMins < 1) return 'Just now'; if (diffMins < 60) return `${diffMins}m ago`; if (diffHours < 24) return `${diffHours}h ago`; if (diffDays < 7) return `${diffDays}d ago`; if (diffWeeks < 4) return `${diffWeeks}w ago`; return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
+// Bodies arrive already cleaned by the server (page.tsx, sanitize-html with an allow-list), so
+// the server render and the browser agree. The old browser-only clean-up returned the raw HTML
+// during the server render, so an onerror in a body ran before React even started.
 function sanitiseHtml(html: string): string {
-  if (typeof window === 'undefined') return html;
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  doc.querySelectorAll('script,iframe,object,embed,form,link,meta,style').forEach((el) => el.remove());
-  doc.querySelectorAll('*').forEach((el) => {
-    for (const attr of Array.from(el.attributes)) {
-      if (attr.name.startsWith('on') || attr.name === 'srcdoc' || (attr.value && attr.value.trim().toLowerCase().startsWith('javascript:'))) {
-        el.removeAttribute(attr.name);
-      }
-    }
-    if (el.tagName === 'A') {
-      const href = el.getAttribute('href') || '';
-      if (href.trim().toLowerCase().startsWith('javascript:')) el.removeAttribute('href');
-    }
-  });
-  return doc.body.innerHTML;
+  return html;
 }

@@ -1,4 +1,5 @@
 import { getServerClient } from '@/lib/supabase/server';
+import { sanitizeRichText } from '@/lib/richText/server';
 import { notFound } from 'next/navigation';
 import MemoryPageContent from './MemoryPageContent';
 
@@ -169,7 +170,9 @@ export default async function MemoryPage(props: {
   const tabs: MemoryTab[] = allMemoryRows.map((m) => ({
     id: m.id,
     title: m.title,
-    body: m.body,
+    // Cleaned here, before the page renders it with dangerouslySetInnerHTML (plain text stays
+    // as typed: it is shown as text).
+    body: m.body && m.body.includes('<') ? sanitizeRichText(m.body) : m.body,
     authorName: profileMap.get(m.author_id) || 'Family Member',
     authorAvatarUrl: avatarMap.get(m.author_id) || null,
     authorId: m.author_id,
