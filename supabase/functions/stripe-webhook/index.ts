@@ -15,6 +15,73 @@ async function sendEmail(to: string, letter: Letter, idempotencyKey: string) {
   const result = await send({ to, letter, idempotencyKey, tag: 'stripe' });
   if (!result.ok) console.error(`Resend refused (${result.status}): ${result.message}`);
 }
+// ── Resolve a customer's email + name from a Stripe customer id ──
+// Subscription/invoice events carry no checkout session, so we read the
+// contact straight from Stripe (with invoice-provided values preferred).
+// (Restored: f471c51 deleted this helper but kept its two calls.)
+async function resolveContact(
+  stripe: Stripe,
+  customerId: string,
+  fallbackEmail?: string | null,
+  fallbackName?: string | null,
+): Promise<{ email: string | null; name: string }> {
+  if (fallbackEmail) {
+    return { email: fallbackEmail, name: fallbackName ?? "" };
+  }
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (customer && !(customer as Stripe.DeletedCustomer).deleted) {
+      const c = customer as Stripe.Customer;
+      return { email: c.email ?? null, name: c.name ?? fallbackName ?? "" };
+    }
+  } catch (err) {
+    console.error("resolveContact failed:", err);
+  }
+  return { email: null, name: fallbackName ?? "" };
+}
+
+// ── Derive the SELECTED shipping method + the real amounts from the session ──
+// Every order now charges shipping, so the old `amount_total > 0 → Express` inference
+// is wrong. Read the actual chosen shipping rate's display_name (Standard vs Express)
+// by expanding shipping_cost.shipping_rate, with an amount-based fallback only if the
+// expand fails. Also returns what was actually charged (total) and the shipping fee.
+// (Restored: f471c51 deleted this helper but kept its three calls, so every paid book,
+// canvas and acrylic checkout threw before the order was marked paid.)
+async function deriveShippingInfo(
+  stripe: Stripe,
+  session: Stripe.Checkout.Session,
+): Promise<{ method: string; shippingAmount: number | null; amountCharged: number | null }> {
+  let displayName = "";
+  let shippingMinor = session.shipping_cost?.amount_total ?? null;
+  let totalMinor = session.amount_total ?? null;
+
+  try {
+    const full = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ["shipping_cost.shipping_rate"],
+    });
+    const rate = full.shipping_cost?.shipping_rate;
+    if (rate && typeof rate !== "string") {
+      displayName = (rate.display_name ?? "").toLowerCase();
+    }
+    if (full.shipping_cost?.amount_total != null) shippingMinor = full.shipping_cost.amount_total;
+    if (full.amount_total != null) totalMinor = full.amount_total;
+  } catch (err) {
+    console.error("deriveShippingInfo: session retrieve failed, falling back to amount:", err);
+  }
+
+  let method: string;
+  if (displayName.includes("express")) method = "Express";
+  else if (displayName.includes("standard")) method = "Standard";
+  // Fallback: Standard rates are 499/599/599, Express 899/1099/999, so split at 800 minor units.
+  else method = (shippingMinor ?? 0) >= 800 ? "Express" : "Standard";
+
+  return {
+    method,
+    shippingAmount: shippingMinor != null ? shippingMinor / 100 : null,
+    amountCharged: totalMinor != null ? totalMinor / 100 : null,
+  };
+}
+
 // ── Email templates ──
 function premiumUpgradeEmail(name: string): Letter {
   const greeting = name ? `Thank you, ${name}.` : 'Thank you.';
