@@ -1,11 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { X, Upload, ImagePlus, Video, Mic } from 'lucide-react';
 import Image from "next/image";
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './capsuleDetail.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 // ✅ Fix for native drag events typing
 // eslint-disable-next-line no-undef
@@ -33,6 +37,7 @@ function CapsulePreviewImage({ file }: { file: File }) {
   if (!src) return null;
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt="preview"
@@ -54,6 +59,11 @@ export default function UploadCapsuleMediaDrawer({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+
+  // Escape closes it (as the close button does), Tab stays inside while it is open, and
+  // focus returns to Upload Memory.
+  const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -76,15 +86,15 @@ useEffect(() => {
 
     const over = (e: GlobalDragEvent) => {
       e.preventDefault();
-      area.classList.add('ring-2', 'ring-[#E6C26E]');
+      area.classList.add(ui.dropzoneActive);
     };
     const leave = (e: GlobalDragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.classList.remove(ui.dropzoneActive);
     };
     const drop = (e: GlobalDragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.classList.remove(ui.dropzoneActive);
       const file = e.dataTransfer?.files?.[0];
       if (file) setFile(file);
     };
@@ -163,108 +173,106 @@ onUploaded({
     }
   };
 
+  // The chosen photo or video fills the zone; any other file shows its name.
+  const showsPreview =
+    !!file && (file.type.startsWith('image') || file.type.startsWith('video'));
 
-  // ✅ Instead of returning null, just hide the modal visually
+  // Stays mounted: closed, it fades out and is then hidden from taps, Tab and screen readers.
   return (
     <div
-      className={`fixed inset-0 z-[200] backdrop-blur-sm flex items-center justify-center transition-opacity duration-300 ${
-        open ? 'bg-black/40 opacity-100' : 'opacity-0 pointer-events-none'
-      }`}
+      className={cx(s.layer, 'scrim-blur')}
+      data-open={open ? 'true' : 'false'}
       onClick={onClose}
     >
       <div
-        className="relative bg-white w-full sm:w-[480px] rounded-2xl shadow-[0_0_25px_rgba(230,194,110,0.3)] border border-[#E6C26E]/40 p-6 transform transition-all duration-300 ease-out"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className={cx(ui.sheet, ui.sheetBottom, s.layerPanel)}
         onClick={(e) => e.stopPropagation()}
-        style={{
-          transform: open ? 'scale(1)' : 'scale(0.95)',
-        }}
       >
-        {/* Close Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="absolute top-4 right-4 text-gray-500 hover:text-[#1F2837] transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
         {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-[#1F2837] mb-2">
-            Upload Your Memories
-          </h2>
-          <p className="text-sm text-[#5B6473]">
-            Add photos, videos, or voice notes to your capsule.
-          </p>
+        <div className={ui.sheetHeader}>
+          <div className="min-w-0">
+            <h2 id={titleId} className={ui.sheetTitle}>
+              Upload Your Memories
+            </h2>
+            <p className={ui.sheetSub}>
+              Add photos, videos, or voice notes to your capsule.
+            </p>
+          </div>
+
+          {/* Close Button */}
+          <IconBtn
+            label="Close"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+          >
+            <X size={20} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
         </div>
 
-        {/* Drag & Drop Zone */}
-        <div
-          ref={dropRef}
-          onClick={() => document.getElementById('capsuleFileInput')?.click()}
-          className="w-full aspect-[16/9] border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:text-[#C8A557] transition cursor-pointer overflow-hidden mb-6"
-        >
-          {file ? (
+        <div className={ui.sheetBody}>
+          {/* Drag & Drop Zone */}
+          <div
+            ref={dropRef}
+            onClick={() => document.getElementById('capsuleFileInput')?.click()}
+            className={cx(ui.dropzone, s.uploadZone, showsPreview && s.uploadZoneFilled)}
+          >
+            {file ? (
   file.type.startsWith('image') ? (
     <CapsulePreviewImage file={file} />
   ) : file.type.startsWith('video') ? (
   previewUrl ? (
-    <div className="relative w-full h-full overflow-hidden">
       <video
         src={previewUrl}
         className="w-full h-full object-cover"
         muted
         playsInline
       />
-    </div>
   ) : null
 ) : (
-    <div className="flex flex-col items-center">
-      <p className="text-sm font-medium text-[#1F2837]">
+      <p className={s.fileName}>
         Selected: {file.name}
       </p>
-    </div>
   )
 ) : (
   <>
-    <div className="flex gap-3 mb-3 text-[#C8A557]">
-      <ImagePlus className="w-6 h-6" />
-      <Video className="w-6 h-6" />
-      <Mic className="w-6 h-6" />
+    <div className={s.dropIcons} aria-hidden="true">
+      <ImagePlus size={26} strokeWidth={2} />
+      <Video size={26} strokeWidth={2} />
+      <Mic size={26} strokeWidth={2} />
     </div>
-    <p className="text-sm">Drag & drop or click to upload</p>
+    <p className={ui.dropzoneTitle}>Drag & drop or click to upload</p>
   </>
 )}
-          <input
-            id="capsuleFileInput"
-            type="file"
-            accept="image/*,video/*,audio/*"
-            className="hidden"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-          />
+            {/* Visually hidden, not display:none, so the keyboard can reach it */}
+            <input
+              id="capsuleFileInput"
+              type="file"
+              accept="image/*,video/*,audio/*"
+              className={ui.srOnly}
+              aria-label="Choose a photo, video or voice note to upload"
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+            />
+          </div>
         </div>
 
         {/* Upload Button */}
-        <button
-          onClick={handleUpload}
-          disabled={loading}
-          className={`w-full py-3 rounded-xl font-semibold transition text-[#1F2837] ${
-            loading
-              ? 'bg-gray-300 cursor-not-allowed'
-              : 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] hover:shadow-md hover:scale-[1.02]'
-          }`}
-        >
-          {loading ? (
-            <div className="flex items-center justify-center gap-2">
-              <Upload className="w-5 h-5 animate-pulse" />
-              Uploading...
-            </div>
-          ) : (
-            'Upload My Memory'
-          )}
-        </button>
+        <div className={ui.sheetFooter}>
+          <Btn
+            block
+            onClick={handleUpload}
+            disabled={loading}
+            tile={loading ? <Spinner size={16} /> : <Upload size={18} strokeWidth={2.4} />}
+          >
+            {loading ? 'Uploading...' : 'Upload My Memory'}
+          </Btn>
+        </div>
       </div>
     </div>
   );

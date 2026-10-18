@@ -1,20 +1,55 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState, type CSSProperties } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import Image from "next/image";
 import {
-  Lock, BookOpen
+  ArrowLeft,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  ImagePlus,
+  Images,
+  Lock,
+  LockOpen,
+  Mic,
+  Package,
+  Play,
+  Quote,
+  Trash2,
+  Upload,
+  Users,
+  X,
 } from 'lucide-react';
+import {
+  ui,
+  AppLoader,
+  Avatar,
+  Btn,
+  EmptyState,
+  Eyebrow,
+  IconBtn,
+  IconTile,
+  Spinner,
+  toneByKey,
+  useDialog,
+} from '@/components/dashboard/ui/AppBits';
 import UploadCapsuleMediaDrawer from '../_components/UploadCapsuleMediaDrawer';
 import CapsuleMediaInteractionsPanel from '../_components/media-interactions/CapsuleMediaInteractionsPanel';
 import UniversalPeopleTagger from '@/components/UniversalPeopleTagger';
 import CapsuleSealOverlay from '@/components/CapsuleSealOverlay';
 import LibraryPickerModal, { LibraryPickerItem } from '@/components/LibraryPickerModal';
 import CapsuleAI from '../_components/CapsuleAI';
+import s from '../_components/capsuleDetail.module.css';
 
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+const longDate = (value: string) =>
+  new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
 type Capsule = {
   id: string;
@@ -44,6 +79,8 @@ type Media = {
   signed_url?: string | null;
 };
 
+// Inside a tile button, so a span (a button holds only inline content). The photo fills the
+// square tile.
 function CapsuleMediaImage({ src }: { src: string }) {
   const [loaded, setLoaded] = useState(false);
 
@@ -52,20 +89,19 @@ function CapsuleMediaImage({ src }: { src: string }) {
   }, [src]);
 
   return (
-    <div className="relative w-full">
+    <span className="relative block h-full w-full">
       <Image
         src={src}
         alt=""
-        width={1600}
-        height={1200}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        fill
+        sizes="(max-width: 767px) 50vw, (max-width: 1023px) 34vw, 260px"
         quality={75}
-        className={`w-full h-auto object-cover transition-opacity duration-300 ${
+        className={`object-cover transition-opacity duration-300 ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
         onLoadingComplete={() => setLoaded(true)}
       />
-    </div>
+    </span>
   );
 }
 
@@ -130,6 +166,14 @@ const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
 
   const [confirmSeal, setConfirmSeal] = useState(false);
   const [sealing, setSealing] = useState(false);
+
+  // The viewer and the seal confirm: Escape closes them (as the close button and Cancel
+  // do), Tab stays inside, and focus returns to the button that opened them.
+  const viewerTitleId = useId();
+  const confirmTitleId = useId();
+  const confirmTextId = useId();
+  const viewerRef = useDialog<HTMLDivElement>(viewerOpen && viewerIndex !== null, () => setViewerOpen(false));
+  const confirmRef = useDialog<HTMLDivElement>(confirmSeal, () => setConfirmSeal(false));
 
   const handleDeleteMedia = async (m: Media) => {
   try {
@@ -413,13 +457,27 @@ setTimeout(() => {
 
 
   if (loading) {
-    return <div className="p-10 text-center text-gray-500">Loading capsule…</div>;
+    return (
+      <div className={ui.page}>
+        <AppLoader label="Loading capsule" />
+      </div>
+    );
   }
 
   if (!capsule) {
     return (
-      <div className="p-10 text-center text-gray-500">
-        Capsule not found.
+      <div className={ui.page}>
+        <div className={ui.wrapNarrow}>
+          <EmptyState Icon={Package} tone={toneByKey('pink')} title="Capsule not found">
+            <Btn
+              variant="soft"
+              onClick={() => router.push('/dashboard/capsules')}
+              icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
+            >
+              Back to Capsules
+            </Btn>
+          </EmptyState>
+        </div>
       </div>
     );
   }
@@ -439,216 +497,247 @@ function prevMedia() {
   );
 }
 
+  // The state chip (display only), as on the capsule cards: sealed until its date, sealed
+  // and its date has come (ready to open), not sealed yet (its date is ahead and it is still
+  // being filled), or open (unsealed with its date passed: unlock_due_capsules() unseals a
+  // sealed capsule on its date, and a capsule never sealed is open too).
+  const unlockTime = new Date(capsule.unlock_date).getTime();
+  const hasUnlockDate = !Number.isNaN(unlockTime);
+  const dateAhead = hasUnlockDate && unlockTime > Date.now();
+  const capsuleState: 'sealed' | 'ready' | 'opens' | 'opened' = capsule.is_locked
+    ? dateAhead
+      ? 'sealed'
+      : 'ready'
+    : dateAhead
+    ? 'opens'
+    : 'opened';
+
+  const viewerIsVideo =
+    !!currentMedia &&
+    (currentMedia.file_type === "video" ||
+      currentMedia.library_media?.file_type === "video");
+  const viewerType = currentMedia
+    ? (currentMedia.file_type ?? currentMedia.library_media?.file_type) || ""
+    : "";
+  const viewerIsAudio = !viewerIsVideo && viewerType.startsWith("audio");
+
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-white">
-      {/* -------- Left: Header + Media Grid -------- */}
-      <div className="flex-1 p-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-8 border-b border-[#E6C26E]/55 pb-6 gap-8">
-          <div className="space-y-2 max-w-2xl">
-             <button
-             onClick={() => router.push('/dashboard/capsules')}
-             className="mb-6 text-sm font-medium text-[#000000] hover:text-[#C8A557] transition"
+    <div className={cx(ui.page, s.page)}>
+      <div className={ui.wrap}>
+        {/* -------- Header: back, the capsule's actions, its title and state -------- */}
+        <div className={s.headerWrap}>
+          <header className={cx(ui.header, s.header)}>
+            <div className={ui.headerGlow} aria-hidden="true" />
+
+            <Btn
+              variant="soft"
+              size="sm"
+              onClick={() => router.push('/dashboard/capsules')}
+              icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
+              className={s.back}
+            >
+              Back to Capsules
+            </Btn>
+
+            {/* Actions */}
+            <div className={s.actions}>
+              <Btn
+                variant="soft"
+                size="sm"
+                onClick={() => setLibraryPickerOpen(true)}
+                aria-haspopup="dialog"
+                icon={<BookOpen size={17} strokeWidth={2.2} aria-hidden="true" />}
               >
-                 ← Back to Capsules
-              </button>
-              
-            <h1 className="text-5xl font-bold mb-6"
-              style={{
-              color: "#1F2837",
-              letterSpacing: "-0.01em",
-              }}
+                My Library
+              </Btn>
+
+              <Btn
+                variant="soft"
+                size="sm"
+                onClick={() => setTagOpen(true)}
+                aria-haspopup="dialog"
+                icon={<Users size={17} strokeWidth={2.2} aria-hidden="true" />}
               >
-              {capsule.title}
-              </h1>
+                Tag Someone
+              </Btn>
 
+              {!capsule.is_locked && (
+                <Btn
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfirmSeal(true)}
+                  aria-haspopup="dialog"
+                  icon={<Lock size={17} strokeWidth={2.4} aria-hidden="true" />}
+                  className={s.actSeal}
+                >
+                  Seal Capsule
+                </Btn>
+              )}
 
-            {capsule.description && (
-              <p className="text-gray-600 max-w-2xl">{capsule.description}</p>
-            )}
+              <Btn
+                size="sm"
+                onClick={() => setUploadOpen(true)}
+                aria-haspopup="dialog"
+                tile={<Upload size={16} strokeWidth={2.4} />}
+                className={s.actUpload}
+              >
+                Upload Memory
+              </Btn>
+            </div>
 
-            {/* TAGGED PEOPLE: MATCH TIMELINES */}
-{taggedPeople.length > 0 && (
-  <div className="mt-8 flex flex-wrap items-center gap-3">
-    {taggedPeople.map((p) => (
-      <div
-        key={p.id}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full
-                   bg-[#F6F3EA] border border-[#E6C26E]/40"
-      >
-        {p.avatar_signed ? (
-          <img
-            src={p.avatar_signed}
-            alt={p.full_name}
-            className="w-7 h-7 rounded-full object-cover"
-          />
-        ) : (
-          <div
-            className="w-7 h-7 rounded-full bg-[#E6C26E]
-                       text-[#1F2837] text-xs font-semibold
-                       flex items-center justify-center"
-          >
-            {p.full_name?.[0]?.toUpperCase()}
-          </div>
-        )}
-        <span className="text-sm text-[#1F2837] font-medium">
-          {p.full_name}
-        </span>
-<span
-  onClick={() => removePersonFromCapsule(p.id)}
-  className="ml-1 cursor-pointer text-gray-400 hover:text-red-600 transition"
-  title="Remove from this capsule"
->
-  ✕
-</span>
+            <div className={s.titleBlock}>
+              <Eyebrow dot="var(--c0)">Capsule</Eyebrow>
 
-      </div>
-    ))}
-  </div>
-)}
-</div>
+              <h1 className={cx(ui.title, ui.titleMd, s.title)}>{capsule.title}</h1>
 
-         {/* Actions */}
-<div className="grid grid-cols-2 gap-4 w-full max-w-[440px]">
+              <div className={ui.meta}>
+                {capsuleState === 'sealed' && (
+                  <span className={cx(ui.chip, ui.chipInk)}>
+                    <Lock size={14} strokeWidth={2.6} aria-hidden="true" />
+                    Sealed
+                  </span>
+                )}
+                {capsuleState === 'sealed' && (
+                  <span className={ui.chip}>Unlocks on {longDate(capsule.unlock_date)}</span>
+                )}
+                {capsuleState === 'opens' && (
+                  <span
+                    className={cx(ui.chip, ui.chipDot)}
+                    style={{ '--dot': 'var(--c0)' } as CSSProperties}
+                  >
+                    Not sealed yet
+                  </span>
+                )}
+                {capsuleState === 'ready' && (
+                  <span
+                    className={cx(ui.chip, ui.chipDot)}
+                    style={{ '--dot': 'var(--c3)' } as CSSProperties}
+                  >
+                    Ready to open
+                  </span>
+                )}
+                {capsuleState === 'opened' && (
+                  <span className={ui.chip}>
+                    <LockOpen size={14} strokeWidth={2.6} aria-hidden="true" />
+                    Open
+                  </span>
+                )}
+                <span className={ui.chip}>
+                  <Images size={15} strokeWidth={2.4} aria-hidden="true" />
+                  {plural(media.length, 'memory', 'memories')}
+                </span>
+              </div>
 
-  <button
-    onClick={() => setUploadOpen(true)}
-    className="
-    flex items-center justify-center gap-2
-    px-5 h-[44px]
-    rounded-full
-    bg-emerald-50 border border-emerald-200
-    text-[15px] font-semibold text-emerald-700
-    hover:bg-emerald-100
-    transition
-    "
-  >
-    + Upload Memory
-  </button>
+              {capsule.description && (
+                <div className={cx(ui.card, s.message)}>
+                  <IconTile Icon={Quote} tone={toneByKey('pink')} size="sm" />
+                  <p className={s.messageText}>{capsule.description}</p>
+                </div>
+              )}
 
-
-  <button
-    onClick={() => setLibraryPickerOpen(true)}
-    className="
-    flex items-center justify-center gap-2
-    px-5 h-[44px]
-    rounded-full
-    bg-amber-50 border border-amber-200
-    text-[15px] font-semibold text-amber-800
-    hover:bg-amber-100
-    transition
-    "
-  >
-    <BookOpen className="w-5 h-5" />
-    My Library
-  </button>
-
-
-  <button
-    onClick={() => setTagOpen(true)}
-    className="
-    flex items-center justify-center gap-2
-    px-5 h-[44px]
-    rounded-full
-    bg-violet-50 border border-violet-200
-    text-[15px] font-semibold text-violet-700
-    hover:bg-violet-100
-    transition
-    "
-  >
-    💜 Tag Someone
-  </button>
-
-
-  {!capsule.is_locked && (
-    <button
-      onClick={() => setConfirmSeal(true)}
-      className="
-      flex items-center justify-center gap-2
-      px-5 h-[44px]
-      rounded-full
-      bg-blue-50 border border-blue-200
-      text-[15px] font-semibold text-blue-800
-      hover:bg-blue-100
-      transition
-      "
-    >
-      <Lock className="w-5 h-5" />
-      Seal Capsule
-    </button>
-  )}
-
-</div>
+              {/* Tagged people */}
+              {taggedPeople.length > 0 && (
+                <ul className={s.people} aria-label="People in this capsule">
+                  {taggedPeople.map((p) => (
+                    <li key={p.id} className={cx(ui.chip, s.person)}>
+                      <span className={s.personAvatar} aria-hidden="true">
+                        <Avatar src={p.avatar_signed} name={p.full_name} size={24} plain />
+                      </span>
+                      <span className={s.personName}>{p.full_name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removePersonFromCapsule(p.id)}
+                        className={s.personRemove}
+                        aria-label={`Remove ${p.full_name} from this capsule`}
+                        title="Remove from this capsule"
+                      >
+                        <X size={14} strokeWidth={2.6} aria-hidden="true" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </header>
         </div>
 
-        {/* Media Grid */}
-        {media.length === 0 ? (
-          <div className="text-center text-gray-500 mt-20 italic">
-            No memories yet. Add your first photo or video. 
-          </div>
-        ) : (
-         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {media.map((m, i) => {
-               const realType = (m.file_type ?? m.library_media?.file_type) || "";
+        <div className={s.body}>
+          {/* -------- Media Grid -------- */}
+          <section className={s.mediaCol} aria-label="Memories">
+            {media.length === 0 ? (
+              <EmptyState
+                Icon={ImagePlus}
+                tone={toneByKey('pink')}
+                title="No memories yet"
+                text="Add your first photo or video."
+              />
+            ) : (
+              <ul className={s.grid}>
+                {media.map((m, i) => {
+                  const realType = (m.file_type ?? m.library_media?.file_type) || "";
+                  const isVideo = realType === "video";
+                  // A voice note uploaded as a memory (the upload accepts audio): it showed as a
+                  // broken image before.
+                  const isAudio = !isVideo && realType.startsWith("audio");
 
-                return (
-                <div key={m.id} className="relative group overflow-hidden rounded-xl">
+                  return (
+                    <li key={m.id} className={s.tile}>
+                      <button
+                        type="button"
+                        onClick={() => openViewer(i)}
+                        aria-haspopup="dialog"
+                        aria-label={isVideo ? 'Play video' : isAudio ? 'Play voice note' : 'Open photo'}
+                        className={cx(ui.photoTile, s.tileOpen)}
+                      >
+                        {isVideo ? (
+                          <video
+                            key={m.signed_url ?? m.file_path ?? ""}
+                            src={m.signed_url ?? m.file_path ?? ""}
+                            muted
+                            playsInline
+                            preload="metadata"
+                          />
+                        ) : isAudio ? (
+                          <span className={s.audioFace}>
+                            <IconTile Icon={Mic} tone={toneByKey('blue')} />
+                            Voice note
+                          </span>
+                        ) : (
+                          <CapsuleMediaImage src={m.signed_url ?? m.file_path ?? ""} />
+                        )}
 
-                        {/* Delete button */}
-                        {!capsule.is_locked && (
-                        <button
-                        onClick={() => handleDeleteMedia(m)}
-                        className="
-                          absolute top-2 right-2 z-10
-                          opacity-0 group-hover:opacity-100
-                            transition
-                           bg-white/90 backdrop-blur
-                         border border-red-200
-                           text-red-600
-            text-xs font-semibold
-            px-3 py-1 rounded-full
-            hover:bg-red-50
-          "
-        >
-          Delete
-        </button>
-      )}
+                        {isVideo && (
+                          <span className={cx(ui.chip, ui.chipInk, ui.chipSm, s.playChip)} aria-hidden="true">
+                            <Play size={11} strokeWidth={0} fill="currentColor" />
+                            Video
+                          </span>
+                        )}
+                      </button>
 
-{realType === "video" ? (
-  <div className="overflow-hidden">
-  <div className="transition-transform duration-300 group-hover:scale-105">
-    <video
-  key={m.signed_url ?? m.file_path ?? ""}
-  src={m.signed_url ?? m.file_path ?? ""}
-  controls
-  playsInline
-  preload="metadata"
-  onClick={() => openViewer(i)}
-  className="w-full rounded-lg cursor-pointer"
-/>
-  </div>
-</div>
-) : (
-  <div className="overflow-hidden">
-  <div className="transition-transform duration-300 group-hover:scale-105">
-    <div
-  onClick={() => openViewer(i)}
-  className="cursor-pointer"
->
-  <CapsuleMediaImage src={m.signed_url ?? m.file_path ?? ""} />
-</div>
-  </div>
-</div>
-)}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                      {/* Delete button */}
+                      {!capsule.is_locked && (
+                        <IconBtn
+                          label={isVideo ? 'Delete this video' : isAudio ? 'Delete this voice note' : 'Delete this photo'}
+                          size="sm"
+                          onPhoto
+                          onClick={() => handleDeleteMedia(m)}
+                          className={s.tileDelete}
+                        >
+                          <Trash2 size={16} strokeWidth={2.4} aria-hidden="true" />
+                        </IconBtn>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
+          {/* -------- Letter and voice notes -------- */}
+          <CapsuleMediaInteractionsPanel capsuleId={capsule.id} />
+        </div>
       </div>
 
-      {/* -------- Right: Media Interactions -------- */}
-      <CapsuleMediaInteractionsPanel capsuleId={capsule.id} />
       {/* -------- Drawers -------- */}
       <CapsuleAI
         capsuleTitle={capsule.title}
@@ -722,88 +811,123 @@ function prevMedia() {
 
       {/* -------- Confirm Seal Modal -------- */}
       {confirmSeal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200]">
-          <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-xl">
-            <h3 className="text-lg font-semibold text-[#1F2837] mb-3">
+        <div className={cx(ui.scrim, s.fadeIn, 'scrim-blur z-[1000] flex items-center justify-center p-4')}>
+          <div
+            ref={confirmRef}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={confirmTitleId}
+            aria-describedby={confirmTextId}
+            className={cx(ui.sheet, s.confirm, s.popIn)}
+          >
+            <h2 id={confirmTitleId} className={s.confirmTitle}>
               Seal this Capsule?
-            </h3>
-            <p className="text-sm text-gray-600 mb-6">
+            </h2>
+            <p id={confirmTextId} className={s.confirmText}>
               Once sealed, you won’t be able to open or edit it until the unlock date.
             </p>
-            <div className="flex justify-center gap-3">
-              <button
-                className="px-5 py-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
-                onClick={() => setConfirmSeal(false)}
-              >
+            <div className={s.confirmActions}>
+              <Btn variant="soft" onClick={() => setConfirmSeal(false)}>
                 Cancel
-              </button>
-              <button
+              </Btn>
+              <Btn
+                variant="danger"
                 onClick={handleSealCapsule}
                 disabled={sealing}
-                className={`px-5 py-2 rounded-full font-semibold text-white ${
-                  sealing ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#C33838] hover:bg-[#A12C2C]'
-                }`}
+                icon={
+                  sealing ? (
+                    <Spinner size={16} />
+                  ) : (
+                    <Lock size={17} strokeWidth={2.4} aria-hidden="true" className={s.confirmIcon} />
+                  )
+                }
               >
                 {sealing ? 'Sealing…' : 'Confirm & Seal'}
-              </button>
+              </Btn>
             </div>
           </div>
         </div>
       )}
+
+      {/* -------- Full-screen viewer: a click on the backdrop closes it, as before -------- */}
       {viewerOpen && currentMedia && (
-  <div
-    className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100]"
-    onClick={() => setViewerOpen(false)}
-  >
-    <button
-  onClick={(e) => {
-    e.stopPropagation();
-    prevMedia();
-  }}
-  className="absolute left-6 top-1/2 -translate-y-1/2
-             text-6xl font-bold
-             text-[#D4AF37]
-             hover:scale-110
-             transition cursor-pointer select-none"
->
-  ‹
-</button>
+        <div
+          ref={viewerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={viewerTitleId}
+          className={cx(ui.viewer, s.viewer)}
+          onClick={() => setViewerOpen(false)}
+        >
+          <h2 id={viewerTitleId} className={ui.srOnly}>
+            {viewerIsVideo ? 'Video' : viewerIsAudio ? 'Voice note' : 'Photo'}
+          </h2>
 
-    <div
-      className="relative max-w-[90vw] max-h-[90vh]"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {(currentMedia.file_type === "video" ||
-        currentMedia.library_media?.file_type === "video") ? (
-        <video
-          src={currentMedia.signed_url ?? ""}
-          controls
-          autoPlay
-          className="max-w-full max-h-[95vh] rounded-lg"
-        />
-      ) : (
-        <img
-          src={currentMedia.signed_url ?? ""}
-          className="max-w-full max-h-[95vh] object-contain rounded-lg"
-        />
+          <div className={ui.viewerBar}>
+            <span className={cx(ui.chip, ui.chipSm)}>
+              {(viewerIndex ?? 0) + 1} / {media.length}
+            </span>
+            <IconBtn
+              label="Close"
+              onPhoto
+              onClick={(e) => {
+                e.stopPropagation();
+                setViewerOpen(false);
+              }}
+            >
+              <X size={20} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
+          </div>
+
+          <div className={cx(ui.viewerStage, s.viewerStage)}>
+            {media.length > 1 && (
+              <IconBtn
+                label="Previous"
+                onPhoto
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevMedia();
+                }}
+                className={cx(s.viewerNav, s.viewerPrev)}
+              >
+                <ChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
+            )}
+
+            <div className={s.viewerMedia} onClick={(e) => e.stopPropagation()}>
+              {viewerIsVideo ? (
+                <video src={currentMedia.signed_url ?? ""} controls autoPlay />
+              ) : viewerIsAudio ? (
+                <div className={s.viewerAudio}>
+                  <div className={s.viewerAudioHead} aria-hidden="true">
+                    <IconTile Icon={Mic} tone={toneByKey('blue')} />
+                    <span className={s.viewerAudioTitle}>Voice note</span>
+                  </div>
+                  <audio src={currentMedia.signed_url ?? ""} controls autoPlay />
+                </div>
+              ) : (
+                // Full size at its own shape, so a plain img (next/image needs a sized box).
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={currentMedia.signed_url ?? ""} alt="" />
+              )}
+            </div>
+
+            {media.length > 1 && (
+              <IconBtn
+                label="Next"
+                onPhoto
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextMedia();
+                }}
+                className={cx(s.viewerNav, s.viewerNext)}
+              >
+                <ChevronRight size={22} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
+            )}
+          </div>
+        </div>
       )}
-    </div>
-
-    <button
-  onClick={(e) => {
-    e.stopPropagation();
-    nextMedia();
-  }}
-  className="absolute right-6 top-1/2 -translate-y-1/2
-             text-6xl font-bold
-             text-[#D4AF37]
-             hover:scale-110
-             transition cursor-pointer select-none"
->
-  ›
-</button>
-  </div>
-)}
     </div>
   );
 }

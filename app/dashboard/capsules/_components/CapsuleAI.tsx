@@ -1,6 +1,7 @@
 'use client';
 
 import StoryAssistanceCard, { AssistOption } from '@/components/StoryAssistanceCard';
+import { Accent } from '@/components/dashboard/ui/AppBits';
 
 type CapsuleAIProps = {
   capsuleTitle: string;
@@ -50,7 +51,7 @@ export default function CapsuleAI({
       welcomeHeading={
         <>
           Need help writing a message for{' '}
-          <span className="text-[#A9782F]">{capsuleTitle}</span>?
+          <Accent>{capsuleTitle.trim()}</Accent>?
         </>
       }
       welcomeBody="This capsule is a gift to the future. We can help you find the right words to seal inside it."

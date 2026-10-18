@@ -1,12 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
-import { X, ImagePlus } from 'lucide-react';
+import { X, ImagePlus, Check, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlanLimits } from '@/lib/usePlanLimits';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { ui, Btn, IconBtn, IconTile, Spinner, toneByKey, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './timelineList.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 
 type Timeline = {
@@ -42,6 +46,14 @@ export default function CreateTimelineDrawer({
   const [mounted, setMounted] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
   const isSubmittingRef = useRef(false);
+
+  const titleId = useId();
+  const subId = useId();
+  const nameId = useId();
+  const descriptionId = useId();
+
+  // Escape closes it (as the close button does), Tab stays inside, focus returns to the button.
+  const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
   const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
@@ -86,21 +98,23 @@ useEffect(() => {
     if (file) setCoverFile(file);
   };
 
+  // Drag & drop. The zone only exists while the drawer is open, so attach each time it opens
+  // (run once at mount, it found no zone and drag and drop never worked).
   useEffect(() => {
     const area = dropRef.current;
     if (!area) return;
 
     const over = (e: DragEvent) => {
       e.preventDefault();
-      area.classList.add('ring-2', 'ring-[#E6C26E]');
+      area.classList.add(ui.dropzoneActive);
     };
     const leave = (e: DragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.classList.remove(ui.dropzoneActive);
     };
     const drop = (e: DragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.classList.remove(ui.dropzoneActive);
       const file = e.dataTransfer?.files?.[0];
       if (file) handleFileSelect(file);
     };
@@ -113,7 +127,7 @@ useEffect(() => {
       area.removeEventListener('dragleave', leave);
       area.removeEventListener('drop', drop);
     };
-  }, []);
+  }, [open, mounted]);
 
   const handleSubmit = async () => {
     if (isSubmittingRef.current || !title.trim()) return;
@@ -210,136 +224,142 @@ useEffect(() => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-[#0B0C10]/70 backdrop-blur-sm flex items-center justify-center z-[200]"
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          // scrim-blur (globals.css) blurs only with a mouse; above the floating phone nav (z-[200])
+          className={cx(ui.scrim, 'scrim-blur z-[9999] flex items-center justify-center p-4')}
         >
-          {uploading && (
-            <div className="fixed top-0 left-0 w-full h-[3px] overflow-hidden">
-              <div className="w-full h-full bg-gradient-to-r from-[#E6C26E] via-[#F3D99B] to-[#E6C26E] animate-[shimmer_1.6s_linear_infinite]" />
-            </div>
-          )}
-
+          {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.95 }}
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={subId}
+            initial={{ opacity: 0, transform: 'translateY(40px) scale(0.95)' }}
+            animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
+            exit={{ opacity: 0, transform: 'translateY(40px) scale(0.95)' }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="relative bg-white w-[88%] sm:w-[360px] md:w-[450px] max-h-[85vh] overflow-y-auto rounded-2xl p-6 border-[2px] border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.5)] font-[Inter]"
+            className={cx(ui.sheet, 'w-full max-w-[520px] max-h-[88vh]')}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              className="absolute top-4 right-4 text-[#1F2837]/70 hover:text-[#1F2837] transition"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
             {/* Header */}
-            <h2 className="text-3xl font-bold text-[#1F2837] mb-2 text-center">
-              Start Your Legacy
-            </h2>
-            <p className="text-sm text-[#7A8596] text-center mb-6 italic">
-              Give your timeline a name and a story. The moments you save here will live forever.
-            </p>
-            <span className="block w-16 h-1 bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] rounded-full mx-auto mb-6" />
+            <div className={ui.sheetHeader}>
+              <div className="min-w-0">
+                <h2 id={titleId} className={ui.sheetTitle}>
+                  Start Your Legacy
+                </h2>
+                <p id={subId} className={ui.sheetSub}>
+                  Give your timeline a name and a story. The moments you save here will live forever.
+                </p>
+              </div>
 
-            {/* Inputs */}
-            <label className="block text-sm font-semibold text-[#1F2837] mb-1 tracking-wide">
-              Title
-            </label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onFocus={(e) => (e.target.placeholder = '')}
-              onBlur={(e) => (e.target.placeholder = 'My Life Journey')}
-              className="w-full border border-[#E6C26E]/50 rounded-lg px-3 py-2 mb-4 text-[#1F2837] placeholder-[#7A8596] focus:ring-2 focus:ring-[#E6C26E] focus:outline-none"
-              placeholder="My Life Journey"
-            />
-
-            <label className="block text-sm font-semibold text-[#1F2837] mb-1 tracking-wide">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              onFocus={(e) => (e.target.placeholder = '')}
-              onBlur={(e) => (e.target.placeholder = 'Write a short description...')}
-              rows={3}
-              className="w-full border border-[#E6C26E]/50 rounded-lg px-3 py-2 mb-4 text-[#1F2837] placeholder-[#7A8596] focus:ring-2 focus:ring-[#E6C26E] focus:outline-none"
-              placeholder="Write a short description..."
-            />
-
-            <label className="block text-sm font-semibold text-[#1F2837] mb-2 tracking-wide flex items-center gap-1">
-              <ImagePlus className="w-4 h-4 text-[#E6C26E]" /> Cover image (optional)
-            </label>
-            <div
-              ref={dropRef}
-              onClick={() => document.getElementById('timelineCoverInput')?.click()}
-              className="w-full aspect-[16/9] border-2 border-dashed border-[#E6C26E]/60 rounded-xl flex items-center justify-center text-[#1F2837]/70 hover:text-[#1F2837] hover:shadow-[0_0_10px_rgba(230,194,110,0.4)] transition cursor-pointer overflow-hidden mb-6 bg-white"
-            >
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                />
-              ) : (
-                <span>Drag & drop or click to upload</span>
-              )}
-              <input
-                id="timelineCoverInput"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleFileSelect(f);
+              {/* Close */}
+              <IconBtn
+                label="Close"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
                 }}
-              />
+              >
+                <X size={20} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
+            </div>
+
+            <div className={ui.sheetBody}>
+              {/* Inputs */}
+              <div className={ui.field}>
+                <label htmlFor={nameId} className={ui.label}>
+                  Title
+                </label>
+                <input
+                  id={nameId}
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  onFocus={(e) => (e.target.placeholder = '')}
+                  onBlur={(e) => (e.target.placeholder = 'My Life Journey')}
+                  className={ui.input}
+                  placeholder="My Life Journey"
+                />
+              </div>
+
+              <div className={ui.field}>
+                <label htmlFor={descriptionId} className={ui.label}>
+                  Description
+                </label>
+                <textarea
+                  id={descriptionId}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  onFocus={(e) => (e.target.placeholder = '')}
+                  onBlur={(e) => (e.target.placeholder = 'Write a short description...')}
+                  rows={3}
+                  className={cx(ui.textarea, 'min-h-[104px]')}
+                  placeholder="Write a short description..."
+                />
+              </div>
+
+              {/* Cover image */}
+              <div className={ui.field}>
+                <label htmlFor="timelineCoverInput" className={ui.label}>
+                  Cover image (optional)
+                </label>
+                <div
+                  ref={dropRef}
+                  onClick={() => document.getElementById('timelineCoverInput')?.click()}
+                  className={cx(ui.dropzone, s.drop, previewUrl && s.dropPreview)}
+                >
+                  {previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={previewUrl} alt="Preview" />
+                  ) : (
+                    <>
+                      <IconTile Icon={ImagePlus} tone={toneByKey('aqua')} />
+                      <span className={ui.dropzoneTitle}>Drag & drop or click to upload</span>
+                    </>
+                  )}
+                  {/* Visually hidden, not display:none, so the keyboard can reach it */}
+                  <input
+                    id="timelineCoverInput"
+                    type="file"
+                    accept="image/*"
+                    className={ui.srOnly}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFileSelect(f);
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-3 mt-8 pt-4 border-t border-gray-200">
-              <button
-                onClick={onClose}
-                disabled={uploading}
-                className="w-full sm:w-auto px-5 py-2 rounded-full border border-[#E6C26E]/40 text-[#1F2837] font-medium hover:bg-[#F9F7F2] transition"
-              >
+            <div className={ui.sheetFooter}>
+              <Btn variant="soft" onClick={onClose} disabled={uploading}>
                 Cancel
-              </button>
+              </Btn>
 
-              <button
+              <Btn
                 onClick={handleSubmit}
                 disabled={!title.trim() || uploading}
-                type="button"
-                className={`w-full sm:w-auto px-6 py-2 rounded-full font-semibold text-[#1F2837] transition-all shadow-md ${
-                  !title.trim() || uploading
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] hover:shadow-[0_0_15px_rgba(230,194,110,0.6)] hover:scale-[1.02]'
-                }`}
+                tile={
+                  uploading ? (
+                    <Spinner size={16} />
+                  ) : mode === 'edit' ? (
+                    <Check size={18} strokeWidth={2.6} />
+                  ) : (
+                    <Plus size={18} strokeWidth={2.6} />
+                  )
+                }
               >
                 {uploading
                   ? 'Saving…'
                   : mode === 'edit'
                   ? 'Save Changes'
-                  : 'Create My Timeline ✨'}
-              </button>
+                  : 'Create My Timeline'}
+              </Btn>
             </div>
-
-            <style jsx>{`
-              @keyframes shimmer {
-                0% {
-                  background-position: -200% 0;
-                }
-                100% {
-                  background-position: 200% 0;
-                }
-              }
-            `}</style>
           </motion.div>
         </motion.div>
       )}

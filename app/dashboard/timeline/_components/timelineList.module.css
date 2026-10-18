@@ -1,0 +1,250 @@
+/* ============================================================
+   Timelines (/dashboard/timeline): the few looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have:
+   the timeline cards, the delete question, the cover picker and
+   the PDF preview drawer. Kit classes sit in the "components"
+   cascade layer, so a plain rule here wins over them.
+   Motion is transform and opacity only, played once.
+   ============================================================ */
+
+/* ── Motion ───────────────────────────────────────────────── */
+
+/* "backwards" applies the first frame during the delay and nothing after the end, so no
+   transform is left on a panel. */
+.fadeIn {
+  animation: tlFade 0.2s ease backwards;
+}
+
+.popIn {
+  animation: tlPop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@keyframes tlFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes tlPop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+/* ── One timeline: a white card holding the framed cover ──── */
+
+/* The colour frame (radius 22) sits 6px inside the white card (radius 28), so the corners
+   stay concentric. */
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  padding: 6px;
+  border-radius: 28px;
+}
+
+/* With its menu open, the card sits over the cards after it. */
+.card:has([aria-expanded='true']) {
+  z-index: 5;
+}
+
+/* A photo still loading shows the kit's soft grey; no cover at all is white (.coverEmpty). */
+.cover {
+  aspect-ratio: 16 / 9;
+}
+
+.coverEmpty {
+  background: #fff;
+}
+
+.coverImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition:
+    opacity 0.3s ease,
+    transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .card:hover .coverImg {
+    transform: scale(1.03);
+  }
+}
+
+/* No cover yet: the aqua Timelines tile on white. */
+.noCover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+/* The menu sits on the cover's top right corner. */
+.menu {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 16px 12px 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.open {
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+/* ── Destructive confirm ──────────────────────────────────── */
+
+.confirm {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+}
+
+.confirmTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.confirmText {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.confirmActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* ── Create or edit: the cover picker ─────────────────────── */
+
+.drop {
+  min-height: 168px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Children never take the drag events, so the zone doesn't flicker while a file moves over
+   it (the hidden file field keeps its keyboard focus). */
+.drop > * {
+  pointer-events: none;
+}
+
+/* The chosen cover fills the zone, at the cards' 16:9. */
+.dropPreview {
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+}
+
+.dropPreview > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .dropPreview:hover > img {
+    transform: scale(1.03);
+  }
+}
+
+/* ── Preserve My Legacy: the PDF preview drawer ───────────── */
+
+.exportPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(520px, 100%);
+  height: 100%;
+}
+
+/* Full width on phones: square corners. */
+@media (max-width: 519px) {
+  .exportPanel {
+    border-radius: 0;
+  }
+}
+
+.pdf {
+  height: 420px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--hover);
+  box-shadow: var(--hairline-ring);
+}
+
+.pdf > iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.pdfNote {
+  margin: 14px 2px 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}

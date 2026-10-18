@@ -1,16 +1,29 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { Package, Plus } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import CreateCapsuleDrawer from './_components/CreateCapsuleDrawer';
-import { motion } from 'framer-motion';
 import CapsuleCreatedOverlay from '@/components/CapsuleCreatedOverlay';
 import CapsuleCard from './_components/CapsuleCard';
 import CapsuleUnlock from '@/components/CapsuleUnlock';
 import { usePlanLimits } from '@/lib/usePlanLimits';
 import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
+import {
+  ui,
+  Accent,
+  AppLoader,
+  Btn,
+  EmptyState,
+  PageHeader,
+  toneByKey,
+  useDialog,
+} from '@/components/dashboard/ui/AppBits';
+import s from './_components/capsules.module.css';
 
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type Capsule = {
   id: string;
@@ -28,7 +41,6 @@ export default function CapsulesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasLoaded = useRef(false);
-  const hasCheckedUnlock = useRef(false);
 
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
   const [selectedCapsule, setSelectedCapsule] = useState<Capsule | null>(null);
@@ -38,9 +50,17 @@ export default function CapsulesPage() {
 
   const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
-  // typing effect (matches Timeline)
+  // Escape cancels the delete question, Tab stays inside it.
+  const confirmRef = useDialog<HTMLDivElement>(!!confirmDelete, () => setConfirmDelete(null));
+  const confirmTitleId = useId();
+  const confirmTextId = useId();
+
+  // The header's lead
   const line1 = '“Write something today that someone will read years from now.”';
   const line2 = 'Create capsules to store words and memories for the future.';
+
+  // The plan-limit message (the create button also shows it as a toast).
+  const limitMessage = `You’ve reached your current plan limit for capsules (${counts?.capsules} / ${limits?.max_capsules}). Upgrade your plan to create more.`;
 
   // 🔵 Capsule CREATED overlay
 const [createdOpen, setCreatedOpen] = useState(false);
@@ -103,49 +123,13 @@ const [unlockNotificationId, setUnlockNotificationId] = useState<string | null>(
     })();
   }, [supabase]);
 
-useEffect(() => {
-  if (loading) return;
-  if (hasCheckedUnlock.current) return;
+// The "Capsule unlocked" celebration (CapsuleUnlock below) is switched off for now. It looked
+// for an unread notification with seen = false and a "Capsule Unlocked" title, but the
+// notifications table has neither column (it uses is_read and has no title), so the lookup
+// failed with a 400 on every visit; and unlock_due_capsules() no longer creates a notification
+// when a capsule unlocks, so there was nothing to find. Bring it back by having the unlock
+// create a notification again and looking for that here.
 
-  hasCheckedUnlock.current = true;
-
-  (async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return;
-
-    // 1️⃣ Find unseen unlock notification
-    const { data: notif } = await supabase
-      .from('notifications')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('type', 'update')
-      .eq('seen', false)
-      .ilike('title', '%Capsule Unlocked%')
-      .limit(1)
-      .maybeSingle();
-
-    if (!notif) return;
-
-    // 2️⃣ Confirm there is ACTUALLY an unlocked capsule
-    const { data: unlockedCapsule } = await supabase
-      .from('memory_capsules')
-      .select('id')
-      .eq('is_locked', false)
-      .lte('unlock_date', new Date().toISOString())
-      .limit(1)
-      .maybeSingle();
-
-    // ❌ No real unlock → ignore notification
-    if (!unlockedCapsule) return;
-
-    // ✅ Legit unlock → play animation
-    setUnlockNotificationId(notif.id);
-    setUnlockOpen(true);
-  })();
-}, [loading, supabase]);
 
 
   const handleDeleteCapsule = async (id: string) => {
@@ -159,211 +143,218 @@ useEffect(() => {
     }
   };
 
+  // The create button (in the header and in the empty state).
+  const openCreate = () => {
+    if (limitsLoading) return;
+    if (!canCreate.capsule) {
+      toast.error(limitMessage);
+      return;
+    }
+    setDrawerMode('create');
+    setSelectedCapsule(null);
+    setDrawerOpen(true);
+  };
+
+  const createButton = (
+    <Btn onClick={openCreate} aria-haspopup="dialog" tile={<Plus size={18} strokeWidth={2.6} />}>
+      Create New Capsule
+    </Btn>
+  );
+
+  const list = capsules ?? [];
+
   return (
-    <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
-       <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 md:pl-16 md:pr-16 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
-        {/* header (matches Timeline) */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
-          <div className="text-center md:text-left flex-1">
-            <h1 className="text-[clamp(2.25rem,4vw,3rem)] font-bold text-[#222B3A] mb-4 relative inline-block">
-              <span className="relative">
-                My
-                <motion.span
-                  className="absolute left-0 -bottom-2 h-[3px] bg-[#C8A557] rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: 70 }}
-                  transition={{ delay: 0.2, duration: 0.8, ease: 'easeOut' }}
-                />
-              </span>{' '}
-              <span className="text-[#C8A557]">Capsules</span>
-            </h1>
+    <div className={ui.page}>
+      <div className={ui.wrap}>
+        <PageHeader
+          eyebrow="Capsules"
+          eyebrowDot="var(--c0)"
+          title={
+            <>
+              My <Accent>Capsules</Accent>
+            </>
+          }
+          lead={
+            <>
+              <span className="font-bold">{line1}</span> {line2}
+            </>
+          }
+          actions={createButton}
+        />
 
-            <p className="text-[#000000] mt-3 text-lg italic min-h-[30px]">{line1}</p>
-            <p
-              className={`text-[#000000] text-sm mt-2 transition-opacity duration-500 ${
-                'opacity-100'
-              }`}
-            >
-              {line2}
-            </p>
-          </div>
-
-          <div className="flex justify-center md:justify-end flex-1">
-            <button
-              className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
-              onClick={() => {
-  if (limitsLoading) return;
-  if (!canCreate.capsule) {
-    toast.error(
-      `You’ve reached your current plan limit for capsules (${counts?.capsules} / ${limits?.max_capsules}). Upgrade your plan to create more.`
-    );
-    return;
-  }
-  setDrawerMode('create');
-  setSelectedCapsule(null);
-  setDrawerOpen(true);
-}}
-
-            >
-              <span className="relative z-10">+ Create New Capsule</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
-            </button>
-          </div>
-        </div>
-
-        {/* states */}
-        {loading && <p className="text-[#778199] italic text-center mb-4">Loading your capsules...</p>}
-        {!loading && error && <p className="text-[#C33838] text-center mb-4">{error}</p>}
-        {!loading && !error && (capsules ?? []).length === 0 && (
-          <div className="text-center text-[#0f2040] italic mt-12">
-            Nothing sealed for the future yet. Create your first capsule ✨
-          </div>
+        {!limitsLoading && !canCreate.capsule && (
+          <p className={cx(ui.noticeWarn, 'mt-8')} role="status">
+            {limitMessage}
+          </p>
         )}
 
- {/* cards */}
-{!loading && !error && (capsules ?? []).length > 0 && (
-  <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,240px),1fr))] gap-8 transition-opacity duration-500">
-    {capsules.map((c) => (
-      <CapsuleCard
-        key={c.id}
-        capsule={c}
-        onEdit={() => {
-          if (c.is_locked) {
-            toast.error('This capsule is locked.');
-            return;
-            }
-          setDrawerMode('edit');
-          setSelectedCapsule(c);
-          setDrawerOpen(true);
-        }}
-        onDelete={() =>
-          setConfirmDelete({
-            id: c.id,
-            title: c.title || 'Untitled Capsule',
-          })
-        }
-      />
-    ))}
-  </div>
-  )}
-  </div>  {/* 🔴 THIS WAS MISSING */}
+        <section className={ui.section} aria-label="Your capsules">
+          {/* states */}
+          {loading && <AppLoader label="Loading your capsules" />}
 
-{/* Drawer */}
-<CreateCapsuleDrawer
-  open={drawerOpen}
-  mode={drawerMode}
-  capsule={selectedCapsule}
-  onClose={() => {
-    setDrawerOpen(false);
-    setSelectedCapsule(null);
-    setDrawerMode('create');
-    }}
+          {!loading && error && (
+            <p className={ui.noticeError} role="alert">
+              {error}
+            </p>
+          )}
 
-  onCreated={async (cap) => {
-  const signed = await getSignedCoverUrl(cap.cover_image);
+          {!loading && !error && list.length === 0 && (
+            <EmptyState
+              Icon={Package}
+              tone={toneByKey('pink')}
+              title="Nothing sealed for the future yet"
+              text="Create your first capsule."
+            >
+              {createButton}
+            </EmptyState>
+          )}
 
-  // 🔑 Tell dashboard layout a story now exists
-  window.dispatchEvent(new Event('dashboard-data-changed'));
-
-  setCapsules((prev) => {
-    const safe = prev ?? [];
-    const newItem: Capsule = {
-      id: cap.id,
-      title: cap.title,
-      description: cap.description ?? null,
-      unlock_date: cap.unlock_date,
-      is_locked: cap.is_locked,
-      created_at: cap.created_at,
-      cover_image: signed,
-    };
-    return [newItem, ...safe];
-  });
-
-  // ✅ capsule created animation
-  setCreatedOpen(true);
-}}
-
-  onUpdated={async (cap) => {
-    const signed = await getSignedCoverUrl(cap.cover_image);
-    setCapsules((prev) =>
-      prev
-        ? prev.map((c) =>
-            c.id === cap.id ? { ...c, ...cap, cover_image: signed } : c
-          )
-        : prev
-    );
-    toast.success('Capsule updated!');
-  }}
-/>
-
-
-<CapsuleCreatedOverlay
-  open={createdOpen}
-  onClose={() => setCreatedOpen(false)}
-/>
-
-{unlockOpen && (
-  <CapsuleUnlock
-    onComplete={async () => {
-      if (unlockNotificationId) {
-        await supabase
-          .from('notifications')
-          .update({ seen: true })
-          .eq('id', unlockNotificationId);
-      }
-
-      // 🔓 Update UI immediately (no refresh)
-      setCapsules((prev) =>
-        prev.map((c) =>
-          c.is_locked && new Date(c.unlock_date) <= new Date()
-            ? { ...c, is_locked: false }
-            : c
-        )
-      );
-
-      setUnlockOpen(false);
-      setUnlockNotificationId(null);
-    }}
-  />
-)}
-
-      <style jsx global>{`
-        @keyframes shine {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-      `}</style>
-      {/* delete confirmation */}
-
-{confirmDelete && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] animate-fadeIn">
-    <div className="bg-white rounded-2xl shadow-xl p-6 w-[90%] max-w-sm text-center">
-      <h3 className="text-lg font-semibold text-[#1F2837] mb-3">
-        Delete “{confirmDelete.title}”?
-      </h3>
-      <p className="text-sm text-[#5B6473] mb-6">
-        This action cannot be undone. All media, voice notes, and messages inside this capsule will be lost.
-      </p>
-      <div className="flex justify-center gap-3">
-        <button
-          className="px-5 py-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
-          onClick={() => setConfirmDelete(null)}
-        >
-          Cancel
-        </button>
-        <button
-          className="px-5 py-2 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-medium shadow hover:shadow-md transition"
-          onClick={() => {
-            handleDeleteCapsule(confirmDelete.id);
-            setConfirmDelete(null);
-          }}
-        >
-          Delete
-        </button>
+          {/* cards: columns follow the space beside the sidebar, 1 on phones, 2 on tablets, 3 on desktops */}
+          {!loading && !error && list.length > 0 && (
+            <div className="@container">
+              <ul role="list" className="grid grid-cols-1 gap-5 @xl:grid-cols-2 @4xl:grid-cols-3">
+                {list.map((c) => (
+                  <li key={c.id} className="min-w-0">
+                    <CapsuleCard
+                      capsule={c}
+                      onEdit={() => {
+                        if (c.is_locked) {
+                          toast.error('This capsule is locked.');
+                          return;
+                        }
+                        setDrawerMode('edit');
+                        setSelectedCapsule(c);
+                        setDrawerOpen(true);
+                      }}
+                      onDelete={() =>
+                        setConfirmDelete({
+                          id: c.id,
+                          title: c.title || 'Untitled Capsule',
+                        })
+                      }
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
       </div>
-    </div>
-  </div>
-)}
+
+      {/* Drawer */}
+      <CreateCapsuleDrawer
+        open={drawerOpen}
+        mode={drawerMode}
+        capsule={selectedCapsule}
+        onClose={() => {
+          setDrawerOpen(false);
+          setSelectedCapsule(null);
+          setDrawerMode('create');
+        }}
+        onCreated={async (cap) => {
+          const signed = await getSignedCoverUrl(cap.cover_image);
+
+          // 🔑 Tell dashboard layout a story now exists
+          window.dispatchEvent(new Event('dashboard-data-changed'));
+
+          setCapsules((prev) => {
+            const safe = prev ?? [];
+            const newItem: Capsule = {
+              id: cap.id,
+              title: cap.title,
+              description: cap.description ?? null,
+              unlock_date: cap.unlock_date,
+              is_locked: cap.is_locked,
+              created_at: cap.created_at,
+              cover_image: signed,
+            };
+            return [newItem, ...safe];
+          });
+
+          // ✅ capsule created animation
+          setCreatedOpen(true);
+        }}
+        onUpdated={async (cap) => {
+          const signed = await getSignedCoverUrl(cap.cover_image);
+          setCapsules((prev) =>
+            prev
+              ? prev.map((c) =>
+                  c.id === cap.id ? { ...c, ...cap, cover_image: signed } : c
+                )
+              : prev
+          );
+          toast.success('Capsule updated!');
+        }}
+      />
+
+      <CapsuleCreatedOverlay
+        open={createdOpen}
+        onClose={() => setCreatedOpen(false)}
+      />
+
+      {/* The unlock card fades out when it's done (it unmounts on onComplete) */}
+      <AnimatePresence>
+        {unlockOpen && (
+          <CapsuleUnlock
+            key="capsule-unlock"
+            onComplete={async () => {
+              if (unlockNotificationId) {
+                await supabase
+                  .from('notifications')
+                  .update({ seen: true })
+                  .eq('id', unlockNotificationId);
+              }
+
+              // 🔓 Update UI immediately (no refresh)
+              setCapsules((prev) =>
+                prev.map((c) =>
+                  c.is_locked && new Date(c.unlock_date) <= new Date()
+                    ? { ...c, is_locked: false }
+                    : c
+                )
+              );
+
+              setUnlockOpen(false);
+              setUnlockNotificationId(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* delete confirmation */}
+      {confirmDelete && (
+        <div className={cx(ui.scrim, s.fadeIn, 'scrim-blur z-[9999] flex items-center justify-center p-4')}>
+          <div
+            ref={confirmRef}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={confirmTitleId}
+            aria-describedby={confirmTextId}
+            className={cx(ui.sheet, s.confirm, s.popIn)}
+          >
+            <h2 id={confirmTitleId} className={s.confirmTitle}>
+              Delete “{confirmDelete.title}”?
+            </h2>
+            <p id={confirmTextId} className={s.confirmText}>
+              This action cannot be undone. All media, voice notes, and messages inside this capsule will be lost.
+            </p>
+            <div className={s.confirmActions}>
+              <Btn variant="soft" onClick={() => setConfirmDelete(null)}>
+                Cancel
+              </Btn>
+              <Btn
+                variant="danger"
+                onClick={() => {
+                  handleDeleteCapsule(confirmDelete.id);
+                  setConfirmDelete(null);
+                }}
+              >
+                Delete
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,579 @@
+/* ============================================================
+   Timeline event modal (MemoryModal + MemoryModalBody): the
+   looks the app kit (src/components/dashboard/ui/app.module.css)
+   doesn't have. A centred dialog on tablets and desktops, a
+   full-height bottom sheet on phones. Kit classes sit in the
+   "components" cascade layer, so a plain rule here wins over
+   them (and over Tailwind utilities on the same element).
+   ============================================================ */
+
+/* ── Open: played once, transform and opacity only ───────── */
+
+/* "backwards" applies the first frame during the delay and nothing after the end, so no
+   transform is left on a panel. */
+.fade {
+  animation: mmFade 0.2s ease backwards;
+}
+
+.pop {
+  animation: mmPop 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@keyframes mmFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes mmUp {
+  from {
+    transform: translateY(48px);
+  }
+}
+
+@keyframes mmPop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+}
+
+/* ── The panel ────────────────────────────────────────────── */
+
+/* Phones: a full-height sheet from the bottom, a sliver of the page showing above it. */
+.panel {
+  width: 100%;
+  height: calc(100vh - 20px);
+  height: calc(100dvh - 20px);
+  animation: mmUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+/* Tablets and desktops: one steady size, so nothing jumps as the photos and words load. */
+@media (min-width: 640px) {
+  .panel {
+    max-width: 940px;
+    height: min(820px, calc(100vh - 48px));
+    height: min(820px, calc(100dvh - 48px));
+    border-radius: 28px;
+    animation-name: mmPop;
+    animation-duration: 0.26s;
+  }
+}
+
+/* ── Header: the title, Close, and the memory's actions ───── */
+
+.head {
+  flex: none;
+  padding: 20px 20px 16px 24px;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+.headTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* The title is an editable field that reads as the heading. It grows with its text: a hidden
+   copy (::after) sits in the same grid cell and sets the height, so a long title never hides
+   a line. The negative margin lines the words up with the content below. */
+.titleGrow {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  margin-left: -10px;
+}
+
+.titleGrow::after {
+  content: attr(data-value) ' ';
+  visibility: hidden;
+  white-space: pre-wrap;
+}
+
+.titleGrow > textarea,
+.titleGrow::after {
+  grid-area: 1 / 1 / 2 / 2;
+  min-width: 0;
+  margin: 0;
+  padding: 3px 10px 5px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  font: inherit;
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.titleGrow > textarea {
+  width: 100%;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.titleGrow > textarea::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .titleGrow > textarea:hover {
+    background: var(--hover);
+  }
+}
+
+/* The kit's field focus: pink edge and a soft pink ring. */
+.titleGrow > textarea:focus {
+  background: #fff;
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+/* Add media on the left; save the title and delete on the right. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.actionGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* "Saving..." is wider than "Save": the row doesn't shift when the label flips. */
+.saveBtn {
+  min-width: 122px;
+}
+
+/* An <input type="file"> inside a label that looks like a button: the input is visually
+   hidden but still reached with Tab, and its focus ring is drawn on the label. The label
+   holds the hidden input (position: relative), so the input scrolls with it: Tab then
+   brings the label into view, instead of scrolling the whole panel and its header away. */
+.fileBtn {
+  position: relative;
+}
+
+.fileBtn:has(input:focus-visible) {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+/* The delete button: as tall as the small buttons beside it, outlined in the danger red. */
+.danger {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--danger);
+  box-shadow: inset 0 0 0 1.5px rgba(224, 0, 77, 0.35);
+}
+
+@media (pointer: coarse) {
+  .danger {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (hover: hover) {
+  .danger:not(:disabled):hover {
+    background: var(--danger);
+    color: #fff;
+    box-shadow: none;
+  }
+}
+
+/* Phones: the two pairs of actions take a row each and share its width. */
+@media (max-width: 599px) {
+  .head {
+    padding: 16px 14px 14px 20px;
+  }
+
+  .actionGroup {
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .actionGroup > :not(.danger) {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+/* ── Body: one scrolling area ─────────────────────────────── */
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px 24px 32px;
+}
+
+@media (max-width: 599px) {
+  .body {
+    padding: 18px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* While the memory loads or a file uploads: the loader holds the body's height. */
+.loading {
+  min-height: min(55vh, 440px);
+}
+
+/* Photos first, then the words. Desktops: photos on the left, words on the right. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 36px;
+}
+
+@media (min-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+  }
+}
+
+/* ── Photos, videos, recordings ───────────────────────────── */
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+/* Large phones and tablets: two to a row, a lone photo or video across the row. */
+@media (min-width: 560px) and (max-width: 959px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .grid > .tile:only-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 960px) {
+  .grid {
+    gap: 16px;
+  }
+}
+
+/* One photo or video. There is no viewer here, so the tile shows the whole photo (never
+   cropped), on the light grey. The height is capped so a lone photo across a tablet's row
+   stays in proportion. The faint inset hairline keeps the tile's edge on the white. */
+.tile {
+  position: relative;
+  width: 100%; /* a grid item with an aspect ratio would otherwise shrink to the capped height */
+  aspect-ratio: 4 / 3;
+  max-height: min(440px, 62vh);
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--hover);
+}
+
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(10, 10, 15, 0.08);
+  pointer-events: none;
+}
+
+/* A video plays whole (never cropped), in an ink frame. */
+.tileVideo {
+  background: var(--ink);
+}
+
+.tileVideo::after {
+  content: none;
+}
+
+.tileVideo > video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* No preview (a file, or a photo whose link didn't sign): its icon in the middle. */
+.tileIcon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Delete: a round white button on the photo's corner. With a mouse it shows on hover or
+   focus; on touch screens it is always there. */
+.tileDel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.tile:hover .tileDel,
+.tileDel:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .tileDel {
+    opacity: 1;
+  }
+}
+
+/* A recording added to the memory: its player in a white card across the row. */
+.audioCard {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px 12px 12px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.audio {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  height: 40px;
+}
+
+/* Nothing added yet. */
+.empty {
+  padding: clamp(32px, 5vw, 48px) clamp(20px, 4vw, 40px);
+}
+
+/* ── The words: written and spoken ────────────────────────── */
+
+.words {
+  display: grid;
+  gap: 40px;
+  align-content: start;
+  min-width: 0;
+}
+
+/* Tablets: written and spoken side by side under the photos. */
+@media (min-width: 720px) and (max-width: 959px) {
+  .words {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+  }
+}
+
+.sectionTitle {
+  margin-top: 10px;
+}
+
+.entries,
+.voices {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.entry {
+  padding: 14px 8px 8px 16px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.entryText {
+  margin: 0 8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.6;
+  font-weight: 500;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.entryMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Who wrote or spoke it, and when: a small avatar, then the name and the date. */
+.author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.composer {
+  margin-top: 16px;
+}
+
+.composerActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.voiceCard {
+  padding: 12px 8px 12px 12px;
+  border-radius: 20px;
+}
+
+.voiceRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.voiceMeta {
+  margin: 10px 0 0 2px;
+}
+
+/* Upload a voice note, or record one: side by side, sharing the width. */
+.voiceActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.voiceActions > * {
+  min-width: 0;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+/* Recording: the stop button in pink with a soft pink halo (static: no pulse). */
+.recording {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 12px 0 4px;
+}
+
+.stopBtn {
+  width: 80px;
+  height: 80px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--c0);
+  color: var(--ink);
+  box-shadow: 0 0 0 10px var(--pink-tint);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .stopBtn:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.stopBtn:active {
+  transform: scale(0.96);
+  transition-duration: 80ms;
+}
+
+.recordingText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* The take, before it is sealed in: its player, then Seal and Discard. */
+.take {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.takeCard {
+  padding: 12px;
+  border-radius: 20px;
+}
+
+.takeAudio {
+  display: block;
+  width: 100%;
+  height: 40px;
+}
+
+/* ── Delete this memory? ──────────────────────────────────── */
+
+.confirm {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+}
+
+.confirmTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.confirmText {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.confirmActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}

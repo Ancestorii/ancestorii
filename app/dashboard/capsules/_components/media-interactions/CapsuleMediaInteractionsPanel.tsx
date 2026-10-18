@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import VoiceNoteDrawer from '../../_components/VoiceNoteDrawer';
-import { Trash2 } from 'lucide-react';
+import { Check, Feather, Mic, Plus, Trash2 } from 'lucide-react';
+import { ui, Btn, IconBtn, IconTile, toneByKey } from '@/components/dashboard/ui/AppBits';
+import s from '../capsuleDetail.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type ProfileShape = { full_name: string | null } | { full_name: string | null }[];
 
@@ -38,6 +42,9 @@ export default function CapsuleMediaInteractionsPanel({
   const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [draft, setDraft] = useState('');
+
+  const letterTitleId = useId();
+  const voiceTitleId = useId();
 
   useEffect(() => {
     if (!capsuleId) return;
@@ -137,103 +144,116 @@ export default function CapsuleMediaInteractionsPanel({
   };
 
   return (
-    <div className="w-full lg:w-[420px] border-t lg:border-t-0 lg:border-l border-[#E6C26E]/55 px-10 py-12 overflow-y-auto">
-      <h3 className="text-xl font-semibold text-[#0f2040] mb-2">
-        Write a letter to your future self
-      </h3>
+    <div className={s.panel}>
+      {/* The letter */}
+      <section className={ui.card} aria-labelledby={letterTitleId}>
+        <div className={s.cardHead}>
+          <IconTile Icon={Feather} tone={toneByKey('pink')} size="sm" />
+          <div className={s.cardHeadText}>
+            <h2 id={letterTitleId} className={ui.h3}>
+              Write a letter to your future self
+            </h2>
 
-      <p className="text-sm text-gray-500 mb-4">
-        This letter stays sealed inside this capsule until it is opened.
-      </p>
+            <p className={s.cardLead}>
+              This letter stays sealed inside this capsule until it is opened.
+            </p>
+          </div>
+        </div>
 
-      <textarea
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        placeholder="Dear future me…"
-        rows={12}
-        className="w-full border rounded-lg p-2 text-sm mb-3 focus:ring-2 focus:ring-[#E6C26E] outline-none"
-      />
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Dear future me…"
+          rows={12}
+          aria-labelledby={letterTitleId}
+          className={cx(ui.textarea, s.letter)}
+        />
 
-      <button
-        onClick={saveLetter}
-        className="px-6 py-3 bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] rounded-full text-sm font-semibold hover:shadow-lg hover:scale-[1.02] transition"
-      >
-        Save Letter
-      </button>
+        <div className={s.letterFoot}>
+          <Btn
+            onClick={saveLetter}
+            icon={<Check size={18} strokeWidth={2.6} aria-hidden="true" />}
+          >
+            Save Letter
+          </Btn>
 
-      {letter && (
-  <div className="mt-4 text-xs text-gray-500 flex items-center gap-1">
-    <span>
-      Written by{' '}
-      <span className="font-semibold text-[#1F2837]">
-        {Array.isArray(letter.Profiles)
-          ? letter.Profiles[0]?.full_name
-          : letter.Profiles?.full_name || 'You'}
-      </span>
-    </span>
-    •
-    <span>
-      {new Date(letter.created_at).toLocaleDateString(undefined, {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })}
-    </span>
-  </div>
-)}
+          {letter && (
+            <p className={s.byline}>
+              Written by{' '}
+              <span className={s.bylineName}>
+                {Array.isArray(letter.Profiles)
+                  ? letter.Profiles[0]?.full_name
+                  : letter.Profiles?.full_name || 'You'}
+              </span>
+              {' · '}
+              {new Date(letter.created_at).toLocaleDateString(undefined, {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </p>
+          )}
+        </div>
+      </section>
 
-      <div className="mt-16">
-        <h3 className="text-lg font-semibold text-[#0f2040] mb-4">
-          Voice Notes
-        </h3>
+      {/* Voice notes */}
+      <section className={ui.card} aria-labelledby={voiceTitleId}>
+        <div className={s.voiceHead}>
+          <div className={s.voiceTitle}>
+            <IconTile Icon={Mic} tone={toneByKey('blue')} size="sm" />
+            <h2 id={voiceTitleId} className={ui.h3}>
+              Voice Notes
+            </h2>
+          </div>
 
-        <button
-          onClick={() => setVoiceOpen(true)}
-          className="px-6 py-3 mb-6 bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] rounded-full text-sm font-semibold hover:shadow-lg hover:scale-[1.02] transition"
-        >
-          + Add Voice Note
-        </button>
+          <Btn
+            variant="soft"
+            size="sm"
+            onClick={() => setVoiceOpen(true)}
+            aria-haspopup="dialog"
+            icon={<Plus size={17} strokeWidth={2.4} aria-hidden="true" />}
+          >
+            Add Voice Note
+          </Btn>
+        </div>
 
-        <div className="space-y-4">
-          {voiceNotes.length ? (
-            voiceNotes.map((v) => {
+        {voiceNotes.length ? (
+          <ul className={s.voices}>
+            {voiceNotes.map((v) => {
               const name = Array.isArray(v.Profiles)
                 ? v.Profiles[0]?.full_name
                 : v.Profiles?.full_name;
 
               return (
-                <div
-                  key={v.id}
-                  className="border border-gray-100 rounded-xl p-4 shadow-sm relative bg-white"
-                >
-                  <p className="text-sm font-semibold text-[#1F2837] mb-2">
-                    {name || 'Anonymous'}
-                  </p>
+                <li key={v.id} className={s.voice}>
+                  <div className={s.voiceTop}>
+                    <p className={s.voiceName}>{name || 'Anonymous'}</p>
+
+                    <IconBtn
+                      label="Delete this voice note"
+                      ghost
+                      size="sm"
+                      onClick={() => deleteVoice(v.id)}
+                    >
+                      <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                    </IconBtn>
+                  </div>
 
                   {v.signed_url && (
-                    <audio controls src={v.signed_url} className="w-full" />
+                    <audio controls src={v.signed_url} className={s.audio} />
                   )}
 
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className={s.voiceMeta}>
                     {new Date(v.created_at).toLocaleString()}
                   </p>
-
-                  <button
-                    onClick={() => deleteVoice(v.id)}
-                    className="absolute top-2 right-2 text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                </li>
               );
-            })
-          ) : (
-            <p className="text-xs text-gray-400 italic">
-              No voice notes yet.
-            </p>
-          )}
-        </div>
-      </div>
+            })}
+          </ul>
+        ) : (
+          <p className={s.note}>No voice notes yet.</p>
+        )}
+      </section>
 
       <VoiceNoteDrawer
         capsuleId={capsuleId}

@@ -1,7 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type CSSProperties } from 'react';
+import { Play } from 'lucide-react';
+import { ui } from '@/components/dashboard/ui/AppBits';
 import { TimelineEvent } from './HorizontalTimeline';
+import s from './eventTimeline.module.css';
+
+const cls = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 
 function EventCoverImage({
@@ -85,6 +90,56 @@ export default function TimelineEventCard({
 
   const isPdf = variant === 'pdf';
 
+  // The photo or video (the first of the memory's media), with ink chips over it.
+  const thumb = cover && (
+    <div className={cls(s.thumb, !isPdf && s.thumbHover)}>
+      <div className={s.media}>
+        {cover.type === 'photo' ? (
+          <EventCoverImage src={cover.url} onImgError={onImgError} />
+        ) : (
+          <video
+            key={cover.url} // ✅ remount when signed url changes
+            src={cover.url}
+            className="h-full w-full object-cover block"
+            muted
+            playsInline
+            preload="metadata"
+            style={{
+              transform: 'translateZ(0)',
+              backfaceVisibility: 'hidden',
+            }}
+          />
+        )}
+      </div>
+
+      {cover.type === 'video' && (
+        <span className={cls(ui.chip, ui.chipInk, ui.chipSm, s.badge, s.badgeVideo)}>
+          <Play size={10} strokeWidth={2.6} fill="currentColor" aria-hidden="true" />
+          Video
+        </span>
+      )}
+
+      {more > 0 && (
+        <span className={cls(ui.chip, ui.chipInk, ui.chipSm, s.badge, s.badgeMore)}>
+          +{more}
+        </span>
+      )}
+    </div>
+  );
+
+  // The date as a chip (its dot in the memory's colour), then the title.
+  const meta = (
+    <div className={cls(s.meta, cover ? (up ? s.metaBelow : s.metaAbove) : s.metaOnly)}>
+      <span
+        className={cls(ui.chip, ui.chipSm, ui.chipDot, s.date)}
+        style={{ '--dot': accent } as CSSProperties}
+      >
+        {date.toUTCString().slice(5, 16)}
+      </span>
+      <p className={s.title}>{event.title}</p>
+    </div>
+  );
+
   return (
     <g transform={`translate(0, ${cardY})`}>
       <foreignObject
@@ -94,118 +149,18 @@ export default function TimelineEventCard({
         height={cardHeight}
         style={{ overflow: 'hidden' }}
       >
-        <div
-         className="rounded-xl border border-slate-200 bg-white overflow-hidden"
-          style={{ borderTop: '4px solid #D4AF37' }}
-        >
-          <div className={
-          isPdf
-          ? undefined
-          : 'transition-transform duration-200 ease-out hover:scale-[1.018]'}
-          style={{ transformOrigin: 'center' }}
-          >
-          <div  className="p-3">
-            {up ? (
-              <>
-                {cover && (
-                  <div className="mt-0 relative w-full h-[140px]">
-                    <div className="absolute inset-0 rounded-lg bg-slate-200/70 translate-x-1.5 translate-y-1.5 rotate-[-2deg]" />
-                    <div className="absolute inset-0 rounded-lg bg-slate-200/60 translate-x-3 translate-y-3 rotate-[1.8deg]" />
-                     <div className={
-                      isPdf
-                       ? 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 bg-black'
-                       : 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 bg-black transition-transform duration-200 ease-out hover:scale-[1.04] hover:shadow-md'
-                       }
-                       >
-                      {cover.type === 'photo' ? (
-                        <EventCoverImage src={cover.url} onImgError={onImgError} />
-                       ) : (
-                       <video
-  key={cover.url} // ✅ remount when signed url changes
-  src={cover.url}
-  className="h-full w-full object-cover block"
-  muted
-  playsInline
-  preload="metadata"
-  style={{
-    transform: 'translateZ(0)',
-    backfaceVisibility: 'hidden',
-  }}
-/>
-                      )}
-                      {more > 0 && (
-                        <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md text-xs font-semibold text-white bg-black/60">
-                          +{more}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div
-                  className="mt-3 text-[12px] uppercase tracking-wide font-bold"
-                  style={{ color: accent }}
-                >
-                  {date.toUTCString().slice(5, 16)}
-                </div>
-
-                <div className="text-sm font-medium text-slate-800 mt-1 line-clamp-1">
-                  {event.title}
-                </div>
-              </>
-            ) : (
-              <>
-                <div
-                  className="text-[12px] uppercase tracking-wide font-bold"
-                  style={{ color: accent }}
-                >
-                  {date.toUTCString().slice(5, 16)}
-                </div>
-
-                <div className="text-sm font-medium text-slate-800 mt-1 mb-3 line-clamp-1">
-                  {event.title}
-                </div>
-
-                {cover && (
-                  <div className="mt-0 relative w-full h-[140px]">
-                    <div className="absolute inset-0 rounded-lg bg-slate-200/70 translate-x-1.5 translate-y-1.5 rotate-[-2deg]" />
-                    <div className="absolute inset-0 rounded-lg bg-slate-200/60 translate-x-3 translate-y-3 rotate-[1.8deg]" />
-                    <div
-                     className={
-                      isPdf
-                      ? 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 bg-black'
-                      : 'relative h-full w-full rounded-lg overflow-hidden ring-1 ring-slate-200 bg-black transition-transform duration-200 ease-out hover:scale-[1.04] hover:shadow-md'
-                       }
-                      >
-                      {cover.type === 'photo' ? (
-  <EventCoverImage src={cover.url} onImgError={onImgError} />
-) : (
-                    <video
-  key={cover.url} // ✅ remount when signed url changes
-  src={cover.url}
-  className="h-full w-full object-cover block"
-  muted
-  playsInline
-  preload="metadata"
-  style={{
-    transform: 'translateZ(0)',
-    backfaceVisibility: 'hidden',
-  }}
-/>
-                    )}
-
-                      {more > 0 && (
-                        <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md text-xs font-semibold text-white bg-black/60">
-                          +{more}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+        <div className={s.card}>
+          {up ? (
+            <>
+              {thumb}
+              {meta}
+            </>
+          ) : (
+            <>
+              {meta}
+              {thumb}
+            </>
+          )}
         </div>
       </foreignObject>
     </g>

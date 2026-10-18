@@ -1,10 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
+import { ArrowRight, Lock, LockOpen, Package } from 'lucide-react';
 import { ContextMenuDots } from '@/components/ContextMenuDots';
 import { safeToast as toast } from '@/lib/safeToast';
+import { ui, btnClass, IconTile, toneFor } from '@/components/dashboard/ui/AppBits';
+import s from './capsules.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// Dates on the card, the British way: "28 Mar 2026".
+const formatDate = (value: string) =>
+  new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
 type Capsule = {
   id: string;
@@ -84,92 +93,126 @@ const timeRemaining = useMemo(() => {
   return `${daysTotal} day${daysTotal > 1 ? 's' : ''} remaining`;
 }, [isStillLocked, capsule.unlock_date]);
 
+  // The state chip (display only): sealed until its date, sealed and its date has come
+  // (ready to open), not sealed yet (its date is ahead and it is still being filled), or open
+  // (unsealed with its date passed: unlock_due_capsules() unseals a sealed capsule on its
+  // date, and a capsule never sealed is open too).
+  const state: 'sealed' | 'ready' | 'opens' | 'opened' = capsule.is_locked
+    ? isStillLocked
+      ? 'sealed'
+      : 'ready'
+    : unlockTime > now
+    ? 'opens'
+    : 'opened';
+
+  // A stable frame colour for this capsule.
+  const frame = toneFor(capsule.id);
 
   return (
-    <div className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative flex flex-col h-full">
-      {/* Cover */}
-      <div className="aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
-  {capsule.cover_image ? (
-    <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 bg-[#E6C26E]/10">
-      <Image
-        src={capsule.cover_image}
-        alt={capsule.title || 'Capsule cover'}
-        fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 20vw"
-        quality={90}
-        className={`object-cover transition-opacity duration-300 ${
-          coverLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
-        onLoadingComplete={() => setCoverLoaded(true)}
-      />
-    </div>
-  ) : (
-    <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
-      No cover image
-    </div>
-  )}
-</div>
+    <article className={s.card}>
+      {/* Cover in a solid colour frame */}
+      <div className={ui.frame} style={{ '--frame': frame.bg } as CSSProperties}>
+        <div className={cx(ui.frameInner, s.cover)}>
+          {capsule.cover_image ? (
+            <Image
+              src={capsule.cover_image}
+              alt={capsule.title || 'Capsule cover'}
+              fill
+              sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 400px"
+              quality={90}
+              className={cx(s.coverImg, coverLoaded ? 'opacity-100' : 'opacity-0')}
+              onLoadingComplete={() => setCoverLoaded(true)}
+            />
+          ) : (
+            <div className={s.noCover}>
+              <IconTile Icon={isStillLocked ? Lock : Package} tone={frame} size="lg" />
+              No cover image
+            </div>
+          )}
 
-      {/* Context menu */}
-      <div className="absolute top-3 right-3 z-20">
-        <ContextMenuDots
-          editLabel="Edit Capsule"
-          onEdit={() => {
-            if (isStillLocked) {
-              toast.error('This capsule is locked.');
-              return;
-            }
-            onEdit();
-          }}
-          onDelete={onDelete}
-        />
+          {/* State */}
+          {state === 'sealed' && (
+            <span className={cx(s.state, s.stateInk)}>
+              <Lock size={13} strokeWidth={2.6} aria-hidden="true" />
+              <span>Sealed</span>
+            </span>
+          )}
+          {state === 'opens' && (
+            <span className={cx(s.state, s.stateDot)} style={{ '--dot': 'var(--c0)' } as CSSProperties}>
+              <span>Not sealed yet</span>
+            </span>
+          )}
+          {state === 'ready' && (
+            <span className={cx(s.state, s.stateDot)} style={{ '--dot': 'var(--c3)' } as CSSProperties}>
+              <span>Ready to open</span>
+            </span>
+          )}
+          {state === 'opened' && (
+            <span className={s.state}>
+              <LockOpen size={13} strokeWidth={2.6} aria-hidden="true" />
+              <span>Open</span>
+            </span>
+          )}
+        </div>
+
+        {/* Context menu */}
+        <div className={s.menu}>
+          <ContextMenuDots
+            editLabel="Edit Capsule"
+            onEdit={() => {
+              if (isStillLocked) {
+                toast.error('This capsule is locked.');
+                return;
+              }
+              onEdit();
+            }}
+            onDelete={onDelete}
+          />
+        </div>
       </div>
 
       {/* Content */}
-      <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-xl font-semibold text-[#222B3A] mb-2 line-clamp-1">
-          {capsule.title}
-        </h3>
+      <div className={s.body}>
+        <h2 className={s.title}>{capsule.title}</h2>
 
-        <p className="text-[#5B6473] text-sm mb-4 line-clamp-2 min-h-[40px]">
+        <p className={s.text}>
           {capsule.description || 'A sealed message for your future self'}
         </p>
 
         {/* Created / Locked info */}
-        {!isStillLocked ? (
-          <p className="text-xs text-[#7A8596] mb-4">
-            Created {new Date(capsule.created_at).toLocaleDateString()}
-          </p>
-        ) : (
-          <div className="mb-4">
-            <p className="text-xs text-[#7A8596]">
-              Unlocks on{' '}
-              {new Date(capsule.unlock_date).toLocaleDateString()}
-            </p>
-            <p className="text-xs font-semibold text-[#8A6A1F] mt-1">
-              {timeRemaining}
-            </p>
-          </div>
-        )}
+        <div className={s.meta}>
+          {!isStillLocked ? (
+            <span className={cx(ui.chip, ui.chipSm)}>
+              Created {formatDate(capsule.created_at)}
+            </span>
+          ) : (
+            <span className={cx(ui.chip, ui.chipSm)}>
+              Unlocks on {formatDate(capsule.unlock_date)}
+            </span>
+          )}
+        </div>
+
+        {isStillLocked && timeRemaining && <p className={s.remaining}>{timeRemaining}</p>}
 
         {/* CTA */}
-        {!isStillLocked ? (
-          <Link
-            href={`/dashboard/capsules/${capsule.id}`}
-            className="mt-auto block text-center font-semibold px-4 py-3 rounded-full
-                       text-[#1F2837] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
-                       shadow hover:shadow-md transition-transform duration-200
-                       hover:scale-[1.02]"
-          >
-            View Capsule →
-          </Link>
-        ) : (
-          <div className="mt-auto block text-center font-semibold px-4 py-3 rounded-full
-                          bg-gray-200 text-gray-500 cursor-not-allowed">
-            Capsule Locked
-          </div>
-        )}
+        <div className={s.open}>
+          {!isStillLocked ? (
+            <Link
+              href={`/dashboard/capsules/${capsule.id}`}
+              aria-label={`View Capsule: ${capsule.title}`}
+              className={btnClass({ variant: 'soft', block: true })}
+            >
+              View Capsule
+              <ArrowRight size={18} strokeWidth={2.4} aria-hidden="true" />
+            </Link>
+          ) : (
+            <div className={cx(btnClass({ variant: 'soft', block: true }), s.locked)}>
+              <Lock size={17} strokeWidth={2.4} aria-hidden="true" />
+              Capsule Locked
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </article>
   );
 }

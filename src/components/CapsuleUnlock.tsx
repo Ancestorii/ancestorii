@@ -1,14 +1,26 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useId, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
-import { Unlock } from 'lucide-react';
+import { LockOpen } from 'lucide-react';
+import { Accent } from '@/components/dashboard/ui/AppBits';
+import s from './CapsuleOverlay.module.css';
+
+// The four colours bursting out of the badge once: where each dot lands, its size, its delay.
+const SPARKS = [
+  { dot: 'var(--c0)', x: '-62px', y: '-30px', size: '13px', delay: '0.35s' },
+  { dot: 'var(--c1)', x: '58px', y: '-40px', size: '10px', delay: '0.41s' },
+  { dot: 'var(--c2)', x: '64px', y: '26px', size: '14px', delay: '0.37s' },
+  { dot: 'var(--c3)', x: '-54px', y: '38px', size: '9px', delay: '0.45s' },
+];
 
 export default function CapsuleUnlock({
   onComplete,
 }: {
   onComplete: () => void;
 }) {
+  const titleId = useId();
+
   useEffect(() => {
     const timer = setTimeout(() => {
       onComplete();
@@ -17,46 +29,57 @@ export default function CapsuleUnlock({
     return () => clearTimeout(timer);
   }, [onComplete]);
 
+  // It closes by itself (no buttons, nothing to focus), so it's announced, not focused.
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      className={s.scrim}
+    >
+      {/* transform string (not scale) so Motion runs the pop-in on the compositor */}
       <motion.div
-        initial={{ scale: 0.7, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
+        role="alert"
+        aria-labelledby={titleId}
+        initial={{ opacity: 0, transform: 'scale(0.7)' }}
+        animate={{ opacity: 1, transform: 'scale(1)' }}
+        exit={{ opacity: 0, transform: 'scale(0.96)' }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="relative bg-white rounded-3xl px-14 py-12 shadow-2xl border border-[#E6C26E]/60 text-center"
+        className={s.card}
       >
-        {/* Glow */}
-        <div className="absolute inset-0 rounded-3xl bg-[#E6C26E]/30 blur-2xl" />
+        {/* The corner dots sit in their own clipping layer, so the card never scrolls to them */}
+        <span className={s.corners} aria-hidden="true">
+          <span className={s.cornerPink} />
+          <span className={s.cornerBlue} />
+        </span>
 
-        {/* Icon */}
-        <motion.div
-          initial={{ rotate: -20, scale: 0.6 }}
-          animate={{ rotate: 0, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="relative z-10 mx-auto mb-6 w-20 h-20 rounded-full bg-gradient-to-br from-[#E6C26E] to-[#F3D99B] flex items-center justify-center shadow-lg"
-        >
-          <Unlock className="w-10 h-10 text-[#1F2837]" />
-        </motion.div>
+        {/* Icon: the aqua tile turns open, the four colours burst out */}
+        <div className={s.badge} aria-hidden="true">
+          {SPARKS.map((p) => (
+            <span
+              key={p.dot}
+              className={s.spark}
+              style={{ '--dot': p.dot, '--x': p.x, '--y': p.y, '--size': p.size, '--delay': p.delay } as CSSProperties}
+            />
+          ))}
+          <span
+            className={s.tile}
+            style={{ '--tile': 'var(--c3)', '--tile-fg': 'var(--ink)', '--turn': '-20deg' } as CSSProperties}
+          >
+            <LockOpen size={36} strokeWidth={2.2} />
+          </span>
+        </div>
 
         {/* Text */}
-        <motion.h2
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="relative z-10 text-3xl font-bold text-[#1F2837] mb-3"
-        >
-          Capsule Unlocked ✨
-        </motion.h2>
+        <h2 id={titleId} className={s.title}>
+          Capsule <Accent>Unlocked</Accent>
+        </h2>
 
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55 }}
-          className="relative z-10 text-[#6B7280] text-sm"
-        >
+        <p className={s.text}>
           A sealed memory is now ready to be opened.
-        </motion.p>
+        </p>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

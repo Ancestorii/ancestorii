@@ -1,13 +1,28 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, Calendar, FileDown, Monitor, Plus, Users, X } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import HorizontalTimeline, { TimelineEvent } from '@app/dashboard/timeline/_components/HorizontalTimeline';
 import CreateEventDrawer from '@app/dashboard/timeline/_components/CreateEventDrawer';
 import UniversalPeopleTagger from '@/components/UniversalPeopleTagger';
 import ExportTimelineDrawer from '@app/dashboard/timeline/_components/ExportTimelineDrawer';
 import TimelineAI from '../_components/TimelineAI';
+import {
+  ui,
+  AppLoader,
+  Avatar,
+  Btn,
+  btnClass,
+  Eyebrow,
+  EmptyState as KitEmptyState,
+  IconTile,
+  toneByKey,
+} from '@/components/dashboard/ui/AppBits';
+import s from './timelineDetail.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 const thumbnailCache = new Map<string, TimelineThumbnail[]>();
 
@@ -18,32 +33,24 @@ const isUuid = (v?: string) =>
 
 function CenterLoader({ label = 'Loading timeline…' }: { label?: string }) {
   return (
-    <div className="h-[calc(100vh-80px)] grid place-items-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-indigo-600" />
-        <p className="text-sm text-slate-600">{label}</p>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-white">
+      <AppLoader label={label} />
     </div>
   );
 }
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="grid place-items-center py-24">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <div className="h-10 w-10 rounded-full bg-indigo-50 grid place-items-center">
-          <span className="text-xl">✨</span>
-        </div>
-        <h3 className="text-base font-semibold text-slate-800">Your timeline is empty</h3>
-        <p className="text-sm text-slate-600">Add your first memory to begin your story.</p>
-        <button
-          onClick={onCreate}
-          className="mt-4 rounded-full px-6 py-3 bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold shadow-md hover:shadow-lg hover:scale-[1.03] transition-all"
-        >
-          Add your first memory
-        </button>
-      </div>
-    </div>
+    <KitEmptyState
+      Icon={Calendar}
+      tone={toneByKey('aqua')}
+      title="Your timeline is empty"
+      text="Add your first memory to begin your story."
+    >
+      <Btn onClick={onCreate} aria-haspopup="dialog" tile={<Plus size={18} strokeWidth={2.6} />}>
+        Add your first memory
+      </Btn>
+    </KitEmptyState>
   );
 }
 
@@ -252,132 +259,145 @@ export default function TimelineDetailPage() {
   if (!timelineId) return <CenterLoader />;
   if (tlLoading) return <CenterLoader label="Loading timeline info…" />;
 
+  // The first load of the memories (later reloads keep the drawing in place): a loader, not a
+  // flash of the empty state, and the count chip holds its place.
+  const firstLoad = loading && events.length === 0;
+
  return (
-  <div className="flex flex-col lg:flex-row min-h-screen bg-white">
-    {/* Mobile gate */}
-    <div
-      className="flex lg:hidden"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        background: '#FDFAF5',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '32px 24px',
-        textAlign: 'center',
-      }}
-    >
-      <svg width="48" height="48" fill="none" stroke="#d4af37" strokeWidth="1.5" viewBox="0 0 24 24" style={{ marginBottom: 24 }}>
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <path d="M8 21h8M12 17v4" />
-      </svg>
-      <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1A1714', marginBottom: 8 }}>Bigger screen needed</h2>
-      <p style={{ fontSize: 14, color: '#6B6358', lineHeight: 1.6, maxWidth: 320 }}>The timeline builder works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to view your timeline.</p>
-      <a href="/dashboard/timeline" style={{ marginTop: 24, padding: '10px 24px', borderRadius: 10, background: '#1A1714', color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Back to Timelines</a>
+  <div className={s.page}>
+    {/* Phones and tablets: a notice over the page (display:none from 1024px) */}
+    <div className={cx('flex lg:hidden', s.gate)}>
+      <div className={cx(ui.empty, s.gateCard)}>
+        <IconTile Icon={Monitor} tone={toneByKey('aqua')} size="lg" />
+        <h2 className={ui.emptyTitle}>Bigger screen needed</h2>
+        <p className={ui.emptyText}>
+          The timeline builder works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to view your timeline.
+        </p>
+        <div className={ui.emptyActions}>
+          <a href="/dashboard/timeline" className={btnClass()}>
+            <ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />
+            <span>Back to Timelines</span>
+          </a>
+        </div>
+      </div>
     </div>
 
-    {/* LEFT: EXACT Albums container */}
-    <div className="flex-1 p-8">
-      <button
-        onClick={() => router.push('/dashboard/timeline')}
-        className="mb-6 text-sm font-medium text-black hover:text-[#C8A557] transition"
-      >
-        ← Back to Timelines
-      </button>
+    <div className={s.inner}>
+      <header className={ui.header}>
+        <div className={ui.headerGlow} aria-hidden="true" />
 
-      <div className="flex flex-row items-start justify-between gap-6 w-full border-b border-[#E6C26E]/55 pb-6">
-        <div>
-          <h1
-            className="text-5xl font-bold italic"
-            style={{ color: '#D4AF37' }}
+        {/* Top row: back to the list, the timeline's actions on the right */}
+        <div className={s.topRow}>
+          <Btn
+            variant="soft"
+            size="sm"
+            onClick={() => router.push('/dashboard/timeline')}
+            icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
           >
-            {timeline?.title}
-          </h1>
+            Back to Timelines
+          </Btn>
+
+          <div className={s.actions}>
+            {/* The PDF export drawer was mounted but nothing opened it, so the "Preserve My
+                Legacy" download the feature page promises could not be reached. */}
+            <Btn
+              variant="soft"
+              size="sm"
+              onClick={() => setExportOpen(true)}
+              aria-haspopup="dialog"
+              icon={<FileDown size={17} strokeWidth={2.2} aria-hidden="true" />}
+            >
+              Preserve My Legacy
+            </Btn>
+            <Btn
+              variant="soft"
+              size="sm"
+              onClick={() => setTagOpen(true)}
+              aria-haspopup="dialog"
+              icon={<Users size={17} strokeWidth={2.2} aria-hidden="true" />}
+            >
+              Tag someone you love
+            </Btn>
+            <Btn
+              size="sm"
+              onClick={() => setCreateOpen(true)}
+              aria-haspopup="dialog"
+              tile={<Plus size={16} strokeWidth={2.6} />}
+            >
+              Create A Memory
+            </Btn>
+          </div>
+        </div>
+
+        {/* Title, count, description, people */}
+        <div className={s.titleBlock}>
+          <div className={ui.headerTop}>
+            <Eyebrow dot="var(--c3)">Timeline</Eyebrow>
+          </div>
+
+          <h1 className={cx(ui.title, ui.titleMd)}>{timeline?.title}</h1>
+
+          <div className={ui.meta}>
+            <span
+              className={cx(ui.chip, ui.chipInk, ui.chipDot, firstLoad && 'invisible')}
+              style={{ '--dot': 'var(--c3)' } as CSSProperties}
+              aria-hidden={firstLoad || undefined}
+            >
+              {events.length} {events.length === 1 ? 'memory' : 'memories'}
+            </span>
+          </div>
 
           {timeline?.description && (
-            <p className="mt-6 text-gray-600 max-w-2xl">
+            <p className={cx(ui.lead, s.lead)}>
               {timeline.description}
             </p>
           )}
 
-          {/* TAGGED PEOPLE: BELOW TITLE & DESCRIPTION */}
-{taggedPeople.length > 0 && (
-  <div className="mt-8 flex flex-wrap items-center gap-3">
-    {taggedPeople.map((p) => (
-      <div
-        key={p.id}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full
-                   bg-[#F6F3EA] border border-[#E6C26E]/40"
-      >
-        {p.avatar_signed ? (
-          <img
-            src={p.avatar_signed}
-            alt={p.full_name}
-            className="w-7 h-7 rounded-full object-cover"
-          />
-        ) : (
-          <div
-            className="w-7 h-7 rounded-full bg-[#E6C26E]
-                       text-[#1F2837] text-xs font-semibold
-                       flex items-center justify-center"
-          >
-            {p.full_name?.[0]?.toUpperCase()}
-          </div>
-        )}
-
-        <span className="text-sm text-[#1F2837] font-medium">
-          {p.full_name}
-        </span>
-        <span
-  onClick={() => removePersonFromTimeline(p.id)}
-  className="ml-1 cursor-pointer text-gray-400 hover:text-red-600 transition"
-  title="Remove from this timeline"
->
-  ✕
-</span>
-      </div>
-    ))}
-  </div>
-)}
+          {/* Tagged people: below the title and description */}
+          {taggedPeople.length > 0 && (
+            <ul className={s.people} aria-label="People on this timeline">
+              {taggedPeople.map((p) => (
+                <li key={p.id} className={cx(ui.chip, s.person)}>
+                  <span className={s.personAvatar} aria-hidden="true">
+                    <Avatar src={p.avatar_signed} name={p.full_name} size={24} plain />
+                  </span>
+                  <span className={s.personName}>{p.full_name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removePersonFromTimeline(p.id)}
+                    className={s.remove}
+                    title="Remove from this timeline"
+                    aria-label={`Remove ${p.full_name} from this timeline`}
+                  >
+                    <X size={14} strokeWidth={2.6} aria-hidden="true" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-
-        
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-sm text-emerald-700 hover:bg-emerald-100 transition"
-          >
-            + Create A Memory
-          </button>
-
-          <button
-            onClick={() => setTagOpen(true)}
-            className="inline-flex items-center gap-2 px-5 h-[42px] rounded-full bg-violet-50 border border-violet-200 shadow-sm text-sm text-violet-700 hover:bg-violet-100 transition"
-          >
-            💜 Tag someone you love
-          </button>
-        </div>
-      </div>
-
-      {/* CONTENT: BELOW HEADER (display:none below lg: the gate above covers it, so phones skip laying it out) */}
-     <div className="hidden lg:block mt-20 pt-16 pb-16">
-     {events.length === 0 ? (
-       <EmptyState onCreate={() => setCreateOpen(true)} />
-      ) : (
-    <HorizontalTimeline
-      key={timelineId} // 👈 IMPORTANT
-      events={events}
-      thumbnailResolver={thumbnailResolver}
-      onCreateMemory={() => setCreateOpen(true)}
-      height={420}
-    />
-  )}
-</div>
-
+      </header>
     </div>
+
+    {/* The timeline (display:none below 1024px: the notice above covers the page there, so phones skip laying it out) */}
+    <section
+      className={cx('hidden lg:block', s.band, !firstLoad && events.length > 0 && s.bandTimeline)}
+      aria-label="Timeline"
+    >
+      {firstLoad ? (
+        <AppLoader compact label="Loading timeline…" className={s.bandLoader} />
+      ) : events.length === 0 ? (
+        <EmptyState onCreate={() => setCreateOpen(true)} />
+      ) : (
+        <HorizontalTimeline
+          key={timelineId} // 👈 IMPORTANT
+          events={events}
+          thumbnailResolver={thumbnailResolver}
+          onCreateMemory={() => setCreateOpen(true)}
+          height={420}
+        />
+      )}
+    </section>
 
     <TimelineAI
         timelineTitle={timeline?.title || ''}

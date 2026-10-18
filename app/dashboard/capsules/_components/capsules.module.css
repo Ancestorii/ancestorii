@@ -1,0 +1,336 @@
+/* ============================================================
+   Capsules (/dashboard/capsules): the few looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have.
+   The kit sits in the "components" cascade layer, so a plain
+   rule here wins over it.
+   ============================================================ */
+
+/* ── Motion: transform and opacity only, played once ──────── */
+
+/* "backwards" applies the first frame during the delay and nothing after the end, so no
+   transform is left on a panel. */
+.fadeIn {
+  animation: capsulesFade 0.2s ease backwards;
+}
+
+.popIn {
+  animation: capsulesPop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@keyframes capsulesFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes capsulesPop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+/* ── One capsule: a white card holding a framed cover ─────── */
+
+/* The colour frame (radius 22) sits 6px inside the white card, so the corners stay
+   concentric (as on the loved ones cards). */
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  padding: 6px;
+  border-radius: 28px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--hairline-ring);
+}
+
+.cover {
+  aspect-ratio: 3 / 2;
+}
+
+.coverImg {
+  object-fit: cover;
+  object-position: 50% 35%;
+  transition:
+    opacity 0.3s ease,
+    transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .card:hover .coverImg {
+    transform: scale(1.03);
+  }
+}
+
+/* No cover yet: white, a tile in the frame's colour and the line under it, centred in the
+   space under the state pill (top 12px + 30px), so the two never touch on a narrow card. */
+.noCover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 42px 16px 0;
+  background: #fff;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* The menu sits on the cover's top right corner. */
+.menu {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+}
+
+/* The capsule's state, a pill on the cover's top left corner (like the landing's photo
+   chips), clear of the menu: white with a round dot or an icon, ink while sealed. */
+.state {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: calc(100% - 76px);
+  min-height: 30px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.5);
+  font-size: 12.5px;
+  line-height: 1.2;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.state > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.state > svg {
+  flex: none;
+}
+
+.stateDot::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--dot, var(--c0));
+}
+
+.stateInk {
+  background: var(--ink);
+  color: #fff;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 18px 14px 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* How long until a sealed capsule opens: blue, the one coloured line on the card. */
+.remaining {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  font-weight: 800;
+  color: var(--c1);
+}
+
+.open {
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+/* A sealed capsule can't be opened yet: the button's place, dimmed, without the soft
+   button's hover ring or press (it is a plain label, not a button). */
+.locked,
+.locked:hover,
+.locked:active {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+
+/* ── Destructive confirm ──────────────────────────────────── */
+
+.confirm {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+}
+
+.confirmTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.confirmText {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.confirmActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* ── Create or edit drawer ────────────────────────────────── */
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The unlock date. Phones and tablets show an empty date field as a blank box, so the
+   "DD/MM/YYYY" hint sits behind it there (the field is see-through); a mouse browser
+   writes its own. */
+.dateWrap {
+  position: relative;
+}
+
+.datePlaceholder {
+  position: absolute;
+  left: 17.5px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  color: var(--placeholder);
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 500;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (pointer: coarse) {
+  .datePlaceholder {
+    display: block;
+  }
+
+  /* Chrome on a touch screen still writes its own "dd/mm/yyyy": hidden while ours shows, so
+     the two never overlap. Focused, the field takes over. */
+  .dateInput[data-empty='true']:not(:focus)::-webkit-datetime-edit {
+    color: transparent;
+  }
+
+  .dateWrap:has(.dateInput:focus) .datePlaceholder {
+    display: none;
+  }
+}
+
+.dateInput {
+  background-color: transparent;
+  text-transform: uppercase;
+}
+
+/* iPhones centre a date's value; keep it at the start like the other fields. */
+.dateInput::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+/* An empty date reads as a placeholder, not as a value. */
+.dateInput[data-empty='true']::-webkit-datetime-edit {
+  color: var(--placeholder);
+  font-weight: 500;
+}
+
+/* The cover drop zone (ui.dropzone). Its children never take the drag events, so the
+   zone doesn't flicker while a file moves over it. */
+.zone > * {
+  pointer-events: none;
+}
+
+.dropIcon {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--hover);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* On the grey drag fill the icon's circle turns white, so it doesn't vanish into it. */
+.zone[data-drag='true'] .dropIcon {
+  background: #fff;
+}
+
+/* The chosen cover, filling the zone. */
+.coverZone {
+  height: 168px;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.coverZone > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

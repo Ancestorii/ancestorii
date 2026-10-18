@@ -1,6 +1,7 @@
 'use client';
 
 import StoryAssistanceCard, { AssistOption } from '@/components/StoryAssistanceCard';
+import { Accent } from '@/components/dashboard/ui/AppBits';
 
 type TimelineAIProps = {
   timelineTitle: string;
@@ -41,7 +42,7 @@ export default function TimelineAI({
       welcomeHeading={
         <>
           Need help adding memories to{' '}
-          <span className="text-[#A9782F]">{timelineTitle}</span>?
+          <Accent>{timelineTitle.trim()}</Accent>?
         </>
       }
       welcomeBody="We can help you remember the moments that belong on this timeline and find the words to describe them."

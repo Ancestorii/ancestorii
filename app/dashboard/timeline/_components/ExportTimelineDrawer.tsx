@@ -1,8 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { Download, X } from 'lucide-react';
+import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './timelineList.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 export default function ExportTimelineDrawer({
   open,
@@ -14,6 +18,11 @@ export default function ExportTimelineDrawer({
   timelineId: string;
 }) {
   const [downloading, setDownloading] = useState(false);
+  const titleId = useId();
+  const subId = useId();
+
+  // Escape closes it, Tab stays inside, focus returns to whatever opened it.
+  const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
   const download = () => {
     setDownloading(true);
@@ -25,69 +34,71 @@ export default function ExportTimelineDrawer({
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop: scrim-blur (globals.css) blurs only with a mouse; above the floating phone nav (z-[200]) */}
           <motion.div
-            className="fixed inset-0 bg-black/40 z-[200]"
+            className={cx(ui.scrim, 'scrim-blur z-[9998]')}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
 
-          {/* Drawer */}
+          {/* Drawer: transform string (not x) so Motion runs the slide on the compositor */}
           <motion.div
-            className="fixed right-0 top-0 h-full w-full max-w-[520px] bg-white z-[201] shadow-2xl flex flex-col"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={subId}
+            className={cx(ui.sheet, ui.sheetRight, s.exportPanel, 'z-[9999]')}
+            initial={{ transform: 'translateX(100%)' }}
+            animate={{ transform: 'translateX(0%)' }}
+            exit={{ transform: 'translateX(100%)' }}
             transition={{ type: 'spring', stiffness: 260, damping: 28 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b">
-              <div>
-                <h2 className="text-lg font-semibold text-[#8A6A1E]">
-                  🕊 Preserve My Legacy
+            <div className={ui.sheetHeader}>
+              <div className="min-w-0">
+                <h2 id={titleId} className={ui.sheetTitle}>
+                  Preserve My Legacy
                 </h2>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p id={subId} className={ui.sheetSub}>
                   Preview how your timeline will be preserved
                 </p>
               </div>
-              <button onClick={onClose}>
-                <X className="w-5 h-5 text-gray-500 hover:text-gray-800" />
-              </button>
+              <IconBtn label="Close" onClick={onClose}>
+                <X size={20} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
             </div>
 
             {/* Body */}
-            <div className="flex-1 p-6 overflow-y-auto space-y-4">
+            <div className={ui.sheetBody}>
               {/* PDF Preview */}
-              <div className="rounded-xl overflow-hidden border bg-gray-50 h-[420px]">
+              <div className={s.pdf}>
                 <iframe
                   src={`/api/timelines/${timelineId}/export?preview=true`}
-                  className="w-full h-full"
+                  title="Timeline PDF preview"
                 />
               </div>
 
-              <p className="text-sm text-gray-500">
+              <p className={s.pdfNote}>
                 This PDF includes your timeline layout, colours, one image per
                 memory, and the Ancestorii watermark.
               </p>
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-5 border-t flex gap-3">
-              <button
-                onClick={onClose}
-                className="flex-1 h-[42px] rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 transition"
-              >
+            <div className={ui.sheetFooter}>
+              <Btn variant="soft" onClick={onClose}>
                 Cancel
-              </button>
-              <button
+              </Btn>
+              <Btn
                 onClick={download}
                 disabled={downloading}
-                className="flex-1 h-[42px] rounded-full bg-[#FFF7E3] border border-[#E6C26E]/60 text-[#8A6A1E] hover:bg-[#FFF1C7] transition disabled:opacity-60"
+                tile={downloading ? <Spinner size={16} /> : <Download size={18} strokeWidth={2.6} />}
               >
                 {downloading ? 'Preparing…' : 'Download PDF'}
-              </button>
+              </Btn>
             </div>
           </motion.div>
         </>

@@ -1,12 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase/browser';
-import { X, ImagePlus, CalendarDays } from 'lucide-react';
+import { X, ImagePlus, CalendarDays, Check, Package, Plus } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
 import { usePlanLimits } from '@/lib/usePlanLimits';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { ui, Btn, IconBtn, IconTile, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './capsules.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 
 export type CreatedCapsule = {
@@ -58,6 +62,12 @@ export default function CreateCapsuleDrawer({
   const dropRef = useRef<HTMLDivElement | null>(null);
   const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
+  const headingId = useId();
+  const titleFieldId = useId();
+  const descriptionId = useId();
+  const dateId = useId();
+  const dateHintId = useId();
+
 
   const getSignedCoverUrl = async (path: string | null) => {
   if (!path) return null;
@@ -84,7 +94,7 @@ export default function CreateCapsuleDrawer({
   const handleFileSelect = (file: File) => {
     if (file) setCoverFile(file);
   };
- 
+
   useEffect(() => {
   if (mode === 'edit' && capsule) {
     setTitle(capsule.title);
@@ -93,26 +103,32 @@ export default function CreateCapsuleDrawer({
 
     (async () => {
       const signed = await getSignedCoverUrl(capsule.cover_image);
-      setPreviewUrl(signed || null);
+      // The list hands over a cover it has already signed, which can't be signed again: show
+      // that one, or the current cover never appeared here.
+      const handed = capsule.cover_image && /^https?:\/\//.test(capsule.cover_image) ? capsule.cover_image : null;
+      setPreviewUrl(signed || handed);
     })();
   }
 }, [mode, capsule]);
 
+  // Drag & drop. The zone only exists while the drawer is open, so attach each time it
+  // opens (run once at mount, it found no zone: drag and drop never worked, and a dropped
+  // file opened in the browser tab instead).
   useEffect(() => {
     const area = dropRef.current;
     if (!area) return;
 
     const over = (e: DragEvent) => {
       e.preventDefault();
-      area.classList.add('ring-2', 'ring-[#E6C26E]');
+      area.setAttribute('data-drag', 'true');
     };
     const leave = (e: DragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.removeAttribute('data-drag');
     };
     const drop = (e: DragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.removeAttribute('data-drag');
       const file = e.dataTransfer?.files?.[0];
       if (file) handleFileSelect(file);
     };
@@ -125,7 +141,7 @@ export default function CreateCapsuleDrawer({
       area.removeEventListener('dragleave', leave);
       area.removeEventListener('drop', drop);
     };
-  }, []);
+  }, [open, mounted]);
 
 
   const isSubmittingRef = useRef(false);
@@ -138,6 +154,9 @@ export default function CreateCapsuleDrawer({
   setPreviewUrl(null);
   onClose();
 };
+
+  // Escape closes it (as the close button does), Tab stays inside, focus returns to the button.
+  const panelRef = useDialog<HTMLDivElement>(open, handleClose);
 
 const handleSubmit = async () => {
   if (isSubmittingRef.current || !title.trim() || !unlockDate) return;
@@ -188,13 +207,16 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
       coverUrl = filePath;}
 
     if (mode === 'edit' && capsule) {
+      // Only write cover_image when a new cover was uploaded. capsule.cover_image here is the
+      // list's signed URL (it carries an expiring token), and writing it back replaced the
+      // stored file path with a link that stops working after a week.
       const { data, error } = await supabase
         .from('memory_capsules')
         .update({
           title: title.trim(),
           description: description.trim() || null,
           unlock_date: unlockDate,
-          cover_image: coverUrl,
+          ...(coverFile ? { cover_image: coverUrl } : {}),
         })
         .eq('id', capsule.id)
         .select()
@@ -243,159 +265,176 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="fixed inset-0 bg-[#0B0C10]/70 backdrop-blur-sm flex items-center justify-center z-[200]"
+          // scrim-blur (globals.css) blurs only with a mouse; above the floating phone nav (z-[200])
+          className={cx(ui.scrim, 'scrim-blur z-[9999] flex items-center justify-center p-4')}
         >
-          {loading && (
-            <div className="fixed top-0 left-0 w-full h-[3px] overflow-hidden">
-              <div className="w-full h-full bg-gradient-to-r from-[#E6C26E] via-[#F3D99B] to-[#E6C26E] animate-[shimmer_1.6s_linear_infinite]" />
-            </div>
-          )}
-
+          {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.95 }}
+            initial={{ opacity: 0, transform: 'translateY(40px) scale(0.95)' }}
+            animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
+            exit={{ opacity: 0, transform: 'translateY(40px) scale(0.95)' }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="relative bg-white w-[88%] sm:w-[360px] md:w-[450px] max-h-[85vh] overflow-y-auto rounded-2xl p-6 border-[2px] border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.5)] font-[Inter]"
+            className={cx(ui.sheet, 'w-full max-w-[520px] max-h-[min(88vh,100%)]')}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={headingId}
+            aria-busy={loading || undefined}
+            ref={panelRef}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClose()
-              
-              }}
-              className="absolute top-4 right-4 text-[#1F2837]/70 hover:text-[#1F2837] transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
             {/* Header */}
-            <h2 className="text-3xl font-bold text-[#1F2837] mb-2 text-center relative">
-              {mode === 'edit' ? 'Edit Capsule' : 'Create New Capsule'}
-            </h2>
-            <p className="text-sm text-[#7A8596] text-center mb-6 italic">
-              {mode === 'edit'
-              ? 'Update your capsule details.'
-              : 'Seal your memories for your future self.'}
-            </p>
-            <span className="block w-16 h-1 bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] rounded-full mx-auto mb-6" />
+            <div className={ui.sheetHeader}>
+              <div className="flex min-w-0 flex-col items-start gap-3">
+                <IconTile Icon={Package} size="sm" />
+                <div className="min-w-0">
+                  <h2 id={headingId} className={ui.sheetTitle}>
+                    {mode === 'edit' ? 'Edit Capsule' : 'Create New Capsule'}
+                  </h2>
+                  <p className={ui.sheetSub}>
+                    {mode === 'edit'
+                    ? 'Update your capsule details.'
+                    : 'Seal your memories for your future self.'}
+                  </p>
+                </div>
+              </div>
+              {/* Close */}
+              <IconBtn
+                label="Close"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClose()
 
-            {/* Inputs */}
-            <label className="block text-sm font-semibold text-[#1F2837] mb-1 tracking-wide">
-              Title
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full border border-[#E6C26E]/50 rounded-lg px-3 py-2 mb-4 text-[#1F2837] placeholder-[#7A8596] focus:ring-2 focus:ring-[#E6C26E] focus:outline-none"
-              placeholder="My 30th Birthday"
-            />
-
-            <label className="block text-sm font-semibold text-[#1F2837] mb-1 tracking-wide">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              className="w-full border border-[#E6C26E]/50 rounded-lg px-3 py-2 mb-4 text-[#1F2837] placeholder-[#7A8596] focus:ring-2 focus:ring-[#E6C26E] focus:outline-none"
-              placeholder="Write a short message for your future self..."
-            />
-
-            <label className="block text-sm font-semibold text-[#1F2837] mb-1 tracking-wide flex items-center gap-1">
-              <CalendarDays className="w-4 h-4 text-[#E6C26E]" /> Unlock Date
-            </label>
-
-            <div className="relative mb-1">
-              {!unlockDate && (
-                <span className="absolute left-3 top-2.5 text-[#7A8596] pointer-events-none select-none sm:hidden">
-                  DD/MM/YYYY
-                </span>
-              )}
-              <input
-                type="date"
-                value={unlockDate}
-                onChange={(e) => setUnlockDate(e.target.value)}
-                className="w-full border border-[#E6C26E]/50 rounded-lg px-3 py-2 text-[#1F2837] focus:ring-2 focus:ring-[#E6C26E] focus:outline-none uppercase bg-transparent"
-                min={new Date().toISOString().split('T')[0]}
-                style={{ textTransform: 'uppercase' }}
-              />
-            </div>
-
-            <p className="text-center text-[#7A8596] text-xs italic mb-4">
-              Choose a date in the future
-            </p>
-
-            {/* Cover Image */}
-            <label className="block text-sm font-semibold text-[#1F2837] mb-2 tracking-wide flex items-center gap-1">
-              <ImagePlus className="w-4 h-4 text-[#E6C26E]" /> Cover Image (optional)
-            </label>
-            <div
-              ref={dropRef}
-              onClick={() => document.getElementById('capsuleCoverInput')?.click()}
-              className="w-full h-[120px] sm:h-[140px] md:h-[150px] border-2 border-dashed border-[#E6C26E]/60 rounded-xl flex items-center justify-center text-[#1F2837]/70 hover:text-[#1F2837] hover:shadow-[0_0_10px_rgba(230,194,110,0.4)] transition cursor-pointer overflow-hidden mb-6 bg-white"
-            >
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                />
-              ) : (
-                <span>Drag & drop or click to upload</span>
-              )}
-              <input
-                id="capsuleCoverInput"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleFileSelect(f);
                 }}
-              />
+              >
+                <X size={20} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
             </div>
 
-            {/* Buttons */}
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-3 mt-8 pt-4 border-t border-gray-200">
-              <button
-                onClick={handleClose}
-                disabled={loading}
-                className="w-full sm:w-auto px-5 py-2 rounded-full border border-[#E6C26E]/40 text-[#1F2837] font-medium hover:bg-[#F9F7F2] transition"
-              >
-                Cancel
-              </button>
+            <div className={ui.sheetBody}>
+              {/* Inputs */}
+              <div className={ui.field}>
+                <label htmlFor={titleFieldId} className={ui.label}>
+                  Title
+                </label>
+                <input
+                  id={titleFieldId}
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  aria-required="true"
+                  className={ui.input}
+                  placeholder="My 30th Birthday"
+                />
+              </div>
 
-              <button
+              <div className={ui.field}>
+                <label htmlFor={descriptionId} className={ui.label}>
+                  Description
+                </label>
+                <textarea
+                  id={descriptionId}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  className={cx(ui.textarea, 'min-h-[104px]')}
+                  placeholder="Write a short message for your future self..."
+                />
+              </div>
+
+              <div className={ui.field}>
+                <label htmlFor={dateId} className={cx(ui.label, s.fieldLabel)}>
+                  <CalendarDays size={17} strokeWidth={2.2} aria-hidden="true" /> Unlock Date
+                </label>
+
+                <div className={s.dateWrap}>
+                  {!unlockDate && (
+                    <span className={s.datePlaceholder} aria-hidden="true">
+                      DD/MM/YYYY
+                    </span>
+                  )}
+                  <input
+                    id={dateId}
+                    type="date"
+                    // An edited capsule's date arrives as a full timestamp, which a date field
+                    // can't show (it stayed blank): show its day; the saved value is unchanged.
+                    value={unlockDate.slice(0, 10)}
+                    onChange={(e) => setUnlockDate(e.target.value)}
+                    aria-required="true"
+                    aria-describedby={dateHintId}
+                    data-empty={!unlockDate}
+                    className={cx(ui.input, s.dateInput)}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+
+                <p id={dateHintId} className={ui.hint}>
+                  Choose a date in the future
+                </p>
+              </div>
+
+              {/* Cover Image */}
+              <div className={ui.field}>
+                <label htmlFor="capsuleCoverInput" className={cx(ui.label, s.fieldLabel)}>
+                  <ImagePlus size={17} strokeWidth={2.2} aria-hidden="true" /> Cover Image (optional)
+                </label>
+                <div
+                  ref={dropRef}
+                  onClick={() => document.getElementById('capsuleCoverInput')?.click()}
+                  className={cx(ui.dropzone, s.zone, previewUrl && s.coverZone)}
+                >
+                  {previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={previewUrl} alt="Preview" />
+                  ) : (
+                    <>
+                      <span className={s.dropIcon} aria-hidden="true">
+                        <ImagePlus size={20} strokeWidth={2.2} />
+                      </span>
+                      <span className={ui.dropzoneTitle}>Drag & drop or click to upload</span>
+                    </>
+                  )}
+                  {/* Visually hidden, not display:none, so the keyboard can reach it */}
+                  <input
+                    id="capsuleCoverInput"
+                    type="file"
+                    accept="image/*"
+                    className={ui.srOnly}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFileSelect(f);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Buttons: on phones the main action sits on top */}
+            <div className={cx(ui.sheetFooter, 'max-[599px]:flex-col-reverse')}>
+              <Btn variant="soft" onClick={handleClose} disabled={loading}>
+                Cancel
+              </Btn>
+
+              <Btn
                 onClick={handleSubmit}
                 disabled={!title.trim() || !unlockDate || loading}
-                className={`w-full sm:w-auto px-6 py-2 rounded-full font-semibold text-[#1F2837] transition-all shadow-md ${
-                  !title.trim() || !unlockDate || loading
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] hover:shadow-[0_0_15px_rgba(230,194,110,0.6)] hover:scale-[1.02]'
-                }`}
+                tile={
+                  loading ? (
+                    <Spinner size={16} />
+                  ) : mode === 'edit' ? (
+                    <Check size={18} strokeWidth={2.6} />
+                  ) : (
+                    <Plus size={18} strokeWidth={2.6} />
+                  )
+                }
               >
                 {loading
-             ? 'Saving…'
-             : mode === 'edit'
-             ? 'Save Changes'
-             : 'Create Capsule ✨'}
-              </button>
+                  ? 'Saving…'
+                  : mode === 'edit'
+                  ? 'Save Changes'
+                  : 'Create Capsule'}
+              </Btn>
             </div>
-
-            <style jsx>{`
-              @keyframes shimmer {
-                0% {
-                  background-position: -200% 0;
-                }
-                100% {
-                  background-position: 200% 0;
-                }
-              }
-            `}</style>
           </motion.div>
         </motion.div>
       )}

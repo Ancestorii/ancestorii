@@ -1,17 +1,36 @@
 'use client';
 
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import Link from 'next/link';
+import { ArrowRight, Calendar, Plus } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
 import { ContextMenuDots } from '@/components/ContextMenuDots';
 import CreateTimelineDrawer from './_components/CreateTimelineDrawer';
-import { motion } from 'framer-motion';
 import LegacyCelebration from '@/components/LegacyCelebration';
 import { usePlanLimits } from '@/lib/usePlanLimits';
 import Image from "next/image";
 import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
+import {
+  ui,
+  Accent,
+  AppLoader,
+  Btn,
+  EmptyState,
+  IconTile,
+  PageHeader,
+  btnClass,
+  tone,
+  toneByKey,
+  useDialog,
+} from '@/components/dashboard/ui/AppBits';
+import s from './_components/timelineList.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// Timelines are aqua in the landing's feature index.
+const AQUA = toneByKey('aqua');
 
 
 type Timeline = {
@@ -40,9 +59,17 @@ export default function TimelinePage() {
 
   const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
-  // typing effect (slowed)
+  // Escape cancels the delete question, Tab stays inside it.
+  const confirmRef = useDialog<HTMLDivElement>(!!confirmDelete, () => setConfirmDelete(null));
+  const confirmTitleId = useId();
+  const confirmTextId = useId();
+
+  // The header's lead
   const line1 = '“Every life is made of moments worth remembering.”';
   const line2 = 'Create a timeline to tell your story in the order it happened.';
+
+  // The plan-limit message (the create button also shows it as a toast).
+  const limitMessage = `You’ve reached your current plan limit for timelines (${counts?.timelines} / ${limits?.max_timelines}). Upgrade your plan to create more.`;
 
 
   // signed url helper
@@ -119,125 +146,145 @@ setTimelines(signed);
   }
 };
 
-  return (
-    <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
-
-       <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 md:pl-16 md:pr-16 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
-        {/* header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
-          <div className="text-center md:text-left flex-1">
-            <h1 className="text-[clamp(2.25rem,4vw,3rem)] font-bold text-[#222B3A] mb-4 relative inline-block">
-              <span className="relative">
-                My
-                {/* underline recreated using Framer Motion */}
-                <motion.span
-                  className="absolute left-0 -bottom-2 h-[3px] bg-[#C8A557] rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: 70 }}
-                  transition={{ delay: 0.2, duration: 0.8, ease: 'easeOut' }}
-                />
-              </span>{' '}
-              <span className="text-[#C8A557]">Timelines</span>
-            </h1>
-
-            <p className="text-[#000000] mt-3 text-lg italic min-h-[30px]">{line1}</p>
-            <p
-              className={`text-[#000000] text-sm mt-2 transition-opacity duration-500 ${
-                'opacity-100'
-              }`}
-            >
-              {line2}
-            </p>
-          </div>
-
-          <div className="flex justify-center md:justify-end flex-1">
-            <button
-              className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
-              onClick={() => {
+  // The create button (in the header and in the empty state).
+  const openCreate = () => {
   if (limitsLoading) return;
   if (!canCreate.timeline) {
-    toast.error(
-      `You’ve reached your current plan limit for timelines (${counts?.timelines} / ${limits?.max_timelines}). Upgrade your plan to create more.`
-    );
+    toast.error(limitMessage);
     return;
   }
   setDrawerMode('create');
   setSelectedTimeline(null);
   setDrawerOpen(true);
-}}
+};
 
+  const createButton = (
+    <Btn onClick={openCreate} aria-haspopup="dialog" tile={<Plus size={18} strokeWidth={2.6} />}>
+      Create New Timeline
+    </Btn>
+  );
+
+  const list = timelines ?? [];
+
+  return (
+    <div className={ui.page}>
+      <div className={ui.wrap}>
+        <PageHeader
+          eyebrow="Timelines"
+          eyebrowDot="var(--c3)"
+          title={
+            <>
+              My <Accent>Timelines</Accent>
+            </>
+          }
+          lead={`${line1} ${line2}`}
+          actions={createButton}
+        />
+
+        {!limitsLoading && !canCreate.timeline && (
+          <p className={cx(ui.noticeWarn, 'mt-8')} role="status">
+            {limitMessage}
+          </p>
+        )}
+
+        <section className={ui.section} aria-label="Your timelines">
+          {/* states */}
+          {loading && <AppLoader label="Loading your timelines" />}
+
+          {!loading && error && (
+            <p className={ui.noticeError} role="alert">
+              {error}
+            </p>
+          )}
+
+          {!loading && !error && list.length === 0 && (
+            <EmptyState
+              Icon={Calendar}
+              tone={AQUA}
+              title="No timelines yet"
+              text="Start creating your legacy."
             >
-              <span className="relative z-10">+ Create New Timeline</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
-            </button>
-          </div>
-        </div>
+              {createButton}
+            </EmptyState>
+          )}
 
-        {/* states */}
-        {loading && <p className="text-[#778199] italic text-center mb-4">Loading your timelines...</p>}
-        {!loading && error && <p className="text-[#C33838] text-center mb-4">{error}</p>}
-        {!loading && !error && (timelines ?? []).length === 0 && (
-          <div className="text-center text-[#0f2040] italic mt-12">
-            No timelines yet. Start creating your legacy ✨
-          </div>
-        )}
+          {/* cards: columns follow the space beside the sidebar, 1 on phones, 2 on tablets, 3 on desktops */}
+          {!loading && !error && list.length > 0 && (
+            <div className="@container">
+              <ul role="list" className="grid grid-cols-1 gap-5 @xl:grid-cols-2 @4xl:grid-cols-3">
+                {list.map((t, i) => {
+                  const titleId = `timeline-title-${t.id}`;
+                  return (
+                    <li key={t.id} className="min-w-0">
+                      <article className={cx(ui.card, s.card)} aria-labelledby={titleId}>
+                        <div
+                          className={ui.frame}
+                          style={{ '--frame': tone(i).bg } as CSSProperties}
+                        >
+                          <div className={cx(ui.frameInner, s.cover, !t.cover_signed && s.coverEmpty)}>
+                            {t.cover_signed ? (
+                              <TimelineCover src={t.cover_signed} alt={t.title || 'Timeline cover'} />
+                            ) : (
+                              <div className={s.noCover}>
+                                <IconTile Icon={Calendar} tone={AQUA} size="lg" />
+                                No cover image
+                              </div>
+                            )}
+                          </div>
 
-        {/* cards */}
-        {!loading && !error && (timelines ?? []).length > 0 && (
-          <div
-            className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,240px),1fr))] gap-8 transition-opacity duration-500"
-            key="timelines"
-          >
-            {(timelines ?? []).map((t) => (
-              <div
-                key={t.id}
-                className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative flex flex-col h-full"
-              >
-              <div className="relative aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
-  {t.cover_signed ? (
-    <div className="w-full h-full transition-transform duration-300 group-hover:scale-105">
-      <TimelineCover src={t.cover_signed} alt={t.title || "Timeline cover"} />
-    </div>
-  ) : (
-    <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
-      No cover image
-    </div>
-  )}
-</div>
-                <div className="absolute top-3 right-3 z-30">
-                    <ContextMenuDots
-                      editLabel="Edit Timeline"
-                      onEdit={() => {
-                       setDrawerMode('edit');
-                       setSelectedTimeline(t);
-                       setDrawerOpen(true);
-                       }}
-                        onDelete={() =>
-                           setConfirmDelete({
-                            id: t.id,
-                           title: t.title || 'Untitled Timeline',
-                           })
-                           }
+                          <div className={s.menu}>
+                            <ContextMenuDots
+                              editLabel="Edit Timeline"
+                              onEdit={() => {
+                                setDrawerMode('edit');
+                                setSelectedTimeline(t);
+                                setDrawerOpen(true);
+                              }}
+                              onDelete={() =>
+                                setConfirmDelete({
+                                  id: t.id,
+                                  title: t.title || 'Untitled Timeline',
+                                })
+                              }
                             />
-                    </div>
-                <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-xl font-semibold text-[#222B3A] mb-2 line-clamp-1">{t.title}</h3>
-                 <p className="text-[#5B6473] text-sm mb-4 line-clamp-2 min-h-[40px]">{t.description || 'Your personal life timeline'}</p>
-                  <p className="text-xs text-[#7A8596] mb-4">
-                    Created {new Date(t.created_at).toLocaleDateString()}
-                  </p>
+                          </div>
+                        </div>
 
-                  <Link
-                    href={`/dashboard/timeline/${t.id}`}
-                    className="mt-auto block text-center font-semibold px-4 py-3 rounded-full text-[#1F2837] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] shadow hover:shadow-md transition-transform duration-200 hover:scale-[1.02]"
-                  >
-                    View Timeline →
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                        <div className={s.body}>
+                          <h2 id={titleId} className={s.title}>
+                            {t.title || 'Untitled Timeline'}
+                          </h2>
+                          <p className={s.text}>{t.description || 'Your personal life timeline'}</p>
+                          <div className={s.meta}>
+                            <span className={cx(ui.chip, ui.chipSm)}>
+                              Created{' '}
+                              {new Date(t.created_at).toLocaleDateString('en-GB', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </div>
+
+                          <div className={s.open}>
+                            <Link
+                              href={`/dashboard/timeline/${t.id}`}
+                              aria-describedby={titleId}
+                              className={btnClass({ variant: 'soft', block: true })}
+                            >
+                              View Timeline
+                              <ArrowRight size={18} strokeWidth={2.4} aria-hidden="true" />
+                            </Link>
+                          </div>
+                        </div>
+                      </article>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </section>
       </div>
 
       {/* Drawer */}
@@ -293,53 +340,41 @@ setTimelines(signed);
         }}
       />
 
-      <style jsx global>{`
-        @keyframes shine {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-      `}</style>
+      {/* delete confirmation */}
       {confirmDelete && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-    <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
-      <h2 className="text-xl font-semibold text-[#1F2837] mb-4">
-        Delete “{confirmDelete.title}”?
-      </h2>
-
-      <h2 className="text-xl font-semibold text-[#1F2837] mb-3">
-      This action cannot be undone
-      </h2>
-
-      <p className="text-[#5B6473] text-sm mb-8">
-      This timeline can only be deleted if it is empty.  
-      Make sure you have removed all memories inside it first.
-     </p>
-
-      <div className="flex items-center justify-center gap-4">
-        <button
-          onClick={() => setConfirmDelete(null)}
-          className="px-6 py-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={() => {
-            handleDeleteTimeline(confirmDelete.id);
-            setConfirmDelete(null);
-          }}
-          className="px-6 py-2 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold shadow hover:shadow-md transition"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        <div className={cx(ui.scrim, s.fadeIn, 'scrim-blur z-[9999] flex items-center justify-center p-4')}>
+          <div
+            ref={confirmRef}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={confirmTitleId}
+            aria-describedby={confirmTextId}
+            className={cx(ui.sheet, s.confirm, s.popIn)}
+          >
+            <h2 id={confirmTitleId} className={s.confirmTitle}>
+              Delete “{confirmDelete.title}”?
+            </h2>
+            <p id={confirmTextId} className={s.confirmText}>
+              This action cannot be undone. This timeline can only be deleted if it is empty.
+              Make sure you have removed all memories inside it first.
+            </p>
+            <div className={s.confirmActions}>
+              <Btn variant="soft" onClick={() => setConfirmDelete(null)}>
+                Cancel
+              </Btn>
+              <Btn
+                variant="danger"
+                onClick={() => {
+                  handleDeleteTimeline(confirmDelete.id);
+                  setConfirmDelete(null);
+                }}
+              >
+                Delete
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
 <LegacyCelebration
   open={celebrate}
   onClose={() => setCelebrate(false)}
@@ -365,10 +400,8 @@ function TimelineCover({ src, alt }: { src: string; alt: string }) {
       width={1600}
       height={900}
       quality={90}
-      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 20vw"
-      className={`w-full h-full object-cover transition-opacity duration-300 ${
-        loaded ? "opacity-100" : "opacity-0"
-      }`}
+      sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 480px"
+      className={cx(s.coverImg, loaded ? 'opacity-100' : 'opacity-0')}
       onLoadingComplete={() => setLoaded(true)}
     />
   );

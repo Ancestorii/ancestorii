@@ -1,0 +1,107 @@
+/* ============================================================
+   LegacyCelebration: the short moment after a new timeline,
+   album, book, canvas, acrylic print or loved one. An ink card
+   with the logo's pink and blue dots, and a burst of round dots
+   in the four brand colours. Transform and opacity only, played
+   once (no never-ending animation).
+   ============================================================ */
+
+.overlay {
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+}
+
+/* The dots fly out from the middle of the screen, from behind the card. */
+.burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  border-radius: 50%;
+  opacity: 0;
+  animation: celebrateBurst var(--dur) cubic-bezier(0.16, 1, 0.3, 1) var(--delay) both;
+}
+
+@keyframes celebrateBurst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.3);
+  }
+  12% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) scale(1);
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(440px, 100%);
+  min-height: 220px;
+  padding: clamp(36px, 5vw, 48px) clamp(24px, 4vw, 40px);
+  text-align: center;
+  box-shadow: var(--float);
+}
+
+/* "Ancestorii": small uppercase with a round aqua dot (white text only on ink). */
+.tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 16px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tag::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--c3);
+}
+
+.message {
+  position: relative;
+  margin: 0;
+  font-size: clamp(26px, 3.2vw, 34px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    display: none;
+  }
+}

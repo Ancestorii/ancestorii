@@ -1,0 +1,800 @@
+/* ============================================================
+   One capsule (/dashboard/capsules/[id]): its page, the letter and
+   voice notes panel, the upload and voice note drawers, the viewer
+   and the seal confirm. Only the looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have: the
+   kit sits in the "components" cascade layer, so a plain rule here
+   wins over it.
+   ============================================================ */
+
+/* ── Motion: transform and opacity only, played once ──────── */
+
+/* "backwards" applies the first frame during the delay and nothing after the end, so no
+   transform is left on a panel. */
+.fadeIn {
+  animation: capFade 0.2s ease backwards;
+}
+
+.popIn {
+  animation: capPop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@keyframes capFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes capPop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+@keyframes capUp {
+  from {
+    opacity: 0;
+    transform: translateY(48px);
+  }
+}
+
+@keyframes capFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+}
+
+/* ── Page ─────────────────────────────────────────────────── */
+
+/* Phones and tablets: room at the end for the floating phone navigation and the Story
+   Assistance pill that sits above it. */
+.page {
+  padding-bottom: 176px;
+}
+
+@media (min-width: 1024px) {
+  .page {
+    padding-bottom: 96px;
+  }
+}
+
+/* The header answers its own width, not the screen's. */
+.headerWrap {
+  container-type: inline-size;
+}
+
+/* Back on the left and the actions on the right, the title under both. On narrower columns
+   the actions move under the title: one row on tablets, two to a row on phones. */
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'back actions'
+    'text text';
+  align-items: center;
+  column-gap: 16px;
+}
+
+.back {
+  grid-area: back;
+  justify-self: start;
+}
+
+/* Wide (and the keyboard's order): My Library, Tag Someone, Seal Capsule, then the main
+   action last. */
+.actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.titleBlock {
+  grid-area: text;
+  min-width: 0;
+  margin-top: clamp(28px, 3.4vw, 44px);
+}
+
+.title {
+  margin-top: 18px;
+}
+
+/* Tablets: the actions under the title, in one row from the left, the main one first. */
+@container (max-width: 839px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'back'
+      'text'
+      'actions';
+  }
+
+  .actions {
+    justify-content: flex-start;
+    margin-top: 24px;
+  }
+
+  .actions > .actUpload {
+    order: -2;
+  }
+
+  .actions > .actSeal {
+    order: -1;
+  }
+}
+
+/* Phones: two to a row, Upload Memory and Seal Capsule first, then My Library and Tag
+   Someone. */
+@container (max-width: 599px) {
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .actions > * {
+    min-width: 0;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .actions > .actUpload {
+    padding-right: 5px;
+  }
+
+  /* A sealed capsule has no Seal Capsule: Upload Memory (the third and last) takes the
+     first row on its own, My Library and Tag Someone share the second. */
+  .actions > .actUpload:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The narrowest phones (360px): a size smaller, or Upload Memory's tile overran its
+   half-width button's padding and touched the edge. */
+@container (max-width: 339px) {
+  .actions > * {
+    font-size: 13px;
+  }
+}
+
+/* The capsule's message, in a white card. */
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 760px;
+  margin-top: 22px;
+}
+
+.messageText {
+  margin: 0;
+  min-width: 0;
+  padding-top: 7px;
+  font-size: 16.5px;
+  line-height: 1.6;
+  font-weight: 500;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* People tagged in the capsule: a chip each, with a remove button. */
+.people {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.person {
+  max-width: 100%;
+  padding: 3px 4px 3px 3px;
+  gap: 8px;
+  white-space: normal;
+}
+
+.personAvatar {
+  display: inline-flex;
+  flex: none;
+}
+
+.personName {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.personRemove {
+  position: relative;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* A 44px tap area around the small button. */
+.personRemove::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+}
+
+@media (hover: hover) {
+  .personRemove:hover {
+    background: var(--danger);
+    color: #fff;
+  }
+}
+
+/* ── Body: the memories, and the letter and voice notes beside them from 1024px ── */
+
+.body {
+  display: grid;
+  gap: 28px;
+  margin-top: clamp(28px, 3.4vw, 44px);
+}
+
+@media (min-width: 1024px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 30vw, 400px);
+    align-items: start;
+    gap: 36px;
+  }
+}
+
+.mediaCol {
+  container-type: inline-size;
+  min-width: 0;
+}
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@container (min-width: 500px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+/* One memory: the square photo opens the viewer; Delete sits on its top right corner. The
+   lift is on the tile, so the photo and its button move together. */
+.tile {
+  position: relative;
+  min-width: 0;
+  border-radius: 16px;
+  transition: transform 0.25s ease;
+}
+
+.tileOpen {
+  cursor: zoom-in;
+}
+
+@media (hover: hover) {
+  .tile:hover {
+    transform: translateY(-2px);
+  }
+
+  .tileOpen:hover {
+    transform: none;
+  }
+}
+
+.tileDelete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* With a mouse, Delete shows on hover or keyboard focus; on touch screens it always shows
+   (it could be tapped unseen before). */
+.tile:hover .tileDelete,
+.tileDelete:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .tileDelete {
+    opacity: 1;
+  }
+}
+
+/* Small ink chip on a video's first frame. */
+.playChip {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  gap: 5px;
+  pointer-events: none;
+}
+
+/* A voice note kept as a memory: a blue microphone tile on the light grey. */
+.audioFace {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--ink);
+  font-size: 13.5px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+/* ── The letter and voice notes panel ─────────────────────── */
+
+.panel {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  min-width: 0;
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.cardHeadText {
+  min-width: 0;
+  flex: 1 1 auto;
+  padding-top: 2px;
+}
+
+.cardLead {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.letter {
+  display: block;
+  margin-top: 18px;
+}
+
+.letterFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 14px;
+}
+
+.byline {
+  margin: 0;
+  min-width: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.bylineName {
+  font-weight: 800;
+}
+
+.voiceHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.voiceTitle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.voices {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+}
+
+.voice {
+  padding: 14px 0;
+  border-top: 1.5px solid var(--rule);
+}
+
+.voice:last-child {
+  padding-bottom: 0;
+}
+
+.voiceTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 36px;
+}
+
+.voiceName {
+  margin: 0;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.audio {
+  display: block;
+  width: 100%;
+  height: 40px;
+  margin-top: 8px;
+}
+
+.voiceMeta {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+/* ── Seal confirm ─────────────────────────────────────────── */
+
+.confirm {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+}
+
+.confirmTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.confirmText {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.confirmActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.confirmActions > * {
+  min-width: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* The lock beside "Confirm & Seal" only where it fits: on phones the two half-width buttons
+   squashed it to nothing and pushed the label off centre. */
+.confirmIcon {
+  flex: none;
+}
+
+@media (max-width: 420px) {
+  .confirmIcon {
+    display: none;
+  }
+}
+
+/* ── Full-screen viewer (ink backdrop, round white buttons) ── */
+
+.viewer {
+  z-index: 1000;
+  animation: capFade 0.2s ease backwards;
+}
+
+.viewerStage {
+  position: relative;
+  padding-left: 72px;
+  padding-right: 72px;
+}
+
+.viewerMedia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.viewerMedia > img,
+.viewerMedia > video {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 110px);
+  max-height: calc(100dvh - 110px);
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+/* A definite width: the box around it shrinks to fit, so a percentage would collapse it. */
+.viewerAudio {
+  width: 420px;
+  max-width: calc(100vw - 48px);
+  padding: 22px;
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.viewerAudio > audio {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+}
+
+/* The blue microphone with its label, as on the tile. */
+.viewerAudioHead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.viewerAudioTitle {
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.viewerNav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  margin-top: -22px;
+}
+
+.viewerPrev {
+  left: 14px;
+}
+
+.viewerNext {
+  right: 14px;
+}
+
+/* Phones: the arrows sit on the photo's edges, so the photo keeps the width. */
+@media (max-width: 599px) {
+  .viewerStage {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .viewerPrev {
+    left: 18px;
+  }
+
+  .viewerNext {
+    right: 18px;
+  }
+}
+
+/* ── Upload drawer: stays mounted, fades in and out ───────── */
+
+/* Closed, it is hidden from taps, Tab and screen readers (visibility flips after the fade).
+   A bottom sheet on phones, a centred dialog from 640px. */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(10, 10, 15, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+
+.layer[data-open='true'] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s;
+}
+
+.layerPanel {
+  width: 100%;
+  max-height: 92%;
+  transform: translateY(32px);
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.layer[data-open='true'] > .layerPanel {
+  transform: none;
+}
+
+@media (min-width: 640px) {
+  .layer {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .layerPanel {
+    max-width: 520px;
+    max-height: 88vh;
+    border-radius: 28px;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+/* The zone keeps one shape, empty or with the chosen file in it. */
+.uploadZone {
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.uploadZoneFilled {
+  padding: 0;
+  border-style: solid;
+  border-color: transparent;
+  background: var(--hover);
+}
+
+.uploadZoneFilled > img,
+.uploadZoneFilled > video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dropIcons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.fileName {
+  margin: 0;
+  max-width: 100%;
+  padding: 0 16px;
+  font-size: 14.5px;
+  line-height: 1.4;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* ── Voice note drawer: from the right, a bottom sheet on phones ── */
+
+.voiceLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+.voicePanel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(480px, 100%);
+  animation: capFromRight 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@media (max-width: 599px) {
+  .voicePanel {
+    top: auto;
+    left: 0;
+    width: 100%;
+    max-height: 92%;
+    border-radius: 28px 28px 0 0;
+    animation-name: capUp;
+  }
+}
+
+.voiceDrop {
+  min-height: 220px;
+  margin-top: 20px;
+}
+
+.recorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 24px 0;
+}
+
+/* Record: ink at rest, pink while it records. */
+.recBtn {
+  width: 96px;
+  height: 96px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+@media (hover: hover) {
+  .recBtn:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.recBtn:active {
+  transform: scale(0.96);
+  transition-duration: 80ms;
+}
+
+.recBtnOn {
+  background: var(--c0);
+  color: var(--ink);
+  box-shadow: 0 0 0 10px var(--pink-tint);
+}
+
+.take {
+  width: 100%;
+  padding: 16px;
+}
+
+.take > audio {
+  display: block;
+  width: 100%;
+}

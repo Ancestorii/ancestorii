@@ -1,9 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { scaleTime, zoom, zoomIdentity, select, timeYear } from 'd3';
+import { Calendar, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
 import MemoryModal from '@app/dashboard/timeline/_components/MemoryModal';
 import TimelineEventCard from './TimelineEventCard';
+import { Btn, EmptyState, IconBtn, tone, toneByKey } from '@/components/dashboard/ui/AppBits';
+import s from './eventTimeline.module.css';
+
+// Class joiner ("cx" is taken below: it's each mark's x position in the drawing).
+const cls = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 
 export type TimelineEvent = {
@@ -225,20 +231,17 @@ export default function HorizontalTimeline({
 
   if (!events.length) {
     return (
-      <div ref={wrapRef} className="w-full py-24 flex justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-2">✨</div>
-          <h3 className="text-lg font-semibold">Your timeline is empty</h3>
-          <p className="text-slate-600 mt-1">Add your first memory to begin your story.</p>
-          <div className="mt-4">
-            <button
-              onClick={onCreateMemory}
-              className="rounded-lg bg-indigo-600 text-white px-4 py-2 hover:opacity-95"
-            >
-              Add your first memory
-            </button>
-          </div>
-        </div>
+      <div ref={wrapRef} className="w-full">
+        <EmptyState
+          Icon={Calendar}
+          tone={toneByKey('aqua')}
+          title="Your timeline is empty"
+          text="Add your first memory to begin your story."
+        >
+          <Btn onClick={onCreateMemory} aria-haspopup="dialog" tile={<Plus size={18} strokeWidth={2.6} />}>
+            Add your first memory
+          </Btn>
+        </EmptyState>
       </div>
     );
   }
@@ -249,12 +252,12 @@ export default function HorizontalTimeline({
       <div
         className={[
           'pointer-events-none absolute left-1/2 top-6 -translate-x-1/2',
-          'transition-all duration-500',
+          'transition-[opacity,translate] duration-500',
           visibleYear ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1',
         ].join(' ')}
       >
-        <div className="px-4 py-1.5 rounded-full bg-white/70 backdrop-blur-sm ring-1 ring-slate-200">
-          <span className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900/80">
+        <div className="rounded-full bg-white px-5 py-2 shadow-[0_0_0_1.5px_rgba(10,10,15,0.08),0_30px_70px_-30px_rgba(10,10,15,0.45)]">
+          <span className="block text-3xl font-extrabold leading-none tracking-[-0.05em] tabular-nums text-brand-ink md:text-5xl">
             {visibleYear}
           </span>
         </div>
@@ -267,16 +270,14 @@ export default function HorizontalTimeline({
         viewBox={`0 0 ${width * 2} ${height + 40}`}
         style={{ display: 'block', background: 'transparent', overflow: 'visible' }}
       >
-       {/* premium light gold rail (no drop-shadow: globals.css forces filter:none inside main, so it never showed) */}
-<line
-  x1={-100}
-  y1={midY}
-  x2={baseX(domainEnd)! + 200}
-  y2={midY}
-  stroke="#E8C875"           // lighter, champagne-style gold
-  strokeWidth={5}
-  strokeLinecap="round"
-/>
+        {/* the axis: a soft track */}
+        <line
+          x1={-100}
+          y1={midY}
+          x2={baseX(domainEnd)! + 200}
+          y2={midY}
+          className={s.track}
+        />
 
 
         {/* year ticks */}
@@ -285,89 +286,16 @@ export default function HorizontalTimeline({
           const cx = x(d)!;
           return (
             <g key={yr} transform={`translate(${cx}, ${midY})`}>
-              <line y1={-24} y2={24} stroke="#cbd5e1" strokeWidth={2} />
-              <text y={-32} textAnchor="middle" style={{ fontSize: 12, fill: '#64748b' }}>
+              <line y1={-24} y2={24} className={s.yearTick} />
+              <text y={-32} textAnchor="middle" className={s.yearLabel}>
                 {yr}
               </text>
             </g>
           );
         })}
 
-        {/* events */}
-        {events.map((ev, i) => {
-          const d = new Date(ev.happened_at);
-          const cx = x(d)!;
-          const up = i % 2 === 0;
-          const CARD_W = 210;
-          const CARD_H = 280;
-          const arm = up ? -230 : 60;
-
-          const accent = [
-            '#6366F1', '#F59E0B', '#10B981', '#EF4444',
-            '#3B82F6', '#EC4899', '#9333EA', '#F97316',
-          ][i % 8];
-
-          const resolved: TimelineThumbnail[] =
-          thumbsById[ev.id]?.length
-         ? thumbsById[ev.id]
-         : (ev.media ?? []).filter(
-          (m): m is TimelineThumbnail =>
-          (m.type === 'photo' || m.type === 'video') && !!m.url
-        );
-
-          const cover = resolved[0] ?? null;
-          const more = Math.max(0, resolved.length - 1);
-
-          const cardY = up ? arm - 10 : arm + 10;
-          const foreignY = up ? -58 : -6;
-
-          return (
-            <g
-              key={ev.id}
-              transform={`translate(${cx}, ${midY})`}
-              style={{ cursor: 'pointer' }}
-              onClick={() => handleEventClick(ev)}
-            >
-
-{/* connector + premium gold/navy dot */}
-<line y1={arm} y2={0} stroke="#D4AF37" strokeWidth={2} />
-
-<g className="timeline-dot">
-  {/* Thin navy edge */}
-  <circle
-    r={11}
-    fill="#0F2040"
-    stroke="#0F2040"
-    strokeWidth={1}
-  />
-
-  {/* Warm rich gold core. No pulsing glow: globals.css forces filter:none inside main,
-      so it never showed, but its infinite animation still ran every frame */}
-  <circle
-    r={9}
-    fill="#D4AF37"
-  />
-</g>
-
-
- <TimelineEventCard
-  event={ev}
-  date={d}
-  up={up}
-  accent={accent}
-  cover={cover}
-  more={more}
-  cardY={cardY}
-  foreignY={foreignY}
-  cardWidth={CARD_W}
-  cardHeight={CARD_H}
-  onImgError={onImgError}
-  />
-            </g>
-          );
-        })}
-
-       {/* month ticks: showQuarters => Apr/Jul/Oct only; showMonths => all 12 */}
+       {/* month ticks: showQuarters => Apr/Jul/Oct only; showMonths => all 12 (drawn before the
+           memories, so a dot or a card sits over a tick, never under it) */}
 {(() => {
   if (!showMonths && !showQuarters) return null;
 
@@ -402,12 +330,13 @@ export default function HorizontalTimeline({
         transform={`translate(${cx}, ${midY})`}
         style={{ opacity: monthsEntered ? 1 : 0, transition: 'opacity 0.25s ease' }}
       >
-        <line y1={TICK_Y1} y2={TICK_Y2} stroke="#d4d4d8" strokeWidth={1} />
+        <line y1={TICK_Y1} y2={TICK_Y2} className={s.monthTick} />
         <text
           y={LABEL_Y}
           textAnchor="middle"
           dominantBaseline="hanging"
-          style={{ fontSize: LABEL_FONT, fontWeight: 600, fill: '#475569', letterSpacing: '0.3px' }}
+          className={s.monthLabel}
+          style={{ fontSize: LABEL_FONT }}
         >
           {label}
         </text>
@@ -415,6 +344,68 @@ export default function HorizontalTimeline({
     );
   });
 })()}
+
+        {/* events */}
+        {events.map((ev, i) => {
+          const d = new Date(ev.happened_at);
+          const cx = x(d)!;
+          const up = i % 2 === 0;
+          const CARD_W = 210;
+          const CARD_H = 280;
+          const arm = up ? -230 : 60;
+
+          // The four colours in turn: the dot, and the dot on the card's date chip.
+          const accent = tone(i).bg;
+
+          const resolved: TimelineThumbnail[] =
+          thumbsById[ev.id]?.length
+         ? thumbsById[ev.id]
+         : (ev.media ?? []).filter(
+          (m): m is TimelineThumbnail =>
+          (m.type === 'photo' || m.type === 'video') && !!m.url
+        );
+
+          const cover = resolved[0] ?? null;
+          const more = Math.max(0, resolved.length - 1);
+
+          const cardY = up ? arm - 10 : arm + 10;
+          const foreignY = up ? -58 : -6;
+
+          return (
+            <g
+              key={ev.id}
+              transform={`translate(${cx}, ${midY})`}
+              className={cls(s.event, activeEvent?.id === ev.id && s.eventActive)}
+              style={{ cursor: 'pointer', '--tone': accent } as CSSProperties}
+              onClick={() => handleEventClick(ev)}
+            >
+
+{/* connector + a round dot in the memory's colour (ink when hovered, or opened last),
+    a white gap around it over the track */}
+<line y1={arm} y2={0} className={s.connector} />
+
+<g>
+  <circle r={12} className={s.nodeRing} />
+  <circle r={8.5} className={s.nodeDot} />
+</g>
+
+
+ <TimelineEventCard
+  event={ev}
+  date={d}
+  up={up}
+  accent={accent}
+  cover={cover}
+  more={more}
+  cardY={cardY}
+  foreignY={foreignY}
+  cardWidth={CARD_W}
+  cardHeight={CARD_H}
+  onImgError={onImgError}
+  />
+            </g>
+          );
+        })}
 
         {/* defs */}
         <defs>
@@ -442,85 +433,72 @@ export default function HorizontalTimeline({
         </defs>
       </svg>
 
-      {/* Zoom & Pan Controls */}
+      {/* Zoom & Pan Controls: a white pill with the hairline ring (no backdrop blur) */}
       <div
-        // frost-pill: frosted with a mouse, as before; near-opaque on touch tablets, where the blur
-        // re-rendered behind the pill on every pan/zoom frame
-        className="frost-pill fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2"
-        style={{
-          border: '1.5px solid #E8E2D6',
-          borderRadius: 14,
-          padding: '6px 8px',
-          boxShadow: '0 8px 24px rgba(22,18,12,0.1), 0 2px 6px rgba(22,18,12,0.06)',
-        }}
+        className={cls('fixed bottom-6 left-1/2 -translate-x-1/2 z-20', s.controls)}
+        role="group"
+        aria-label="Zoom and pan the timeline"
       >
         {/* Pan Left */}
-        <button
+        <IconBtn
+          label="Pan left"
+          ghost
+          size="sm"
           onClick={() => {
             if (selRef.current && zoomRef.current) {
               selRef.current.transition().duration(300).call(zoomRef.current.translateBy, 150, 0);
             }
           }}
-          className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6358] transition hover:bg-[#F5F0E8] hover:text-[#1A1714]"
-          title="Pan left"
         >
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
+          <ChevronLeft size={18} strokeWidth={2.4} aria-hidden="true" />
+        </IconBtn>
 
         {/* Zoom Out */}
-        <button
+        <IconBtn
+          label="Zoom out"
+          ghost
+          size="sm"
           onClick={() => {
             if (selRef.current && zoomRef.current) {
               selRef.current.transition().duration(300).call(zoomRef.current.scaleBy, 0.7);
             }
           }}
-          className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6358] transition hover:bg-[#F5F0E8] hover:text-[#1A1714]"
-          title="Zoom out"
         >
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-            <path d="M5 12h14" />
-          </svg>
-        </button>
+          <Minus size={18} strokeWidth={2.4} aria-hidden="true" />
+        </IconBtn>
 
         {/* Zoom Level */}
-        <span
-          className="text-[12px] font-semibold text-[#6B6358] select-none"
-          style={{ minWidth: 40, textAlign: 'center' }}
-        >
+        <span className={s.zoomLevel}>
           {Math.round(zoomLevel * 100)}%
         </span>
 
         {/* Zoom In */}
-        <button
+        <IconBtn
+          label="Zoom in"
+          ghost
+          size="sm"
           onClick={() => {
             if (selRef.current && zoomRef.current) {
               selRef.current.transition().duration(300).call(zoomRef.current.scaleBy, 1.4);
             }
           }}
-          className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6358] transition hover:bg-[#F5F0E8] hover:text-[#1A1714]"
-          title="Zoom in"
         >
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-        </button>
+          <Plus size={18} strokeWidth={2.4} aria-hidden="true" />
+        </IconBtn>
 
         {/* Pan Right */}
-        <button
+        <IconBtn
+          label="Pan right"
+          ghost
+          size="sm"
           onClick={() => {
             if (selRef.current && zoomRef.current) {
               selRef.current.transition().duration(300).call(zoomRef.current.translateBy, -150, 0);
             }
           }}
-          className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[#6B6358] transition hover:bg-[#F5F0E8] hover:text-[#1A1714]"
-          title="Pan right"
         >
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </button>
+          <ChevronRight size={18} strokeWidth={2.4} aria-hidden="true" />
+        </IconBtn>
       </div>
 
       {/* Centered Memory Modal */}

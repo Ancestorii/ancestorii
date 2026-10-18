@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { getSignedMediaUrl } from '@app/dashboard/timeline/_actions/uploadMedia';
 import MemoryModalBody from './MemoryModalBody';
 import { safeToast as toast } from '@/lib/safeToast';
 import { Trash2 } from 'lucide-react';
-import { Save, BookOpen } from 'lucide-react';
+import { Save, BookOpen, Check, Upload, X } from 'lucide-react';
 import LibraryPickerModal, { LibraryPickerItem } from '@/components/LibraryPickerModal';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { ui, Btn, IconBtn, Spinner, btnClass, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './memoryModal.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 const signedUrlCache = new Map<string, string>();
 
@@ -144,6 +148,22 @@ export default function MemoryModal({
 
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [libraryPickerOpen, setLibraryPickerOpen] = useState(false);
+
+  // Close, as the close button always did: tell the timeline to refresh its cards, then close.
+  const close = () => {
+    window.dispatchEvent(new Event("timeline-media-updated"));
+    onOpenChange(false);
+  };
+
+  // Escape closes the top dialog only (the confirm over the modal, or the modal), Tab stays
+  // inside it, and focus goes back to where it was.
+  const titleId = useId();
+  const confirmTitleId = useId();
+  const confirmTextId = useId();
+  const panelRef = useDialog<HTMLDivElement>(open, close);
+  const confirmRef = useDialog<HTMLDivElement>(confirmDeleteOpen, () => {
+    if (!deleting) setConfirmDeleteOpen(false);
+  });
 
   async function loadMedia() {
   const { data: m, error } = await supabase
@@ -715,274 +735,192 @@ async function uploadVoice(file: File) {
   if (!open) return null;
 
   return (
-  <div
-  className="fixed inset-0 z-[1000] flex items-center justify-center"
-  onWheel={(e) => e.stopPropagation()}
->
-    {/* OVERLAY */}
     <div
-      className="absolute inset-0 bg-black/40"
-    />
-
-    {/* POSITIONING WRAPPER (NO CLIPPING) */}
-    <div
-      className="
-        relative
-    mx-auto
-    my-6
-    w-[96vw] max-w-6xl
-    rounded-4xl
-    shadow-4xl
-      "
-      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 z-[1000] flex items-end justify-center sm:items-center sm:p-6"
+      onWheel={(e) => e.stopPropagation()}
     >
-     {/* VISUAL CONTAINER */}
-<div className="bg-white rounded-2xl shadow-2xl w-full h-[90vh] flex flex-col overflow-hidden">
+      {/* OVERLAY (scrim-blur blurs only with a mouse, see globals.css) */}
+      <div className={cx(ui.scrim, s.fade, 'scrim-blur')} aria-hidden="true" />
 
-{/* HEADER */}
-<div className="px-12 pt-10 pb-6 border-b border-[#E6C26E]/40 bg-white">
+      {/* PANEL: a centred dialog on tablets and desktops, a full-height bottom sheet on phones */}
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className={cx(ui.sheet, ui.sheetBottom, s.panel)}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* The dialog's name: the memory's title as it reads now */}
+        <h2 id={titleId} className={ui.srOnly}>
+          {title.trim() || 'Untitled memory'}
+        </h2>
 
-<button
-  onClick={() => {
-    window.dispatchEvent(new Event("timeline-media-updated"));
-    onOpenChange(false);
-  }}
-  className="
-  absolute top-6 right-8
-  flex items-center justify-center
-  w-[36px] h-[36px]
+        {/* HEADER */}
+        <div className={s.head}>
+          <div className={s.headTop}>
+            {/* HERO TITLE: the field itself, growing with its text (see .titleGrow) */}
+            <div className={s.titleGrow} data-value={title}>
+              <textarea
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Untitled memory"
+                rows={1}
+                aria-label="Memory title"
+              />
+            </div>
 
-  rounded-full
-  border border-gray-200
-  bg-white
+            <IconBtn label="Close" onClick={close}>
+              <X size={20} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
+          </div>
 
-  text-gray-500
-  hover:bg-gray-50 hover:text-gray-800
-  transition
-  "
->
-  ✕
-</button>
+          {/* ACTION BAR: add media on the left; save the title and delete on the right */}
+          <div className={s.actions}>
+            <div className={s.actionGroup}>
+              {/* UPLOAD (the file field is hidden from sight, not from the keyboard) */}
+              <label className={btnClass({ variant: 'soft', size: 'sm', className: s.fileBtn })}>
+                <Upload size={17} strokeWidth={2.3} aria-hidden="true" />
+                <span>Upload</span>
+                <input
+                  type="file"
+                  className={ui.srOnly}
+                  accept="image/*,video/*,audio/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    uploadMedia(file);
+                  }}
+                />
+              </label>
 
-  <div className="flex flex-col gap-6">
+              {/* LIBRARY */}
+              <Btn
+                variant="soft"
+                size="sm"
+                onClick={() => setLibraryPickerOpen(true)}
+                aria-haspopup="dialog"
+                icon={<BookOpen size={17} strokeWidth={2.2} aria-hidden="true" />}
+              >
+                My Library
+              </Btn>
+            </div>
 
-    {/* HERO TITLE */}
-    <textarea
-      value={title}
-      onChange={(e) => setTitle(e.target.value)}
-      placeholder="Untitled memory"
-      rows={1}
-      className="
-        w-full
-        resize-none overflow-hidden
-        bg-transparent
-        outline-none
+            <div className={s.actionGroup}>
+              {/* SAVE */}
+              <Btn
+                variant={saveStatus === 'saved' ? 'primary' : 'soft'}
+                size="sm"
+                onClick={saveTop}
+                disabled={saving}
+                icon={
+                  saving || saveStatus === 'saving' ? (
+                    <Spinner size={16} />
+                  ) : saveStatus === 'saved' ? (
+                    <Check size={17} strokeWidth={2.6} aria-hidden="true" />
+                  ) : (
+                    <Save size={17} strokeWidth={2.2} aria-hidden="true" />
+                  )
+                }
+                className={s.saveBtn}
+              >
+                {saving || saveStatus === "saving"
+                  ? "Saving..."
+                  : saveStatus === "saved"
+                  ? "Saved"
+                  : "Save"}
+              </Btn>
 
-        font-semibold
-        tracking-tight
-        text-[#0f2040]
+              {/* DELETE */}
+              <IconBtn
+                label="Delete this memory"
+                onClick={() => {
+                  setConfirmDeleteOpen(true);
+                }}
+                aria-haspopup="dialog"
+                className={s.danger}
+              >
+                <Trash2 size={18} strokeWidth={2.2} aria-hidden="true" />
+              </IconBtn>
+            </div>
+          </div>
+        </div>
 
-        text-[clamp(30px,3.5vw,44px)]
-        leading-tight
-
-        placeholder:text-[#0f2040]/30
-      "
-      style={{ height: "auto" }}
-      onInput={(e) => {
-        e.currentTarget.style.height = "auto";
-        e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
-      }}
-    />
-
-
-    {/* ACTION BAR */}
-    <div className="flex justify-end">
-
-      <div className="flex items-center gap-4">
-
-        {/* UPLOAD */}
-        <label
-          className="
-          inline-flex items-center gap-2
-          px-5 h-[42px]
-          rounded-full
-
-          bg-emerald-50
-          border border-emerald-200
-
-          text-sm text-emerald-700
-          hover:bg-emerald-100
-          transition cursor-pointer
-          "
-        >
-          + Upload
-
-          <input
-            type="file"
-            hidden
-            accept="image/*,video/*,audio/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              uploadMedia(file);
-            }}
-          />
-        </label>
-
-
-        {/* LIBRARY */}
-        <button
-          onClick={() => setLibraryPickerOpen(true)}
-          className="
-          inline-flex items-center gap-2
-          px-5 h-[42px]
-          rounded-full
-
-          bg-amber-50
-          border border-amber-200
-
-          text-sm text-amber-800
-          hover:bg-amber-100
-          transition
-          "
-        >
-          <BookOpen className="w-4 h-4" />
-          My Library
-        </button>
-
-
-        {/* SAVE */}
-        <button
-          onClick={saveTop}
-          disabled={saving}
-          className={`
-          inline-flex items-center gap-2
-          px-5 h-[42px]
-          rounded-full
-
-          bg-blue-50
-          border border-blue-200
-
-          text-sm text-blue-700
-          hover:bg-blue-100
-
-          transition
-          ${saving ? "opacity-50 cursor-not-allowed" : ""}
-          `}
-        >
-          <Save className="w-4 h-4" />
-
-          {saving || saveStatus === "saving"
-            ? "Saving..."
-            : saveStatus === "saved"
-            ? "Saved"
-            : "Save"}
-        </button>
-
-
-        {/* DELETE */}
-<button
-  onClick={() => {
-    setConfirmDeleteOpen(true);
-  }}
-  className="
-  inline-flex items-center justify-center
-  px-3 h-[42px]
-
-  rounded-full
-  border border-red-200
-  bg-red-50
-
-  text-sm text-red-700
-  hover:bg-red-100
-  transition
-  "
->
-  <Trash2 className="w-4 h-4" />
-</button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
         {/* BODY */}
-<div
-  className="flex-1 overflow-y-auto"
-  onWheel={(e) => e.stopPropagation()}
->
-  <MemoryModalBody
-    loading={loading}
-    media={media}
-    comments={comments}
-    voices={voices}
-    newComment={newComment}
-    addingComment={addingComment}
-    addingVoice={addingVoice}
-    onChangeComment={(value) => setNewComment(value)}
-    onAddComment={addComment}
-    onUploadVoice={uploadVoice}
-    onDeleteComment={deleteComment}
-    onDeleteVoice={deleteVoice}
-    onUploadMedia={uploadMedia}
-    uploadingMedia={uploadingMedia}
-    onDeleteMedia={deleteMedia}
-  />
-</div>
+        <div className={s.body} onWheel={(e) => e.stopPropagation()}>
+          <MemoryModalBody
+            loading={loading}
+            media={media}
+            comments={comments}
+            voices={voices}
+            newComment={newComment}
+            addingComment={addingComment}
+            addingVoice={addingVoice}
+            onChangeComment={(value) => setNewComment(value)}
+            onAddComment={addComment}
+            onUploadVoice={uploadVoice}
+            onDeleteComment={deleteComment}
+            onDeleteVoice={deleteVoice}
+            onUploadMedia={uploadMedia}
+            uploadingMedia={uploadingMedia}
+            onDeleteMedia={deleteMedia}
+          />
+        </div>
       </div>
+
+      {/* DELETE THIS MEMORY? (above the modal) */}
       {confirmDeleteOpen && (
-  <div className="fixed inset-0 z-[1100]">
-    <div
-      className="absolute inset-0 bg-black/40"
-      onClick={() => setConfirmDeleteOpen(false)}
-    />
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4">
+          <div
+            className={cx(ui.scrim, s.fade, 'scrim-blur')}
+            onClick={() => setConfirmDeleteOpen(false)}
+            aria-hidden="true"
+          />
 
-    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-      <h3 className="text-lg font-semibold text-gray-900">
-        Delete this memory?
-      </h3>
+          <div
+            ref={confirmRef}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={confirmTitleId}
+            aria-describedby={confirmTextId}
+            className={cx(ui.sheet, s.confirm, s.pop)}
+          >
+            <h2 id={confirmTitleId} className={s.confirmTitle}>
+              Delete this memory?
+            </h2>
 
-      <p className="mt-2 text-sm text-gray-600">
-        This memory and all associated media, comments, and voice notes will be
-        permanently removed. This action cannot be undone.
-      </p>
+            <p id={confirmTextId} className={s.confirmText}>
+              This memory and all associated media, comments, and voice notes will be
+              permanently removed. This action cannot be undone.
+            </p>
 
-      <div className="mt-6 flex justify-end gap-3">
-        <button
-          onClick={() => setConfirmDeleteOpen(false)}
-          disabled={deleting}
-          className="px-4 h-[38px] rounded-full border text-sm"
-        >
-          Cancel
-        </button>
+            <div className={s.confirmActions}>
+              <Btn
+                variant="soft"
+                onClick={() => setConfirmDeleteOpen(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </Btn>
 
-        <button
-          onClick={deleteMemory}
-          disabled={deleting}
-          className="
-            px-4 h-[38px]
-            rounded-full
-            bg-red-600
-            text-white
-            text-sm
-            hover:bg-red-700
-            disabled:opacity-50
-          "
-        >
-          {deleting ? 'Deleting…' : 'Delete'}
-        </button>
-      </div>
+              <Btn
+                variant="danger"
+                onClick={deleteMemory}
+                disabled={deleting}
+                icon={deleting ? <Spinner size={16} /> : null}
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <LibraryPickerModal
+        open={libraryPickerOpen}
+        onClose={() => setLibraryPickerOpen(false)}
+        onPick={(item) => handlePickFromLibrary(item)}
+      />
     </div>
-  </div>
-)}
-    </div>
-    <LibraryPickerModal
-  open={libraryPickerOpen}
-  onClose={() => setLibraryPickerOpen(false)}
-  onPick={(item) => handlePickFromLibrary(item)}
-/>
-  </div>
-   );
+  );
 }

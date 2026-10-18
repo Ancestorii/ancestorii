@@ -254,12 +254,14 @@ type IconBtnProps = {
   ghost?: boolean;
   active?: boolean;
   onPhoto?: boolean;
+  /** Red, for a delete. */
+  danger?: boolean;
   className?: string;
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className'>;
 
 /** Square icon button with an accessible name. Forwards its ref (a menu can hand focus back). */
 export const IconBtn = forwardRef<HTMLButtonElement, IconBtnProps>(function IconBtn(
-  { label, children, size = 'md', ghost = false, active = false, onPhoto = false, className, type = 'button', ...rest },
+  { label, children, size = 'md', ghost = false, active = false, onPhoto = false, danger = false, className, type = 'button', ...rest },
   ref
 ) {
   return (
@@ -274,6 +276,7 @@ export const IconBtn = forwardRef<HTMLButtonElement, IconBtnProps>(function Icon
         ghost && ui.iconBtnGhost,
         active && ui.iconBtnActive,
         onPhoto && ui.iconBtnOnPhoto,
+        danger && ui.iconBtnDanger,
         className
       )}
       {...rest}

@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 const stack: HTMLElement[] = [];
 
 const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
+  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), audio[controls], video[controls], [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
 
 /**
  * Keyboard behaviour for a drawer, sheet or modal. While `open` is true: focus moves to the

@@ -1,0 +1,113 @@
+/* ============================================================
+   The sealing celebration (CapsuleSealOverlay): an ink scrim, a
+   white card, the lock in a pink seal with the four colours bursting
+   out of it once. Motion is transform and opacity only (Framer
+   Motion), no blur. Renders inside the dashboard's .app root, so the
+   kit's tokens are there (with fallbacks all the same).
+   ============================================================ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: rgba(10, 10, 15, 0.72);
+}
+
+.card {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 40px 28px 32px;
+  border-radius: 28px;
+  background: #fff;
+  color: var(--ink, #0a0a0f);
+  text-align: center;
+  box-shadow: 0 30px 70px -30px rgba(10, 10, 15, 0.45);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+}
+
+/* useDialog focuses the card itself: no ring around it. */
+.card:focus {
+  outline: none;
+}
+
+.emblemWrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+}
+
+.emblem {
+  position: relative;
+  z-index: 1;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--c0, #ff2d87);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 6px #fff,
+    0 0 0 8.5px var(--ink, #0a0a0f);
+}
+
+/* The four colours, round, starting behind the seal's centre. */
+.dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+}
+
+.title {
+  margin: 30px 0 0;
+  font-size: clamp(28px, 7vw, 36px);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.accent {
+  color: var(--c0, #ff2d87);
+}
+
+.name {
+  margin: 10px 0 0;
+  font-size: 17px;
+  line-height: 1.45;
+  font-weight: 700;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.chip {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.remaining {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c1, #2b4bff);
+}

@@ -1,7 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, type CSSProperties } from "react";
+import { ui } from "@/components/dashboard/ui/AppBits";
+import s from "./LegacyCelebration.module.css";
 
 type LegacyCelebrationProps = {
   open: boolean;
@@ -11,33 +13,43 @@ type LegacyCelebrationProps = {
   onClose: () => void;
 };
 
+// The burst's dots, in the four brand colours (pink, blue, orange, aqua).
+const DOT_COLOURS = ["var(--c0)", "var(--c1)", "var(--c2)", "var(--c3)"];
+
 export default function LegacyCelebration({
   open,
   message,
   durationMs = 4200,
   onClose,
 }: LegacyCelebrationProps) {
+  // The latest onClose, so a parent re-rendering mid-celebration (a new arrow function each
+  // time) doesn't restart the timer and keep the overlay up longer than durationMs.
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
-    const t = setTimeout(onClose, durationMs);
+    const t = setTimeout(() => closeRef.current(), durationMs);
     return () => clearTimeout(t);
-  }, [open, durationMs, onClose]);
+  }, [open, durationMs]);
 
-  const flecks = useMemo(
+  const dots = useMemo(
     () =>
       open
-        ? Array.from({ length: 40 }).map((_, i) => {
+        ? Array.from({ length: 36 }).map((_, i) => {
             const angle = Math.random() * Math.PI * 2;
-            const radius = Math.random() * 500 + 150;
+            const radius = Math.random() * 340 + 220;
 
             return {
               id: i,
               x: Math.cos(angle) * radius,
-              y: Math.sin(angle) * radius * -0.6,
-              size: Math.random() * 2.5 + 1,
-              delay: Math.random() * 0.3,
-              duration: Math.random() * 2 + 2.5,
-              opacity: Math.random() * 0.35 + 0.15,
+              y: Math.sin(angle) * radius * 0.75,
+              size: Math.random() * 8 + 6,
+              delay: Math.random() * 0.3 + 0.25,
+              duration: Math.random() * 1.2 + 1.8,
+              colour: DOT_COLOURS[i % DOT_COLOURS.length],
             };
           })
         : [],
@@ -45,123 +57,64 @@ export default function LegacyCelebration({
   );
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="fixed inset-0 z-[999] flex items-center justify-center overflow-hidden"
-          style={{
-            background: "radial-gradient(ellipse at center, rgba(26,23,20,0.85) 0%, rgba(11,12,16,0.92) 100%)",
-            backdropFilter: "blur(12px)",
-          }}
-        >
-          {/* Gold flecks: slow, sparse, elegant */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {flecks.map((p) => (
-              <motion.span
-                key={p.id}
-                initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-                animate={{
-                  x: p.x,
-                  y: p.y,
-                  opacity: [0, p.opacity, 0],
-                  scale: [0, 1, 0.6],
-                }}
-                transition={{
-                  duration: p.duration,
-                  delay: p.delay + 0.4,
-                  ease: "easeOut",
-                }}
-                className="absolute top-1/2 left-1/2 rounded-full"
-                style={{
-                  width: `${p.size}px`,
-                  height: `${p.size}px`,
-                  background: "#d4af37",
-                }}
-              />
-            ))}
-          </div>
+    <>
+      {/* Read out once by screen readers (the picture below is decorative). */}
+      <p className={ui.srOnly} role="status" aria-live="polite">
+        {open ? message : ""}
+      </p>
 
-          {/* Centre content */}
+      <AnimatePresence>
+        {open && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.15 }}
-            className="relative text-center px-10"
-            style={{ maxWidth: 480 }}
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            // scrim-blur (globals.css) blurs only with a mouse
+            className={`${ui.scrim} scrim-blur ${s.overlay}`}
           >
-            {/* Gold line reveal */}
+            {/* A burst of round dots in the four colours, played once */}
+            <div className={s.burst}>
+              {dots.map((p) => (
+                <span
+                  key={p.id}
+                  className={s.dot}
+                  style={
+                    {
+                      "--x": `${p.x.toFixed(1)}px`,
+                      "--y": `${p.y.toFixed(1)}px`,
+                      "--size": `${p.size.toFixed(1)}px`,
+                      "--delay": `${p.delay.toFixed(2)}s`,
+                      "--dur": `${p.duration.toFixed(2)}s`,
+                      background: p.colour,
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </div>
+
+            {/* The card: transform string (not y/scale) so Motion runs it on the compositor */}
             <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-              style={{
-                width: 48,
-                height: 1.5,
-                background: "linear-gradient(90deg, transparent, #d4af37, transparent)",
-                margin: "0 auto 28px",
-                transformOrigin: "center",
+              initial={{ opacity: 0, transform: "translateY(18px) scale(0.96)" }}
+              animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
+              exit={{
+                opacity: 0,
+                transform: "translateY(10px) scale(0.98)",
+                transition: { duration: 0.3, ease: "easeIn" },
               }}
-            />
-
-            {/* Main message */}
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: "easeOut", delay: 0.5 }}
-              style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: 28,
-                fontWeight: 400,
-                fontStyle: "italic",
-                color: "#ffffff",
-                letterSpacing: "-0.01em",
-                lineHeight: 1.35,
-                margin: "0 0 14px",
-                textShadow: "0 0 40px rgba(212,175,55,0.25)",
-              }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+              className={`${ui.inkCard} ${s.card}`}
             >
-              {message}
-            </motion.p>
+              <span className={ui.dotPink} />
+              <span className={ui.dotBlue} />
 
-            {/* Subtitle */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 0.9 }}
-              style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: 13,
-                fontWeight: 400,
-                color: "rgba(212,175,55,0.6)",
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                margin: 0,
-              }}
-            >
-              Ancestorii
-            </motion.p>
-
-            {/* Bottom gold line */}
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
-              style={{
-                width: 48,
-                height: 1.5,
-                background: "linear-gradient(90deg, transparent, #d4af37, transparent)",
-                margin: "28px auto 0",
-                transformOrigin: "center",
-              }}
-            />
+              <p className={s.tag}>Ancestorii</p>
+              <p className={s.message}>{message}</p>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

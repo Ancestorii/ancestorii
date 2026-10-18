@@ -1,8 +1,28 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Mic, UploadCloud, Square } from 'lucide-react';
 import { Trash2 } from 'lucide-react';
+import { AudioLines, Check, FileText, ImageOff, Images, RotateCcw } from 'lucide-react';
+import {
+  ui,
+  AppLoader,
+  Avatar,
+  Btn,
+  IconBtn,
+  IconTile,
+  Spinner,
+  Tag,
+  btnClass,
+  toneByKey,
+} from '@/components/dashboard/ui/AppBits';
+import s from './memoryModal.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// Timelines' colour on the landing's feature index, and the voice notes' one.
+const AQUA = toneByKey('aqua');
+const BLUE = toneByKey('blue');
 
 
 type MediaItem = {
@@ -32,6 +52,22 @@ type VoiceItem = {
   profile?: { full_name: string | null }[] | null;
 };
 
+// The Profiles join comes back as one object (the declared type says an array, so reading
+// [0] showed "You" for everyone): read either shape.
+function authorName(
+  profile: { full_name: string | null }[] | { full_name: string | null } | null | undefined
+) {
+  const one = Array.isArray(profile) ? profile[0] : profile;
+  return one?.full_name ?? 'You';
+}
+
+const deleteLabel = {
+  photo: 'Delete this photo',
+  video: 'Delete this video',
+  audio: 'Delete this recording',
+  file: 'Delete this file',
+} as const;
+
 function SmoothMediaImage({
   src,
   alt = '',
@@ -45,11 +81,13 @@ function SmoothMediaImage({
     setReady(false);
   }, [src]);
 
+  // The whole photo, never cropped: it keeps its own shape, centred on the tile's light grey
+  // (a 4:3 photo fills the tile), with its own rounded corners.
   return (
-    <div className="relative w-full h-full bg-black">
-      {/* placeholder */}
+    <div className="relative w-full h-full bg-[var(--hover)]">
+      {/* placeholder: the tile's light grey until the photo has decoded */}
       <div
-        className={`absolute inset-0 bg-gray-200 animate-pulse transition-opacity duration-500 ease-out ${
+        className={`absolute inset-0 bg-[var(--hover)] transition-opacity duration-500 ease-out ${
           ready ? 'opacity-0' : 'opacity-100'
         }`}
       />
@@ -72,7 +110,7 @@ function SmoothMediaImage({
 
           requestAnimationFrame(() => setReady(true));
         }}
-        className={`w-full h-full object-cover block transition-opacity duration-500 ease-out ${
+        className={`absolute inset-0 m-auto block w-auto h-auto max-w-full max-h-full rounded-[16px] transition-opacity duration-500 ease-out ${
           ready ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
@@ -127,6 +165,9 @@ export default function MemoryModalBody({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
 
+  const writtenId = useId();
+  const spokenId = useId();
+
 const streamRef = useRef<MediaStream | null>(null);
 
 useEffect(() => {
@@ -165,249 +206,195 @@ const stopRecording = () => {
 };
 
   if (loading) {
-  return (
-    <div className="h-[55vh] grid place-items-center text-gray-500 italic">
-      Preserving memories…
-    </div>
-  );
+  return <AppLoader compact label="Preserving memories" className={s.loading} />;
 }
 
 if (uploadingMedia) {
-  return (
-    <div className="h-[55vh] grid place-items-center text-gray-600 italic">
-      Preserving memory…
-    </div>
-  );
+  return <AppLoader compact label="Preserving memory" className={s.loading} />;
 }
 
   return (
-  <div className="bg-white">
-    <div className="grid lg:grid-cols-[1fr_360px] gap-12 px-10 py-6">
+    <div className={s.layout}>
 
       {/* LEFT SIDE: MEDIA */}
-<div>
+      <div className="min-w-0">
 
-  {/* EMPTY STATE */}
-  {media.length === 0 && (
-    <div className="flex items-start justify-center pt-16 text-center">
-      <div className="max-w-lg leading-relaxed border border-dashed border-[#E6C26E]/40 rounded-2xl px-10 py-8 bg-[#FFFDF7]">
+        {/* EMPTY STATE */}
+        {media.length === 0 && (
+          <div className={cx(ui.empty, s.empty)}>
+            <IconTile Icon={Images} tone={AQUA} size="lg" />
+            <h3 className={ui.emptyTitle}>No memories have been added yet.</h3>
+            <p className={ui.emptyText}>
+              Use the <span className="font-extrabold">Upload</span> or{' '}
+              <span className="font-extrabold">My Library</span> buttons above to begin
+              preserving this moment.
+            </p>
+          </div>
+        )}
 
-        <p className="text-xl italic text-[#4B5563] mb-3">
-          No memories have been added yet.
-        </p>
+        {/* MEDIA GRID */}
+        {media.length > 0 && (
+          <ul className={s.grid}>
+            {media.map((m) =>
+              m.type === 'audio' ? (
+                // A recording: its player in a card across the row
+                <li key={m.id} className={s.audioCard}>
+                  <IconTile Icon={AudioLines} tone={BLUE} size="sm" />
+                  {m.url ? <audio controls src={m.url} className={s.audio} /> : <span className="flex-1" />}
+                  <IconBtn label={deleteLabel.audio} ghost size="sm" onClick={() => onDeleteMedia(m)}>
+                    <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                  </IconBtn>
+                </li>
+              ) : (
+                <li key={m.id} className={cx(s.tile, m.type === 'video' && m.url && s.tileVideo)}>
+                  {m.type === 'photo' && m.url && (
+                    <SmoothMediaImage src={m.url} alt="" />
+                  )}
 
-        <p className="text-sm text-gray-500 leading-relaxed">
-         Use the <span className="text-[#1F2837] font-medium">Upload Memory</span>{" "} or {" "}
-          <span className="text-[#1F2837] font-medium">Pick from My Library</span>{" "}
-          buttons above to begin preserving this moment.
-        </p>
+                  {m.type === 'video' && m.url && (
+                    <video
+                      key={m.url}
+                      src={m.url}
+                      controls
+                      playsInline
+                      preload="metadata"
+                    />
+                  )}
+
+                  {/* No preview: a file, or a link that didn't sign */}
+                  {(m.type === 'file' || !m.url) && (
+                    <span className={s.tileIcon} aria-hidden="true">
+                      <IconTile Icon={m.type === 'file' ? FileText : ImageOff} tone={AQUA} />
+                    </span>
+                  )}
+
+                  <IconBtn
+                    label={deleteLabel[m.type] ?? 'Delete'}
+                    onPhoto
+                    size="sm"
+                    onClick={() => onDeleteMedia(m)}
+                    className={s.tileDel}
+                  >
+                    <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                  </IconBtn>
+                </li>
+              )
+            )}
+          </ul>
+        )}
 
       </div>
-    </div>
-  )}
 
-  {/* MEDIA GRID */}
-  {media.length > 0 && (
-    <div className="columns-1 md:columns-2 gap-x-6 space-y-6">
-
-      {media.map((m) => (
-        <div key={m.id} className="break-inside-avoid mb-4">
-
-          <div className="relative rounded-2xl overflow-hidden shadow-sm ring-1 ring-gray-200 bg-white group">
-
-            <button
-              onClick={() => onDeleteMedia(m)}
-              className="
-                absolute top-3 right-3 z-10
-                opacity-0 group-hover:opacity-100
-                transition
-                bg-white/90 backdrop-blur
-                border border-red-200
-                text-red-600
-                text-xs font-semibold
-                px-3 py-1 rounded-full
-                hover:bg-red-50
-              "
-            >
-              Delete
-            </button>
-
-            <div className="w-full bg-black overflow-hidden aspect-video">
-              {m.type === 'photo' && m.url && (
-                <SmoothMediaImage src={m.url} alt="" />
-              )}
-
-              {m.type === 'video' && m.url && (
-                <div className="relative w-full h-full bg-black">
-                  <video
-                    key={m.url}
-                    src={m.url}
-                    className="w-full h-full object-cover block"
-                    controls
-                    playsInline
-                    preload="metadata"
-                  />
-                </div>
-              )}
-
-              {m.type === 'audio' && m.url && (
-                <div className="p-6">
-                  <audio controls src={m.url} className="w-full" />
-                </div>
-              )}
-            </div>
-
-          </div>
-
-        </div>
-      ))}
-
-    </div>
-  )}
-
-</div>
-      {/* RIGHT PANEL */}
-      <div className="border-l border-[#E6C26E]/50 pl-10 space-y-12">
+      {/* RIGHT PANEL: the words, written and spoken */}
+      <div className={s.words}>
 
         {/* WRITTEN MEMORY */}
-        <section>
-          <h3
-            className="text-2xl font-bold italic mb-2"
-            style={{ color: '#D4AF37' }}
-          >
-            Written memory
+        <section aria-labelledby={writtenId}>
+          <Tag dot="var(--c0)">Written memory</Tag>
+          <h3 id={writtenId} className={cx(ui.h3, s.sectionTitle)}>
+            Write something meaningful, take your time.
           </h3>
 
-          {comments.length ? (
-            <div className="space-y-4 mb-5">
-              {comments.map((c) => (
-                <div
-                  key={c.id}
-                  className="relative rounded-xl bg-[#FFFDF7] border border-[#E6C26E]/40 p-4"
-                >
+          {comments.length > 0 && (
+            <ul className={s.entries}>
+              {comments.map((c) => {
+                const name = authorName(c.profile);
+                return (
+                  <li key={c.id} className={s.entry}>
+                    <p className={s.entryText}>{c.comment}</p>
 
-                  <button
-                    onClick={() => onDeleteComment(c.id)}
-                    className="
-                      absolute
-                      top-3
-                      right-3
-                      text-gray-400
-                      hover:text-red-500
-                      transition-colors
-                      duration-150
-                    "
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    <div className={s.entryMeta}>
+                      <span className={s.author}>
+                        <span className="flex" aria-hidden="true">
+                          <Avatar name={name} size={24} plain />
+                        </span>
+                        <span className="min-w-0">
+                          {name} · {new Date(c.created_at).toLocaleString()}
+                        </span>
+                      </span>
 
-                  <p className="text-sm text-gray-800 leading-relaxed pr-8">
-                    {c.comment}
-                  </p>
-
-                  <p className="text-xs text-gray-500 mt-2 italic">
-                    {c.profile?.[0]?.full_name ?? 'You'} · {new Date(c.created_at).toLocaleString()}
-                  </p>
-
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-s text-gray-500 mb-4">
-              Write something meaningful, take your time.
-            </p>
+                      <IconBtn label="Delete this comment" ghost size="sm" onClick={() => onDeleteComment(c.id)}>
+                        <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                      </IconBtn>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
 
-          <div className="rounded-2xl border border-[#E6C26E]/40 bg-[#FFFDF7] p-4 shadow-sm">
+          <div className={s.composer}>
             <textarea
               value={newComment}
               onChange={(e) => onChangeComment(e.target.value)}
               placeholder="Add a thought, detail or feeling..."
-              className="
-                w-full
-                resize-none
-                bg-transparent
-                text-sm
-                text-[#1F2837]
-                placeholder:text-gray-500
-                outline-none
-                leading-relaxed
-              "
+              aria-label="Add a thought, detail or feeling"
+              className={ui.textarea}
             />
 
-            <div className="mt-3 flex justify-end">
-              <button
+            <div className={s.composerActions}>
+              <Btn
+                size="sm"
                 onClick={onAddComment}
                 disabled={addingComment}
-                className="
-                  px-6 h-[40px]
-                  rounded-full
-                  text-sm font-semibold
-                  transition
-                  border border-[#E6C26E]/60
-                  text-[#1F2837]
-                  hover:bg-[#FFF7DF]
-                  hover:shadow-sm
-                  disabled:opacity-50
-                "
+                icon={addingComment ? <Spinner size={16} /> : null}
               >
                 Save
-              </button>
+              </Btn>
             </div>
           </div>
         </section>
 
         {/* SPOKEN MEMORY */}
-        <section>
-
-          <h3
-            className="text-2xl font-bold italic mb-2"
-            style={{ color: '#D4AF37' }}
-          >
-            Spoken memory
+        <section aria-labelledby={spokenId}>
+          <Tag dot="var(--c1)">Spoken memory</Tag>
+          <h3 id={spokenId} className={cx(ui.h3, s.sectionTitle)}>
+            A voice carries emotion no photograph ever could.
           </h3>
 
-          <p className="text-s text-gray-500 mb-6">
-            A voice carries emotion no photograph ever could.
-          </p>
-
           {voices.length > 0 && (
-            <div className="space-y-4 mb-6">
-              {voices.map((v) => (
-                <div
-                  key={v.id}
-                  className="rounded-xl bg-[#FFFDF7] border border-[#E6C26E]/40 p-4"
-                >
+            <ul className={s.voices}>
+              {voices.map((v) => {
+                const name = authorName(v.profile);
+                return (
+                  <li key={v.id} className={cx(ui.card, s.voiceCard)}>
+                    <div className={s.voiceRow}>
+                      <IconTile Icon={Mic} tone={BLUE} size="sm" />
+                      <audio controls src={v.url} className={s.audio} />
+                      <IconBtn label="Delete this voice note" ghost size="sm" onClick={() => onDeleteVoice(v.id)}>
+                        <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                      </IconBtn>
+                    </div>
 
-                  <audio controls src={v.url} className="w-full" />
-
-                  <div className="mt-2 flex items-center justify-between">
-                    <p className="text-xs text-gray-500 italic">
-                      {v.profile?.[0]?.full_name ?? 'You'} · {new Date(v.created_at).toLocaleString()}
+                    <p className={cx(s.author, s.voiceMeta)}>
+                      <span className="flex" aria-hidden="true">
+                        <Avatar name={name} size={24} plain />
+                      </span>
+                      <span className="min-w-0">
+                        {name} · {new Date(v.created_at).toLocaleString()}
+                      </span>
                     </p>
-                    <button
-                      onClick={() => onDeleteVoice(v.id)}
-                      className="text-xs text-gray-400 hover:text-red-500 transition-colors duration-150"
-                    >
-                      Delete
-                    </button>
-                  </div>
-
-                </div>
-              ))}
-            </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
 
-          {!audioUrl && (
-            <div className="flex gap-4">
-
-              <label className="flex-1 cursor-pointer rounded-full border border-[#E6C26E]/60 px-4 py-2 text-sm text-center hover:bg-[#FFF7DF]">
-                <UploadCloud className="inline w-4 h-4 mr-1" />
-                Upload voice
+          {/* Hidden while recording, so a second tap on Record can't start a second
+              recorder (the first would keep the microphone on) */}
+          {!audioUrl && !recording && (
+            <div className={s.voiceActions}>
+              <label className={btnClass({ variant: 'soft', className: s.fileBtn })}>
+                {addingVoice ? (
+                  <Spinner size={16} />
+                ) : (
+                  <UploadCloud size={18} strokeWidth={2.2} aria-hidden="true" />
+                )}
+                <span>Upload voice</span>
                 <input
                   type="file"
                   accept="audio/*"
-                  hidden
+                  className={ui.srOnly}
                   onChange={async (e) => {
                     const f = e.target.files?.[0];
                     if (!f) return;
@@ -416,40 +403,40 @@ if (uploadingMedia) {
                 />
               </label>
 
-              <button
+              <Btn
                 onClick={startRecording}
-                className="flex-1 rounded-full bg-[#1F2837] text-white px-4 py-2 text-sm hover:opacity-90"
+                icon={<Mic size={18} strokeWidth={2.2} aria-hidden="true" />}
               >
-                <Mic className="inline w-4 h-4 mr-1" />
                 Record
-              </button>
-
+              </Btn>
             </div>
           )}
 
           {recording && (
-            <div className="flex flex-col items-center mt-6">
-
+            <div className={s.recording}>
               <button
+                type="button"
                 onClick={stopRecording}
-                className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-lg animate-pulse"
+                aria-label="Stop recording"
+                className={s.stopBtn}
               >
-                <Square className="w-6 h-6 text-white" />
+                <Square size={26} strokeWidth={2.4} fill="currentColor" aria-hidden="true" />
               </button>
 
-              <p className="text-xs italic text-gray-500 mt-3">
+              <p className={s.recordingText} role="status">
                 Recording… speak freely
               </p>
-
             </div>
           )}
 
           {audioUrl && (
-            <div className="mt-6 space-y-3">
+            <div className={s.take}>
+              <div className={cx(ui.card, s.takeCard)}>
+                <audio controls src={audioUrl} className={s.takeAudio} />
+              </div>
 
-              <audio controls src={audioUrl} className="w-full" />
-
-              <button
+              <Btn
+                block
                 onClick={async () => {
                   if (!audioBlob) return;
                   await onUploadVoice(new File([audioBlob], 'recording.webm'));
@@ -457,22 +444,24 @@ if (uploadingMedia) {
                   setAudioBlob(null);
                   setAudioUrl(null);
                 }}
-                className="w-full rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] py-2 text-sm font-semibold text-[#1F2837]"
+                disabled={addingVoice}
+                tile={addingVoice ? <Spinner size={16} /> : <Check size={18} strokeWidth={2.6} />}
               >
                 Seal voice into memory
-              </button>
+              </Btn>
 
-              <button
+              <Btn
+                block
+                variant="soft"
                 onClick={() => {
                   setRecording(false);
                   setAudioBlob(null);
                   setAudioUrl(null);
                 }}
-                className="w-full rounded-full border border-[#E6C26E] py-2 text-sm font-semibold text-[#1F2837] hover:bg-[#FFF7DF] transition"
+                icon={<RotateCcw size={16} strokeWidth={2.4} aria-hidden="true" />}
               >
                 Discard & re-record
-              </button>
-
+              </Btn>
             </div>
           )}
 
@@ -480,6 +469,5 @@ if (uploadingMedia) {
 
       </div>
     </div>
-  </div>
-);
+  );
 }

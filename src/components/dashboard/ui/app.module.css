@@ -414,6 +414,11 @@
     opacity 0.2s ease;
 }
 
+.btn > svg,
+.iconBtn > svg {
+  flex: none;
+}
+
 .btn:disabled,
 .btn[aria-disabled='true'] {
   cursor: not-allowed;
@@ -612,6 +617,20 @@
   box-shadow: none;
 }
 
+/* Red icon button for a delete (faint red ring, solid red on hover). */
+.iconBtnDanger {
+  color: var(--danger);
+  box-shadow: inset 0 0 0 1.5px rgba(224, 0, 77, 0.3);
+}
+
+@media (hover: hover) {
+  .iconBtnDanger:not(:disabled):hover {
+    background: var(--danger);
+    color: #fff;
+    box-shadow: none;
+  }
+}
+
 /* Round white button laid over a photo. */
 .iconBtnOnPhoto {
   border-radius: 999px;
@@ -625,7 +644,7 @@
 }
 
 @media (hover: hover) {
-  .iconBtn:not(:disabled):not([aria-expanded='true']):not([aria-pressed='true']):not(.iconBtnActive):hover {
+  .iconBtn:not(:disabled):not([aria-expanded='true']):not([aria-pressed='true']):not(.iconBtnActive):not(.iconBtnGhost):hover {
     box-shadow: inset 0 0 0 1.5px var(--ink);
   }
 
@@ -810,6 +829,17 @@
   flex: none;
   border-radius: 50%;
   background: var(--frame, var(--c0));
+}
+
+/* State pill on a photo: ink with white text, or white with an icon, neither with the dot. */
+.photoChipInk {
+  background: var(--ink);
+  color: #fff;
+}
+
+.photoChipInk::before,
+.photoChipIcon::before {
+  display: none;
 }
 
 /* Round avatar with a white gap and a coloured ring. Set --ring. */
@@ -1075,6 +1105,21 @@
   .option:not([aria-pressed='true']):not([aria-checked='true']):not(.optionActive):hover {
     box-shadow: inset 0 0 0 1.5px var(--ink);
   }
+}
+
+/* A file input hidden inside a label that looks like a button: the label shows the ring. */
+.app label:has(input[type='file']:focus-visible) {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+/* Rows in a list inside a card (comments, voice notes): a hairline between rows. */
+.listRow {
+  padding: 14px 0;
+}
+
+.listRow + .listRow {
+  border-top: 1.5px solid var(--rule);
 }
 
 /* ── Tabs (segmented control) ─────────────────────────────── */
@@ -1434,6 +1479,97 @@
   max-height: 100%;
   border-radius: 16px;
   object-fit: contain;
+}
+
+/* Previous and next on the viewer: round white buttons at the stage's sides. */
+.viewerNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.viewerPrev {
+  left: 12px;
+}
+
+.viewerNext {
+  right: 12px;
+}
+
+/* Media wrapped in an element inside the stage: lets max-height work through the wrapper. */
+.viewerMedia {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 0;
+}
+
+.viewerMedia img,
+.viewerMedia video {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+/* ── Destructive confirm ──────────────────────────────────── */
+
+/* The small "Delete this?" dialog: put .confirm on the ui.sheet panel. */
+.confirm {
+  width: min(420px, 100%);
+  padding: 24px;
+}
+
+.confirmTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.confirmText {
+  margin: 8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.confirmActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* ── One-shot entrances (for dialogs that mount without Framer Motion) ── */
+
+.fadeIn {
+  animation: appFadeIn 0.2s ease both;
+}
+
+.popIn {
+  animation: appPopIn 0.25s ease both;
+}
+
+@keyframes appFadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes appPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
 }
 
 /* ── Menus (dropdowns, popovers) ──────────────────────────── */

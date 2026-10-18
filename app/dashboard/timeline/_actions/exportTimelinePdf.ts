@@ -37,13 +37,15 @@ export type ExportTimelinePdfResult = {
   filename: string;
 };
 
+// The landing's palette: pink accents (orange where two accents meet), ink text, white ground.
 const BRAND = {
-  gold: rgb(230 / 255, 194 / 255, 110 / 255), // #E6C26E
-  goldSoft: rgb(243 / 255, 217 / 255, 155 / 255), // #F3D99B
-  navy: rgb(34 / 255, 43 / 255, 58 / 255), // #222B3A
-  text: rgb(31 / 255, 40 / 255, 55 / 255), // #1F2837
-  muted: rgb(122 / 255, 133 / 255, 150 / 255), // #7A8596
-  line: rgb(200 / 255, 165 / 255, 87 / 255), // #C8A557
+  gold: rgb(255 / 255, 45 / 255, 135 / 255), // #FF2D87 pink (the rail and card strips)
+  goldSoft: rgb(255 / 255, 227 / 255, 239 / 255), // #FFE3EF pale pink tint
+  navy: rgb(10 / 255, 10 / 255, 15 / 255), // #0A0A0F ink
+  text: rgb(10 / 255, 10 / 255, 15 / 255), // #0A0A0F ink
+  muted: rgb(10 / 255, 10 / 255, 15 / 255), // #0A0A0F ink
+  line: rgb(255 / 255, 45 / 255, 135 / 255), // #FF2D87 pink (the title)
+  orange: rgb(255 / 255, 122 / 255, 26 / 255), // #FF7A1A orange (beside a pink accent)
 };
 
 function safeFilename(name: string) {
@@ -315,7 +317,7 @@ export async function exportTimelinePdf(
     const titleSize = 26;
     const descSize = 11;
 
-    // Title (gold, italic-ish feel by sizing + spacing)
+    // Title (pink, italic-ish feel by sizing + spacing)
     page.drawText(title, {
       x: MARGIN,
       y: PAGE_H - MARGIN - 34,
@@ -341,12 +343,12 @@ export async function exportTimelinePdf(
       }
     }
 
-    // Thin gold divider
+    // Thin orange divider (under the pink title)
     page.drawLine({
       start: { x: MARGIN, y: PAGE_H - MARGIN - HEADER_H + 16 },
       end: { x: PAGE_W - MARGIN, y: PAGE_H - MARGIN - HEADER_H + 16 },
       thickness: 1,
-      color: rgb(230 / 255, 194 / 255, 110 / 255),
+      color: rgb(255 / 255, 122 / 255, 26 / 255),
       opacity: 0.55,
     });
   };
@@ -606,16 +608,16 @@ function drawCenteredYear(
         start: { x, y: connectTop },
         end: { x, y: connectBottom },
         thickness: 2,
-        color: BRAND.gold,
+        color: BRAND.orange,
         opacity: 0.85,
       });
 
-      // Dot
+      // Dot (orange on the pink rail)
       page.drawCircle({
         x,
         y: dotY,
         size: dotR,
-        color: BRAND.gold,
+        color: BRAND.orange,
         opacity: 0.95,
       });
       page.drawCircle({
@@ -647,7 +649,7 @@ page.drawRectangle({
   borderWidth: 0.8,
 });
 
-// Gold top strip (matches UI)
+// Pink top strip (matches UI)
 page.drawRectangle({
   x: cardX,
   y: cardY + cardH - 4,
@@ -702,7 +704,7 @@ page.drawRectangle({
         y: cardY + cardH - 22,
         size: 8.5,
         font: fontBold,
-        color: rgb(86 / 255, 97 / 255, 255 / 255),
+        color: rgb(43 / 255, 75 / 255, 255 / 255), // #2B4BFF blue
         opacity: 0.9,
       });
 
