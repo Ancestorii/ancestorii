@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
+import { ui } from '@/components/dashboard/ui/AppBits';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 export default function FinalizingPage() {
   useEffect(() => {
@@ -12,17 +15,25 @@ export default function FinalizingPage() {
   }, []);
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-6">
-      <div className="max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold text-[#0F2040]">
-          Finalising your access…
-        </h1>
-        <p className="mt-3 text-[#2a3550]">
-          Your subscription is being activated. This usually takes a few seconds.
-        </p>
-        <p className="mt-2 text-sm text-[#6b7280]">
-          If this doesn’t update, refresh in a moment.
-        </p>
+    <div className={ui.page}>
+      <div className="grid min-h-[60vh] place-items-center">
+        <div className={cx(ui.card, 'w-full max-w-[520px] px-6 py-10 text-center sm:px-10 sm:py-12')}>
+          {/* The kit's loading dots: pink, blue, orange */}
+          <div className={cx(ui.loaderDots, 'justify-center')} aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <h1 className="mt-7 text-[clamp(26px,3vw,34px)] font-extrabold leading-[1.08] tracking-[-0.04em] [overflow-wrap:anywhere] [text-wrap:balance]">
+            Finalising your access…
+          </h1>
+          <p className="mx-auto mt-3 max-w-[34em] text-[16px] font-medium leading-[1.6] [text-wrap:balance]">
+            Your subscription is being activated. This usually takes a few seconds.
+          </p>
+          <p className="mt-2 text-[14px] font-semibold leading-[1.5] [text-wrap:balance]">
+            If this doesn’t update, refresh in a moment.
+          </p>
+        </div>
       </div>
     </div>
   );

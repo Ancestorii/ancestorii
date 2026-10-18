@@ -1,0 +1,436 @@
+/* The Memory Book editor's chrome in the app kit's look: the stage's controls, the progress
+   panel, the guide and the preview's frame. Never style the book itself here: what sits on the
+   stage (and in the preview) is what gets printed, so its fonts, colours and sizes stay as they
+   are. Plain module classes are unlayered, so they win over the kit's (layered) classes. */
+
+/* ── Stage: the row under the book (previous, the spread chip, next) ── */
+
+.stageNav {
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.stageChip {
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 14px;
+  font-size: 13px;
+}
+
+.stageChipLabel {
+  font-weight: 800;
+}
+
+.stageChipOf {
+  font-weight: 600;
+}
+
+/* Zoom and pan, bottom left of the stage (the writing assistant floats bottom right). */
+.toolbar {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.toolCard {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    var(--hairline-ring),
+    0 14px 30px -22px rgba(10, 10, 15, 0.45);
+}
+
+.toolSep {
+  width: 1.5px;
+  height: 18px;
+  flex: none;
+  margin: 0 2px;
+  border-radius: 1px;
+  background: var(--rule);
+}
+
+.zoomReset {
+  min-width: 58px;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .zoomReset:hover {
+    background: var(--hover);
+  }
+}
+
+@media (pointer: coarse) {
+  .zoomReset {
+    height: 44px;
+  }
+}
+
+.panPad {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  place-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    var(--hairline-ring),
+    0 14px 30px -22px rgba(10, 10, 15, 0.45);
+}
+
+.panDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(10, 10, 15, 0.16);
+}
+
+/* ── Right panel: book progress ── */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Room at the end so the last card scrolls clear of the writing assistant's floating card. */
+  padding: 24px 18px 96px;
+  background: #fff;
+  border-left: 1.5px solid var(--rule);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.progressValue {
+  margin: 18px 0 0;
+  font-size: 52px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.progressPct {
+  margin-left: 2px;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+
+.progressNote {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.progressBar {
+  margin-top: 16px;
+}
+
+.progressFill {
+  transition: width 0.3s ease;
+}
+
+.stats {
+  margin: 22px 0 0;
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.statRow + .statRow {
+  border-top: 1.5px solid var(--rule);
+}
+
+.statLabel {
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.statValue {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The guide's card: opens the step by step guide. */
+.guideCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin-top: 22px;
+  padding: 18px;
+  border: 0;
+  border-radius: 22px;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+}
+
+.guideTitle {
+  font-size: 18px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+/* The arrow follows the last word, and the line breaks evenly. */
+.guideLink {
+  display: block;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--c1);
+  text-wrap: balance;
+}
+
+.guideLink > svg {
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: -3px;
+  transition: transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .guideCard:hover .guideLink > svg {
+    transform: translateX(3px);
+  }
+}
+
+/* ── The guide (a modal) ── */
+
+.guideWrap {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.guidePanel {
+  width: min(640px, 100%);
+  max-height: 85vh;
+  max-height: 85dvh;
+}
+
+.guideDots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin: 14px 0 0 -4px;
+}
+
+.guideDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.guideDot > span {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.guideDot[aria-current='step'] > span {
+  width: 28px;
+}
+
+/* The ring hugs the dot, so it doesn't run over the dots beside it. */
+.guideDot:focus-visible {
+  outline-offset: 0;
+}
+
+/* Touch: each dot gets a 44px tap target (the row spreads out a little; the first step's
+   pill still lines up with the title). */
+@media (pointer: coarse) {
+  .guideDots {
+    margin: 6px 0 0 -8px;
+  }
+
+  .guideDot {
+    min-width: 44px;
+    height: 44px;
+    padding: 0 8px;
+  }
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.step {
+  gap: 14px;
+}
+
+.stepActive {
+  align-items: flex-start;
+  padding: 18px 20px;
+}
+
+.stepNum {
+  width: 24px;
+  flex: none;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepActive .stepNum {
+  margin-top: 1px;
+}
+
+.stepText {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.stepTitle {
+  display: block;
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.stepActive .stepTitle {
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.stepBody {
+  display: block;
+  margin-top: 6px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.guideFooter {
+  justify-content: space-between;
+}
+
+/* ── The preview's frame (the book inside it is drawn as before) ── */
+
+.preview {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 15, 0.94);
+  color: #fff;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+}
+
+.previewHint {
+  position: absolute;
+  top: 22px;
+  left: 24px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.28);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+}
+
+.previewClose {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 10;
+}
+
+.previewNav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.previewChip {
+  justify-content: center;
+  gap: 8px;
+  min-width: 220px;
+  min-height: 40px;
+  padding: 6px 18px;
+  font-size: 14px;
+}
+
+.previewChipLabel {
+  font-weight: 800;
+}
+
+.previewChipCount {
+  font-weight: 600;
+}
+
+/* Round dot between the chip's label and its count. */
+.chipSep {
+  width: 4px;
+  height: 4px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowLeft, Monitor } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import type { CanvasAsset, SelectedImage, LayoutType } from '@/types/memory-canvas';
+import { EmptyState, btnClass, toneByKey } from '@/components/dashboard/ui/AppBits';
 import CanvasEditor from './canvas-editor/Canvaseditor';
 
 export default function CanvasBuilder({
@@ -78,46 +80,21 @@ export default function CanvasBuilder({
 
   return (
     <div style={{ height: '100%' }}>
-      <div
-        className="flex lg:hidden"
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9999,
-          background: '#FDFAF5',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '32px 24px',
-          textAlign: 'center',
-        }}
-      >
-        <svg width="48" height="48" fill="none" stroke="#d4af37" strokeWidth="1.5" viewBox="0 0 24 24" style={{ marginBottom: 24 }}>
-          <rect x="2" y="3" width="20" height="14" rx="2" />
-          <path d="M8 21h8M12 17v4" />
-        </svg>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1A1714', marginBottom: 8 }}>
-          Bigger screen needed
-        </h2>
-        <p style={{ fontSize: 14, color: '#6B6358', lineHeight: 1.6, maxWidth: 320 }}>
-          The canvas editor works best on a laptop, desktop, or tablet. Open
-          Ancestorii on a bigger screen to design your memory canvas.
-        </p>
-        <a
-          href="/dashboard/canvas"
-          style={{
-            marginTop: 24,
-            padding: '10px 24px',
-            borderRadius: 10,
-            background: '#1A1714',
-            color: '#fff',
-            fontSize: 13,
-            fontWeight: 700,
-            textDecoration: 'none',
-          }}
+      {/* Phones and small tablets: the editor needs a laptop-sized screen. The card centres when
+          it fits and scrolls when it doesn't (a phone on its side). */}
+      <div className="fixed inset-0 z-[9999] flex flex-col overflow-y-auto bg-white px-4 py-8 lg:hidden">
+        <EmptyState
+          Icon={Monitor}
+          tone={toneByKey('orange')}
+          title="Bigger screen needed"
+          text="The canvas editor works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to design your memory canvas."
+          className="m-auto w-full max-w-[460px]"
         >
-          Back to Canvases
-        </a>
+          <a href="/dashboard/canvas" className={btnClass({ variant: 'primary' })}>
+            <ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />
+            <span>Back to Canvases</span>
+          </a>
+        </EmptyState>
       </div>
 
       <div className="hidden lg:block" style={{ height: '100%' }}>

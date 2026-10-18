@@ -1,8 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useId } from 'react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { inter } from '@/lib/fonts';
+import { ui, IconBtn, useDialog } from '@/components/dashboard/ui/AppBits';
 import { BOOK_CANVAS_COLORS, type CanvasSpread } from './BookCanvas';
+import chrome from './bookChrome.module.css';
 import type { CoverLayoutType, BackCoverLayoutType } from './BookCanvasLeftPanel';
 import type { Asset, Page } from '@/types/memory-book';
 import PageRenderer from '../PageRenderer';
@@ -13,6 +16,8 @@ import BlankBackCover from '../cover-layouts/BlankBackCover';
 import DedicationBackCover from '../cover-layouts/DedicationBackCover';
 import PhotoMessageBackCover from '../cover-layouts/PhotoMessageBackCover';
 import Image from "next/image";
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 export default function BookPreviewOverlay({
   open,
@@ -41,6 +46,10 @@ export default function BookPreviewOverlay({
 }) {
   const [spread, setSpread] = useState(initialSpread);
   const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
+  const titleId = useId();
+  // Focus moves into the preview and returns to the Preview button; Tab stays inside. Escape is
+  // answered here (the keyboard handler below no longer sees it, so it closes once).
+  const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
   useEffect(() => {
     if (open) setSpread(initialSpread);
@@ -161,18 +170,12 @@ export default function BookPreviewOverlay({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(8, 6, 4, 0.92)',
-        backdropFilter: 'blur(16px)',
-        animation: 'previewFadeIn 0.3s ease both',
-      }}
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className={chrome.preview}
+      style={{ animation: 'previewFadeIn 0.3s ease both' }}
       onClick={onClose}
     >
       <style>{`
@@ -186,60 +189,19 @@ export default function BookPreviewOverlay({
         }
       `}</style>
 
+      <h2 id={titleId} className={ui.srOnly}>
+        Book preview
+      </h2>
+
       {/* Close button */}
-      <button
-        onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: 20,
-          right: 24,
-          width: 40,
-          height: 40,
-          borderRadius: 99,
-          border: '1px solid rgba(255,255,255,0.15)',
-          background: 'rgba(255,255,255,0.08)',
-          color: '#fff',
-          fontSize: 18,
-          fontWeight: 600,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'background 0.15s ease',
-          zIndex: 10,
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
-      >
-        ×
-      </button>
+      <IconBtn label="Close" onPhoto onClick={onClose} className={chrome.previewClose}>
+        <X size={20} strokeWidth={2.4} aria-hidden="true" />
+      </IconBtn>
 
       {/* Keyboard hint */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 24,
-          left: 28,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          zIndex: 10,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: inter.style.fontFamily,
-            fontSize: 11,
-            fontWeight: 500,
-            color: 'rgba(255,255,255,0.35)',
-            letterSpacing: '0.04em',
-          }}
-        >
-          ← → to navigate · ESC to close
-        </span>
-      </div>
+      <p className={chrome.previewHint}>← → to navigate · ESC to close</p>
 
-      {/* Book container */}
+      {/* Book container (what the book inherits stays as it was: it is drawn as it will be printed) */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -249,6 +211,8 @@ export default function BookPreviewOverlay({
           gap: 28,
           animation: 'previewSlideIn 0.35s ease both',
           animationDelay: '0.05s',
+          fontFamily: inter.style.fontFamily,
+          color: '#1A1714',
         }}
       >
         {/* The book */}
@@ -401,106 +365,39 @@ export default function BookPreviewOverlay({
         </div>
 
         {/* Navigation bar */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 24,
-          }}
-        >
-          <button
+        <div className={chrome.previewNav}>
+          <IconBtn
+            label="Previous spread"
+            onPhoto
             onClick={(e) => {
               e.stopPropagation();
               goPrev();
             }}
             disabled={!canPrev}
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 99,
-              border: `1px solid ${canPrev ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)'}`,
-              background: canPrev ? 'rgba(255,255,255,0.08)' : 'transparent',
-              cursor: canPrev ? 'pointer' : 'default',
-              opacity: canPrev ? 1 : 0.3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (canPrev) e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = canPrev ? 'rgba(255,255,255,0.08)' : 'transparent';
-            }}
           >
-            <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth="2.2" viewBox="0 0 24 24">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
+            <ChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
 
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 4,
-              minWidth: 140,
-            }}
-          >
-            <span
-              style={{
-                fontFamily: inter.style.fontFamily,
-                fontSize: 14,
-                fontWeight: 700,
-                color: '#fff',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              {getLabel()}
-            </span>
-            <span
-              style={{
-                fontFamily: inter.style.fontFamily,
-                fontSize: 11,
-                fontWeight: 500,
-                color: 'rgba(255,255,255,0.4)',
-              }}
-            >
+          <p className={cx(ui.chip, chrome.previewChip)} aria-live="polite">
+            <span className={chrome.previewChipLabel}>{getLabel()}</span>
+            <span className={chrome.chipSep} aria-hidden="true" />
+            <span className={ui.srOnly}>, </span>
+            <span className={chrome.previewChipCount}>
               {spread + 1} of {spreads.length}
             </span>
-          </div>
+          </p>
 
-          <button
+          <IconBtn
+            label="Next spread"
+            onPhoto
             onClick={(e) => {
               e.stopPropagation();
               goNext();
             }}
             disabled={!canNext}
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 99,
-              border: `1px solid ${canNext ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)'}`,
-              background: canNext ? 'rgba(255,255,255,0.08)' : 'transparent',
-              cursor: canNext ? 'pointer' : 'default',
-              opacity: canNext ? 1 : 0.3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (canNext) e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = canNext ? 'rgba(255,255,255,0.08)' : 'transparent';
-            }}
           >
-            <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth="2.2" viewBox="0 0 24 24">
-              <path d="M9 6l6 6-6 6" />
-            </svg>
-          </button>
+            <ChevronRight size={22} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
         </div>
       </div>
     </div>

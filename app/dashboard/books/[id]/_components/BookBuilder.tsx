@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { ArrowLeft, Monitor } from 'lucide-react';
+import { Btn, EmptyState, toneByKey } from '@/components/dashboard/ui/AppBits';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import BookCanvas from './book-canvas/BookCanvas';
 import type { Asset, Page, SelectedImage, LayoutType } from '@/types/memory-book';
@@ -93,27 +95,20 @@ export default function BookBuilder({
 
  return (
     <div style={{ height: '100%' }}>
-      <div
-        className="flex lg:hidden"
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9999,
-          background: '#FDFAF5',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '32px 24px',
-          textAlign: 'center',
-        }}
-      >
-        <svg width="48" height="48" fill="none" stroke="#d4af37" strokeWidth="1.5" viewBox="0 0 24 24" style={{ marginBottom: 24 }}>
-          <rect x="2" y="3" width="20" height="14" rx="2" />
-          <path d="M8 21h8M12 17v4" />
-        </svg>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1A1714', marginBottom: 8 }}>Bigger screen needed</h2>
-        <p style={{ fontSize: 14, color: '#6B6358', lineHeight: 1.6, maxWidth: 320 }}>The book builder works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to build your memory book.</p>
-        <a href="/dashboard/books" style={{ marginTop: 24, padding: '10px 24px', borderRadius: 10, background: '#1A1714', color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>Back to Books</a>
+      {/* Below the editor's breakpoint: a message instead of the editor (as before). The card
+          centres with auto margins, so on a short landscape phone it scrolls instead of losing its top. */}
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center overflow-y-auto bg-white px-4 py-8 lg:hidden">
+        <EmptyState
+          Icon={Monitor}
+          tone={toneByKey('orange')}
+          title="Bigger screen needed"
+          text="The book builder works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to build your memory book."
+          className="my-auto w-full max-w-[440px]"
+        >
+          <Btn href="/dashboard/books" icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}>
+            Back to Books
+          </Btn>
+        </EmptyState>
       </div>
       <BookAI bookTitle={bookTitle} />
       <div className="hidden lg:block" style={{ height: '100%' }}>

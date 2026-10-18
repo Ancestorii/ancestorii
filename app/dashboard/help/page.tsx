@@ -1,7 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId, type CSSProperties } from "react";
+import { Mail, Phone, Plus, Send } from "lucide-react";
 import { getBrowserClient } from '@/lib/supabase/browser';
+import {
+  ui,
+  Accent,
+  Btn,
+  IconTile,
+  PageHeader,
+  SectionHead,
+  Spinner,
+  tone,
+  toneByKey,
+} from '@/components/dashboard/ui/AppBits';
+import s from './help.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type StatusState = "success" | "error" | null;
 
@@ -14,6 +29,10 @@ export default function HelpPage() {
   const [status, setStatus] = useState<StatusState>(null);
 
   const [plan, setPlan] = useState<string | null>(null);
+
+  const nameId = useId();
+  const emailId = useId();
+  const messageId = useId();
 
   // Fetch plan for conditional phone box
   useEffect(() => {
@@ -35,7 +54,10 @@ export default function HelpPage() {
       // 2. Check if any subscription in this family is active
       const { data: sub } = await supabase
         .from("subscriptions")
-        .select("plan_id, plans(name)")
+        // Two foreign keys link subscriptions.plan_id to plans (fk_subscriptions_plan and
+        // subscriptions_plan_id_fkey), so a bare plans(name) is ambiguous (HTTP 300) and every family
+        // read as Free. Naming one of them makes the embed work.
+        .select("plan_id, plans!subscriptions_plan_id_fkey(name)")
         .eq("family_id", membership.family_id)
         .eq("status", "active")
         .maybeSingle();
@@ -99,252 +121,269 @@ export default function HelpPage() {
   // ---------------------------------------------------------
 
   return (
-    <div className="px-6 sm:px-12 lg:px-16 pt-12 pb-24 text-[#0F2040]">
-      <div className="max-w-6xl mx-auto space-y-10">
+    <div className={ui.page}>
+      <div className={ui.wrap}>
         {/* PAGE HEADER */}
-        <header className="space-y-3">
-          <h1 className="text-3xl md:text-4xl font-bold">
-            Need help with Ancestorii?
-          </h1>
+        <PageHeader
+          eyebrow="Support"
+          eyebrowDot="var(--c1)"
+          title={
+            <>
+              Need help with <Accent>Ancestorii</Accent>?
+            </>
+          }
+          lead={
+            <>
+              We’re here to support your journey as you preserve your family&apos;s
+              story. Browse the FAQs below or reach out to us directly.
+            </>
+          }
+        />
 
-          <p className="text-base md:text-lg text-gray-500 max-w-2xl">
-            We’re here to support your journey as you preserve your family&apos;s
-            story. Browse the FAQs below or reach out to us directly.
-          </p>
-        </header>
+        {/* FAQ */}
+        <section className={ui.section} aria-labelledby="help-faq-title">
+          <SectionHead
+            id="help-faq-title"
+            title={
+              <>
+                Frequently Asked <Accent>Questions</Accent>
+              </>
+            }
+          />
 
-        {/* FAQ BOX */}
-        <div className="bg-white rounded-2xl shadow-[0_6px_25px_rgba(15,32,64,0.1)] border border-gray-200 overflow-hidden">
-          <div className="h-2 w-full bg-[#D4AF37]" />
-
-          <div className="p-6 md:p-8">
-            <h2 className="text-2xl font-semibold mb-6">
-              Frequently Asked Questions
-            </h2>
-
-            <div className="space-y-3">
-              <FAQItem
-                title="Billing & Subscriptions"
-                content={[
-                  "You can upgrade or downgrade your plan any time inside the Plans section.",
-                  "Your subscription stays active until the end of the billing cycle when cancelled.",
-                  "If a payment fails, we retry and notify you before any limits apply.",
-                ]}
-              />
-              <FAQItem
-                title="Storage Limits"
-                content={[
-                  "All uploaded photos, videos, audio and documents count towards your storage.",
-                  "You can check your current usage inside the Plans or My Profile section.",
-                  "If you reach the limit, you must free space or upgrade to continue uploading.",
-                ]}
-              />
-              <FAQItem
-                title="Creating Timelines"
-                content={[
-                  "Create a timeline using the Create New Timeline button in the Timelines section.",
-                  "Timelines help organise key life events and milestones.",
-                  "Plan limits determine how many timelines you can create.",
-                ]}
-              />
-              <FAQItem
-                title="Albums & Capsules"
-                content={[
-                  "Albums are ideal for grouping photos and videos.",
-                  "Capsules are time-locked memories or future messages.",
-                  "More sharing and permission features are coming soon.",
-                ]}
-              />
-              <FAQItem
-                title="Account & Login"
-                content={[
-                  "Use the Forgot Password link if you can't access your account.",
-                  "You can update email and details inside Account Settings.",
-                  "Always use a strong unique password for security.",
-                ]}
-              />
-            </div>
+          <div className={s.faq}>
+            <FAQItem
+              index={0}
+              title="Billing & Subscriptions"
+              content={[
+                // Upgrading is self-serve; changing or cancelling goes through us (the Plans dialog says so).
+                "You can upgrade any time in the Plans section. To change or cancel your subscription, email us or use the contact form on this page.",
+                "Your subscription stays active until the end of the billing cycle when cancelled.",
+                "If a payment fails, we retry and notify you before any limits apply.",
+              ]}
+            />
+            <FAQItem
+              index={1}
+              title="Storage Limits"
+              content={[
+                "All uploaded photos, videos, audio and documents count towards your storage.",
+                "You can check your current usage inside the Plans or My Profile section.",
+                "If you reach the limit, you must free space or upgrade to continue uploading.",
+              ]}
+            />
+            <FAQItem
+              index={2}
+              title="Creating Timelines"
+              content={[
+                "Create a timeline using the Create New Timeline button in the Timelines section.",
+                "Timelines help organise key life events and milestones.",
+                "Plan limits determine how many timelines you can create.",
+              ]}
+            />
+            <FAQItem
+              index={3}
+              title="Albums & Capsules"
+              content={[
+                "Albums are ideal for grouping photos and videos.",
+                "Capsules are time-locked memories or future messages.",
+                "More sharing and permission features are coming soon.",
+              ]}
+            />
+            <FAQItem
+              index={4}
+              title="Account & Login"
+              content={[
+                "Use the Forgot Password link if you can't access your account.",
+                "You can update email and details inside Account Settings.",
+                "Always use a strong unique password for security.",
+              ]}
+            />
           </div>
-        </div>
+        </section>
 
         {/* CONTACT + PHONE SIDE-BY-SIDE */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* CONTACT BOX */}
-          <div className="bg-white rounded-2xl shadow-[0_6px_25px_rgba(15,32,64,0.1)] border border-gray-200 overflow-hidden">
-            <div className="h-2 w-full bg-[#D4AF37]" />
+        <section className={cx(ui.section, s.contact)} aria-label="Contact">
+          <div className={s.contactGrid}>
+            {/* CONTACT BOX */}
+            <div className={cx(ui.card, s.card)}>
+              <IconTile Icon={Mail} tone={toneByKey('blue')} />
+              <h2 className={s.cardTitle}>Contact Us</h2>
 
-            <div className="p-6 md:p-8">
-              <h2 className="text-xl font-semibold mb-4">Contact Us</h2>
-
-              <p className="text-base text-gray-600 mb-6">
-                Fill in the form below and we'll get back to you within{" "}
+              <p className={s.cardText}>
+                Fill in the form below and we&apos;ll get back to you within{" "}
                 <strong>24 hours</strong>.
               </p>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className={s.form}>
                 {/* Name */}
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-600 uppercase">
-                    Name *
+                <div className={ui.field}>
+                  <label htmlFor={nameId} className={ui.label}>
+                    Name <span aria-hidden="true">*</span>
                   </label>
                   <input
+                    id={nameId}
                     type="text"
                     required
+                    autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-base focus:border-gold focus:ring-gold outline-none"
+                    className={ui.input}
                   />
                 </div>
 
                 {/* Email */}
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-600 uppercase">
-                    Email *
+                <div className={ui.field}>
+                  <label htmlFor={emailId} className={ui.label}>
+                    Email <span aria-hidden="true">*</span>
                   </label>
                   <input
+                    id={emailId}
                     type="email"
                     required
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-base focus:border-gold focus:ring-gold outline-none"
+                    className={ui.input}
                   />
                 </div>
 
                 {/* Message */}
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-600 uppercase">
-                    Message *
+                <div className={ui.field}>
+                  <label htmlFor={messageId} className={ui.label}>
+                    Message <span aria-hidden="true">*</span>
                   </label>
                   <textarea
+                    id={messageId}
                     required
                     rows={4}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-base resize-none focus:border-gold focus:ring-gold outline-none"
+                    className={cx(ui.textarea, 'resize-none')}
                   />
                 </div>
 
                 {/* Status */}
                 {status === "success" && (
-                  <p className="text-base text-green-600">Message sent.</p>
+                  <p className={cx(ui.notice, s.status)} role="status">Message sent.</p>
                 )}
                 {status === "error" && (
-                  <p className="text-base text-red-600">
+                  <p className={cx(ui.noticeError, s.status)} role="alert">
                     Something went wrong, please try again.
                   </p>
                 )}
 
-                <button
-  type="submit"
-  disabled={loading}
-  className="
-    w-full md:w-auto inline-flex items-center justify-center 
-    px-6 py-2.5 rounded-full 
-    border border-gold 
-    bg-white text-[#0F2040] font-semibold text-base
-    transition-all duration-300
-    hover:bg-[#D4AF37] hover:border-[#D4AF37] hover:text-[#0F2040]
-    disabled:opacity-60
-  "
->
-  {loading ? "Sending…" : "Send message"}
-</button>
+                <Btn
+                  type="submit"
+                  disabled={loading}
+                  className={s.submit}
+                  tile={
+                    loading ? (
+                      <Spinner size={16} />
+                    ) : (
+                      <Send size={17} strokeWidth={2.4} />
+                    )
+                  }
+                >
+                  {loading ? "Sending…" : "Send message"}
+                </Btn>
               </form>
             </div>
-          </div>
 
-          {/* PHONE SUPPORT BOX */}
-          <div className="bg-white rounded-2xl shadow-[0_6px_25px_rgba(15,32,64,0.1)] border border-gray-200 overflow-hidden">
-            <div className="h-2 w-full bg-[#0F2040]" />
-
-            <div className="p-6 md:p-8">
-              <h2 className="text-2xl font-semibold mb-4">
-                Prefer to speak to us?
-              </h2>
+            {/* PHONE SUPPORT BOX */}
+            <div className={cx(ui.card, s.card)}>
+              <IconTile Icon={Phone} tone={toneByKey('pink')} />
+              <h2 className={s.cardTitle}>Prefer to speak to us?</h2>
 
               {plan ? (
-  plan === "Standard" || plan === "Premium" ? (
-    <>
-      <p className="text-lg text-gray-700">
-        Priority phone support available for Standard & Premium members:
-      </p>
+                plan === "Standard" || plan === "Premium" ? (
+                  <>
+                    <p className={s.cardText}>
+                      Priority phone support for Premium members:
+                    </p>
 
-      <p className="text-2xl font-bold text-gold mt-3">
-        0330 133 2268
-      </p>
+                    <a href="tel:+443301332268" className={cx(ui.textLink, s.phone)}>
+                      0330 133 2268
+                    </a>
 
-      <p className="text-base text-gray-600 mt-4">
-        Available <strong>9:00am to 6:00pm</strong>, Monday to Saturday.
-      </p>
+                    <p className={s.cardText}>
+                      Available <strong>9:00am to 6:00pm</strong>, Monday to Saturday.
+                    </p>
 
-      <p className="text-lg text-gray-600 mt-6">
-        Or email us at{" "}
-        <span className="text-[#D4AF37] font-semibold">
-          support@ancestorii.com
-        </span>
-      </p>
-    </>
-  ) : (
-    <>
-      <p className="text-lg font-medium text-gray-700">
-        Upgrade to access priority phone support.
-      </p>
+                    <p className={s.cardText}>
+                      Or email us at{" "}
+                      <a href="mailto:support@ancestorii.com" className={cx(ui.textLink, s.email)}>
+                        support@ancestorii.com
+                      </a>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className={cx(s.cardText, s.cardTextStrong)}>
+                      Upgrade to access priority phone support.
+                    </p>
 
-      <p className="text-base text-gray-600 mt-6">
-        Email support is always available at{" "}
-        <span className="text-[#D4AF37] font-semibold text-lg">
-          support@ancestorii.com
-        </span>
-      </p>
-    </>
-  )
-) : (
-  <p className="text-gray-500 text-base">Checking your plan…</p>
-)}
-
+                    <p className={s.cardText}>
+                      Email support is always available at{" "}
+                      <a href="mailto:support@ancestorii.com" className={cx(ui.textLink, s.email)}>
+                        support@ancestorii.com
+                      </a>
+                    </p>
+                  </>
+                )
+              ) : (
+                <p className={s.checking}>
+                  <Spinner size={16} />
+                  Checking your plan…
+                </p>
+              )}
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
 }
 
 type FAQItemProps = {
+  index: number;
   title: string;
   content: string[];
 };
 
-function FAQItem({ title, content }: FAQItemProps) {
+function FAQItem({ index, title, content }: FAQItemProps) {
   const [open, setOpen] = useState(false);
+  const buttonId = useId();
+  const panelId = useId();
 
   return (
     <div
-  className="
-    border border-gray-200 rounded-xl 
-    transition-all duration-300 
-    hover:shadow-[0_4px_20px_rgba(212,175,55,0.25)]
-    hover:-translate-y-[2px]
-    hover:bg-[#FFF8E6]
-  "
->
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left"
-      >
-        <span className="text-lg font-semibold">{title}</span>
-        <span className="text-xl">{open ? "▾" : "▸"}</span>
-      </button>
+      className={s.faqItem}
+      data-open={open ? 'true' : 'false'}
+      style={{ '--dot': tone(index).bg } as CSSProperties}
+    >
+      <h3 className={s.faqHeading}>
+        <button
+          id={buttonId}
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls={open ? panelId : undefined}
+          className={s.faqQ}
+        >
+          <span>{title}</span>
+          <span className={s.faqIcon} aria-hidden="true">
+            <Plus size={18} strokeWidth={2.8} />
+          </span>
+        </button>
+      </h3>
 
       {open && (
-        <div className="px-4 pb-4">
-          <ul className="mt-2 space-y-2 text-base text-gray-700">
+        <div id={panelId} role="region" aria-labelledby={buttonId} className={s.faqA}>
+          <ul className={s.faqList}>
             {content.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 leading-snug">
-  <span className="text-gold text-[18px] leading-[1.2] mt-[2px]">•</span>
-  <span className="text-[16px] leading-[1.6]">{item}</span>
-</li>
+              <li key={i} className={s.faqLine}>
+                <span>{item}</span>
+              </li>
             ))}
           </ul>
         </div>

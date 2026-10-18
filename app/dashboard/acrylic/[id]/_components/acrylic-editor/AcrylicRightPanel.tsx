@@ -1,7 +1,9 @@
 'use client';
 
-import { inter } from '@/lib/fonts';
-import { ACRYLIC_COLORS } from './AcrylicEditor';
+import { ui, Tag } from '@/components/dashboard/ui/AppBits';
+import s from './acrylicEditor.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 const SIZE_LABELS: Record<string, string> = { '16x24': '16×24″', '24x24': '24×24″', '24x36': '24×36″' };
 const TIER_LABELS: Record<string, string> = { portrait: 'The Portrait', centrepiece: 'The Centrepiece', masterpiece: 'The Masterpiece' };
@@ -16,60 +18,62 @@ export default function AcrylicRightPanel({
 }) {
   return (
     <aside
-      className="fade-up d3"
-      style={{ gridRow: '2', gridColumn: '3', background: ACRYLIC_COLORS.panel, borderLeft: `1.5px solid ${ACRYLIC_COLORS.line}`, display: 'flex', flexDirection: 'column', padding: '20px 18px' }}
+      className={cx('fade-up d3', s.side)}
+      style={{ gridRow: '2', gridColumn: '3' }}
+      aria-label="Progress and details"
     >
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ fontFamily: inter.style.fontFamily, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: ACRYLIC_COLORS.muted, marginBottom: 20 }}>
-          Acrylic Progress
-        </div>
+      <h2 className="m-0">
+        <Tag dot="var(--c2)">Acrylic Progress</Tag>
+      </h2>
 
-        <div style={{ fontFamily: inter.style.fontFamily, fontSize: 52, fontWeight: 700, lineHeight: 1, color: ACRYLIC_COLORS.dark, letterSpacing: '-0.03em' }}>
-          {progress}<span style={{ fontSize: 24, color: ACRYLIC_COLORS.muted }}>%</span>
-        </div>
+      <p className={s.progressValue}>
+        {progress}
+        <span className={s.progressPct}>%</span>
+      </p>
 
-        <div style={{ fontFamily: inter.style.fontFamily, fontSize: 11, fontWeight: 600, color: ACRYLIC_COLORS.mid, marginTop: 4 }}>
-          {filledSlots} of {totalSlots} slots filled
-        </div>
+      <p className={s.progressNote}>
+        {filledSlots} of {totalSlots} slots filled
+      </p>
 
-        <div style={{ height: 6, width: '100%', borderRadius: 99, background: ACRYLIC_COLORS.lineLight, overflow: 'hidden', marginTop: 16, marginBottom: 28 }}>
-          <div style={{ width: `${progress}%`, height: '100%', borderRadius: 99, background: ACRYLIC_COLORS.accent, transition: 'width 0.3s ease' }} />
-        </div>
+      <div
+        className={cx(ui.progress, s.progressBar)}
+        role="progressbar"
+        aria-label="Acrylic progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={progress}
+      >
+        <div className={cx(ui.progressFill, s.progressFill)} style={{ width: `${progress}%` }} />
+      </div>
 
-        <StatRow fontFamily={inter.style.fontFamily} label="Photos" value={totalPhotos} />
-        <StatRow fontFamily={inter.style.fontFamily} label="Captions" value={totalCaptions} />
-        <StatRow fontFamily={inter.style.fontFamily} label="Total Slots" value={totalSlots} />
+      <dl className={s.rows}>
+        <StatRow label="Photos" value={totalPhotos} />
+        <StatRow label="Captions" value={totalCaptions} />
+        <StatRow label="Total Slots" value={totalSlots} />
+      </dl>
 
-        <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1.5px solid ${ACRYLIC_COLORS.lineLight}` }}>
-          <div style={{ fontFamily: inter.style.fontFamily, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: ACRYLIC_COLORS.muted, marginBottom: 16 }}>
-            Acrylic Details
-          </div>
-          <DetailRow fontFamily={inter.style.fontFamily} label="Tier" value={TIER_LABELS[tierKey] || tierKey} />
-          <DetailRow fontFamily={inter.style.fontFamily} label="Size" value={SIZE_LABELS[acrylicSize] || acrylicSize} />
-          <DetailRow fontFamily={inter.style.fontFamily} label="Orientation" value={orientation === 'square' ? 'Square' : orientation.charAt(0).toUpperCase() + orientation.slice(1)} />
-          <DetailRow fontFamily={inter.style.fontFamily} label="Layout" value={layoutType.charAt(0).toUpperCase() + layoutType.slice(1)} />
-          <DetailRow fontFamily={inter.style.fontFamily} label="Material" value="Crystal-clear acrylic" />
-          <DetailRow fontFamily={inter.style.fontFamily} label="Mount" value="Float-mount included" />
-        </div>
+      <div className={s.details}>
+        <h2 className="m-0">
+          <Tag dot="var(--c2)">Acrylic Details</Tag>
+        </h2>
+        <dl className={s.rows}>
+          <StatRow label="Tier" value={TIER_LABELS[tierKey] || tierKey} />
+          <StatRow label="Size" value={SIZE_LABELS[acrylicSize] || acrylicSize} />
+          <StatRow label="Orientation" value={orientation === 'square' ? 'Square' : orientation.charAt(0).toUpperCase() + orientation.slice(1)} />
+          <StatRow label="Layout" value={layoutType.charAt(0).toUpperCase() + layoutType.slice(1)} />
+          <StatRow label="Material" value="Crystal-clear acrylic" />
+          <StatRow label="Mount" value="Float-mount included" />
+        </dl>
       </div>
     </aside>
   );
 }
 
-function StatRow({ label, value, fontFamily }: { label: string; value: number; fontFamily: string }) {
+function StatRow({ label, value }: { label: string; value: number | string }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${ACRYLIC_COLORS.lineLight}` }}>
-      <span style={{ fontFamily, fontSize: 12, fontWeight: 500, color: ACRYLIC_COLORS.mid }}>{label}</span>
-      <span style={{ fontFamily: inter.style.fontFamily, fontSize: 14, fontWeight: 800, color: ACRYLIC_COLORS.dark }}>{value}</span>
-    </div>
-  );
-}
-
-function DetailRow({ label, value, fontFamily }: { label: string; value: string; fontFamily: string }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: `1px solid ${ACRYLIC_COLORS.lineLight}` }}>
-      <span style={{ fontFamily, fontSize: 11, fontWeight: 500, color: ACRYLIC_COLORS.muted }}>{label}</span>
-      <span style={{ fontFamily: inter.style.fontFamily, fontSize: 12, fontWeight: 700, color: ACRYLIC_COLORS.dark }}>{value}</span>
+    <div className={s.row}>
+      <dt className={s.rowLabel}>{label}</dt>
+      <dd className={s.rowValue}>{value}</dd>
     </div>
   );
 }

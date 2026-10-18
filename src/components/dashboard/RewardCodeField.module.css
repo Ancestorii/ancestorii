@@ -1,0 +1,118 @@
+/* ============================================================
+   Reward code entry (RewardCodeField.tsx), in the three print
+   editors' headers (Memory Book, Canvas, Acrylic): a kit soft
+   button that opens a small panel with the code field.
+   Only the looks the app kit (src/components/dashboard/ui/
+   app.module.css) doesn't have. Kit classes sit in the
+   "components" cascade layer, so a plain rule here wins.
+   ============================================================ */
+
+/* The editors' roots may set Inter for the printed text; this is chrome, so it is Jakarta. */
+.root {
+  position: relative;
+  flex: none;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+/* Open: the soft button keeps the ink ring it has on hover. */
+.triggerOpen {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+/* Applied: a round aqua badge with an ink tick in place of the gift. */
+.okBadge {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--c3);
+  color: var(--ink);
+}
+
+/* The panel under the button, right-aligned with it (the kit's menu card). */
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  padding: 16px;
+  text-align: left;
+}
+
+.label {
+  margin-bottom: 10px;
+}
+
+/* The kit's 52px field with the Apply button inside it, on the right. */
+.field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 52px;
+  padding: 0 5px 0 0;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* The pink ring while the code is typed (the Apply button keeps its own blue focus ring). */
+.field:has(.input:focus) {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+.fieldError,
+.fieldError:has(.input:focus) {
+  border-color: var(--danger);
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 48px;
+  padding: 0 4px 0 15px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px; /* 16px keeps iOS from zooming in on focus */
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--placeholder);
+  font-weight: 500;
+  opacity: 1;
+}
+
+.apply {
+  flex: none;
+  min-width: 76px;
+}
+
+.message {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+
+.message > svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.remove {
+  margin-top: 10px;
+}

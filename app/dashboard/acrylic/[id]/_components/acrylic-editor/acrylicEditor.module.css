@@ -1,0 +1,593 @@
+/* ============================================================
+   Acrylic Print editor: the chrome around the print (header bar,
+   left and right panels, the stage's ground and controls, the
+   preview's frame) in the app kit's look. Only the looks the kit
+   (src/components/dashboard/ui/app.module.css) doesn't have: kit
+   classes sit in the "components" cascade layer, so a plain rule
+   here wins over them.
+
+   Never style the print itself here. What sits on the stage (and
+   in the preview) is what Prodigi prints: the renderer, its
+   layouts and slots, and the box that holds them keep their own
+   fonts, colours, border, shadow and size.
+   ============================================================ */
+
+/* ── Header bar ───────────────────────────────────────────── */
+
+/* Exactly 72px and never wraps: the stage under it sizes and centres the print in the height
+   that is left, so the print's place on the stage hangs on this height. */
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 72px;
+  min-width: 0;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1.5px solid var(--rule);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+/* Back, a short rule, then the feature's tag over the print's name. */
+.headerStart {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.back {
+  flex: none;
+}
+
+.headerRule {
+  width: 1.5px;
+  height: 34px;
+  flex: none;
+  background: var(--rule);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* The print's name: two lines at most, then an ellipsis (the full name is in the tooltip). */
+.title {
+  max-width: 100%;
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+/* "Saving..." is the longest of the three labels: the row doesn't shift while it saves. */
+.save {
+  min-width: 118px;
+}
+
+/* Laptops: a little tighter, so the print's name keeps room beside the actions. */
+@media (max-width: 1279px) {
+  .header {
+    gap: 12px;
+    padding: 0 20px;
+  }
+
+  .headerStart {
+    gap: 12px;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+}
+
+/* ── Left panel: Media and Layout ─────────────────────────── */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #fff;
+  border-right: 1.5px solid var(--rule);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+/* The tabs: the kit's segmented control, the two halves sharing the row. */
+.tabsBar {
+  flex: none;
+  padding: 14px 16px;
+  border-bottom: 1.5px solid var(--rule);
+  background: #fff;
+}
+
+.tab {
+  padding: 0 10px;
+}
+
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 20px 16px 32px;
+}
+
+/* A section's heading: the kit's dotted tag, a count on the right. */
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 30px;
+  margin: 0 0 14px;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* Upload: the kit's drop zone, compact for the narrow panel. */
+.dropzone {
+  min-height: 0;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 18px 14px;
+}
+
+.dropzone[data-busy] {
+  cursor: progress;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* One library photo: the kit's photo tile holds the pick button (the whole tile) and the
+   rotate button, so the two lift together on hover. */
+.mediaTile {
+  cursor: default;
+}
+
+.mediaPick {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Keyboard focus: the kit's blue ring, drawn inside the tile over the photo (an outline here
+   would sit under the photo, and outside the tile it would be clipped). */
+.mediaPick:focus-visible {
+  outline: none;
+}
+
+.mediaPick:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 3px var(--c1);
+  pointer-events: none;
+}
+
+/* Photos keep their stored rotation; the image turns inside the tile. */
+.mediaImage {
+  transition: transform 0.25s ease;
+}
+
+/* Rotate shows on hover or keyboard focus with a mouse, and always on touch screens. */
+.rotate {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mediaTile:hover .rotate,
+.rotate:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .rotate {
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+
+/* Uploading: a spinner tile, and the count when several photos go up at once. */
+.statusTile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  background: var(--hover);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  min-height: 60px;
+  gap: 12px;
+  padding: 10px 12px 10px 14px;
+  border-radius: 16px;
+}
+
+.optionText {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.optionLabel {
+  font-size: 14.5px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.optionDesc {
+  margin-top: 2px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* ── Right panel: progress and the print's details ────────── */
+
+.side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px 18px 28px;
+  background: #fff;
+  border-left: 1.5px solid var(--rule);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.progressValue {
+  margin: 18px 0 0;
+  font-size: 52px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.progressPct {
+  margin-left: 2px;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+
+.progressNote {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.progressBar {
+  margin-top: 16px;
+}
+
+.progressFill {
+  transition: width 0.3s ease;
+}
+
+.rows {
+  margin: 22px 0 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.row + .row {
+  border-top: 1.5px solid var(--rule);
+}
+
+.rowLabel {
+  flex: none;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.rowValue {
+  min-width: 0;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 800;
+  text-align: right;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.details {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1.5px solid var(--rule);
+}
+
+.details .rows {
+  margin-top: 14px;
+}
+
+/* The details are words, not counts: a little smaller, so the narrow panel keeps them on a line. */
+.details .row {
+  padding: 10px 0;
+}
+
+.details .rowLabel,
+.details .rowValue {
+  font-size: 13px;
+}
+
+/* ── Stage: the ground around the print, its label, zoom ──── */
+
+/* The label under the print: the same 18px gap and 19.5px row the old one had, so the print
+   (centred together with it) sits exactly where it always did. */
+.stageLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 19.5px;
+  margin-top: 18px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+/* Zoom and pan, bottom right of the stage. */
+.toolbar {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.toolCard {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    var(--hairline-ring),
+    0 14px 30px -22px rgba(10, 10, 15, 0.45);
+}
+
+.toolSep {
+  width: 1.5px;
+  height: 18px;
+  flex: none;
+  margin: 0 2px;
+  border-radius: 1px;
+  background: var(--rule);
+}
+
+.zoomReset {
+  min-width: 58px;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .zoomReset:hover {
+    background: var(--hover);
+  }
+}
+
+@media (pointer: coarse) {
+  .zoomReset {
+    height: 44px;
+  }
+}
+
+.panPad {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  place-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    var(--hairline-ring),
+    0 14px 30px -22px rgba(10, 10, 15, 0.45);
+}
+
+.panDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(10, 10, 15, 0.16);
+}
+
+/* ── Preview: the kit's ink viewer around the print ───────── */
+
+/* The print and its caption are centred on the screen exactly where they always were (the
+   bar floats over the top). A screen too short for them scrolls instead of cutting the print
+   off: the column's auto margins (below) centre it while it fits and drop to 0 when it
+   doesn't, the same as "safe center" but in every browser (older Safari lacks "safe", and the
+   CSS minifier drops a plain "center" fallback). Not the kit's viewerStage: that rounds and
+   contains every image inside it, and these images are the print's. */
+.preview {
+  z-index: 9999;
+  align-items: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 0; /* the same top and bottom, so the centre doesn't move */
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+}
+
+/* The hint in the top-left corner and Close in the top-right, clear of the print (as before);
+   fixed, so Close stays in reach while a tall print scrolls. */
+.previewBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  padding-left: 24px;
+  pointer-events: none;
+}
+
+.previewBar > * {
+  pointer-events: auto;
+}
+
+.previewHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* The key, as a small white cap. */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+@media (hover: none) {
+  .previewHint {
+    visibility: hidden;
+  }
+}
+
+.previewColumn {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  margin: auto 0;
+}
+
+/* The caption's box keeps the height the old two small lines had (41.5px), so the print
+   keeps its place on the screen to the pixel. */
+.previewCaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 41.5px;
+  text-align: center;
+}
+
+.previewTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  color: #fff;
+}
+
+.previewMeta {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: #fff;
+  overflow-wrap: anywhere;
+}

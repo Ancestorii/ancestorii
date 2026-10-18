@@ -1,7 +1,9 @@
 'use client';
 
-import { inter } from '@/lib/fonts';
-import { CANVAS_COLORS } from './Canvaseditor';
+import { ui, Tag } from '@/components/dashboard/ui/AppBits';
+import s from './canvasEditor.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 const SIZE_LABELS: Record<string, string> = {
   '16x36': '16×36″',
@@ -37,209 +39,72 @@ export default function CanvasRightPanel({
   layoutType: string;
 }) {
   return (
-    <aside
-      className="fade-up d3"
-      style={{
-        gridRow: '2',
-        gridColumn: '3',
-        background: CANVAS_COLORS.panel,
-        borderLeft: `1.5px solid ${CANVAS_COLORS.line}`,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '20px 18px',
-      }}
-    >
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div
-          style={{
-            fontFamily: inter.style.fontFamily,
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: CANVAS_COLORS.muted,
-            marginBottom: 20,
-          }}
-        >
-          Canvas Progress
-        </div>
+    <aside className={`fade-up d3 ${s.rightPanel}`} aria-label="Canvas progress and details">
+      <Tag dot="var(--c2)">Canvas Progress</Tag>
 
-        <div
-          style={{
-            fontFamily: inter.style.fontFamily,
-            fontSize: 52,
-            fontWeight: 700,
-            lineHeight: 1,
-            color: CANVAS_COLORS.dark,
-            letterSpacing: '-0.03em',
-          }}
-        >
-          {progress}
-          <span style={{ fontSize: 24, color: CANVAS_COLORS.muted }}>%</span>
-        </div>
+      <p className={s.progressValue}>
+        {progress}
+        <span className={s.progressUnit}>%</span>
+      </p>
 
-        <div
-          style={{
-            fontFamily: inter.style.fontFamily,
-            fontSize: 11,
-            fontWeight: 600,
-            color: CANVAS_COLORS.mid,
-            marginTop: 4,
-          }}
-        >
-          {filledSlots} of {totalSlots} slots filled
-        </div>
+      <p className={s.progressNote}>
+        {filledSlots} of {totalSlots} slots filled
+      </p>
 
-        <div
-          style={{
-            height: 6,
-            width: '100%',
-            borderRadius: 99,
-            background: CANVAS_COLORS.lineLight,
-            overflow: 'hidden',
-            marginTop: 16,
-            marginBottom: 28,
-          }}
-        >
-          <div
-            style={{
-              width: `${progress}%`,
-              height: '100%',
-              borderRadius: 99,
-              background: CANVAS_COLORS.accent,
-              transition: 'width 0.3s ease',
-            }}
-          />
-        </div>
+      <div
+        className={cx(ui.progress, s.progressBar)}
+        role="progressbar"
+        aria-label="Canvas progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={progress}
+      >
+        <div className={ui.progressFill} style={{ width: `${progress}%` }} />
+      </div>
 
-        <StatRow fontFamily={inter.style.fontFamily} label="Photos" value={totalPhotos} />
-        <StatRow fontFamily={inter.style.fontFamily} label="Captions" value={totalCaptions} />
-        <StatRow fontFamily={inter.style.fontFamily} label="Total Slots" value={totalSlots} />
+      <dl className={s.list}>
+        <StatRow label="Photos" value={totalPhotos} />
+        <StatRow label="Captions" value={totalCaptions} />
+        <StatRow label="Total Slots" value={totalSlots} />
+      </dl>
 
-        {/* ── Canvas details ── */}
-        <div
-          style={{
-            marginTop: 28,
-            paddingTop: 20,
-            borderTop: `1.5px solid ${CANVAS_COLORS.lineLight}`,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: inter.style.fontFamily,
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: CANVAS_COLORS.muted,
-              marginBottom: 16,
-            }}
-          >
-            Canvas Details
-          </div>
+      {/* ── Canvas details ── */}
+      <div className={s.details}>
+        <Tag dot="var(--c2)">Canvas Details</Tag>
 
-          <DetailRow fontFamily={inter.style.fontFamily} label="Tier" value={TIER_LABELS[tierKey] || tierKey} />
-          <DetailRow fontFamily={inter.style.fontFamily} label="Size" value={SIZE_LABELS[canvasSize] || canvasSize} />
+        <dl className={s.list}>
+          <DetailRow label="Tier" value={TIER_LABELS[tierKey] || tierKey} />
+          <DetailRow label="Size" value={SIZE_LABELS[canvasSize] || canvasSize} />
           <DetailRow
-            fontFamily={inter.style.fontFamily}
             label="Orientation"
             value={orientation.charAt(0).toUpperCase() + orientation.slice(1)}
           />
           <DetailRow
-            fontFamily={inter.style.fontFamily}
             label="Layout"
             value={layoutType.charAt(0).toUpperCase() + layoutType.slice(1).replace('_', ' ')}
           />
-          <DetailRow fontFamily={inter.style.fontFamily} label="Stretcher" value="38mm premium" />
-          <DetailRow fontFamily={inter.style.fontFamily} label="Canvas" value="400gsm gallery-grade" />
-        </div>
+          <DetailRow label="Stretcher" value="38mm premium" />
+          <DetailRow label="Canvas" value="400gsm gallery-grade" />
+        </dl>
       </div>
     </aside>
   );
 }
 
-function StatRow({
-  label,
-  value,
-  fontFamily,
-}: {
-  label: string;
-  value: number;
-  fontFamily: string;
-}) {
+function StatRow({ label, value }: { label: string; value: number }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 0',
-        borderBottom: `1px solid ${CANVAS_COLORS.lineLight}`,
-      }}
-    >
-      <span
-        style={{
-          fontFamily,
-          fontSize: 12,
-          fontWeight: 500,
-          color: CANVAS_COLORS.mid,
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          fontFamily: inter.style.fontFamily,
-          fontSize: 14,
-          fontWeight: 800,
-          color: CANVAS_COLORS.dark,
-        }}
-      >
-        {value}
-      </span>
+    <div className={s.row}>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }
 
-function DetailRow({
-  label,
-  value,
-  fontFamily,
-}: {
-  label: string;
-  value: string;
-  fontFamily: string;
-}) {
+function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '8px 0',
-        borderBottom: `1px solid ${CANVAS_COLORS.lineLight}`,
-      }}
-    >
-      <span
-        style={{
-          fontFamily,
-          fontSize: 11,
-          fontWeight: 500,
-          color: CANVAS_COLORS.muted,
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          fontFamily: inter.style.fontFamily,
-          fontSize: 12,
-          fontWeight: 700,
-          color: CANVAS_COLORS.dark,
-        }}
-      >
-        {value}
-      </span>
+    <div className={s.row}>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
     </div>
   );
 }

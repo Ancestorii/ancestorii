@@ -1,0 +1,496 @@
+/* ============================================================
+   Memory Book editor: the left panel (BookCanvasLeftPanel.tsx):
+   the Pages, Layout, Media and Text tabs. Only the looks the app
+   kit (src/components/dashboard/ui/app.module.css) doesn't have.
+   Kit classes sit in the "components" cascade layer, so a plain
+   rule here wins over them.
+
+   The panel is chrome only. What it previews of the printed book
+   (the layout thumbnails' shapes, the spine colours and the spine
+   text in Inter) is drawn exactly as before.
+   ============================================================ */
+
+/* The chrome is Jakarta, stated here too so the panel never takes a font set for the printed text. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #fff;
+  border-right: 1.5px solid var(--rule);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+/* ── Tabs: a segmented control, icon over label ───────────── */
+
+.tabsBar {
+  flex: none;
+  padding: 12px;
+  border-bottom: 1.5px solid var(--rule);
+  background: #fff;
+}
+
+.tabs {
+  border-radius: 18px;
+}
+
+.tab {
+  flex-direction: column;
+  gap: 4px;
+  min-height: 54px;
+  padding: 6px 2px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.1;
+}
+
+/* ── The scrolling body ───────────────────────────────────── */
+
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 20px 16px 32px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: rgba(10, 10, 15, 0.18);
+}
+
+.section + .section {
+  margin-top: 28px;
+}
+
+/* A section's heading: the kit's dotted tag, a count on the right. */
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* A short line under a heading ("Editing: Front Cover", "Page 3"). */
+.contextChip {
+  margin: -4px 0 14px;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  margin: 0;
+}
+
+.note > svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* ── Pages: one white tile per spread ─────────────────────── */
+
+.spreadList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spreadTile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 70px;
+  padding: 8px 12px 8px 8px;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.spreadTile[aria-current='true'] {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+@media (hover: hover) {
+  .spreadTile:not([aria-current='true']):hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+}
+
+.spreadTile:active {
+  transform: scale(0.98);
+  transition-duration: 80ms;
+}
+
+/* The little page plan (the same drawings as before); its background is the paper colour. */
+.spreadThumb {
+  display: flex;
+  flex: none;
+  width: 84px;
+  height: 54px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+.spreadHalf {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spreadCentre {
+  margin: auto;
+}
+
+.spreadDivider {
+  width: 2px;
+  flex: none;
+  background: var(--rule);
+}
+
+.spreadTitle {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 700;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.spreadTile[aria-current='true'] .spreadTitle {
+  font-weight: 800;
+}
+
+/* The 240px panel (below 1280px): "Pages 32 to 33" still fits on one line. */
+@media (max-width: 1279px) {
+  .spreadTile {
+    gap: 10px;
+    padding-right: 8px;
+  }
+
+  .spreadTitle {
+    font-size: 13px;
+  }
+}
+
+/* ── Media: upload zone, photo grid ───────────────────────── */
+
+.dropzone {
+  min-height: 0;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 18px 14px;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mediaItem {
+  position: relative;
+}
+
+/* Rotate shows on hover or keyboard focus with a mouse, and always on touch screens. */
+.rotate {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mediaItem:hover .rotate,
+.rotate:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .rotate {
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+
+/* Uploading: a spinner tile, and the count when several photos go up at once. */
+.statusTile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  background: var(--hover);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Text: page switch, show or hide switches ─────────────── */
+
+/* Two-way page switch: the labels may wrap in the narrow panel. */
+.segment {
+  margin-bottom: 14px;
+  border-radius: 16px;
+}
+
+.segTab {
+  min-height: 40px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.2;
+  white-space: normal;
+  text-wrap: balance;
+  text-align: center;
+}
+
+/* Touch screens: a 44px tap target (this unlayered rule would otherwise beat the kit's). */
+@media (pointer: coarse) {
+  .segTab {
+    min-height: 44px;
+  }
+}
+
+/* The rows carry 8px of the card's 14px side padding, so the focus ring (drawn inside a row)
+   keeps clear of the label and the switch. */
+.toggleCard {
+  padding: 0 6px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.toggleRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.3;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The hairline between rows spans the text's width, as before. */
+.toggleRow + .toggleRow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 1.5px;
+  background: var(--rule);
+}
+
+/* The ring inside the row (unlayered, so it wins over the kit's outside ring). */
+.toggleRow:focus-visible {
+  outline-offset: -3px;
+}
+
+/* The kit's switch, drawn inside the row (the whole row is the switch). */
+.track {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  flex: none;
+  border-radius: 999px;
+  background: rgba(10, 10, 15, 0.16);
+  transition: background-color 0.2s ease;
+}
+
+.track::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(10, 10, 15, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.toggleRow[aria-checked='true'] .track {
+  background: var(--c1);
+}
+
+.toggleRow[aria-checked='true'] .track::after {
+  transform: translateX(18px);
+}
+
+/* ── Layout: cover and page layout choices, the spine ─────── */
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  min-height: 60px;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.optionLabel {
+  font-size: 14.5px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.optionDesc {
+  margin-top: 2px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.divider {
+  margin: 28px 0;
+}
+
+.fieldLabel {
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+/* The spine text field is chrome: the kit's placeholder, never the printed pages' italic one. */
+.panel .spineInput::placeholder {
+  color: var(--placeholder) !important;
+  font-style: normal;
+  font-weight: 500 !important;
+}
+
+/* Side by side in the wider panels; one under the other in the 240px one. */
+.colourGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+  gap: 12px 14px;
+  margin-top: 16px;
+}
+
+.colourField {
+  min-width: 0;
+}
+
+.colourPick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The native colour picker, framed like a kit control; the colour inside is the book's. */
+.swatch {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.swatch::-webkit-color-swatch-wrapper {
+  padding: 4px;
+}
+
+.swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: 8px;
+}
+
+.swatch::-moz-color-swatch {
+  border: 0;
+  border-radius: 8px;
+}
+
+@media (hover: hover) {
+  .swatch:hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+}
+
+.swatch:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+/* Touch screens: a 44px tap target. */
+@media (pointer: coarse) {
+  .swatch {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.hex {
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The spine preview keeps the book's colours, Inter and its wrapping; an unbroken string
+   wraps too instead of running out sideways. */
+.spinePreview {
+  margin-top: 16px;
+}
+
+.spinePreviewText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

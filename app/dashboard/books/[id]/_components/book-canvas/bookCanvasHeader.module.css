@@ -1,0 +1,143 @@
+/* ============================================================
+   Memory Book editor: the header bar (BookCanvasHeader.tsx).
+   Only the looks the app kit (src/components/dashboard/ui/
+   app.module.css) doesn't have. Kit classes sit in the
+   "components" cascade layer, so a plain rule here wins.
+
+   The bar is exactly 72px tall and never wraps: the stage below
+   sizes and centres the book in whatever height is left.
+   ============================================================ */
+
+/* The chrome is Jakarta, stated here too so the bar never takes a font set for the printed text. */
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 72px;
+  min-width: 0;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1.5px solid var(--rule);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.back {
+  position: relative;
+  flex: none;
+}
+
+/* The book's name: two lines at most, then an ellipsis (the full name is in the tooltip). */
+.title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+/* "Saving..." is the longest of the three labels: the row doesn't shift while it saves. */
+.save {
+  min-width: 118px;
+}
+
+/* Below 1280px the back button keeps only its arrow (its name stays for screen readers),
+   so the book's name keeps room beside the actions. */
+@media (max-width: 1279px) {
+  .header {
+    gap: 12px;
+    padding: 0 20px;
+  }
+
+  .back {
+    width: 40px;
+    padding: 0;
+    gap: 0;
+  }
+
+  .backLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 1279px) and (pointer: coarse) {
+  .back {
+    width: 44px;
+  }
+}
+
+/* ── Export and checkout progress: a blocking card over the editor ── */
+
+.overlay {
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.progressCard {
+  align-items: flex-start;
+  padding: 28px;
+}
+
+.progressNotice {
+  width: 100%;
+  margin-top: 20px;
+  align-items: center;
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.progressBar {
+  flex: 1 1 auto;
+}
+
+/* The fill grows by transform (not width), so the bar animates on the compositor. */
+.progressFill {
+  width: 100%;
+  transform-origin: left center;
+  transition: transform 0.4s ease;
+}
+
+.progressPct {
+  flex: none;
+  min-width: 4ch;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}

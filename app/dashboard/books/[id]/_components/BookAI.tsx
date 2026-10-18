@@ -1,6 +1,7 @@
 'use client';
 
 import StoryAssistanceCard, { AssistOption } from '@/components/StoryAssistanceCard';
+import { Accent } from '@/components/dashboard/ui/AppBits';
 
 type BookAIProps = {
   bookTitle: string;
@@ -42,7 +43,7 @@ export default function BookAI({
       welcomeHeading={
         <>
           Need help writing for{' '}
-          <span className="text-[#A9782F]">{bookTitle}</span>?
+          <Accent>{bookTitle.trim()}</Accent>?
         </>
       }
       welcomeBody="We can help you describe your photos, write headings, and craft the opening words of your memory book."

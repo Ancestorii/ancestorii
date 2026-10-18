@@ -1,0 +1,513 @@
+/* ============================================================
+   Memory Canvas editor (/dashboard/canvas/[id]): the chrome
+   around the canvas, in the app kit's look.
+
+   The canvas itself (CanvasRenderer, its layouts and Slot) is
+   the print, drawn exactly as Prodigi prints it: nothing here
+   may touch it. Its size and position on the stage come from
+   the stage's box, so the header stays 72px tall, the side
+   panels keep the widths set by the grid in Canvaseditor, and
+   the caption under the canvas keeps its 18px gap and 19.5px
+   row. The stage and the preview pass Inter and #1A1714 down to
+   the canvas, as the editor's root used to.
+
+   Kit classes sit in the "components" cascade layer: the rules
+   here are unlayered and win over them.
+   ============================================================ */
+
+/* ── Header ───────────────────────────────────────────────── */
+
+.header {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 72px; /* the stage starts under it: the canvas's size and place depend on it */
+  padding: 0 20px;
+  background: #fff;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+.headerStart {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.headerRule {
+  width: 1.5px;
+  height: 34px;
+  flex: none;
+  background: var(--rule);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* A long name wraps to a second line, then ends in an ellipsis (the full name is its title). */
+.title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+/* Save, Saving..., Saved! keep one width ("Saved!" with its tick is the widest, 104px). */
+.saveBtn {
+  min-width: 104px;
+}
+
+/* Laptops: a little tighter (as in the Acrylic Print editor), so the canvas's name keeps room
+   beside the actions. The bar stays 72px. */
+@media (max-width: 1279px) {
+  .header {
+    gap: 12px;
+  }
+
+  .headerStart {
+    gap: 12px;
+  }
+
+  .headerActions {
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+}
+
+/* ── Left panel: Media and Layout ─────────────────────────── */
+
+.leftPanel {
+  grid-row: 2;
+  grid-column: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #fff;
+  border-right: 1.5px solid var(--rule);
+}
+
+.panelTabs {
+  flex: none;
+  padding: 14px 16px;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+.panelTab {
+  padding: 0 10px;
+}
+
+.panelBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 16px 28px;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 30px;
+  margin-bottom: 14px;
+}
+
+/* The upload drop zone, smaller than the kit's (a narrow panel). */
+.upload {
+  min-height: 0;
+  gap: 4px;
+  padding: 18px 14px;
+  margin-bottom: 18px;
+}
+
+.uploadTile {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: var(--c2);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.skeletonTile {
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+
+/* An upload in progress: the spinner tile, and the "2/5" count tile. */
+.busyTile {
+  aspect-ratio: 1;
+  border-radius: 16px;
+  background: var(--hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.thumb {
+  position: relative;
+  min-width: 0;
+}
+
+/* Rotate: shows on hover or keyboard focus with a mouse, always on touch screens. */
+.rotateBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.thumb:hover .rotateBtn,
+.thumb:focus-within .rotateBtn {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .rotateBtn {
+    opacity: 1;
+  }
+}
+
+.layoutList {
+  display: grid;
+  gap: 8px;
+}
+
+.layoutOption {
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 66px;
+  padding: 12px 14px 12px 16px;
+}
+
+.layoutText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.layoutLabel {
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.layoutDesc {
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* ── Right panel: progress and details ────────────────────── */
+
+.rightPanel {
+  grid-row: 2;
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 20px 28px;
+  background: #fff;
+  border-left: 1.5px solid var(--rule);
+}
+
+.progressValue {
+  margin: 18px 0 0;
+  font-size: 52px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+}
+
+.progressUnit {
+  margin-left: 3px;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+.progressNote {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.progressBar {
+  margin: 16px 0 8px;
+}
+
+.list {
+  margin: 0;
+}
+
+/* A value too long for the line (a narrow panel) moves under its label, right-aligned. */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 12px;
+  padding: 11px 0;
+}
+
+.row + .row {
+  border-top: 1.5px solid var(--rule);
+}
+
+.row dt {
+  flex: none;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.row dd {
+  margin: 0 0 0 auto;
+  min-width: 0;
+  text-align: right;
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.details {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1.5px solid var(--rule);
+}
+
+.details .list {
+  margin-top: 10px;
+}
+
+.details .row {
+  padding: 9px 0;
+}
+
+.details .row dt,
+.details .row dd {
+  font-size: 13px;
+}
+
+/* ── Stage: the ground around the canvas ──────────────────── */
+
+/* The caption under the canvas: the same 18px gap and 19.5px row as before, so the canvas
+   (centred together with it) stays exactly where it was. */
+.stageCaption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 19.5px;
+  margin-top: 18px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.zoomDock {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.zoomBar,
+.panPad {
+  padding: 4px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    var(--hairline-ring),
+    0 14px 30px -18px rgba(10, 10, 15, 0.35);
+}
+
+.zoomBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.zoomRule {
+  width: 1.5px;
+  height: 18px;
+  flex: none;
+  background: var(--rule);
+}
+
+.zoomValue {
+  min-width: 56px;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .zoomValue:hover {
+    background: var(--hover);
+  }
+}
+
+@media (pointer: coarse) {
+  .zoomValue {
+    height: 44px;
+  }
+}
+
+.panPad {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 2px;
+  place-items: center;
+}
+
+.panDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(10, 10, 15, 0.16);
+}
+
+/* ── Preview: the canvas on an ink backdrop ───────────────── */
+
+.preview {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 15, 0.94);
+  color: #fff;
+}
+
+.previewClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+.previewHint {
+  position: absolute;
+  top: 26px;
+  left: 24px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  color: #fff;
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+/* The caption under the previewed canvas: the same 41.5px block as before (the canvas is
+   centred together with it). */
+.previewCaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 41.5px;
+  min-width: 140px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: #fff;
+  text-align: center;
+}
+
+.previewTitle {
+  font-size: 15px;
+  line-height: 21px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.previewSub {
+  font-size: 12.5px;
+  line-height: 16.5px;
+  font-weight: 600;
+}

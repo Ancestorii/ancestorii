@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { inter } from '@/lib/fonts';
 import Sidebar from '../Canvassidebar';
 import CanvasHeader from './Canvasheader';
 import CanvasLeftPanel from './Canvasleftpanel';
@@ -14,23 +13,15 @@ import CanvasRightPanel from './Canvasrightpanel';
 import CanvasPreviewOverlay from './Canvaspreviewoverlay';
 import type { CanvasAsset, SelectedImage, LayoutType } from '@/types/memory-canvas';
 
+/**
+ * The colours that draw the canvas itself on the stage and in the preview (its paper, its
+ * 1.5px edge, and the text colour it inherits). The canvas is what gets printed, so these stay
+ * as they are; the editor's chrome uses the app kit.
+ */
 export const CANVAS_COLORS = {
-  canvas: '#F7F5F0',
-  panel: '#FFFFFF',
   paper: '#FFFFFF',
-  paperAlt: '#FDFCF9',
-  dark: '#1A1714',
-  darkSoft: '#2E2A24',
-  mid: '#6B6358',
-  muted: '#A39B8F',
-  accent: '#B8860B',
-  accentSoft: '#F0E2BF',
-  accentBg: '#FBF6EA',
   line: '#D9D3C7',
-  lineLight: '#EAE5DB',
-  lineDark: '#B5AFA3',
-  stage: '#EDEBE5',
-  hover: '#F2EFE8',
+  dark: '#1A1714',
 } as const;
 
 type PanelTab = 'media' | 'layout';
@@ -154,7 +145,7 @@ export default function CanvasEditor({
           <style>{`
   *, *::before, *::after { box-sizing: border-box; }
   ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-thumb { background: ${CANVAS_COLORS.lineDark}; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb { background: rgba(10, 10, 15, 0.18); border-radius: 99px; }
   ::-webkit-scrollbar-track { background: transparent; }
 
   @keyframes fadeUp {
@@ -172,25 +163,6 @@ export default function CanvasEditor({
   .d2 { animation-delay: 0.1s; }
   .d3 { animation-delay: 0.15s; }
   .scale-in { animation: scaleIn 0.45s ease both; animation-delay: 0.12s; }
-
-  .thumb-btn { transition: all 0.15s ease; position: relative; }
-  .thumb-btn::after {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: 10px;
-    border: 2px solid transparent;
-    transition: border-color 0.15s ease;
-    pointer-events: none;
-  }
-  .thumb-btn:hover::after { border-color: ${CANVAS_COLORS.accent}66; }
-  .thumb-btn.active::after { border-color: #D4A017; border-width: 4px; }
-
-  .tool-btn { transition: all 0.15s ease; cursor: pointer; }
-  .tool-btn:hover { background: ${CANVAS_COLORS.hover} !important; }
-
-  .tab-item { transition: all 0.12s ease; cursor: pointer; }
-  .tab-item:hover { background: ${CANVAS_COLORS.hover}; }
 
   .canvas-editor-root {
     display: grid;
@@ -235,9 +207,7 @@ export default function CanvasEditor({
               height: rootH,
               minHeight: 0,
               overflow: 'hidden',
-              background: CANVAS_COLORS.canvas,
-              fontFamily: inter.style.fontFamily,
-              color: CANVAS_COLORS.dark,
+              background: '#fff',
             }}
           >
             <CanvasHeader

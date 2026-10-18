@@ -4,7 +4,15 @@ import { inter } from '@/lib/fonts';
 import { BOOK_CANVAS_COLORS, type CanvasSpread } from './BookCanvas';
 import type { LayoutType, SelectedImage } from '@/types/memory-book';
 import Image from "next/image";
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useId, memo, type CSSProperties } from "react";
+import { BookOpen, ImageIcon, ImagePlus, Info, PanelsTopLeft, RotateCw, Type } from 'lucide-react';
+import { IconBtn, IconTile, Spinner, Tag, toneByKey, ui } from '@/components/dashboard/ui/AppBits';
+import css from './bookCanvasLeftPanel.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// Memory Books are orange in the landing's feature index: the panel's dots use it.
+const ORANGE_DOT = { '--dot': 'var(--c2)' } as CSSProperties;
 
 type PanelTab = 'pages' | 'media' | 'text' | 'layout';
 
@@ -83,6 +91,7 @@ export default function BookCanvasLeftPanel({
 
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
+  const uid = useId();
 
   const handleUploadWithFeedback = async (files: FileList | File[]) => {
     const fileArray = Array.from(files).slice(0, 20);
@@ -103,10 +112,10 @@ export default function BookCanvasLeftPanel({
   };
 
   const tabs = [
-    { id: 'pages', icon: <IconPages />, label: 'Pages' },
-    { id: 'layout', icon: <IconLayout />, label: 'Layout' },
-    { id: 'media', icon: <IconMedia />, label: 'Media' },
-    { id: 'text', icon: <IconText />, label: 'Text' },
+    { id: 'pages', icon: <BookOpen size={20} strokeWidth={2.2} aria-hidden="true" />, label: 'Pages' },
+    { id: 'layout', icon: <PanelsTopLeft size={20} strokeWidth={2.2} aria-hidden="true" />, label: 'Layout' },
+    { id: 'media', icon: <ImageIcon size={20} strokeWidth={2.2} aria-hidden="true" />, label: 'Media' },
+    { id: 'text', icon: <Type size={20} strokeWidth={2.2} aria-hidden="true" />, label: 'Text' },
   ] as const;
 
   const layouts: {
@@ -226,245 +235,121 @@ export default function BookCanvasLeftPanel({
   };
 
   return (
-    <>
-      <style>{`
-        .media-thumb-wrapper:hover .rotate-btn {
-          opacity: 1 !important;
-        }
-        .rotate-btn:hover {
-          background: rgba(0, 0, 0, 0.85) !important;
-          transform: scale(1.08);
-        }
-      `}</style>
-      <aside
-        className="fade-up d1"
-      style={{
-        gridRow: '2',
-        gridColumn: '1',
-        alignSelf: 'stretch',
-        background: BOOK_CANVAS_COLORS.panel,
-        borderRight: `1.5px solid ${BOOK_CANVAS_COLORS.line}`,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-        height: '100%',
-        overflowY: 'hidden',
-        overflowX: 'hidden',
-      }}
+    <aside
+      className={cx('fade-up d1', css.panel)}
+      style={{ gridRow: '2', gridColumn: '1' }}
+      aria-label="Book tools"
     >
-      <div
-        style={{
-          display: 'flex',
-          borderBottom: `1.5px solid ${BOOK_CANVAS_COLORS.line}`,
-          flexShrink: 0,
-          minHeight: 76,
-          position: 'sticky',
-          top: 0,
-          zIndex: 3,
-          background: BOOK_CANVAS_COLORS.panel,
-        }}
-      >
-        {tabs.map((t) => {
-          const active = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              className="tab-item"
-              onClick={() => setTab(t.id)}
-              style={{
-                flex: 1,
-                padding: '16px 0 14px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 7,
-                background: active
-                  ? BOOK_CANVAS_COLORS.accentBg
-                  : 'transparent',
-                border: 'none',
-                borderBottom: active
-                  ? `3px solid ${BOOK_CANVAS_COLORS.accent}`
-                  : '3px solid transparent',
-                color: active
-                  ? BOOK_CANVAS_COLORS.dark
-                  : BOOK_CANVAS_COLORS.muted,
-                fontFamily: inter.style.fontFamily,
-              }}
-            >
-              {t.icon}
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: '0.04em',
-                }}
+      {/* Tabs */}
+      <div className={css.tabsBar}>
+        <div className={cx(ui.tabs, ui.tabsBlock, css.tabs)} role="tablist" aria-label="Tools">
+          {tabs.map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                id={`${uid}-tab-${t.id}`}
+                aria-selected={active}
+                aria-controls={`${uid}-panel`}
+                className={cx(ui.tab, css.tab)}
+                onClick={() => setTab(t.id)}
               >
-                {t.label}
-              </span>
-            </button>
-          );
-        })}
+                {t.icon}
+                <span>{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div
-  data-lenis-prevent
-  style={{
-    flex: 1,
-    minHeight: 0,
-    padding: '18px 16px',
-    overflowY: 'auto',
-    overscrollBehavior: 'contain',
-  }}
->
+        data-lenis-prevent
+        id={`${uid}-panel`}
+        role="tabpanel"
+        aria-labelledby={`${uid}-tab-${tab}`}
+        className={css.scroll}
+      >
         {tab === 'pages' && (
-          <>
-            <SectionHead
-              fontFamily={inter.style.fontFamily}
-              count={totalPages}
-            >
-              Total Pages
-            </SectionHead>
+          <section className={css.section}>
+            <SectionHead count={totalPages}>Total Pages</SectionHead>
 
-            <div
-              style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-            >
+            <div className={css.spreadList}>
               {spreads.map((s, i) => {
                 const active = spread === i;
                 return (
                   <button
                     key={i}
-                    className={`spread-thumb ${active ? 'active' : ''}`}
+                    type="button"
+                    className={css.spreadTile}
+                    aria-current={active ? 'true' : undefined}
                     onClick={() => setSpread(i)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      width: '100%',
-                      background: active
-                        ? BOOK_CANVAS_COLORS.accentBg
-                        : BOOK_CANVAS_COLORS.panel,
-                      border: active
-                        ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}44`
-                        : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-                      borderRadius: 10,
-                      padding: '10px 10px',
-                      fontFamily: inter.style.fontFamily,
-                    }}
                   >
+                    {/* The page plan; its ground is the paper colour */}
                     <div
-                      style={{
-                        width: 84,
-                        height: 54,
-                        display: 'flex',
-                        flexShrink: 0,
-                        borderRadius: 6,
-                        overflow: 'hidden',
-                        border: `1px solid ${BOOK_CANVAS_COLORS.line}`,
-                        background: BOOK_CANVAS_COLORS.paper,
-                      }}
+                      className={css.spreadThumb}
+                      style={{ background: BOOK_CANVAS_COLORS.paper }}
+                      aria-hidden="true"
                     >
                       {s.type === 'cover' ? (
-                        <div style={{ margin: 'auto' }}>
+                        <div className={css.spreadCentre}>
                           <CoverLayoutIcon type={coverLayout} active={false} />
                         </div>
                       ) : s.type === 'back_cover' ? (
-                        <div style={{ margin: 'auto' }}>
+                        <div className={css.spreadCentre}>
                           <LayoutIcon type="portrait_layout" />
                         </div>
                       ) : s.type === 'single' ? (
                         <>
-                          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div className={css.spreadHalf}>
                             <LayoutIcon type="portrait_layout" />
                           </div>
-                          <div style={{ width: 2, flexShrink: 0, background: BOOK_CANVAS_COLORS.accentSoft }} />
-                          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div className={css.spreadDivider} />
+                          <div className={css.spreadHalf}>
                             <LayoutIcon type={s.r.layout_type || 'portrait_layout'} />
                           </div>
                         </>
                       ) : (
                         <>
-                          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div className={css.spreadHalf}>
                             <LayoutIcon type={s.l?.layout_type || 'portrait_layout'} />
                           </div>
-                          <div style={{ width: 2, flexShrink: 0, background: BOOK_CANVAS_COLORS.accentSoft }} />
-                          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div className={css.spreadDivider} />
+                          <div className={css.spreadHalf}>
                             <LayoutIcon type={s.r?.layout_type || 'portrait_layout'} />
                           </div>
                         </>
                       )}
                     </div>
 
-                    <div style={{ textAlign: 'left', display: 'flex', alignItems: 'center' }}>
-                      <div
-                        style={{
-                          fontFamily: inter.style.fontFamily,
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: BOOK_CANVAS_COLORS.dark,
-                        }}
-                      >
-                        {getSpreadTitle(s)}
-                      </div>
-                    </div>
+                    <span className={css.spreadTitle}>{getSpreadTitle(s)}</span>
                   </button>
                 );
               })}
             </div>
-          </>
+          </section>
         )}
 
         {tab === 'media' && (
-          <>
-            <SectionHead
-              fontFamily={inter.style.fontFamily}
-              count={images.length}
-            >
-              Library
-            </SectionHead>
+          <section className={css.section}>
+            <SectionHead count={images.length}>Library</SectionHead>
 
-            <label
-              className="tool-btn"
-              style={{
-                width: '100%',
-                padding: '16px 0',
-                marginBottom: 16,
-                background: BOOK_CANVAS_COLORS.accentBg,
-                border: `1.5px dashed ${BOOK_CANVAS_COLORS.accent}55`,
-                borderRadius: 10,
-                textAlign: 'center',
-                display: 'block',
-                cursor: 'pointer',
-                fontFamily: inter.style.fontFamily,
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: inter.style.fontFamily,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: BOOK_CANVAS_COLORS.dark,
-                }}
-              >
+            {/* The file field is visually hidden, not display:none, so the keyboard reaches it */}
+            <label className={cx(ui.dropzone, css.dropzone)}>
+              <IconTile Icon={ImagePlus} tone={toneByKey('orange')} size="sm" />
+              <span className={ui.dropzoneTitle} aria-live="polite">
                 {uploading ? `Uploading ${uploadProgress.done}/${uploadProgress.total}…` : 'Upload Photos'}
-              </div>
-              <div
-                style={{
-                  fontFamily: inter.style.fontFamily,
-                  fontSize: 10,
-                  fontWeight: 500,
-                  color: BOOK_CANVAS_COLORS.accent,
-                  marginTop: 2,
-                }}
-              >
+              </span>
+              <span className={ui.dropzoneHint}>
                 {uploading ? 'Please wait' : 'Select multiple files at once'}
-              </div>
+              </span>
 
               <input
                 type="file"
                 accept="image/*"
                 multiple
-                style={{ display: 'none' }}
+                className={ui.srOnly}
                 onChange={(e) => {
                   if (e.target.files?.length) {
                     handleUploadWithFeedback(e.target.files);
@@ -475,67 +360,30 @@ export default function BookCanvasLeftPanel({
             </label>
 
             {loading ? (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: 8,
-                }}
-              >
+              <div className={css.mediaGrid} aria-hidden="true">
                 {Array.from({ length: 9 }).map((_, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      aspectRatio: '1',
-                      borderRadius: 8,
-                      background: BOOK_CANVAS_COLORS.lineLight,
-                    }}
-                  />
+                  <div key={i} className={cx(ui.skeleton, css.skeleton)} />
                 ))}
               </div>
             ) : (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: 10,
-                }}
-              >
+              <div className={css.mediaGrid}>
                 {uploading && (
                   <>
                     <UploadingThumb />
                     {uploadProgress.total > 1 && (
-                      <div style={{
-                        aspectRatio: '1',
-                        borderRadius: 8,
-                        background: BOOK_CANVAS_COLORS.canvas,
-                        border: `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontFamily: inter.style.fontFamily,
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: BOOK_CANVAS_COLORS.mid,
-                      }}>
+                      <div className={css.statusTile} aria-hidden="true">
                         {uploadProgress.done}/{uploadProgress.total}
                       </div>
                     )}
                   </>
                 )}
                 {images.map((img, i) => (
-                  <div
-                    key={img.id ?? i}
-                    style={{
-                      position: 'relative',
-                      aspectRatio: '1',
-                    }}
-                    className="media-thumb-wrapper"
-                  >
+                  <div key={img.id ?? i} className={css.mediaItem}>
                     <button
-                      className={`thumb-btn ${
-                        selectedImage?.id === img.id ? 'active' : ''
-                      }`}
+                      type="button"
+                      className={ui.photoTile}
+                      aria-pressed={selectedImage?.id === img.id}
+                      aria-label={`Photo ${i + 1} of ${images.length}`}
                       onClick={() =>
                         setSelectedImage(
                           selectedImage?.id === img.id
@@ -547,603 +395,367 @@ export default function BookCanvasLeftPanel({
                               }
                         )
                       }
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        padding: 0,
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        borderRadius: 8,
-                        overflow: 'visible',
-                      }}
                     >
                       <MediaThumb src={img.url} rotation={img.rotation} />
                     </button>
 
-                    <button
-                      type="button"
-                      className="rotate-btn"
+                    <IconBtn
+                      label="Rotate 180°"
+                      size="sm"
+                      onPhoto
+                      className={css.rotate}
                       onClick={(e) => {
                         e.stopPropagation();
                         onRotateImage(img.id);
                       }}
-                      title="Rotate 180°"
-                      style={{
-                        position: 'absolute',
-                        top: 6,
-                        right: 6,
-                        width: 28,
-                        height: 28,
-                        borderRadius: 99,
-                        background: 'rgba(0, 0, 0, 0.65)',
-                        border: 'none',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: 0,
-                        transition: 'opacity 0.15s ease',
-                        zIndex: 5,
-                      }}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
-                        <path d="M21 3v5h-5" />
-                      </svg>
-                    </button>
+                      <RotateCw size={16} strokeWidth={2.4} aria-hidden="true" />
+                    </IconBtn>
                   </div>
                 ))}
               </div>
             )}
-          </>
+          </section>
         )}
 
         {tab === 'text' && (
-  <>
-    <SectionHead fontFamily={inter.style.fontFamily}>
-      Text Settings
-    </SectionHead>
+          <section className={css.section}>
+            <SectionHead>Text Settings</SectionHead>
 
-    {isOnCover ? (
-      <div
-        style={{
-          fontFamily: inter.style.fontFamily,
-          fontSize: 13,
-          fontWeight: 500,
-          color: BOOK_CANVAS_COLORS.muted,
-          lineHeight: 1.5,
-        }}
-      >
-        Text settings are available on interior pages.
-      </div>
-    ) : (<>
-      {currentSpread.type === 'spread' && currentSpread.l && currentSpread.r && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          <button
-            type="button"
-            onClick={() => setActivePageId(currentSpread.l!.id)}
-            style={{
-              flex: 1,
-              padding: '10px 12px',
-              borderRadius: 8,
-              border: activePageId === currentSpread.l.id
-                ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}`
-                : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-              background: activePageId === currentSpread.l.id
-                ? BOOK_CANVAS_COLORS.accentBg
-                : BOOK_CANVAS_COLORS.panel,
-              color: BOOK_CANVAS_COLORS.dark,
-              fontWeight: 600,
-              fontSize: 12,
-              fontFamily: inter.style.fontFamily,
-              cursor: 'pointer',
-            }}
-          >
-            Left Page
-          </button>
-          <button
-            type="button"
-            onClick={() => setActivePageId(currentSpread.r!.id)}
-            style={{
-              flex: 1,
-              padding: '10px 12px',
-              borderRadius: 8,
-              border: activePageId === currentSpread.r.id
-                ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}`
-                : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-              background: activePageId === currentSpread.r.id
-                ? BOOK_CANVAS_COLORS.accentBg
-                : BOOK_CANVAS_COLORS.panel,
-              color: BOOK_CANVAS_COLORS.dark,
-              fontWeight: 600,
-              fontSize: 12,
-              fontFamily: inter.style.fontFamily,
-              cursor: 'pointer',
-            }}
-          >
-            Right Page
-          </button>
-        </div>
-      )}
-      {(() => {
-              const activePage =
-                activePageId && currentSpread.type === 'spread'
-                  ? [currentSpread.l, currentSpread.r].find((p) => p?.id === activePageId)
-                  : currentSpread.type === 'single'
-                  ? currentSpread.r
-                  : currentSpread.type === 'spread'
-                  ? currentSpread.l || currentSpread.r
-                  : null;
+            {isOnCover ? (
+              <p className={cx(ui.noticeInfo, css.note)}>
+                <Info size={18} strokeWidth={2.4} aria-hidden="true" />
+                <span>Text settings are available on interior pages.</span>
+              </p>
+            ) : (<>
+              {currentSpread.type === 'spread' && currentSpread.l && currentSpread.r && (
+                <div className={cx(ui.tabs, ui.tabsBlock, css.segment)} role="group" aria-label="Page">
+                  <button
+                    type="button"
+                    onClick={() => setActivePageId(currentSpread.l!.id)}
+                    aria-pressed={activePageId === currentSpread.l.id}
+                    className={cx(ui.tab, css.segTab)}
+                  >
+                    Left Page
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActivePageId(currentSpread.r!.id)}
+                    aria-pressed={activePageId === currentSpread.r.id}
+                    className={cx(ui.tab, css.segTab)}
+                  >
+                    Right Page
+                  </button>
+                </div>
+              )}
+              {(() => {
+                const activePage =
+                  activePageId && currentSpread.type === 'spread'
+                    ? [currentSpread.l, currentSpread.r].find((p) => p?.id === activePageId)
+                    : currentSpread.type === 'single'
+                    ? currentSpread.r
+                    : currentSpread.type === 'spread'
+                    ? currentSpread.l || currentSpread.r
+                    : null;
 
-              if (!activePage) {
+                if (!activePage) {
+                  return (
+                    <p className={cx(ui.noticeInfo, css.note)}>
+                      <Info size={18} strokeWidth={2.4} aria-hidden="true" />
+                      <span>No page selected.</span>
+                    </p>
+                  );
+                }
+
                 return (
-                  <div
-                    style={{
-                      fontFamily: inter.style.fontFamily,
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: BOOK_CANVAS_COLORS.muted,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    No page selected.
-                  </div>
+                  <>
+                    <span className={cx(ui.chip, ui.chipSm, ui.chipDot, css.contextChip)} style={ORANGE_DOT}>
+                      Page {activePage.page_number}
+                    </span>
+
+                    <div className={css.toggleCard}>
+                      <ToggleRow
+                        label="Show Heading"
+                        active={activePage.show_subheading}
+                        onToggle={() =>
+                          onTogglePageText(
+                            activePage.id,
+                            'show_subheading',
+                            !activePage.show_subheading
+                          )
+                        }
+                      />
+
+                      <ToggleRow
+                        label="Show Comment"
+                        active={activePage.show_comment}
+                        onToggle={() =>
+                          onTogglePageText(
+                            activePage.id,
+                            'show_comment',
+                            !activePage.show_comment
+                          )
+                        }
+                      />
+                    </div>
+                  </>
                 );
-              }
-
-              return (
-                <>
-                  <div
-                    style={{
-                      fontFamily: inter.style.fontFamily,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: BOOK_CANVAS_COLORS.accent,
-                      marginBottom: 16,
-                      marginTop: -6,
-                    }}
-                  >
-                    Page {activePage.page_number}
-                  </div>
-
-                  <ToggleRow
-                    fontFamily={inter.style.fontFamily}
-                    label="Show Heading"
-                    active={activePage.show_subheading}
-                    onToggle={() =>
-                      onTogglePageText(
-                        activePage.id,
-                        'show_subheading',
-                        !activePage.show_subheading
-                      )
-                    }
-                  />
-
-                  <ToggleRow
-                    fontFamily={inter.style.fontFamily}
-                    label="Show Comment"
-                    active={activePage.show_comment}
-                    onToggle={() =>
-                      onTogglePageText(
-                        activePage.id,
-                        'show_comment',
-                        !activePage.show_comment
-                      )
-                    }
-                  />
-                </>
-              );
-            })()}
-          </>)}
-        </>)}
+              })()}
+            </>)}
+          </section>
+        )}
 
         {tab === 'layout' && (
           <>
             {isOnCover && (
-  <>
-    <SectionHead fontFamily={inter.style.fontFamily}>
-      Cover Layouts
-    </SectionHead>
+              <>
+                <section className={css.section}>
+                  <SectionHead>Cover Layouts</SectionHead>
 
-    <div
-      style={{
-        fontFamily: inter.style.fontFamily,
-        fontSize: 11,
-        fontWeight: 600,
-        color: BOOK_CANVAS_COLORS.accent,
-        marginBottom: 10,
-        marginTop: -6,
-      }}
-    >
-      Editing: {isCoverSpread ? 'Front Cover' : 'Back Cover'}
-    </div>
+                  <span className={cx(ui.chip, ui.chipSm, ui.chipDot, css.contextChip)} style={ORANGE_DOT}>
+                    Editing: {isCoverSpread ? 'Front Cover' : 'Back Cover'}
+                  </span>
 
-    {isCoverSpread && coverLayouts.map((cl) => {
-      const active = activeCoverLayout === cl.id;
-      return (
-        <button
-          key={cl.id}
-          type="button"
-          onClick={() => handleCoverSelect(cl.id)}
-          className="tool-btn"
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            padding: '12px 14px',
-            background: active
-              ? BOOK_CANVAS_COLORS.accentBg
-              : BOOK_CANVAS_COLORS.panel,
-            border: active
-              ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}`
-              : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-            borderRadius: 10,
-            marginBottom: 8,
-            textAlign: 'left',
-            fontFamily: inter.style.fontFamily,
-          }}
-        >
-          <CoverLayoutIcon type={cl.id} active={active} />
-          <div>
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: active
-                  ? BOOK_CANVAS_COLORS.accent
-                  : BOOK_CANVAS_COLORS.dark,
-              }}
-            >
-              {cl.label}
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 500,
-                color: BOOK_CANVAS_COLORS.muted,
-                marginTop: 1,
-              }}
-            >
-              {cl.desc}
-            </div>
-          </div>
-        </button>
-      );
-    })}
+                  <div className={css.optionList}>
+                    {isCoverSpread && coverLayouts.map((cl) => {
+                      const active = activeCoverLayout === cl.id;
+                      return (
+                        <button
+                          key={cl.id}
+                          type="button"
+                          onClick={() => handleCoverSelect(cl.id)}
+                          aria-pressed={active}
+                          className={cx(ui.option, css.option)}
+                        >
+                          <CoverLayoutIcon type={cl.id} active={active} />
+                          <span className={css.optionText}>
+                            <span className={css.optionLabel}>{cl.label}</span>
+                            <span className={css.optionDesc}>{cl.desc}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
 
-    {isBackCoverSpread && backCoverLayouts.map((bl) => {
-  const active = backCoverLayout === bl.id;
-  return (
-    <button
-      key={bl.id}
-      type="button"
-      onClick={() => onBackCoverLayoutChange(bl.id)}
-      className="tool-btn"
-      style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-        padding: '12px 14px',
-        background: active
-          ? BOOK_CANVAS_COLORS.accentBg
-          : BOOK_CANVAS_COLORS.panel,
-        border: active
-          ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}`
-          : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-        borderRadius: 10,
-        marginBottom: 8,
-        textAlign: 'left',
-        fontFamily: inter.style.fontFamily,
-      }}
-    >
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: active ? BOOK_CANVAS_COLORS.accent : BOOK_CANVAS_COLORS.dark }}>
-          {bl.label}
-        </div>
-        <div style={{ fontSize: 11, fontWeight: 500, color: BOOK_CANVAS_COLORS.muted, marginTop: 1 }}>
-          {bl.desc}
-        </div>
-      </div>
-    </button>
-  );
-})}
+                    {isBackCoverSpread && backCoverLayouts.map((bl) => {
+                      const active = backCoverLayout === bl.id;
+                      return (
+                        <button
+                          key={bl.id}
+                          type="button"
+                          onClick={() => onBackCoverLayoutChange(bl.id)}
+                          aria-pressed={active}
+                          className={cx(ui.option, css.option)}
+                        >
+                          <span className={css.optionText}>
+                            <span className={css.optionLabel}>{bl.label}</span>
+                            <span className={css.optionDesc}>{bl.desc}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
 
-    {/* divider only if cover is shown */}
-    <div
-      style={{
-        height: 1,
-        background: BOOK_CANVAS_COLORS.line,
-        margin: '16px 0 18px',
-      }}
-    />
-    <SectionHead fontFamily={inter.style.fontFamily}>
-      Spine
-    </SectionHead>
+                {/* divider only if cover is shown */}
+                <hr className={cx(ui.rule, css.divider)} />
 
-    <div style={{ marginBottom: 12 }}>
-      <label style={{ fontFamily: inter.style.fontFamily, fontSize: 11, fontWeight: 600, color: BOOK_CANVAS_COLORS.muted, display: 'block', marginBottom: 6 }}>
-        Spine Text
-      </label>
-      <input
-        type="text"
-        placeholder={bookTitle || 'Book title'}
-        maxLength={40}
-        value={spineText}
-        onChange={(e) => onSpineTextChange(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '8px 10px',
-          borderRadius: 8,
-          border: `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-          background: BOOK_CANVAS_COLORS.panel,
-          fontFamily: inter.style.fontFamily,
-          fontSize: 12,
-          fontWeight: 500,
-          color: BOOK_CANVAS_COLORS.dark,
-          outline: 'none',
-        }}
-      />
-    </div>
+                <section className={css.section}>
+                  <SectionHead>Spine</SectionHead>
 
-    <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-      <div style={{ flex: 1 }}>
-        <label style={{ fontFamily: inter.style.fontFamily, fontSize: 11, fontWeight: 600, color: BOOK_CANVAS_COLORS.muted, display: 'block', marginBottom: 6 }}>
-          Background
-        </label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <input
-            type="color"
-            value={spineBgColour}
-            onChange={(e) => onSpineBgColourChange(e.target.value)}
-            style={{ width: 28, height: 28, border: `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`, borderRadius: 6, padding: 0, cursor: 'pointer', background: 'none' }}
-          />
-          <span style={{ fontFamily: inter.style.fontFamily, fontSize: 11, color: BOOK_CANVAS_COLORS.muted }}>{spineBgColour}</span>
-        </div>
-      </div>
-      <div style={{ flex: 1 }}>
-        <label style={{ fontFamily: inter.style.fontFamily, fontSize: 11, fontWeight: 600, color: BOOK_CANVAS_COLORS.muted, display: 'block', marginBottom: 6 }}>
-          Text Colour
-        </label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <input
-            type="color"
-            value={spineTextColour}
-            onChange={(e) => onSpineTextColourChange(e.target.value)}
-            style={{ width: 28, height: 28, border: `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`, borderRadius: 6, padding: 0, cursor: 'pointer', background: 'none' }}
-          />
-          <span style={{ fontFamily: inter.style.fontFamily, fontSize: 11, color: BOOK_CANVAS_COLORS.muted }}>{spineTextColour}</span>
-        </div>
-      </div>
-    </div>
+                  <div>
+                    <label htmlFor={`${uid}-spine-text`} className={cx(ui.label, css.fieldLabel)}>
+                      Spine Text
+                    </label>
+                    <input
+                      id={`${uid}-spine-text`}
+                      type="text"
+                      placeholder={bookTitle || 'Book title'}
+                      maxLength={40}
+                      value={spineText}
+                      onChange={(e) => onSpineTextChange(e.target.value)}
+                      className={cx(ui.input, css.spineInput)}
+                    />
+                  </div>
 
-    <div
-      style={{
-        width: '100%',
-        height: 36,
-        borderRadius: 6,
-        background: spineBgColour,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        border: `1px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-      }}
-    >
-      <span style={{ fontFamily: inter.style.fontFamily, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: spineTextColour }}>
-        {spineText || bookTitle || 'Spine Preview'}
-      </span>
-    </div>
-  </>
-)}
+                  <div className={css.colourGrid}>
+                    <div className={css.colourField}>
+                      <label htmlFor={`${uid}-spine-bg`} className={cx(ui.label, css.fieldLabel)}>
+                        Background
+                      </label>
+                      <div className={css.colourPick}>
+                        <input
+                          id={`${uid}-spine-bg`}
+                          type="color"
+                          value={spineBgColour}
+                          onChange={(e) => onSpineBgColourChange(e.target.value)}
+                          className={css.swatch}
+                        />
+                        <span className={css.hex}>{spineBgColour}</span>
+                      </div>
+                    </div>
+                    <div className={css.colourField}>
+                      <label htmlFor={`${uid}-spine-colour`} className={cx(ui.label, css.fieldLabel)}>
+                        Text Colour
+                      </label>
+                      <div className={css.colourPick}>
+                        <input
+                          id={`${uid}-spine-colour`}
+                          type="color"
+                          value={spineTextColour}
+                          onChange={(e) => onSpineTextColourChange(e.target.value)}
+                          className={css.swatch}
+                        />
+                        <span className={css.hex}>{spineTextColour}</span>
+                      </div>
+                    </div>
+                  </div>
 
+                  {/* The spine as it will print: its colours and its Inter lettering */}
+                  <div
+                    className={css.spinePreview}
+                    style={{
+                      width: '100%',
+                      height: 36,
+                      borderRadius: 6,
+                      background: spineBgColour,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '1px solid var(--rule)',
+                    }}
+                  >
+                    <span
+                      className={css.spinePreviewText}
+                      style={{ fontFamily: inter.style.fontFamily, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: spineTextColour }}
+                    >
+                      {spineText || bookTitle || 'Spine Preview'}
+                    </span>
+                  </div>
+                </section>
+              </>
+            )}
 
+            {!isOnCover && (
+              <section className={css.section}>
+                <SectionHead>Page Selection</SectionHead>
 
-{!isOnCover && (
-  <>
-    <SectionHead fontFamily={inter.style.fontFamily}>
-      Page Selection
-    </SectionHead>
+                <div className={cx(ui.tabs, ui.tabsBlock, css.segment)} role="group" aria-label="Page Selection">
+                  {/* LEFT PAGE */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (currentSpread.type === 'spread' && currentSpread.l) {
+                        setActivePageId(currentSpread.l.id);
+                      }
+                    }}
+                    disabled={
+                      currentSpread.type !== 'spread' || !currentSpread.l
+                    }
+                    aria-pressed={
+                      activePageId === (currentSpread.type === 'spread' ? currentSpread.l?.id : undefined)
+                    }
+                    className={cx(ui.tab, css.segTab)}
+                  >
+                    Edit Left Page
+                  </button>
 
-  <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-    {/* LEFT PAGE */}
-    <button
-      type="button"
-      onClick={() => {
-        if (currentSpread.type === 'spread' && currentSpread.l) {
-          setActivePageId(currentSpread.l.id);
-        }
-      }}
-      disabled={
-        currentSpread.type !== 'spread' || !currentSpread.l
-      }
-      style={{
-        flex: 1,
-        padding: '10px 12px',
-        borderRadius: 8,
-        border:
-          activePageId === (currentSpread.type === 'spread' ? currentSpread.l?.id : undefined)
-            ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}`
-            : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-        background:
-          activePageId === (currentSpread.type === 'spread' ? currentSpread.l?.id : undefined)
-            ? BOOK_CANVAS_COLORS.accentBg
-            : BOOK_CANVAS_COLORS.panel,
-        color:
-          currentSpread.type !== 'spread' || !currentSpread.l
-            ? BOOK_CANVAS_COLORS.muted
-            : BOOK_CANVAS_COLORS.dark,
-        fontWeight: 600,
-        fontSize: 12,
-        cursor:
-          currentSpread.type !== 'spread' || !currentSpread.l
-            ? 'not-allowed'
-            : 'pointer',
-        opacity:
-          currentSpread.type !== 'spread' || !currentSpread.l ? 0.5 : 1,
-      }}
-    >
-      Edit Left Page
-    </button>
+                  {/* RIGHT PAGE */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        (currentSpread.type === 'spread' && currentSpread.r) ||
+                        currentSpread.type === 'single'
+                      ) {
+                        setActivePageId(
+                          currentSpread.type === 'single'
+                            ? currentSpread.r.id
+                            : currentSpread.r!.id
+                        );
+                      }
+                    }}
+                    disabled={!currentSpread.r}
+                    aria-pressed={
+                      activePageId === (
+                        currentSpread.type === 'single'
+                          ? currentSpread.r.id
+                          : currentSpread.type === 'spread'
+                          ? currentSpread.r?.id
+                          : undefined
+                      )
+                    }
+                    className={cx(ui.tab, css.segTab)}
+                  >
+                    Edit Right Page
+                  </button>
+                </div>
+              </section>
+            )}
 
-    {/* RIGHT PAGE */}
-    <button
-      type="button"
-      onClick={() => {
-        if (
-          (currentSpread.type === 'spread' && currentSpread.r) ||
-          currentSpread.type === 'single'
-        ) {
-          setActivePageId(
-            currentSpread.type === 'single'
-              ? currentSpread.r.id
-              : currentSpread.r!.id
-          );
-        }
-      }}
-      disabled={!currentSpread.r}
-      style={{
-        flex: 1,
-        padding: '10px 12px',
-        borderRadius: 8,
-        border:
-  activePageId === (
-    currentSpread.type === 'single'
-      ? currentSpread.r.id
-      : currentSpread.type === 'spread'
-      ? currentSpread.r?.id
-      : undefined
-  )
-            ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}`
-            : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-        background:
-  activePageId === (
-    currentSpread.type === 'single'
-      ? currentSpread.r.id
-      : currentSpread.type === 'spread'
-      ? currentSpread.r?.id
-      : undefined
-  )
-            ? BOOK_CANVAS_COLORS.accentBg
-            : BOOK_CANVAS_COLORS.panel,
-        color: currentSpread.r
-          ? BOOK_CANVAS_COLORS.dark
-          : BOOK_CANVAS_COLORS.muted,
-        fontWeight: 600,
-        fontSize: 12,
-        cursor: currentSpread.r ? 'pointer' : 'not-allowed',
-        opacity: currentSpread.r ? 1 : 0.5,
-      }}
-    >
-      Edit Right Page
-    </button>
-  </div>
-  </>
-)}
+            {!isOnCover && (
+              <section className={css.section}>
+                <SectionHead>Page Layouts</SectionHead>
 
-           {!isOnCover && (
-  <>
-    <SectionHead fontFamily={inter.style.fontFamily}>
-      Page Layouts
-    </SectionHead>
+                <div className={css.optionList}>
+                  {layouts.map((l) => {
+                    const pageId = activePageId || getCurrentTargetPageId();
 
-    {layouts.map((l) => {
-      const pageId = activePageId || getCurrentTargetPageId();
+                    const currentPage =
+                      activePageId
+                        ? [
+                            currentSpread.type === 'spread' ? currentSpread.l : undefined,
+                            currentSpread.type === 'spread'
+                              ? currentSpread.r
+                              : currentSpread.type === 'single'
+                              ? currentSpread.r
+                              : undefined,
+                          ].find((p) => p?.id === activePageId)
+                        : currentSpread.type === 'single'
+                        ? currentSpread.r
+                        : currentSpread.type === 'spread'
+                        ? currentSpread.l || currentSpread.r
+                        : null;
 
-      const currentPage =
-        activePageId
-          ? [
-              currentSpread.type === 'spread' ? currentSpread.l : undefined,
-              currentSpread.type === 'spread'
-                ? currentSpread.r
-                : currentSpread.type === 'single'
-                ? currentSpread.r
-                : undefined,
-            ].find((p) => p?.id === activePageId)
-          : currentSpread.type === 'single'
-          ? currentSpread.r
-          : currentSpread.type === 'spread'
-          ? currentSpread.l || currentSpread.r
-          : null;
+                    const active = currentPage?.layout_type === l.id;
 
-      const active = currentPage?.layout_type === l.id;
+                    return (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => {
+                          if (!pageId) {
+                         alert('Select a page first');
+                         return;
+                         }
+                          onOpenLayoutModal(pageId, l.id);
+                        }}
+                        aria-pressed={active}
+                        className={cx(ui.option, css.option)}
+                      >
+                        <LayoutIcon type={l.id} active={active} />
 
-      return (
-        <button
-          key={l.id}
-          type="button"
-          onClick={() => {
-            if (!pageId) {
-           alert('Select a page first');
-           return;
-           }
-            onOpenLayoutModal(pageId, l.id);
-          }}
-          className="tool-btn"
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            padding: '12px 14px',
-            background: active
-              ? BOOK_CANVAS_COLORS.accentBg
-              : BOOK_CANVAS_COLORS.panel,
-            border: active
-              ? `1.5px solid ${BOOK_CANVAS_COLORS.accent}`
-              : `1.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-            borderRadius: 10,
-            marginBottom: 8,
-            textAlign: 'left',
-            fontFamily: inter.style.fontFamily,
-          }}
-        >
-          <LayoutIcon type={l.id} />
-
-          <div>
-            <div
-              style={{
-                fontFamily: inter.style.fontFamily,
-                fontSize: 13,
-                fontWeight: 700,
-                color: active
-                  ? BOOK_CANVAS_COLORS.accent
-                  : BOOK_CANVAS_COLORS.dark,
-              }}
-            >
-              {l.label}
-            </div>
-
-            <div
-              style={{
-                fontFamily: inter.style.fontFamily,
-                fontSize: 11,
-                fontWeight: 500,
-                color: BOOK_CANVAS_COLORS.muted,
-                marginTop: 1,
-              }}
-            >
-              {l.desc}
-            </div>
-          </div>
-        </button>
-      );
-    })}
-  </>
-)}
+                        <span className={css.optionText}>
+                          <span className={css.optionLabel}>{l.label}</span>
+                          <span className={css.optionDesc}>{l.desc}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
           </>
         )}
       </div>
-      </aside>
-    </>
+    </aside>
   );
 }
 
 /* ── NEW: Cover layout icons ── */
+// The drawings preview the printed cover layouts: their shapes stay exactly as they are.
+// Chosen: an ink tile with white shapes.
 function CoverLayoutIcon({ type, active }: { type: CoverLayoutType; active: boolean }) {
-  const fill = active ? BOOK_CANVAS_COLORS.accent : BOOK_CANVAS_COLORS.dark;
+  const fill = active ? '#fff' : 'var(--ink)';
 
   return (
     <div
@@ -1151,12 +763,12 @@ function CoverLayoutIcon({ type, active }: { type: CoverLayoutType; active: bool
         width: 40,
         height: 32,
         borderRadius: 6,
-        background: active ? BOOK_CANVAS_COLORS.accentBg : BOOK_CANVAS_COLORS.canvas,
+        background: active ? 'var(--ink)' : 'var(--hover)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
-        border: `1px solid ${active ? BOOK_CANVAS_COLORS.accent + '44' : BOOK_CANVAS_COLORS.line}`,
+        border: `1px solid ${active ? 'var(--ink)' : 'var(--rule)'}`,
       }}
     >
       {type === 'classic_cover' && (
@@ -1182,56 +794,22 @@ function CoverLayoutIcon({ type, active }: { type: CoverLayoutType; active: bool
   );
 }
 
+/** A panel section's heading: the kit's dotted tag, and a count on the right. */
 function SectionHead({
   children,
   count,
-  fontFamily,
 }: {
   children: React.ReactNode;
   count?: number;
-  fontFamily: string;
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 14,
-        paddingBottom: 10,
-        borderBottom: `1.5px solid ${BOOK_CANVAS_COLORS.line}`,
-      }}
-    >
-      <span
-        style={{
-          fontFamily,
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: '0.16em',
-          textTransform: 'uppercase',
-          color: BOOK_CANVAS_COLORS.dark,
-        }}
-      >
-        {children}
-      </span>
+    <h2 className={css.sectionHead}>
+      <Tag dot="var(--c2)">{children}</Tag>
 
       {count != null && (
-        <span
-          style={{
-            fontFamily: inter.style.fontFamily,
-            fontSize: 11,
-            fontWeight: 800,
-            color: BOOK_CANVAS_COLORS.dark,
-            background: BOOK_CANVAS_COLORS.canvas,
-            padding: '2px 8px',
-            borderRadius: 6,
-            border: `1px solid ${BOOK_CANVAS_COLORS.line}`,
-          }}
-        >
-          {count}
-        </span>
+        <span className={cx(ui.chip, ui.chipSm)}>{count}</span>
       )}
-    </div>
+    </h2>
   );
 }
 
@@ -1271,7 +849,7 @@ function SingleThumb({ url }: { url?: string }) {
             width: 16,
             height: 20,
             borderRadius: 2,
-            background: BOOK_CANVAS_COLORS.lineLight,
+            background: 'var(--hover)',
             margin: 'auto',
           }}
         />
@@ -1315,7 +893,7 @@ function ThumbHalf({ url }: { url?: string }) {
             width: 14,
             height: 18,
             borderRadius: 2,
-            background: BOOK_CANVAS_COLORS.lineLight,
+            background: 'var(--hover)',
             margin: 'auto',
           }}
         />
@@ -1324,6 +902,7 @@ function ThumbHalf({ url }: { url?: string }) {
   );
 }
 
+// Inside a kit photo tile (it clips, rounds and greys the ground while the photo loads).
 const MediaThumb = memo(function MediaThumb({
   src,
   rotation = 0,
@@ -1332,36 +911,28 @@ const MediaThumb = memo(function MediaThumb({
   rotation?: number;
 }) {
   return (
-    <div
+    <Image
+      src={src}
+      alt=""
+      fill
+      sizes="(min-width: 1536px) 180px, (min-width: 1280px) 160px, 120px"
+      quality={70}
+      loading="lazy"
+      className="object-cover"
       style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        borderRadius: 8,
-        overflow: 'hidden',
-        background: BOOK_CANVAS_COLORS.lineLight,
+        transform: `rotate(${rotation}deg)`,
+        transition: 'transform 0.25s ease',
       }}
-    >
-      <Image
-        src={src}
-        alt=""
-        fill
-        sizes="(min-width: 1536px) 180px, (min-width: 1280px) 160px, 120px"
-        quality={70}
-        loading="lazy"
-        className="object-cover"
-        style={{
-          transform: `rotate(${rotation}deg)`,
-          transition: 'transform 0.25s ease',
-        }}
-      />
-    </div>
+    />
   );
 });
 
-function LayoutIcon({ type }: { type: LayoutType }) {
+// The drawings preview the printed page layouts: their shapes stay exactly as they are.
+// Chosen: an ink tile with white shapes.
+function LayoutIcon({ type, active = false }: { type: LayoutType; active?: boolean }) {
+  const ink = active ? '#fff' : 'var(--ink)';
   const f: React.CSSProperties = {
-    background: BOOK_CANVAS_COLORS.dark,
+    background: ink,
     borderRadius: 2,
   };
 
@@ -1371,12 +942,12 @@ function LayoutIcon({ type }: { type: LayoutType }) {
         width: 40,
         height: 32,
         borderRadius: 6,
-        background: BOOK_CANVAS_COLORS.canvas,
+        background: active ? 'var(--ink)' : 'var(--hover)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
-        border: `1px solid ${BOOK_CANVAS_COLORS.line}`,
+        border: `1px solid ${active ? 'var(--ink)' : 'var(--rule)'}`,
       }}
     >
       {type === 'portrait_layout' && (
@@ -1420,8 +991,8 @@ function LayoutIcon({ type }: { type: LayoutType }) {
           <div style={{ display: 'flex', gap: 2, flex: 2 }}>
             <div style={{ ...f, flex: 2 }} />
             <div style={{ flex: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <div style={{ width: 8, height: 2, borderRadius: 1, background: BOOK_CANVAS_COLORS.dark, opacity: 0.5 }} />
-              <div style={{ width: 12, height: 1, borderRadius: 1, background: BOOK_CANVAS_COLORS.dark, opacity: 0.3 }} />
+              <div style={{ width: 8, height: 2, borderRadius: 1, background: ink, opacity: 0.5 }} />
+              <div style={{ width: 12, height: 1, borderRadius: 1, background: ink, opacity: 0.3 }} />
             </div>
           </div>
         </div>
@@ -1430,161 +1001,34 @@ function LayoutIcon({ type }: { type: LayoutType }) {
   );
 }
 
-function IconPages() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      viewBox="0 0 24 24"
-    >
-      <rect x="4" y="3" width="16" height="18" rx="2" />
-      <path d="M12 3v18" />
-    </svg>
-  );
-}
-
-function IconMedia() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      viewBox="0 0 24 24"
-    >
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <path d="M21 15l-5-5L5 21" />
-    </svg>
-  );
-}
-
-function IconText() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      viewBox="0 0 24 24"
-    >
-      <path d="M4 7V4h16v3M9 20h6M12 4v16" />
-    </svg>
-  );
-}
-
-function IconLayout() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      viewBox="0 0 24 24"
-    >
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="M3 9h18M9 21V9" />
-    </svg>
-  );
-}
-
+/** A show or hide switch: the whole row is the switch. */
 function ToggleRow({
   label,
   active,
   onToggle,
-  fontFamily,
 }: {
   label: string;
   active: boolean;
   onToggle: () => void;
-  fontFamily: string;
 }) {
   return (
-    <div
+    <button
+      type="button"
+      role="switch"
+      aria-checked={active}
       onClick={onToggle}
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 0',
-        cursor: 'pointer',
-        borderBottom: `1px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-      }}
+      className={css.toggleRow}
     >
-      <span
-        style={{
-          fontFamily,
-          fontSize: 12,
-          fontWeight: 500,
-          color: BOOK_CANVAS_COLORS.mid,
-        }}
-      >
-        {label}
-      </span>
-      <div
-        style={{
-          width: 36,
-          height: 20,
-          borderRadius: 10,
-          background: active
-            ? BOOK_CANVAS_COLORS.accent
-            : BOOK_CANVAS_COLORS.lineLight,
-          transition: 'background 0.2s ease',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            width: 16,
-            height: 16,
-            borderRadius: 8,
-            background: '#fff',
-            position: 'absolute',
-            top: 2,
-            left: active ? 18 : 2,
-            transition: 'left 0.2s ease',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-          }}
-        />
-      </div>
-    </div>
+      <span>{label}</span>
+      <span className={css.track} aria-hidden="true" />
+    </button>
   );
 }
 
 function UploadingThumb() {
   return (
-    <div
-      style={{
-        aspectRatio: '1',
-        borderRadius: 8,
-        background: BOOK_CANVAS_COLORS.accentBg,
-        border: `1.5px solid ${BOOK_CANVAS_COLORS.accent}33`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <style>{`
-        @keyframes bookCanvasUploadSpin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-      <div
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: '50%',
-          border: `2.5px solid ${BOOK_CANVAS_COLORS.lineLight}`,
-          borderTopColor: BOOK_CANVAS_COLORS.accent,
-          animation: 'bookCanvasUploadSpin 0.8s linear infinite',
-        }}
-      />
+    <div className={css.statusTile} aria-hidden="true">
+      <Spinner size={22} />
     </div>
   );
 }

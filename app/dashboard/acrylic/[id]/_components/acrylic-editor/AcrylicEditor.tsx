@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { inter } from '@/lib/fonts';
 import Sidebar from '../AcrylicSidebar';
 import AcrylicHeader from './AcrylicHeader';
 import AcrylicLeftPanel from './AcrylicLeftPanel';
@@ -14,23 +13,13 @@ import AcrylicRightPanel from './AcrylicRightPanel';
 import AcrylicPreviewOverlay from './AcrylicPreviewOverlay';
 import type { AcrylicAsset, SelectedImage, LayoutType } from '@/types/acrylic-print';
 
+// The print's own colours, nothing else: the paper behind the photos, the hairline round the
+// print on the stage, and the text colour the print inherits. What sits on the stage is what
+// Prodigi prints, so these stay as they are; the chrome around the print uses the app kit.
 export const ACRYLIC_COLORS = {
-  canvas: '#F7F5F0',
-  panel: '#FFFFFF',
   paper: '#FFFFFF',
-  paperAlt: '#FDFCF9',
   dark: '#1A1714',
-  darkSoft: '#2E2A24',
-  mid: '#6B6358',
-  muted: '#A39B8F',
-  accent: '#B8860B',
-  accentSoft: '#F0E2BF',
-  accentBg: '#FBF6EA',
   line: '#D9D3C7',
-  lineLight: '#EAE5DB',
-  lineDark: '#B5AFA3',
-  stage: '#EDEBE5',
-  hover: '#F2EFE8',
 } as const;
 
 type PanelTab = 'media' | 'layout';
@@ -144,7 +133,7 @@ export default function AcrylicEditor({
           <style>{`
   *, *::before, *::after { box-sizing: border-box; }
   ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-thumb { background: ${ACRYLIC_COLORS.lineDark}; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb { background: rgba(10, 10, 15, 0.18); border-radius: 99px; }
   ::-webkit-scrollbar-track { background: transparent; }
 
   @keyframes fadeUp {
@@ -161,25 +150,6 @@ export default function AcrylicEditor({
   .d2 { animation-delay: 0.1s; }
   .d3 { animation-delay: 0.15s; }
   .scale-in { animation: scaleIn 0.45s ease both; animation-delay: 0.12s; }
-
-  .thumb-btn { transition: all 0.15s ease; position: relative; }
-  .thumb-btn::after {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: 10px;
-    border: 2px solid transparent;
-    transition: border-color 0.15s ease;
-    pointer-events: none;
-  }
-  .thumb-btn:hover::after { border-color: ${ACRYLIC_COLORS.accent}66; }
-  .thumb-btn.active::after { border-color: #D4A017; border-width: 4px; }
-
-  .tool-btn { transition: all 0.15s ease; cursor: pointer; }
-  .tool-btn:hover { background: ${ACRYLIC_COLORS.hover} !important; }
-
-  .tab-item { transition: all 0.12s ease; cursor: pointer; }
-  .tab-item:hover { background: ${ACRYLIC_COLORS.hover}; }
 
   .acrylic-editor-root {
     display: grid;
@@ -200,6 +170,8 @@ export default function AcrylicEditor({
   }
 `}</style>
 
+          {/* The chrome takes the app's Jakarta and ink from the dashboard shell; the print on
+              the stage and in the preview sets its own Inter (see AcrylicStage). */}
           <div
             ref={rootRef}
             className="acrylic-editor-root"
@@ -208,9 +180,7 @@ export default function AcrylicEditor({
               height: rootH,
               minHeight: 0,
               overflow: 'hidden',
-              background: ACRYLIC_COLORS.canvas,
-              fontFamily: inter.style.fontFamily,
-              color: ACRYLIC_COLORS.dark,
+              background: '#fff',
             }}
           >
             <AcrylicHeader

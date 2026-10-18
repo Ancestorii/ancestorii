@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
+import { X } from 'lucide-react';
 import { inter } from '@/lib/fonts';
+import { IconBtn, useDialog } from '@/components/dashboard/ui/AppBits';
 import { CANVAS_COLORS } from './Canvaseditor';
 import CanvasRenderer from '../Canvasrenderer';
 import type { CanvasAsset, LayoutType } from '@/types/memory-canvas';
+import s from './canvasEditor.module.css';
 
 function getAspectRatioStr(canvasSize: string, orientation: string): string {
   const sizes: Record<string, [number, number]> = {
@@ -35,6 +38,9 @@ export default function CanvasPreviewOverlay({
   orientation: string;
   canvasSize: string;
 }) {
+  // Focus moves into the preview and stays there (Tab), and returns to Preview when it closes.
+  const panelRef = useDialog<HTMLDivElement>(open, onClose);
+
   // Keyboard navigation
   useEffect(() => {
     if (!open) return;
@@ -71,18 +77,12 @@ export default function CanvasPreviewOverlay({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(8, 6, 4, 0.92)',
-        backdropFilter: 'blur(16px)',
-        animation: 'previewFadeIn 0.3s ease both',
-      }}
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="canvas-preview-title"
+      className={`${s.preview} scrim-blur`}
+      style={{ animation: 'previewFadeIn 0.3s ease both' }}
       onClick={onClose}
     >
       <style>{`
@@ -97,59 +97,16 @@ export default function CanvasPreviewOverlay({
       `}</style>
 
       {/* Close button */}
-      <button
-        onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: 20,
-          right: 24,
-          width: 40,
-          height: 40,
-          borderRadius: 99,
-          border: '1px solid rgba(255,255,255,0.15)',
-          background: 'rgba(255,255,255,0.08)',
-          color: '#fff',
-          fontSize: 18,
-          fontWeight: 600,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'background 0.15s ease',
-          zIndex: 10,
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
-      >
-        ×
-      </button>
+      <IconBtn label="Close" onPhoto onClick={onClose} className={s.previewClose}>
+        <X size={20} strokeWidth={2.4} aria-hidden="true" />
+      </IconBtn>
 
       {/* Hint */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 24,
-          left: 28,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          zIndex: 10,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: inter.style.fontFamily,
-            fontSize: 11,
-            fontWeight: 500,
-            color: 'rgba(255,255,255,0.35)',
-            letterSpacing: '0.04em',
-          }}
-        >
-          ESC to close
-        </span>
-      </div>
+      <p className={s.previewHint}>
+        <kbd className={s.kbd}>ESC</kbd> to close
+      </p>
 
-      {/* Canvas container */}
+      {/* Canvas container (the canvas inherits Inter and #1A1714 here, as before) */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -159,6 +116,8 @@ export default function CanvasPreviewOverlay({
           gap: 28,
           animation: 'previewSlideIn 0.35s ease both',
           animationDelay: '0.05s',
+          fontFamily: inter.style.fontFamily,
+          color: CANVAS_COLORS.dark,
         }}
       >
         <div
@@ -186,35 +145,12 @@ export default function CanvasPreviewOverlay({
           />
         </div>
 
-        {/* Label */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 4,
-            minWidth: 140,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: inter.style.fontFamily,
-              fontSize: 14,
-              fontWeight: 700,
-              color: '#fff',
-              letterSpacing: '-0.01em',
-            }}
-          >
+        {/* Label (its 41.5px block keeps the canvas where it was) */}
+        <div className={s.previewCaption}>
+          <span id="canvas-preview-title" className={s.previewTitle}>
             Canvas Preview
           </span>
-          <span
-            style={{
-              fontFamily: inter.style.fontFamily,
-              fontSize: 11,
-              fontWeight: 500,
-              color: 'rgba(255,255,255,0.4)',
-            }}
-          >
+          <span className={s.previewSub}>
             {layoutType.charAt(0).toUpperCase() +
               layoutType.slice(1).replace('_', ' ')}{' '}
             · {orientation.charAt(0).toUpperCase() + orientation.slice(1)}

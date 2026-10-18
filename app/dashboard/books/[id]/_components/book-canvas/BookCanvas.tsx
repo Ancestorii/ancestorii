@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { inter } from '@/lib/fonts';
 import Sidebar from '../Sidebar';
 import BookCanvasHeader from './BookCanvasHeader';
 import BookCanvasLeftPanel, { type CoverLayoutType, type BackCoverLayoutType } from './BookCanvasLeftPanel';
@@ -27,23 +26,27 @@ export type CanvasSpread =
 
 type PanelTab = 'pages' | 'media' | 'text' | 'layout';
 
+// The editor's colours. paper and paperAlt are the printed pages' own whites: they draw the
+// product, so they never change. Every other key is chrome around the book, in the app's palette
+// (hex, because some panels add an alpha suffix): the stage draws its own borders and labels from
+// the product's original values, not from here.
 export const BOOK_CANVAS_COLORS = {
-  canvas: '#F7F5F0',
+  canvas: '#F2F2F4',
   panel: '#FFFFFF',
   paper: '#FFFFFF',
   paperAlt: '#FDFCF9',
-  dark: '#1A1714',
-  darkSoft: '#2E2A24',
-  mid: '#6B6358',
-  muted: '#A39B8F',
-  accent: '#B8860B',
-  accentSoft: '#F0E2BF',
-  accentBg: '#FBF6EA',
-  line: '#D9D3C7',
-  lineLight: '#EAE5DB',
-  lineDark: '#B5AFA3',
-  stage: '#EDEBE5',
-  hover: '#F2EFE8',
+  dark: '#0A0A0F',
+  darkSoft: '#0A0A0F',
+  mid: '#0A0A0F',
+  muted: '#0A0A0F',
+  accent: '#FF2D87',
+  accentSoft: '#FFE3EF',
+  accentBg: '#FFE3EF',
+  line: '#DDDDDD',
+  lineLight: '#EBEBEC',
+  lineDark: '#C4C4C5',
+  stage: '#F2F2F4',
+  hover: '#F2F2F4',
 } as const;
 
 const SPREAD_RATIO = (29.7 * 2) / 21;
@@ -481,7 +484,7 @@ const filled = pages.filter((page) =>
   .d3 { animation-delay: 0.15s; }
   .scale-in { animation: scaleIn 0.45s ease both; animation-delay: 0.12s; }
 
-  .thumb-btn { transition: all 0.15s ease; position: relative; }
+  .thumb-btn { transition: transform 0.15s ease; position: relative; }
   .thumb-btn::after {
     content: '';
     position: absolute;
@@ -491,20 +494,18 @@ const filled = pages.filter((page) =>
     transition: border-color 0.15s ease;
     pointer-events: none;
   }
-  .thumb-btn:hover::after { border-color: ${BOOK_CANVAS_COLORS.accent}66; }
-  .thumb-btn.active::after { border-color: #D4A017; border-width: 4px; }
+  .thumb-btn:hover::after { border-color: rgba(10, 10, 15, 0.3); }
+  .thumb-btn.active::after { border-color: #0A0A0F; border-width: 3px; }
 
-  .spread-thumb { transition: all 0.18s ease; cursor: pointer; }
-  .spread-thumb:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
-  .spread-thumb.active { box-shadow: 0 0 0 2.5px ${BOOK_CANVAS_COLORS.accent}, 0 4px 16px rgba(0,0,0,0.1); }
+  .spread-thumb { transition: transform 0.18s ease, box-shadow 0.18s ease; cursor: pointer; }
+  .spread-thumb:hover { transform: translateY(-1px); box-shadow: 0 12px 24px -16px rgba(10, 10, 15, 0.4); }
+  .spread-thumb.active,
+  .spread-thumb.active:hover { box-shadow: 0 0 0 2px #0A0A0F; }
 
-  .tool-btn { transition: all 0.15s ease; cursor: pointer; }
+  .tool-btn { transition: background-color 0.15s ease; cursor: pointer; }
   .tool-btn:hover { background: ${BOOK_CANVAS_COLORS.hover} !important; }
 
-  .nav-arrow { transition: all 0.15s ease; }
-  .nav-arrow:hover:not(:disabled) { background: ${BOOK_CANVAS_COLORS.panel} !important; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-
-  .tab-item { transition: all 0.12s ease; cursor: pointer; }
+  .tab-item { transition: background-color 0.12s ease; cursor: pointer; }
   .tab-item:hover { background: ${BOOK_CANVAS_COLORS.hover}; }
 
   .book-canvas-root {
@@ -540,16 +541,28 @@ const filled = pages.filter((page) =>
       grid-template-columns: 360px minmax(0, 1fr) 280px;
     }
   }
-    .book-canvas-root input::placeholder {
-  color: #C4BDB2 !important;
-  font-style: italic;
-  font-weight: 400 !important;
-}
-.book-canvas-root textarea::placeholder {
-  color: #C4BDB2 !important;
-  font-style: italic;
-  font-weight: 400 !important;
-}
+  /* Fields in the editor's panels: the app's placeholder (in the kit's layer, so a panel's
+     own classes can still restyle it). */
+  @layer components {
+    .book-canvas-root :is(input, textarea)::placeholder {
+      color: rgba(10, 10, 15, 0.42);
+      font-style: normal;
+      font-weight: 500;
+      opacity: 1;
+    }
+  }
+
+  /* The book on the stage keeps its own placeholders (part of the page as it is drawn). */
+  .book-canvas-root .book-stage input::placeholder {
+    color: #C4BDB2 !important;
+    font-style: italic;
+    font-weight: 400 !important;
+  }
+  .book-canvas-root .book-stage textarea::placeholder {
+    color: #C4BDB2 !important;
+    font-style: italic;
+    font-weight: 400 !important;
+  }
 .book-canvas-root input[type="text"] {
   text-overflow: ellipsis;
 }
@@ -563,8 +576,7 @@ const filled = pages.filter((page) =>
     height: rootH,
     minHeight: 0,
     overflow: 'hidden',
-    background: BOOK_CANVAS_COLORS.canvas,
-    fontFamily: inter.style.fontFamily,
+    background: BOOK_CANVAS_COLORS.panel,
     color: BOOK_CANVAS_COLORS.dark,
   }}
 >

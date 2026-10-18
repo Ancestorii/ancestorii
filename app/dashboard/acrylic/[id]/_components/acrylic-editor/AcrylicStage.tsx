@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Minus, Plus } from 'lucide-react';
 import { inter } from '@/lib/fonts';
 import { ACRYLIC_COLORS } from './AcrylicEditor';
 import AcrylicRenderer from '../AcrylicRenderer';
 import type { AcrylicAsset, SelectedImage, LayoutType } from '@/types/acrylic-print';
+import { IconBtn, Tag } from '@/components/dashboard/ui/AppBits';
+import s from './acrylicEditor.module.css';
 
 export default function AcrylicStage({
   stageRef,
@@ -54,15 +57,15 @@ export default function AcrylicStage({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: ACRYLIC_COLORS.stage,
+        background: 'var(--hover)',
       }}
     >
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.3, backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E")` }} />
-      <div style={{ position: 'absolute', top: '-15%', right: '-5%', width: '50%', height: '70%', borderRadius: '50%', background: `radial-gradient(ellipse, ${ACRYLIC_COLORS.accentSoft}44 0%, transparent 70%)`, pointerEvents: 'none' }} />
-
       {acrylicWidth > 0 && (
         <div style={{ transform: `scale(${zoom}) translate(${pan.x}px, ${pan.y}px)`, transformOrigin: 'center center', transition: 'transform 0.2s ease' }}>
           <div className="scale-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+            {/* The print: size, radius, paper, border and shadow are the product's own (what
+                Prodigi prints is what sits here). Its text keeps the Inter and colour it always
+                inherited from the editor, whose chrome is Jakarta now. */}
             <div
               style={{
                 width: acrylicWidth,
@@ -72,6 +75,8 @@ export default function AcrylicStage({
                 background: ACRYLIC_COLORS.paper,
                 boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 6px 20px rgba(0,0,0,0.07), 0 20px 50px rgba(0,0,0,0.05)',
                 border: `1.5px solid ${ACRYLIC_COLORS.line}`,
+                fontFamily: inter.style.fontFamily,
+                color: ACRYLIC_COLORS.dark,
               }}
             >
               <AcrylicRenderer
@@ -85,70 +90,59 @@ export default function AcrylicStage({
               />
             </div>
 
-            <div style={{ width: acrylicWidth, marginTop: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontFamily: inter.style.fontFamily, fontSize: 13, fontWeight: 700, color: ACRYLIC_COLORS.dark }}>
+            <div className={s.stageLabel} style={{ width: acrylicWidth }}>
+              <Tag dot="var(--c2)">
                 {layoutType.charAt(0).toUpperCase() + layoutType.slice(1)} Layout
-              </span>
+              </Tag>
             </div>
           </div>
         </div>
       )}
 
       {/* Zoom / pan controls */}
-      <div style={{ position: 'absolute', bottom: 16, right: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, zIndex: 10 }}>
+      <div className={s.toolbar}>
         {zoom > 1 && (
-          <div style={{ background: ACRYLIC_COLORS.panel, borderRadius: 12, border: `1.5px solid ${ACRYLIC_COLORS.line}`, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: 4, display: 'grid', gridTemplateColumns: '28px 28px 28px', gridTemplateRows: '28px 28px 28px', gap: 2, placeItems: 'center' }}>
-            <div />
-            <PanBtn onClick={() => setPan((p) => ({ ...p, y: p.y + 30 }))} d="M18 15l-6-6-6 6" />
-            <div />
-            <PanBtn onClick={() => setPan((p) => ({ ...p, x: p.x + 30 }))} d="M15 18l-6-6 6-6" />
-            <div style={{ width: 6, height: 6, borderRadius: 99, background: ACRYLIC_COLORS.lineLight }} />
-            <PanBtn onClick={() => setPan((p) => ({ ...p, x: p.x - 30 }))} d="M9 6l6 6-6 6" />
-            <div />
-            <PanBtn onClick={() => setPan((p) => ({ ...p, y: p.y - 30 }))} d="M6 9l6 6 6-6" />
-            <div />
+          <div className={s.panPad} role="group" aria-label="Move the print">
+            <span />
+            <IconBtn label="Pan up" size="sm" ghost onClick={() => setPan((p) => ({ ...p, y: p.y + 30 }))}>
+              <ChevronUp size={18} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
+            <span />
+            <IconBtn label="Pan left" size="sm" ghost onClick={() => setPan((p) => ({ ...p, x: p.x + 30 }))}>
+              <ChevronLeft size={18} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
+            <span className={s.panDot} aria-hidden="true" />
+            <IconBtn label="Pan right" size="sm" ghost onClick={() => setPan((p) => ({ ...p, x: p.x - 30 }))}>
+              <ChevronRight size={18} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
+            <span />
+            <IconBtn label="Pan down" size="sm" ghost onClick={() => setPan((p) => ({ ...p, y: p.y - 30 }))}>
+              <ChevronDown size={18} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
+            <span />
           </div>
         )}
 
-        <div style={{ background: ACRYLIC_COLORS.panel, borderRadius: 12, border: `1.5px solid ${ACRYLIC_COLORS.line}`, boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <ZoomBtn onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}>
-            <svg width="14" height="14" fill="none" stroke={ACRYLIC_COLORS.dark} strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><path d="M5 12h14" /></svg>
-          </ZoomBtn>
-          <div style={{ width: 1, height: 16, background: ACRYLIC_COLORS.lineLight, flexShrink: 0 }} />
+        <div className={s.toolCard} role="group" aria-label="Zoom">
+          <IconBtn label="Zoom out" size="sm" ghost onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}>
+            <Minus size={18} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
+          <span className={s.toolSep} aria-hidden="true" />
           <button
+            type="button"
+            className={s.zoomReset}
             onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-            style={{ height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', padding: '0 10px', fontSize: 11, fontWeight: 600, color: ACRYLIC_COLORS.mid, fontFamily: inter.style.fontFamily, transition: 'background 0.15s ease', minWidth: 48, textAlign: 'center' }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = ACRYLIC_COLORS.hover)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-          >{Math.round(zoom * 100)}%</button>
-          <div style={{ width: 1, height: 16, background: ACRYLIC_COLORS.lineLight, flexShrink: 0 }} />
-          <ZoomBtn onClick={() => setZoom((z) => Math.min(2, z + 0.1))}>
-            <svg width="14" height="14" fill="none" stroke={ACRYLIC_COLORS.dark} strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
-          </ZoomBtn>
+            aria-label={`Zoom ${Math.round(zoom * 100)}%, reset to 100%`}
+            title="Reset zoom"
+          >
+            {Math.round(zoom * 100)}%
+          </button>
+          <span className={s.toolSep} aria-hidden="true" />
+          <IconBtn label="Zoom in" size="sm" ghost onClick={() => setZoom((z) => Math.min(2, z + 0.1))}>
+            <Plus size={18} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
         </div>
       </div>
     </main>
-  );
-}
-
-function PanBtn({ onClick, d }: { onClick: () => void; d: string }) {
-  return (
-    <button onClick={onClick} style={{ width: 28, height: 28, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s ease' }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = ACRYLIC_COLORS.hover)}
-      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-    >
-      <svg width="12" height="12" fill="none" stroke={ACRYLIC_COLORS.mid} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d={d} /></svg>
-    </button>
-  );
-}
-
-function ZoomBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button onClick={onClick} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s ease' }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = ACRYLIC_COLORS.hover)}
-      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-    >
-      {children}
-    </button>
   );
 }

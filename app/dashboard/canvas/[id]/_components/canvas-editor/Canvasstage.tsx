@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Minus, Plus } from 'lucide-react';
 import { inter } from '@/lib/fonts';
+import { IconBtn, Tag } from '@/components/dashboard/ui/AppBits';
 import { CANVAS_COLORS } from './Canvaseditor';
 import CanvasRenderer from '../Canvasrenderer';
 import type { CanvasAsset, SelectedImage, LayoutType } from '@/types/memory-canvas';
+import s from './canvasEditor.module.css';
 
 export default function CanvasStage({
   stageRef,
@@ -54,34 +58,12 @@ export default function CanvasStage({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: CANVAS_COLORS.stage,
+        background: 'var(--hover)',
+        // What the canvas inherits, as before (it used to come from the editor's root).
+        fontFamily: inter.style.fontFamily,
+        color: CANVAS_COLORS.dark,
       }}
     >
-      {/* Texture overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          opacity: 0.3,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Accent glow */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '-15%',
-          right: '-5%',
-          width: '50%',
-          height: '70%',
-          borderRadius: '50%',
-          background: `radial-gradient(ellipse, ${CANVAS_COLORS.accentSoft}44 0%, transparent 70%)`,
-          pointerEvents: 'none',
-        }}
-      />
-
       {canvasWidth > 0 && (
         <div
           style={{
@@ -126,184 +108,66 @@ export default function CanvasStage({
               />
             </div>
 
-            {/* ── Label below canvas ── */}
-            <div
-              style={{
-                width: canvasWidth,
-                marginTop: 18,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: inter.style.fontFamily,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: CANVAS_COLORS.dark,
-                }}
-              >
+            {/* ── Label below canvas (its row keeps the canvas where it was) ── */}
+            <div className={s.stageCaption} style={{ width: canvasWidth }}>
+              <Tag dot="var(--c2)">
                 {layoutType.charAt(0).toUpperCase() +
                   layoutType.slice(1).replace('_', ' ')}{' '}
                 Layout
-              </span>
+              </Tag>
             </div>
           </div>
         </div>
       )}
 
       {/* ── Zoom / pan controls ── */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 16,
-          right: 16,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 6,
-          zIndex: 10,
-        }}
-      >
+      <div className={s.zoomDock}>
         {zoom > 1 && (
-          <div
-            style={{
-              background: CANVAS_COLORS.panel,
-              borderRadius: 12,
-              border: `1.5px solid ${CANVAS_COLORS.line}`,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              padding: 4,
-              display: 'grid',
-              gridTemplateColumns: '28px 28px 28px',
-              gridTemplateRows: '28px 28px 28px',
-              gap: 2,
-              placeItems: 'center',
-            }}
-          >
-            <div />
-            <PanBtn onClick={() => setPan((p) => ({ ...p, y: p.y + 30 }))} d="M18 15l-6-6-6 6" />
-            <div />
-            <PanBtn onClick={() => setPan((p) => ({ ...p, x: p.x + 30 }))} d="M15 18l-6-6 6-6" />
-            <div style={{ width: 6, height: 6, borderRadius: 99, background: CANVAS_COLORS.lineLight }} />
-            <PanBtn onClick={() => setPan((p) => ({ ...p, x: p.x - 30 }))} d="M9 6l6 6-6 6" />
-            <div />
-            <PanBtn onClick={() => setPan((p) => ({ ...p, y: p.y - 30 }))} d="M6 9l6 6 6-6" />
-            <div />
+          <div className={s.panPad} role="group" aria-label="Move the canvas">
+            <span />
+            <PanBtn label="Pan up" Icon={ChevronUp} onClick={() => setPan((p) => ({ ...p, y: p.y + 30 }))} />
+            <span />
+            <PanBtn label="Pan left" Icon={ChevronLeft} onClick={() => setPan((p) => ({ ...p, x: p.x + 30 }))} />
+            <span className={s.panDot} aria-hidden="true" />
+            <PanBtn label="Pan right" Icon={ChevronRight} onClick={() => setPan((p) => ({ ...p, x: p.x - 30 }))} />
+            <span />
+            <PanBtn label="Pan down" Icon={ChevronDown} onClick={() => setPan((p) => ({ ...p, y: p.y - 30 }))} />
+            <span />
           </div>
         )}
 
-        <div
-          style={{
-            background: CANVAS_COLORS.panel,
-            borderRadius: 12,
-            border: `1.5px solid ${CANVAS_COLORS.line}`,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            padding: 4,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-          }}
-        >
-          <ZoomBtn onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}>
-            <svg width="14" height="14" fill="none" stroke={CANVAS_COLORS.dark} strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
-              <path d="M5 12h14" />
-            </svg>
-          </ZoomBtn>
+        <div className={s.zoomBar} role="group" aria-label="Zoom">
+          <IconBtn label="Zoom out" ghost size="sm" onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}>
+            <Minus size={16} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
 
-          <div style={{ width: 1, height: 16, background: CANVAS_COLORS.lineLight, flexShrink: 0 }} />
+          <span className={s.zoomRule} aria-hidden="true" />
 
           <button
+            type="button"
+            className={s.zoomValue}
+            title="Reset zoom"
+            aria-label={`Zoom ${Math.round(zoom * 100)}%, reset to 100%`}
             onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-            style={{
-              height: 32,
-              borderRadius: 8,
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: '0 10px',
-              fontSize: 11,
-              fontWeight: 600,
-              color: CANVAS_COLORS.mid,
-              fontFamily: inter.style.fontFamily,
-              transition: 'background 0.15s ease',
-              minWidth: 48,
-              textAlign: 'center',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = CANVAS_COLORS.hover)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             {Math.round(zoom * 100)}%
           </button>
 
-          <div style={{ width: 1, height: 16, background: CANVAS_COLORS.lineLight, flexShrink: 0 }} />
+          <span className={s.zoomRule} aria-hidden="true" />
 
-          <ZoomBtn onClick={() => setZoom((z) => Math.min(2, z + 0.1))}>
-            <svg width="14" height="14" fill="none" stroke={CANVAS_COLORS.dark} strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </ZoomBtn>
+          <IconBtn label="Zoom in" ghost size="sm" onClick={() => setZoom((z) => Math.min(2, z + 0.1))}>
+            <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
         </div>
       </div>
     </main>
   );
 }
 
-function PanBtn({ onClick, d }: { onClick: () => void; d: string }) {
+function PanBtn({ label, Icon, onClick }: { label: string; Icon: LucideIcon; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: 6,
-        border: 'none',
-        background: 'transparent',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background 0.15s ease',
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = CANVAS_COLORS.hover)}
-      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-    >
-      <svg
-        width="12"
-        height="12"
-        fill="none"
-        stroke={CANVAS_COLORS.mid}
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        viewBox="0 0 24 24"
-      >
-        <path d={d} />
-      </svg>
-    </button>
-  );
-}
-
-function ZoomBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        width: 32,
-        height: 32,
-        borderRadius: 8,
-        border: 'none',
-        background: 'transparent',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background 0.15s ease',
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = CANVAS_COLORS.hover)}
-      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-    >
-      {children}
-    </button>
+    <IconBtn label={label} ghost size="sm" onClick={onClick}>
+      <Icon size={16} strokeWidth={2.4} aria-hidden="true" />
+    </IconBtn>
   );
 }

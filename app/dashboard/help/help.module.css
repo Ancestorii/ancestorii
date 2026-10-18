@@ -1,0 +1,230 @@
+/* ============================================================
+   Support (/dashboard/help): the looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have.
+   The kit sits in the "components" cascade layer, so a plain
+   rule here wins over it.
+   ============================================================ */
+
+/* ── Questions: the site's FAQ rows (white, hairline ring, an ink plus tile) ── */
+
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faqItem {
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+  transition: box-shadow 0.25s ease;
+}
+
+.faqItem[data-open='true'] {
+  box-shadow: var(--hairline-ring), var(--lift);
+}
+
+.faqHeading {
+  margin: 0;
+}
+
+.faqQ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 64px;
+  padding: 14px 14px 14px 24px;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.faqIcon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--ink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.25s ease,
+    background-color 0.25s ease;
+}
+
+/* Open: the plus turns to a cross on pink (as on the site). */
+.faqItem[data-open='true'] .faqIcon {
+  transform: rotate(45deg);
+  background: var(--c0);
+}
+
+@media (hover: hover) {
+  .faqItem[data-open='false'] .faqQ:hover .faqIcon {
+    transform: scale(1.06);
+  }
+}
+
+.faqA {
+  padding: 0 24px 22px;
+}
+
+.faqList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+/* Each line with a round dot in the question's colour. */
+.faqLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.faqLine::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  margin-top: 0.6em;
+  border-radius: 50%;
+  background: var(--dot, var(--c1));
+}
+
+@media (max-width: 599px) {
+  .faqQ {
+    padding-left: 20px;
+  }
+
+  .faqA {
+    padding: 0 20px 20px;
+  }
+}
+
+/* ── Contact: the form and the phone card ─────────────────── */
+
+/* Side by side once the column beside the sidebar is wide enough (a container query). */
+.contact {
+  container-type: inline-size;
+}
+
+.contactGrid {
+  display: grid;
+  gap: 20px;
+}
+
+@container (min-width: 760px) {
+  .contactGrid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.card {
+  padding: clamp(22px, 3vw, 32px);
+}
+
+.cardTitle {
+  margin: 18px 0 0;
+  font-size: clamp(24px, 2.2vw, 30px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.cardText {
+  margin: 10px 0 0;
+  max-width: 34em;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.cardText strong {
+  font-weight: 800;
+}
+
+/* The card's key line (Free: "Upgrade to access priority phone support."). A Tailwind
+   font-bold would lose to .cardText here, so the weight lives in this file. */
+.cardTextStrong {
+  font-weight: 700;
+}
+
+.form {
+  margin-top: 24px;
+}
+
+.status {
+  margin-top: 18px;
+}
+
+.submit {
+  margin-top: 24px;
+}
+
+/* Phones and small tablets: the send button is full width. */
+@container (max-width: 559px) {
+  .submit {
+    width: 100%;
+  }
+}
+
+/* The phone number: a big blue link. */
+.phone {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 10px;
+  border-radius: 10px; /* rounds the keyboard focus ring */
+  font-size: clamp(26px, 2.6vw, 32px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  text-decoration-thickness: 2.5px;
+  text-underline-offset: 5px;
+}
+
+/* An email address may need to break on the narrowest phones. An invisible box around the
+   words makes the tap area 44px tall without moving the lines around it. */
+.email {
+  position: relative;
+  overflow-wrap: anywhere;
+}
+
+.email::after {
+  content: '';
+  position: absolute;
+  inset: -12px -6px;
+}
+
+.checking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 600;
+}

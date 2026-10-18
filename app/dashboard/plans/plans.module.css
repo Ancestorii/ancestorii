@@ -1,0 +1,313 @@
+/* ============================================================
+   Plans (/dashboard/plans): the looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have.
+   The kit sits in the "components" cascade layer, so a plain
+   rule here wins over it.
+   Two cards, one under the other: the current plan (white) and
+   Premium (the page's one ink card). Their insides go side by
+   side once the column is wide enough (a container query, so it
+   follows the room beside the sidebar, not the screen).
+   ============================================================ */
+
+.plans {
+  container-type: inline-size;
+  display: grid;
+  gap: 20px;
+}
+
+/* ── The current plan and the family's storage: a white card (ui.card) ── */
+
+.current {
+  display: grid;
+  gap: 28px;
+  padding: clamp(22px, 3vw, 32px);
+}
+
+.currentHead {
+  min-width: 0;
+}
+
+/* "Current plan" on the left, the plan's chip on the right. */
+.currentTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+}
+
+.currentTitle {
+  margin: 16px 0 0;
+  font-size: clamp(28px, 2.8vw, 38px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.renews {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* Premium: a solid aqua chip (ink words). */
+.chipPremium {
+  --chip: var(--c3);
+  --chip-fg: var(--ink);
+}
+
+.storage {
+  min-width: 0;
+}
+
+/* As tall as the plan's chip (30px), so the two label rows line up when side by side. */
+.storageHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-height: 30px;
+}
+
+.storageValue {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The kit's bar, a little taller here, where it is the card's main figure. */
+.bar {
+  margin-top: 14px;
+  height: 10px;
+}
+
+/* Running low: solid orange from 80%, the danger red from 95% (the kit's gradient otherwise). */
+.fillLow {
+  background: var(--c2);
+}
+
+.fillFull {
+  background: var(--danger);
+}
+
+.lowNotice {
+  margin-top: 16px;
+}
+
+.storageNote {
+  margin: 14px 0 0;
+  max-width: 34em;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* Wide: the plan on the left, the storage on the right of a hairline (tops aligned). */
+@container (min-width: 760px) {
+  .current {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 40px;
+    align-items: start;
+  }
+
+  .storage {
+    padding-left: 40px;
+    border-left: 1.5px solid var(--rule);
+  }
+}
+
+/* ── Premium: the page's one ink card (ui.inkCard, with its cropped pink and blue dots) ── */
+
+.premium {
+  padding: clamp(28px, 3.4vw, 44px);
+  /* Room at the bottom for the cropped blue dot at every width, so the button or the line
+     at the foot (stacked or side by side) stays clear of it. */
+  padding-bottom: 52px;
+}
+
+.premiumInner {
+  position: relative; /* above the dots */
+  display: grid;
+  gap: 32px;
+}
+
+/* The tag and the title keep clear of the cropped pink dot at the top right. */
+.premiumHead {
+  min-width: 0;
+  padding-right: 48px;
+}
+
+.premiumTitle {
+  margin: 16px 0 0;
+  max-width: 20ch;
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.premiumText {
+  margin: 14px 0 0;
+  max-width: 34em;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* What Premium adds: a round dot in a landing colour before each line. */
+.lines {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.line {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.line::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: 0.45em;
+  border-radius: 50%;
+  background: var(--dot, var(--c0));
+}
+
+/* The price, the currency switch, the button. */
+.buy {
+  min-width: 0;
+  width: 100%;
+  max-width: 440px;
+}
+
+.price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.priceBig {
+  font-size: clamp(52px, 5.4vw, 72px);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.priceUnit {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.priceNote {
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.tabs {
+  margin-top: 22px;
+}
+
+.cta {
+  margin-top: 14px;
+}
+
+.ctaNote {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Manage (Premium families): the light button under the words. */
+.manageBtn {
+  justify-self: start;
+}
+
+/* Phones: the Manage button is full width. */
+@container (max-width: 559px) {
+  .manageBtn {
+    justify-self: stretch;
+  }
+}
+
+/* Wide: the words on the left, the price and the button on the right. */
+@container (min-width: 760px) {
+  .premiumInner {
+    grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+    gap: 32px 56px;
+    align-items: center;
+  }
+
+  .buy {
+    justify-self: end;
+  }
+
+  /* Manage: the words take the room, the button sits at the foot of a column as wide as
+     itself, clear of the pink dot. */
+  .premiumInnerManage {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .manageBtn {
+    justify-self: end;
+    align-self: end;
+  }
+}
+
+/* ── "Managing your subscription": a bottom sheet on phones, a centred dialog from 640px ── */
+
+.dialog {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .dialog {
+    max-width: 480px;
+    border-radius: 28px;
+  }
+}
+
+.dialogText {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.dialogNotice {
+  margin-top: 16px;
+}
+
+.dialogNotice > svg {
+  flex: none;
+  margin-top: 1px;
+}

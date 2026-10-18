@@ -183,7 +183,7 @@ export default function PlansLogic() {
       }
     } catch (err: any) {
       console.error('Upgrade error:', err);
-      alert('Error starting checkout: ' + err.message);
+      safeToast.error('Error starting checkout: ' + err.message);
     }
   };
 

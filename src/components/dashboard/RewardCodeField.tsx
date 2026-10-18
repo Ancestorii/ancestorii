@@ -1,15 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { inter } from '@/lib/fonts';
+import { useEffect, useId, useRef, useState } from 'react';
+import { AlertCircle, Check, Gift } from 'lucide-react';
+import { ui, Btn, Spinner, btnClass } from '@/components/dashboard/ui/AppBits';
+import s from './RewardCodeField.module.css';
 
-// Public-app palette (CLAUDE.md): ink + gold, pure white surfaces.
-const INK = '#191512';
-const GOLD = '#C8A557';
-const GOLD_DEEP = '#A9842E';
-const OK = '#1A6B3C';
-const ERR = '#8B2020';
-const LINE = '#E8E4DC';
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type Product = 'book' | 'canvas' | 'acrylic';
 
@@ -34,6 +30,10 @@ export default function RewardCodeField({
   const [status, setStatus] = useState<'idle' | 'ok' | 'err'>('idle');
   const [message, setMessage] = useState('');
   const wrapRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
+  const inputId = useId();
+  const messageId = useId();
   // Monotonic request token: rapid tier switches / Apply clicks can put two
   // /api/rewards/validate calls in flight, only the latest may write state.
   const seqRef = useRef(0);
@@ -95,59 +95,60 @@ export default function RewardCodeField({
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
+  // Escape closes the panel and hands focus back to the button: while focus is in the panel,
+  // or after it dropped to the page (Apply is disabled while a code is checked). Focus in
+  // anything else (a dialog opened over the editor) keeps its own Escape.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      const focused = document.activeElement;
+      if (focused && focused !== document.body && !wrapRef.current?.contains(focused)) return;
+      e.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
   const applied = status === 'ok';
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative', fontFamily: inter.style.fontFamily }}>
+    <div ref={wrapRef} className={s.root}>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        style={{
-          background: applied ? 'rgba(200, 165, 87, 0.12)' : 'none',
-          border: `1.5px solid ${applied ? GOLD : LINE}`,
-          padding: '8px 16px',
-          borderRadius: 10,
-          fontSize: 13,
-          fontWeight: 600,
-          color: applied ? GOLD_DEEP : INK,
-          cursor: 'pointer',
-          fontFamily: inter.style.fontFamily,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          whiteSpace: 'nowrap',
-        }}
+        aria-expanded={open}
+        aria-controls={open ? panelId : undefined}
+        className={btnClass({ variant: 'soft', size: 'sm', className: open ? s.triggerOpen : undefined })}
       >
-        <svg width="14" height="14" fill="none" stroke={applied ? GOLD_DEEP : INK} strokeWidth="2" viewBox="0 0 24 24">
-          <path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6" />
-          <path d="M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" />
-        </svg>
-        {applied ? 'Reward applied' : 'Reward code'}
+        {applied ? (
+          <span className={s.okBadge} aria-hidden="true">
+            <Check size={13} strokeWidth={3.2} />
+          </span>
+        ) : (
+          <Gift size={17} strokeWidth={2.2} aria-hidden="true" />
+        )}
+        <span>{applied ? 'Reward applied' : 'Reward code'}</span>
       </button>
 
       {open && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 8px)',
-            right: 0,
-            zIndex: 50,
-            width: 280,
-            background: '#FFFFFF',
-            border: `1px solid ${LINE}`,
-            borderRadius: 14,
-            boxShadow: '0 14px 40px rgba(0,0,0,0.12)',
-            padding: 16,
-          }}
-        >
-          <p style={{ fontSize: 12, fontWeight: 700, color: INK, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
+        <div id={panelId} role="group" aria-labelledby={`${inputId}-label`} className={cx(ui.menu, ui.fadeIn, s.panel)}>
+          <label id={`${inputId}-label`} htmlFor={inputId} className={cx(ui.label, s.label)}>
             Have a family reward code?
-          </p>
-          <div style={{ display: 'flex', gap: 8 }}>
+          </label>
+          <div className={cx(s.field, status === 'err' && s.fieldError)}>
             <input
+              id={inputId}
               type="text"
               value={code}
               placeholder="REWARD-XXXXXX"
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={status === 'err' || undefined}
+              aria-describedby={message ? messageId : undefined}
               onChange={(e) => {
                 setCode(e.target.value.toUpperCase());
                 if (status !== 'idle') {
@@ -159,78 +160,56 @@ export default function RewardCodeField({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') validate(code);
               }}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                padding: '9px 10px',
-                borderRadius: 9,
-                border: `1.5px solid ${status === 'err' ? ERR : status === 'ok' ? GOLD : LINE}`,
-                fontSize: 13,
-                fontWeight: 600,
-                color: INK,
-                fontFamily: inter.style.fontFamily,
-                letterSpacing: '0.02em',
-                outline: 'none',
-              }}
+              className={s.input}
             />
-            <button
-              type="button"
+            <Btn
+              variant="soft"
+              size="sm"
               onClick={() => validate(code)}
               disabled={checking || !code.trim()}
-              style={{
-                background: INK,
-                border: 'none',
-                padding: '0 14px',
-                borderRadius: 9,
-                fontSize: 13,
-                fontWeight: 700,
-                color: '#fff',
-                cursor: checking || !code.trim() ? 'default' : 'pointer',
-                opacity: checking || !code.trim() ? 0.6 : 1,
-                fontFamily: inter.style.fontFamily,
-              }}
+              aria-busy={checking || undefined}
+              className={s.apply}
             >
-              {checking ? '…' : 'Apply'}
-            </button>
+              {checking ? (
+                <>
+                  <Spinner size={16} />
+                  <span className={ui.srOnly}>Checking</span>
+                </>
+              ) : (
+                'Apply'
+              )}
+            </Btn>
           </div>
 
           {message && (
             <p
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: status === 'ok' ? OK : ERR,
-                margin: '10px 0 0',
-                lineHeight: 1.45,
-              }}
+              id={messageId}
+              role={status === 'err' ? 'alert' : 'status'}
+              className={cx(status === 'ok' ? ui.notice : ui.noticeError, s.message)}
             >
-              {message}
+              {status === 'ok' ? (
+                <Check size={17} strokeWidth={2.6} aria-hidden="true" />
+              ) : (
+                <AlertCircle size={17} strokeWidth={2.4} aria-hidden="true" />
+              )}
+              <span>{message}</span>
             </p>
           )}
 
           {applied && (
-            <button
-              type="button"
+            <Btn
+              variant="soft"
+              size="sm"
+              className={s.remove}
               onClick={() => {
                 setCode('');
                 setStatus('idle');
                 setMessage('');
                 onChange(null);
               }}
-              style={{
-                marginTop: 10,
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                fontSize: 12,
-                fontWeight: 600,
-                color: GOLD_DEEP,
-                cursor: 'pointer',
-                fontFamily: inter.style.fontFamily,
-              }}
             >
               Remove
-            </button>
+            </Btn>
           )}
         </div>
       )}
