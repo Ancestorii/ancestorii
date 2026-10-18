@@ -60,13 +60,15 @@ export function usePlanLimits() {
             .select('*', { count: 'exact', head: true })
             .eq('user_id', uid),
 
+          // timelines has owner_id (no user_id column), and capsules live in memory_capsules:
+          // the old queries failed (400 and 404), so both counts always read 0.
           supabase
             .from('timelines')
             .select('*', { count: 'exact', head: true })
-            .eq('user_id', uid),
+            .eq('owner_id', uid),
 
           supabase
-            .from('capsules')
+            .from('memory_capsules')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', uid),
         ]);
