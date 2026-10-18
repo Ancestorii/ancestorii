@@ -172,6 +172,20 @@
   transition-duration: 80ms;
 }
 
+/* A file with nothing to show (a photo the browser could not convert): its tile does not open. */
+.tileOpen:disabled {
+  cursor: default;
+}
+
+.tileFile {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+}
+
 .tileVideo {
   position: absolute;
   inset: 0;
@@ -203,6 +217,13 @@
   font-weight: 600;
 }
 
+/* The next page of a long folder: its button, under the grid, loads it as it scrolls into view. */
+.more {
+  display: flex;
+  justify-content: center;
+  padding: 28px 0 8px;
+}
+
 /* ── Full-screen viewer: ink backdrop, white round buttons ─── */
 
 .viewer {
@@ -223,8 +244,12 @@
   padding: max(14px, env(safe-area-inset-top, 0px)) 16px 0;
 }
 
-.viewerClose {
+/* Previous, Next and Close, on the right. */
+.viewerNav {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .viewerStage {

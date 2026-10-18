@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useId, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, TriangleAlert, X } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
@@ -82,7 +82,6 @@ export default function CreateCanvasDrawer({
   const [orientation, setOrientation] = useState<Orientation>('landscape');
   const [currency, setCurrency] = useState<'GBP' | 'USD' | 'EUR'>('GBP');
   const [uploading, setUploading] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const isSubmittingRef = useRef(false);
 
@@ -94,27 +93,25 @@ export default function CreateCanvasDrawer({
   const tierLabelId = useId();
   const tierHintId = useId();
 
-  useEffect(() => setMounted(true), []);
-
   /* ── Reset / hydrate on open ── */
-  useEffect(() => {
-    if (!open) return;
-
-    if (mode === 'edit' && canvas) {
-      setTitle(canvas.title || '');
-      setSelectedTier(
-        (canvas.tier_key as TierKey) || 'heirloom'
-      );
-      setOrientation(
-        (canvas.orientation as Orientation) || 'landscape'
-      );
-      return;
+  // The fields follow the canvas as the drawer opens. Set during render (not in an effect after
+  // it), so the first frame never shows the previous canvas's title or tier.
+  const [openedFor, setOpenedFor] = useState<string | null>(null);
+  const openKey = open ? `${mode}:${canvas?.id ?? 'new'}` : null;
+  if (openKey !== openedFor) {
+    setOpenedFor(openKey);
+    if (openKey) {
+      if (mode === 'edit' && canvas) {
+        setTitle(canvas.title || '');
+        setSelectedTier((canvas.tier_key as TierKey) || 'heirloom');
+        setOrientation((canvas.orientation as Orientation) || 'landscape');
+      } else {
+        setTitle('');
+        setSelectedTier('heirloom');
+        setOrientation('landscape');
+      }
     }
-
-    setTitle('');
-    setSelectedTier('heirloom');
-    setOrientation('landscape');
-  }, [open, mode, canvas]);
+  }
 
   const activeTier = useMemo(
     () =>
@@ -167,9 +164,11 @@ export default function CreateCanvasDrawer({
               price_gbp
             `
           )
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        // Row security blocks an update silently (no row comes back) rather than erroring.
+        if (!data) throw new Error('This canvas could not be updated.');
 
         onUpdated?.(data as MemoryCanvas);
         toast.success('Memory canvas updated!');
@@ -204,11 +203,23 @@ export default function CreateCanvasDrawer({
             `
           )
           .eq('id', newCanvasId)
-          .single();
+          .maybeSingle();
 
         if (fetchError) throw fetchError;
 
-        onCreated?.(createdCanvas as MemoryCanvas);
+        // The canvas exists even if it cannot be read back yet; the list gets what we know.
+        onCreated?.(
+          (createdCanvas as MemoryCanvas | null) ?? {
+            id: newCanvasId as string,
+            title: title.trim(),
+            tier_key: activeTier.key,
+            tier_name: activeTier.name,
+            canvas_size: activeTier.size,
+            orientation,
+            layout_type: 'solo',
+            price_gbp: activeTier.price.GBP,
+          }
+        );
         toast.success('Memory canvas created!');
       }
 
@@ -228,8 +239,6 @@ export default function CreateCanvasDrawer({
     if (!uploading) onClose();
   };
   const panelRef = useDialog<HTMLDivElement>(open, requestClose);
-
-  if (!mounted) return null;
 
   /* ────────────────────────────────────────────
      Render

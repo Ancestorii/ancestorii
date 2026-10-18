@@ -51,9 +51,13 @@ export default function BookPreviewOverlay({
   // answered here (the keyboard handler below no longer sees it, so it closes once).
   const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
-  useEffect(() => {
+  // Opening starts at the editor's spread. Decided during render (not in an effect after the
+  // first paint), so the preview never shows the spread it was closed on for a frame first.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) setSpread(initialSpread);
-  }, [open, initialSpread]);
+  }
 
   const cur = spreads[spread];
   const canPrev = spread > 0;

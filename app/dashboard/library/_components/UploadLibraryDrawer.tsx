@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, useCallback, type KeyboardEvent } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
+import { usePlanLimits } from '@/lib/usePlanLimits';
 import { X, Upload, ImagePlus, Video, Check, AlertCircle } from 'lucide-react';
 import { ensureDisplayableImage } from '@/lib/convertImage';
 import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
@@ -34,10 +35,68 @@ type QueuedFile = {
   file: File;
   previewUrl: string | null;
   status: 'pending' | 'uploading' | 'done' | 'error';
+  /** Why it failed, shown under its name. */
+  error?: string;
 };
 
 // eslint-disable-next-line no-undef
 type GlobalDragEvent = DragEvent;
+
+// HEIC and HEIF photos from iPhones: Windows gives them no type at all, so the name counts too.
+const isHeic = (file: File) =>
+  file.type === 'image/heic' || file.type === 'image/heif' || /\.(heic|heif)$/i.test(file.name);
+
+// The plan's byte counts as people read them: 20971520 is "20 MB", 107374182400 is "100 GB".
+function formatBytes(bytes: number) {
+  const gb = bytes / 1024 ** 3;
+  if (gb >= 1) return `${Math.round(gb * 10) / 10} GB`;
+  return `${Math.round(bytes / 1024 ** 2)} MB`;
+}
+
+function formatSeconds(seconds: number) {
+  if (seconds % 60 === 0) {
+    const minutes = seconds / 60;
+    return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+  }
+  return `${seconds} seconds`;
+}
+
+// A video's length from its header alone (nothing is decoded). null when the browser cannot
+// read this file, and then its length is not held against it.
+function probeVideoDuration(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    let settled = false;
+    const finish = (seconds: number | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      video.removeAttribute('src');
+      video.load();
+      URL.revokeObjectURL(url);
+      resolve(seconds);
+    };
+    const timer = setTimeout(() => finish(null), 8000);
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => finish(Number.isFinite(video.duration) ? video.duration : null);
+    video.onerror = () => finish(null);
+    video.src = url;
+  });
+}
+
+// What a failed file says under its name. The database's own messages (too large for the plan,
+// storage full) are plain English already; the rest get one here.
+function failureText(err: unknown) {
+  const message =
+    err && typeof err === 'object' && 'message' in err
+      ? String((err as { message?: unknown }).message ?? '')
+      : '';
+  if (/no active plan/i.test(message)) return 'Your family has no active plan, so uploads are paused.';
+  if (/row-level security/i.test(message)) return 'You are not allowed to add files to this folder.';
+  if (/payload too large|request entity too large|\b413\b/i.test(message)) return 'This file is too large to send.';
+  return message || 'Upload failed.';
+}
 
 export default function UploadLibraryDrawer({ open, onClose, folderId, onUploaded }: Props) {
   const supabase = getBrowserClient();
@@ -50,6 +109,14 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
   const titleId = useId();
   const subId = useId();
   const limitId = useId();
+
+  // The plan's caps, in bytes and seconds. A file over them is turned away before it is sent
+  // (the database refuses an oversize file too, but only once the whole file has gone up, and
+  // it does not check a video's length at all).
+  const { limits } = usePlanLimits();
+  const maxUpload = limits?.max_upload_size ?? null;
+  const maxVideoSeconds = limits?.max_video_length ?? null;
+  const maxStorage = limits?.max_storage ?? null;
 
   // Escape closes it, as the close button does (never mid-upload); Tab stays inside, and focus
   // returns to Add Media.
@@ -86,12 +153,24 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
     (incoming: FileList | File[]) => {
       const files = Array.from(incoming);
       const accepted = files.filter(
-        (f) => f.type.startsWith('image/') || f.type.startsWith('video/') || f.name.toLowerCase().match(/\.(heic|heif)$/)
+        (f) => f.type.startsWith('image/') || f.type.startsWith('video/') || isHeic(f)
       );
 
       if (accepted.length === 0) {
         toast.error('Only images and videos are supported.');
         return;
+      }
+
+      // Over the plan's per-file size: said now, by name, instead of after a long upload.
+      const fitting = maxUpload ? accepted.filter((f) => f.size <= maxUpload) : accepted;
+      if (maxUpload && fitting.length < accepted.length) {
+        const over = accepted.filter((f) => f.size > maxUpload);
+        toast.error(
+          over.length === 1
+            ? `"${over[0].name}" is over the ${formatBytes(maxUpload)} per-file limit on your plan.`
+            : `${over.length} files are over the ${formatBytes(maxUpload)} per-file limit on your plan and were skipped.`
+        );
+        if (fitting.length === 0) return;
       }
 
       setQueue((prev) => {
@@ -101,9 +180,9 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
           return prev;
         }
 
-        const toAdd = accepted.slice(0, remaining);
-        if (accepted.length > remaining) {
-          toast.error(`Only ${remaining} more file${remaining === 1 ? '' : 's'} allowed. ${accepted.length - remaining} skipped.`);
+        const toAdd = fitting.slice(0, remaining);
+        if (fitting.length > remaining) {
+          toast.error(`Only ${remaining} more file${remaining === 1 ? '' : 's'} allowed. ${fitting.length - remaining} skipped.`);
         }
 
         const newItems: QueuedFile[] = toAdd.map((file) => ({
@@ -116,7 +195,7 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
         return [...prev, ...newItems];
       });
     },
-    []
+    [maxUpload]
   );
 
   // ── Remove a file from queue ──
@@ -190,12 +269,21 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
     setUploadedCount(0);
     setFailedCount(0);
 
-    const user = (await supabase.auth.getUser()).data.user;
+    // The local session, not a round trip to the auth server.
+    const user = (await supabase.auth.getSession()).data.session?.user;
     if (!user) {
       toast.error('Not authenticated.');
       setUploading(false);
       isUploadingRef.current = false;
       return;
+    }
+
+    // What the family has stored so far (one read per run), so each file is checked against
+    // the room left before it is sent.
+    let used: number | null = null;
+    if (maxStorage) {
+      const { data: usedBytes } = await supabase.rpc('get_total_storage_used', { uid: user.id });
+      used = Number(usedBytes ?? 0);
     }
 
     let doneCount = 0;
@@ -207,9 +295,30 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
       );
 
       try {
-        const processedFile = item.file.type.startsWith('image/') || item.file.name.toLowerCase().match(/\.(heic|heif)$/)
+        if (maxUpload && item.file.size > maxUpload) {
+          throw new Error(`Over the ${formatBytes(maxUpload)} per-file limit on your plan.`);
+        }
+
+        if (maxVideoSeconds && item.file.type.startsWith('video/')) {
+          const seconds = await probeVideoDuration(item.file);
+          if (seconds != null && seconds > maxVideoSeconds) {
+            throw new Error(`Longer than the ${formatSeconds(maxVideoSeconds)} video limit on your plan.`);
+          }
+        }
+
+        const processedFile = item.file.type.startsWith('image/') || isHeic(item.file)
           ? await ensureDisplayableImage(item.file)
           : item.file;
+
+        // The converter hands back the original when every method failed: a file no browser
+        // can show, so it is a failure here, not an "other" row in the library.
+        if (isHeic(processedFile)) {
+          throw new Error('This HEIC photo could not be converted. Export it as JPEG and try again.');
+        }
+
+        if (used != null && maxStorage && used + processedFile.size > maxStorage) {
+          throw new Error(`Not enough storage left on your plan (${formatBytes(maxStorage)} in all).`);
+        }
 
         const isImage = processedFile.type.startsWith('image/');
         const isVideo = processedFile.type.startsWith('video/');
@@ -237,7 +346,13 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
           .select('*')
           .single();
 
-        if (error) throw error;
+        if (error) {
+          // No row, so no file either (it would sit in storage with nothing pointing at it).
+          await supabase.storage.from('library-media').remove([path]);
+          throw error;
+        }
+
+        if (used != null) used += processedFile.size;
 
         onUploaded(data);
         doneCount++;
@@ -246,16 +361,20 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
         setQueue((prev) =>
           prev.map((f) => (f.id === item.id ? { ...f, status: 'done' } : f))
         );
-      } catch (err: any) {
+      } catch (err) {
         console.error(`Upload failed for ${item.file.name}:`, err);
+        const reason = failureText(err);
         errCount++;
         setFailedCount(errCount);
 
         setQueue((prev) =>
-          prev.map((f) => (f.id === item.id ? { ...f, status: 'error' } : f))
+          prev.map((f) => (f.id === item.id ? { ...f, status: 'error', error: reason } : f))
         );
       }
     }
+
+    // The sidebar's memory count follows.
+    if (doneCount > 0) window.dispatchEvent(new Event('dashboard-data-changed'));
 
     if (errCount === 0) {
       toast.success(
@@ -289,7 +408,10 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
         s.upOverlay,
         open && s.upOverlayOpen
       )}
-      onClick={onClose}
+      onClick={() => {
+        // As the close button: not mid-upload (the drawer vanished and its progress with it).
+        if (!uploading) onClose();
+      }}
     >
       <div
         ref={panelRef}
@@ -345,13 +467,13 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
               </span>
               <span className={s.dropTitle}>Drag &amp; drop or click to upload</span>
               <span id={limitId} className={s.dropHint}>
-                Up to {MAX_FILES} files at once
+                Up to {MAX_FILES} files at once{maxUpload ? `, ${formatBytes(maxUpload)} each` : ''}
               </span>
 
               <input
                 id="libraryFileInput"
                 type="file"
-                accept="image/*,video/*"
+                accept="image/*,video/*,.heic,.heif"
                 multiple
                 className="hidden"
                 onChange={(e) => {
@@ -379,7 +501,7 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
                 <input
                   id="libraryFileInput"
                   type="file"
-                  accept="image/*,video/*"
+                  accept="image/*,video/*,.heic,.heif"
                   multiple
                   className="hidden"
                   onChange={(e) => {
@@ -475,6 +597,11 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
                     <p className={s.qName} title={item.file.name}>
                       {item.file.name}
                     </p>
+                    {item.status === 'error' && item.error && (
+                      <p className="mt-1 text-[11px] font-bold leading-[1.3] text-brand-danger [overflow-wrap:anywhere]">
+                        {item.error}
+                      </p>
+                    )}
                   </li>
                 ))}
               </ul>

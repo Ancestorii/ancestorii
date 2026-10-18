@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import { createClient } from '@supabase/supabase-js';
-import { prodigiCallbackUrl } from '@/lib/prodigiCallback';
+import { fulfillSecretMatches, prodigiCallbackUrl } from '@/lib/prodigiCallback';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
+
+// Prodigi's canvas wrap attribute values, keyed by the lower-case wrap_type the canvas row stores.
+const PRODIGI_WRAP: Record<string, string> = {
+  imagewrap: 'ImageWrap',
+  mirrorwrap: 'MirrorWrap',
+  black: 'Black',
+  white: 'White',
+};
 
 export async function POST(
   request: NextRequest,
@@ -13,8 +21,8 @@ export async function POST(
 ) {
   const { canvasId } = await params;
 
-  const authHeader = request.headers.get('x-fulfill-secret') || '';
-  if (authHeader !== process.env.FULFILL_SECRET) {
+  // Constant-time compare (see fulfillSecretMatches), as on the book route.
+  if (!fulfillSecretMatches(request.headers.get('x-fulfill-secret'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -39,7 +47,7 @@ export async function POST(
       .from('memory_canvases')
       .select('title, export_width_px, export_height_px, prodigi_sku, wrap_type')
       .eq('id', canvasId)
-      .single();
+      .maybeSingle();
 
     if (canvasError || !canvas) {
       throw new Error('Canvas not found: ' + (canvasError?.message ?? ''));
@@ -50,10 +58,27 @@ export async function POST(
       .from('canvas_orders')
       .select('*')
       .eq('id', orderId)
-      .single();
+      .maybeSingle();
 
     if (orderError || !order) {
       throw new Error('Order not found: ' + (orderError?.message ?? ''));
+    }
+
+    if (order.canvas_id !== canvasId) {
+      return NextResponse.json({ error: 'Order does not belong to this canvas' }, { status: 400 });
+    }
+
+    // Idempotent: the webhook (or a retry of it) may call this twice. An order Prodigi already
+    // has is not rendered or submitted again, and an unpaid order is never submitted.
+    if (order.prodigi_order_id) {
+      return NextResponse.json({
+        success: true,
+        prodigi_order_id: order.prodigi_order_id,
+        already_submitted: true,
+      });
+    }
+    if (order.payment_status !== 'paid') {
+      return NextResponse.json({ error: 'Order is not paid' }, { status: 409 });
     }
 
     if (!order.shipping_line1 || !order.shipping_city || !order.shipping_country) {
@@ -198,7 +223,9 @@ export async function POST(
             copies: 1,
             sizing: 'fillPrintArea',
             attributes: {
-              wrap: canvas.wrap_type || 'imagewrap',
+              // Prodigi spells these ImageWrap, MirrorWrap, Black and White; the row keeps the
+              // lower-case key.
+              wrap: PRODIGI_WRAP[(canvas.wrap_type || 'imagewrap').toLowerCase()] ?? 'ImageWrap',
             },
             assets: [
               {

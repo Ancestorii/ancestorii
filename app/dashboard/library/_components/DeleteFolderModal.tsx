@@ -4,6 +4,8 @@ import { useEffect, useId, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
+import { forgetLibraryPaths } from '@/lib/libraryData';
 import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './library.module.css';
 
@@ -70,18 +72,26 @@ export default function DeleteFolderModal({
       //    library_media → album_media, capsule_media, timeline_event_media,
       //    memory_book_page_assets, memory_canvas_assets, acrylic_print_assets.
       //    memory_books.cover_asset_id / back_cover_asset_id get SET NULL.
-      const { error: dbErr } = await supabase
-        .from('library_folders')
-        .delete()
-        .eq('id', folderId);
+      //    Row security lets only the folder's creator delete it, and says so with zero rows,
+      //    not an error: checked here, so nobody else sees "deleted" (or loses their files
+      //    from storage) while the folder stays.
+      const deleted = await deleteWithOwnerCheck(supabase, 'library_folders', folderId, 'folder');
+      if (!deleted) return;
 
-      if (dbErr) throw dbErr;
-
-      // 3) Sweep storage in one batch. Failure here doesn't unwind DB state, 
+      // 3) Sweep storage in one batch. Failure here doesn't unwind DB state,
       //    any orphans can be cleaned later, the user-facing state is correct.
       if (filePaths.length > 0) {
-        await supabase.storage.from(bucket).remove(filePaths);
+        const { data: removed } = await supabase.storage.from(bucket).remove(filePaths);
+        forgetLibraryPaths(bucket, filePaths);
+        if ((removed?.length ?? 0) < filePaths.length) {
+          // Storage lets each person remove only their own uploads: another member's files in
+          // this folder stay behind as orphans (their rows are gone with the folder).
+          console.warn(`Folder delete: ${filePaths.length - (removed?.length ?? 0)} file(s) left in storage.`);
+        }
       }
+
+      // The sidebar's memory count follows.
+      window.dispatchEvent(new Event('dashboard-data-changed'));
 
       toast.success('Folder deleted.');
       onDeleted();

@@ -4,6 +4,8 @@ import { useEffect, useId, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
+import { LIBRARY_BUCKET, forgetLibraryPaths } from '@/lib/libraryData';
 import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './library.module.css';
 
@@ -50,18 +52,20 @@ export default function DeleteLibraryMediaModal({
     try {
       setIsDeleting(true);
 
-      // 1️⃣ Delete from DB (cascade handles albums, capsules, timelines)
-      const { error: dbErr } = await supabase
-        .from('library_media')
-        .delete()
-        .eq('id', mediaId);
+      // 1) Delete the row (the cascade handles albums, capsules, timelines, books, canvases and
+      //    acrylics). Row security lets only the uploader delete it, and says so with zero rows,
+      //    not an error: checked here, so nobody else sees "deleted" while the item stays.
+      const deleted = await deleteWithOwnerCheck(supabase, 'library_media', mediaId, 'memory');
+      if (!deleted) return;
 
-      if (dbErr) throw dbErr;
-
-      // 2️⃣ Delete physical file from storage
+      // 2) Then the file itself, now that nothing points at it.
       await supabase.storage
-        .from('library-media')
+        .from(LIBRARY_BUCKET)
         .remove([filePath]);
+      forgetLibraryPaths(LIBRARY_BUCKET, [filePath]);
+
+      // The sidebar's memory count follows.
+      window.dispatchEvent(new Event('dashboard-data-changed'));
 
       toast.success('Media permanently deleted.');
 
@@ -108,8 +112,9 @@ export default function DeleteLibraryMediaModal({
 
         <div className={ui.sheetBody}>
           <p id={textId} className={ui.body}>
-            This will permanently remove this file from your entire library,
-            including all albums, timelines and capsules.
+            This will permanently remove this file from your entire library, and from any{' '}
+            <span className="font-extrabold">album, timeline, capsule, book, canvas or acrylic</span>{' '}
+            it appears in.
           </p>
           <p className={cx(ui.noticeError, 'mt-4')}>
             <AlertTriangle size={18} strokeWidth={2.4} className="mt-px flex-none" aria-hidden="true" />

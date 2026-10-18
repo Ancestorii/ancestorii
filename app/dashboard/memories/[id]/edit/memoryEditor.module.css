@@ -7,11 +7,7 @@
    sits in the "components" cascade layer, so a plain rule here wins.
    ============================================================ */
 
-/* ── Motion: the bar and the page rise in once, as they did before ── */
-
-.preMount {
-  opacity: 0;
-}
+/* ── Motion: the bar and the page rise in once, from the first paint (no wait for scripts) ── */
 
 /* "backwards" applies the first frame until it starts and nothing after the end, so no
    transform is left on the sticky bar. */
@@ -202,14 +198,25 @@
 /* ── The words: Quill's editor in the kit's field look ── */
 
 /* No overflow clip: Quill's link bubble can reach past the field's edges (clipped, its Remove
-   was cut off on phones); the toolbar rounds its own top corners instead. */
+   was cut off on phones); the toolbar rounds its own top corners instead.
+   Its height is reserved: Quill builds the toolbar and the text area once scripts run, and
+   without this the field was a thin line until then, and everything under it jumped down
+   (toolbar 57.5px + text area 280px + the border). */
 .editor {
+  box-sizing: border-box;
+  min-height: 341px;
   border: 1.5px solid var(--line);
   border-radius: 18px;
   background: #fff;
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
+}
+
+@media (pointer: coarse) {
+  .editor {
+    min-height: 345px;
+  }
 }
 
 .editor:focus-within {

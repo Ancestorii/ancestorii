@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import { createClient } from '@supabase/supabase-js';
+import { getServerClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,25 @@ export async function GET(
     return NextResponse.json({ error: 'Missing canvasId' }, { status: 400 });
   }
 
+  // ── Who is asking? The download is for signed-in members of the canvas's family. ──
+  // (The service-role client below bypasses row security, so the check happens here, with the
+  // caller's own cookie-bound client: a canvas outside their family comes back as no row.)
+  const userClient = await getServerClient();
+  const {
+    data: { user },
+  } = await userClient.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const { data: visible } = await userClient
+    .from('memory_canvases')
+    .select('id')
+    .eq('id', canvasId)
+    .maybeSingle();
+  if (!visible) {
+    return NextResponse.json({ error: 'Canvas not found' }, { status: 404 });
+  }
+
   // ── Fetch export dimensions ──
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,7 +46,7 @@ export async function GET(
     .from('memory_canvases')
     .select('title, export_width_px, export_height_px')
     .eq('id', canvasId)
-    .single();
+    .maybeSingle();
 
   if (canvasError || !canvas) {
     return NextResponse.json({ error: 'Canvas not found' }, { status: 404 });
@@ -43,15 +63,8 @@ export async function GET(
 
   const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/canvas/${canvasId}`;
 
-  const cookieHeader = request.headers.get('cookie') || '';
-  const cookies = cookieHeader
-    .split(';')
-    .map((c) => {
-      const [name, ...rest] = c.trim().split('=');
-      return { name: name?.trim(), value: rest.join('=')?.trim(), domain: 'www.ancestorii.com', path: '/' };
-    })
-    .filter((c) => c.name && c.value);
-
+  // The export page reads with the service role, so the caller's session cookies are not
+  // forwarded to the (third-party) print browser: it never needed them.
   let browser;
   const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
@@ -94,8 +107,6 @@ export async function GET(
         req.continue();
       }
     });
-
-    if (cookies.length) await page.setCookie(...cookies);
 
     await page.setViewport({ width: vpW, height: vpH, deviceScaleFactor: dpr });
 

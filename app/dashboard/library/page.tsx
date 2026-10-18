@@ -1,10 +1,24 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast as toast } from '@/lib/safeToast';
 import UploadLibraryDrawer from './_components/UploadLibraryDrawer';
-import { Trash2, ArrowLeft, Folder, CalendarDays, ImagePlus, Images, Play, Plus, X } from 'lucide-react';
+import {
+  Trash2,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  File as FileIcon,
+  Folder,
+  CalendarDays,
+  ImagePlus,
+  Images,
+  Play,
+  Plus,
+  X,
+} from 'lucide-react';
 import { ContextMenuDots } from '@/components/ContextMenuDots';
 import DeleteLibraryMediaModal from './_components/DeleteLibraryMediaModal';
 import CreateFolderModal from './_components/CreateFolderModal';
@@ -19,15 +33,28 @@ import {
   IconTile,
   PageHeader,
   SectionHead,
+  Spinner,
   toneByKey,
   useDialog,
 } from '@/components/dashboard/ui/AppBits';
+import {
+  LIBRARY_BUCKET,
+  fetchLibraryFolders,
+  getCachedLibraryFolders,
+  setCachedLibraryFolders,
+  signLibraryPaths,
+  type LibraryFolderSummary,
+} from '@/lib/libraryData';
 import s from './_components/library.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 // Library is orange in the landing's feature index.
 const ORANGE = toneByKey('orange');
+
+// A folder's photos arrive a page at a time (the biggest folder holds 160 and more), the next
+// page as the end of the grid comes into view.
+const PAGE_SIZE = 60;
 
 // Dates in British English with the month as a word (02/06/2026 reads either way round).
 // A folder date is a calendar day with no time, so it is read in UTC: in the local zone it
@@ -41,16 +68,7 @@ function formatDay(value: string, month: 'long' | 'short' = 'long', calendarDay 
   });
 }
 
-type LibraryFolder = {
-  id: string;
-  name: string;
-  description: string | null;
-  folder_date: string | null;
-  created_at: string;
-  media_count: number;
-  cover_url: string | null;
-  cover_file_type: string | null;
-};
+type LibraryFolder = LibraryFolderSummary;
 
 type LibraryMedia = {
   id: string;
@@ -68,12 +86,16 @@ export default function LibraryPage() {
   const [view, setView] = useState<'folders' | 'folder-detail'>('folders');
   const [selectedFolder, setSelectedFolder] = useState<LibraryFolder | null>(null);
 
-  // Data
-  const [folders, setFolders] = useState<LibraryFolder[]>([]);
-  const [foldersLoading, setFoldersLoading] = useState(true);
-  const [media, setMedia] = useState<LibraryMedia[]>([]);
+  // Data. null until the first list is in (the last list shown in this tab comes back at once,
+  // and is refreshed behind), so a return visit never starts from a loader.
+  const [folders, setFolders] = useState<LibraryFolder[] | null>(null);
+  const [media, setMedia] = useState<LibraryMedia[] | null>(null);
+  const [mediaTotal, setMediaTotal] = useState<number | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [signedMap, setSignedMap] = useState<Record<string, string>>({});
-  const [mediaLoading, setMediaLoading] = useState(false);
+  const uidRef = useRef<string | null>(null);
+  // The folder whose photos are wanted: a page that lands after the user has left it is dropped.
+  const activeFolderRef = useRef<string | null>(null);
 
   // Modals
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -82,12 +104,18 @@ export default function LibraryPage() {
   const [deleteFolderTarget, setDeleteFolderTarget] = useState<LibraryFolder | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteMediaTarget, setDeleteMediaTarget] = useState<{ id: string; filePath: string } | null>(null);
-  const [viewer, setViewer] = useState<{ url: string; type: string } | null>(null);
+  // The viewer shows one item by id, so it follows the list (a deleted item closes it).
+  const [viewer, setViewer] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchFolders();
+    loadFolders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // The list on screen is the list the next visit starts from.
+  useEffect(() => {
+    if (folders && uidRef.current) setCachedLibraryFolders(uidRef.current, folders);
+  }, [folders]);
 
   // Opening a folder (or going back) swaps the page in place, not the route, so the scroll
   // position carried over: a folder low in a long list opened part-way down its photos, with
@@ -96,132 +124,99 @@ export default function LibraryPage() {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
   }, [view]);
 
-  async function fetchFolders() {
-    setFoldersLoading(true);
-
-    const { data: foldersData, error: foldersErr } = await supabase
-      .from('library_folders')
-      .select('id, name, description, folder_date, created_at')
-      .order('created_at', { ascending: false });
-
-    if (foldersErr) {
-      setFolders([]);
-      setFoldersLoading(false);
-      return;
-    }
-
-    const folderRows = foldersData || [];
-
-    if (folderRows.length === 0) {
-      setFolders([]);
-      setFoldersLoading(false);
-      return;
-    }
-
-    const folderIds = folderRows.map((f) => f.id);
-    const { data: mediaData } = await supabase
-      .from('library_media')
-      .select('folder_id, file_path, file_type, created_at')
-      .in('folder_id', folderIds)
-      .order('created_at', { ascending: false });
-
-    const countByFolder: Record<string, number> = {};
-    const coverByFolder: Record<string, { file_path: string; file_type: string }> = {};
-    (mediaData || []).forEach((m: any) => {
-      if (!m.folder_id) return;
-      countByFolder[m.folder_id] = (countByFolder[m.folder_id] || 0) + 1;
-      if (!coverByFolder[m.folder_id]) {
-        coverByFolder[m.folder_id] = { file_path: m.file_path, file_type: m.file_type };
-      }
-    });
-
-    const signedCovers = await Promise.all(
-      folderRows.map(async (f) => {
-        const cover = coverByFolder[f.id];
-        if (!cover) return { id: f.id, url: null as string | null, file_type: null as string | null };
-        const { data: urlData } = await supabase.storage
-          .from('library-media')
-          .createSignedUrl(cover.file_path, 60 * 60 * 24 * 7);
-        return {
-          id: f.id,
-          url: urlData?.signedUrl || null,
-          file_type: cover.file_type,
-        };
-      })
-    );
-
-    const coverMap: Record<string, { url: string | null; file_type: string | null }> = {};
-    signedCovers.forEach((c) => {
-      coverMap[c.id] = { url: c.url, file_type: c.file_type ?? null };
-    });
-
-    const merged: LibraryFolder[] = folderRows.map((f) => ({
-      id: f.id,
-      name: f.name,
-      description: f.description,
-      folder_date: f.folder_date,
-      created_at: f.created_at,
-      media_count: countByFolder[f.id] || 0,
-      cover_url: coverMap[f.id]?.url ?? null,
-      cover_file_type: coverMap[f.id]?.file_type ?? null,
-    }));
-
-    setFolders(merged);
-    setFoldersLoading(false);
+  // The signed-in user's id from the local session (no round trip to the auth server).
+  async function getUid() {
+    if (uidRef.current) return uidRef.current;
+    const { data } = await supabase.auth.getSession();
+    uidRef.current = data.session?.user?.id ?? null;
+    return uidRef.current;
   }
 
-  async function fetchMediaForFolder(folderId: string) {
-    setMediaLoading(true);
+  // One query for the folders, their counts and their covers, then one signing request for the
+  // covers not cached yet. With a list already on screen it refreshes behind, with no loader.
+  async function loadFolders() {
+    const uid = await getUid();
+    if (!uid) {
+      setFolders([]);
+      return;
+    }
 
-    const { data, error } = await supabase
+    const cached = getCachedLibraryFolders(uid);
+    if (cached) setFolders((prev) => prev ?? cached);
+
+    try {
+      const fresh = await fetchLibraryFolders(supabase, uid);
+      setFolders(fresh);
+    } catch (err) {
+      console.error(err);
+      if (!cached) setFolders((prev) => prev ?? []);
+      toast.error(err instanceof Error && err.message ? err.message : 'Failed to load your library.');
+    }
+  }
+
+  // One page of a folder's items (newest first) and their URLs, signed in one request.
+  async function loadMedia(folderId: string, offset: number) {
+    if (offset > 0) setLoadingMore(true);
+
+    const { data, error, count } = await supabase
       .from('library_media')
-      .select('*')
+      .select('id, user_id, file_path, file_type, created_at, folder_id', { count: 'exact' })
       .eq('folder_id', folderId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (activeFolderRef.current !== folderId) return;
 
     if (error) {
-      setMediaLoading(false);
+      console.error(error);
+      setLoadingMore(false);
+      if (offset === 0) setMedia([]);
+      toast.error(error.message || 'Failed to load this folder.');
       return;
     }
 
-    if (!data || data.length === 0) {
-      setMedia([]);
-      setSignedMap({});
-      setMediaLoading(false);
-      return;
-    }
+    const rows = (data ?? []) as LibraryMedia[];
+    const urls =
+      rows.length > 0
+        ? await signLibraryPaths(supabase, LIBRARY_BUCKET, rows.map((r) => r.file_path))
+        : {};
 
-    const signedResults = await Promise.all(
-      data.map(async (item) => {
-        const { data: urlData } = await supabase.storage
-          .from('library-media')
-          .createSignedUrl(item.file_path, 60 * 60 * 24 * 7);
-        return { id: item.id, url: urlData?.signedUrl || null };
-      })
-    );
+    if (activeFolderRef.current !== folderId) return;
 
-    const signed: Record<string, string> = {};
-    signedResults.forEach((r) => {
-      if (r.url) signed[r.id] = r.url;
+    setSignedMap((prev) => {
+      const next = offset === 0 ? {} : { ...prev };
+      rows.forEach((r) => {
+        const url = urls[r.file_path];
+        if (url) next[r.id] = url;
+      });
+      return next;
     });
-
-    setMedia(data);
-    setSignedMap(signed);
-    setMediaLoading(false);
+    setMedia((prev) => (offset === 0 || !prev ? rows : [...prev, ...rows]));
+    setMediaTotal(count ?? null);
+    setLoadingMore(false);
   }
 
   const handleEnterFolder = (folder: LibraryFolder) => {
+    activeFolderRef.current = folder.id;
     setSelectedFolder(folder);
     setView('folder-detail');
-    fetchMediaForFolder(folder.id);
+    setMedia(null);
+    setMediaTotal(null);
+    setSignedMap({});
+    setLoadingMore(false);
+    loadMedia(folder.id, 0);
   };
 
   const handleBackToFolders = () => {
+    activeFolderRef.current = null;
     setView('folders');
     setSelectedFolder(null);
-    setMedia([]);
+    setMedia(null);
+    setMediaTotal(null);
     setSignedMap({});
-    fetchFolders();
+    // Counts and covers may have moved while the folder was open: refreshed behind the list.
+    loadFolders();
   };
 
   const openCreateFolder = () => {
@@ -236,12 +231,88 @@ export default function LibraryPage() {
     setFolderModalOpen(true);
   };
 
+  // One more or one fewer item in a folder's card (its cover follows on the next refresh).
+  const bumpFolderCount = (folderId: string, by: number) => {
+    setFolders((prev) =>
+      prev
+        ? prev.map((f) =>
+            f.id === folderId ? { ...f, media_count: Math.max(0, f.media_count + by) } : f
+          )
+        : prev
+    );
+  };
+
+  // The next page comes in as its button scrolls into view (the button still works on its own).
+  const hasMore = !!media && mediaTotal != null && media.length < mediaTotal;
+  const moreRef = useRef<HTMLDivElement>(null);
+  const loadMore = () => {
+    if (!selectedFolder || !media || loadingMore || !hasMore) return;
+    loadMedia(selectedFolder.id, media.length);
+  };
+  useEffect(() => {
+    const el = moreRef.current;
+    if (!el || !hasMore || loadingMore) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) loadMore();
+      },
+      { rootMargin: '600px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, loadingMore, media?.length, selectedFolder?.id]);
+
   // The full-screen viewer: Escape closes it, focus goes back to the tile that opened it.
-  const viewerRef = useDialog<HTMLDivElement>(!!viewer, () => setViewer(null));
-  // The item on show, for its caption (the viewer keeps only the URL and the type).
-  const viewerItem = viewer ? media.find((m) => signedMap[m.id] === viewer.url) : undefined;
+  const viewerItem = viewer && media ? (media.find((m) => m.id === viewer) ?? null) : null;
+  const viewerUrl = viewerItem ? signedMap[viewerItem.id] : undefined;
+  const viewerOpen = !!viewerItem && !!viewerUrl;
+  const viewerRef = useDialog<HTMLDivElement>(viewerOpen, () => setViewer(null));
+
+  // The page behind it stays put while it is open.
+  useEffect(() => {
+    if (!viewerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [viewerOpen]);
+
+  // Left and right (arrow keys, or the two buttons) move through the folder's loaded items.
+  const neighbour = useCallback(
+    (dir: 1 | -1): string | null => {
+      if (!media || !viewer) return null;
+      const i = media.findIndex((m) => m.id === viewer);
+      if (i < 0) return null;
+      for (let j = i + dir; j >= 0 && j < media.length; j += dir) {
+        const m = media[j];
+        if ((m.file_type === 'image' || m.file_type === 'video') && signedMap[m.id]) return m.id;
+      }
+      return null;
+    },
+    [media, viewer, signedMap]
+  );
+  const prevId = viewerOpen ? neighbour(-1) : null;
+  const nextId = viewerOpen ? neighbour(1) : null;
+
+  useEffect(() => {
+    if (!viewerOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      // A focused video keeps its own arrow keys (they seek).
+      if (e.target instanceof HTMLElement && e.target.tagName === 'VIDEO') return;
+      const id = neighbour(e.key === 'ArrowRight' ? 1 : -1);
+      if (!id) return;
+      e.preventDefault();
+      setViewer(id);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [viewerOpen, neighbour]);
+
   // Until the folder's own rows arrive, its count from the folder list (not "0 items").
-  const itemCount = mediaLoading && selectedFolder ? selectedFolder.media_count : media.length;
+  const itemCount = mediaTotal ?? selectedFolder?.media_count ?? 0;
 
   return (
     <div className={ui.page}>
@@ -277,8 +348,8 @@ export default function LibraryPage() {
             />
 
             <section className={ui.section}>
-              {foldersLoading ? (
-                <AppLoader label="Loading your library" className="min-h-[40vh]" />
+              {folders === null ? (
+                <DelayedLoader label="Loading your library" />
               ) : folders.length === 0 ? (
                 <EmptyState
                   Icon={Folder}
@@ -444,8 +515,8 @@ export default function LibraryPage() {
             />
 
             <section className={ui.section} aria-label="Photos and videos">
-              {mediaLoading ? (
-                <AppLoader label="Loading folder" className="min-h-[40vh]" />
+              {media === null ? (
+                <DelayedLoader label="Loading folder" />
               ) : media.length === 0 ? (
                 <EmptyState
                   Icon={ImagePlus}
@@ -473,18 +544,22 @@ export default function LibraryPage() {
                       if (!url) return null;
 
                       const isVideo = item.file_type === 'video';
+                      const isImage = item.file_type === 'image';
                       const dateId = `library-media-${item.id}-date`;
 
                       return (
                         <li key={item.id} className="min-w-0">
                           <div className={s.tile}>
-                            {/* The tile opens the viewer; a video plays there, with its controls */}
+                            {/* The tile opens the viewer; a video plays there, with its controls.
+                                A file that is neither (a photo the browser could not convert)
+                                has nothing to show, so its tile does not open. */}
                             <button
                               type="button"
-                              onClick={() => setViewer({ url, type: item.file_type })}
-                              aria-label={isVideo ? 'Play video' : 'Open photo'}
+                              onClick={() => setViewer(item.id)}
+                              disabled={!isVideo && !isImage}
+                              aria-label={isVideo ? 'Play video' : isImage ? 'Open photo' : 'File (no preview)'}
                               aria-describedby={dateId}
-                              aria-haspopup="dialog"
+                              aria-haspopup={isVideo || isImage ? 'dialog' : undefined}
                               className={s.tileOpen}
                             >
                               {isVideo ? (
@@ -496,8 +571,12 @@ export default function LibraryPage() {
                                   playsInline
                                   preload="metadata"
                                 />
-                              ) : (
+                              ) : isImage ? (
                                 <LibraryImage src={url} alt="" />
+                              ) : (
+                                <span className={s.tileFile} aria-hidden="true">
+                                  <FileIcon size={28} strokeWidth={2} />
+                                </span>
                               )}
 
                               {isVideo && (
@@ -509,7 +588,7 @@ export default function LibraryPage() {
                             </button>
 
                             <IconBtn
-                              label={isVideo ? 'Delete this video' : 'Delete this photo'}
+                              label={isVideo ? 'Delete this video' : isImage ? 'Delete this photo' : 'Delete this file'}
                               size="sm"
                               onPhoto
                               aria-describedby={dateId}
@@ -531,6 +610,20 @@ export default function LibraryPage() {
                       );
                     })}
                   </ul>
+
+                  {hasMore && (
+                    <div ref={moreRef} className={s.more}>
+                      <Btn
+                        variant="soft"
+                        size="sm"
+                        onClick={loadMore}
+                        disabled={loadingMore}
+                        icon={loadingMore ? <Spinner /> : undefined}
+                      >
+                        {loadingMore ? 'Loading more…' : `Show more (${(mediaTotal ?? 0) - media.length} left)`}
+                      </Btn>
+                    </div>
+                  )}
                 </div>
               )}
             </section>
@@ -545,16 +638,31 @@ export default function LibraryPage() {
         mode={folderModalMode}
         folder={editFolderTarget}
         onClose={() => setFolderModalOpen(false)}
-        onCreated={() => {
-          fetchFolders();
+        onCreated={(created) => {
+          // Straight into the list (a new folder is newest, so it goes first): no refetch, no loader.
+          setFolders((prev) => [
+            {
+              id: created.id,
+              name: created.name,
+              description: created.description,
+              folder_date: created.folder_date,
+              created_at: created.created_at,
+              media_count: 0,
+              cover_url: null,
+              cover_file_type: null,
+            },
+            ...(prev ?? []),
+          ]);
         }}
         onUpdated={(updated) => {
           setFolders((prev) =>
-            prev.map((f) =>
-              f.id === updated.id
-                ? { ...f, name: updated.name, description: updated.description, folder_date: updated.folder_date }
-                : f
-            )
+            prev
+              ? prev.map((f) =>
+                  f.id === updated.id
+                    ? { ...f, name: updated.name, description: updated.description, folder_date: updated.folder_date }
+                    : f
+                )
+              : prev
           );
           if (selectedFolder?.id === updated.id) {
             setSelectedFolder({
@@ -574,13 +682,16 @@ export default function LibraryPage() {
         mediaCount={deleteFolderTarget?.media_count || 0}
         onClose={() => setDeleteFolderTarget(null)}
         onDeleted={() => {
-          if (selectedFolder?.id === deleteFolderTarget?.id) {
+          const id = deleteFolderTarget?.id;
+          if (selectedFolder?.id === id) {
+            activeFolderRef.current = null;
             setView('folders');
             setSelectedFolder(null);
-            setMedia([]);
+            setMedia(null);
+            setMediaTotal(null);
             setSignedMap({});
           }
-          fetchFolders();
+          setFolders((prev) => (prev ? prev.filter((f) => f.id !== id) : prev));
         }}
       />
 
@@ -590,15 +701,13 @@ export default function LibraryPage() {
           folderId={selectedFolder.id}
           onClose={() => setDrawerOpen(false)}
           onUploaded={(newMedia) => {
-            setMedia((prev) => [newMedia as LibraryMedia, ...prev]);
-            supabase.storage
-              .from('library-media')
-              .createSignedUrl(newMedia.file_path, 60 * 60 * 24 * 7)
-              .then(({ data }) => {
-                if (data?.signedUrl) {
-                  setSignedMap((prev) => ({ ...prev, [newMedia.id]: data.signedUrl }));
-                }
-              });
+            setMedia((prev) => [newMedia as LibraryMedia, ...(prev ?? [])]);
+            setMediaTotal((t) => (t ?? 0) + 1);
+            bumpFolderCount(selectedFolder.id, 1);
+            signLibraryPaths(supabase, LIBRARY_BUCKET, [newMedia.file_path]).then((urls) => {
+              const url = urls[newMedia.file_path];
+              if (url) setSignedMap((prev) => ({ ...prev, [newMedia.id]: url }));
+            });
           }}
         />
       )}
@@ -609,12 +718,15 @@ export default function LibraryPage() {
         filePath={deleteMediaTarget?.filePath || ''}
         onClose={() => setDeleteMediaTarget(null)}
         onDeleted={() => {
-          setMedia((prev) => prev.filter((m) => m.id !== deleteMediaTarget?.id));
+          const id = deleteMediaTarget?.id;
+          setMedia((prev) => (prev ? prev.filter((m) => m.id !== id) : prev));
+          setMediaTotal((t) => (t == null ? t : Math.max(0, t - 1)));
+          if (selectedFolder) bumpFolderCount(selectedFolder.id, -1);
         }}
       />
 
       {/* ─── VIEWER: a click anywhere but on a video closes it, as before ─── */}
-      {viewer && (
+      {viewerOpen && viewerItem && viewerUrl && (
         <div
           ref={viewerRef}
           role="dialog"
@@ -624,32 +736,59 @@ export default function LibraryPage() {
           onClick={() => setViewer(null)}
         >
           <h2 id="library-viewer-title" className={ui.srOnly}>
-            {viewer.type === 'video' ? 'Video' : 'Photo'}
+            {viewerItem.file_type === 'video' ? 'Video' : 'Photo'}
           </h2>
 
           <div className={s.viewerBar}>
-            {viewerItem && (
-              <span className={ui.chip}>Added on {formatDay(viewerItem.created_at)}</span>
-            )}
-            <IconBtn
-              label="Close"
-              onPhoto
-              onClick={(e) => {
-                e.stopPropagation();
-                setViewer(null);
-              }}
-              className={s.viewerClose}
-            >
-              <X size={20} strokeWidth={2.4} aria-hidden="true" />
-            </IconBtn>
+            <span className={ui.chip}>Added on {formatDay(viewerItem.created_at)}</span>
+            <span className={s.viewerNav}>
+              {(prevId || nextId) && (
+                <>
+                  <IconBtn
+                    label="Previous"
+                    onPhoto
+                    disabled={!prevId}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (prevId) setViewer(prevId);
+                    }}
+                  >
+                    <ChevronLeft size={20} strokeWidth={2.4} aria-hidden="true" />
+                  </IconBtn>
+                  <IconBtn
+                    label="Next"
+                    onPhoto
+                    disabled={!nextId}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (nextId) setViewer(nextId);
+                    }}
+                  >
+                    <ChevronRight size={20} strokeWidth={2.4} aria-hidden="true" />
+                  </IconBtn>
+                </>
+              )}
+              <IconBtn
+                label="Close"
+                onPhoto
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setViewer(null);
+                }}
+              >
+                <X size={20} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
+            </span>
           </div>
 
           <div className={s.viewerStage}>
-            {viewer.type === 'video' ? (
+            {viewerItem.file_type === 'video' ? (
               // A click or tap on the video is for the video (pause, show its controls), so it
-              // stops here instead of reaching the backdrop's close.
+              // stops here instead of reaching the backdrop's close. Keyed by the item, so moving
+              // to the next video starts it afresh.
               <video
-                src={viewer.url}
+                key={viewerItem.id}
+                src={viewerUrl}
                 controls
                 autoPlay
                 onClick={(e) => e.stopPropagation()}
@@ -658,12 +797,28 @@ export default function LibraryPage() {
             ) : (
               // Full size at its own shape, so a plain img (next/image needs a sized box).
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={viewer.url} alt="" className={s.viewerMedia} />
+              <img src={viewerUrl} alt="" className={s.viewerMedia} />
             )}
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+// A loader that holds back for a moment: a list that lands inside it (the cached folder list, a
+// small folder) goes straight on screen instead of three dots flashing first. The box keeps the
+// section's height meanwhile, so nothing jumps either way.
+function DelayedLoader({ label }: { label: string }) {
+  const [due, setDue] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setDue(true), 150);
+    return () => clearTimeout(t);
+  }, []);
+  return due ? (
+    <AppLoader label={label} className="min-h-[40vh]" />
+  ) : (
+    <div className="min-h-[40vh]" aria-hidden="true" />
   );
 }
 

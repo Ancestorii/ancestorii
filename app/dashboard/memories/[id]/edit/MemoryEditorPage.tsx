@@ -24,6 +24,8 @@ import {
 
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
+import { safeToast } from '@/lib/safeToast';
 import { usePlanLimits } from '@/lib/usePlanLimits';
 import StoryAssistanceCard from '@/components/StoryAssistanceCard';
 import { useQuill } from 'react-quilljs';
@@ -55,7 +57,8 @@ const BLUE = toneByKey('blue');
 const TILE_SIZES = '(max-width: 639px) 31vw, 180px';
 
 type PendingMedia = { id: string; file: File; preview: string };
-type ExistingImage = { id: string; url: string };
+/** A photo already saved: its id, a signed URL, and its storage path (for the delete). */
+type ExistingImage = { id: string; url: string; path: string };
 
 type EditorProps = {
   mode: 'create' | 'edit';
@@ -66,11 +69,24 @@ type EditorProps = {
   initialImages?: ExistingImage[];
   initialVideoUrl?: string | null;
   initialVoiceUrl?: string | null;
+  /** Profiles.writing_assistance_enabled: off hides the Story Assistance card. */
+  assistanceEnabled?: boolean;
 };
 
+// The words without their tags, for the preview and the count; the entities the editor
+// writes ("Mum &amp; Dad") read as typed.
 function stripHtml(html: string): string {
   if (!html) return '';
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export default function MemoryEditorPage({
@@ -82,9 +98,9 @@ export default function MemoryEditorPage({
   initialImages = [],
   initialVideoUrl = null,
   initialVoiceUrl = null,
+  assistanceEnabled = true,
 }: EditorProps) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
 
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
@@ -111,8 +127,6 @@ export default function MemoryEditorPage({
 
   const canPublish = title.trim().length > 0 && stripHtml(body).length > 0;
 
-  useEffect(() => { setMounted(true); }, []);
-
   const addMedia = useCallback((files: File[]) => {
     setMedia((prev) => {
       const remaining = 10 - prev.length - existingImages.length;
@@ -135,10 +149,17 @@ export default function MemoryEditorPage({
     setVideoFile({ id: `vid-${Date.now()}`, file, preview: URL.createObjectURL(file) });
   }, []);
 
-  const removeExistingImage = useCallback(async (id: string) => {
+  // The row first (a refused delete shows a toast and changes nothing), then the file.
+  const removeExistingImage = useCallback(async (img: ExistingImage) => {
     const supabase = getBrowserClient();
-    const { error } = await supabase.from('family_memory_media').delete().eq('id', id);
-    if (!error) { setExistingImages((prev) => prev.filter((img) => img.id !== id)); }
+    try {
+      const ok = await deleteWithOwnerCheck(supabase, 'family_memory_media', img.id, 'photo');
+      if (!ok) return;
+      setExistingImages((prev) => prev.filter((i) => i.id !== img.id));
+      try { await supabase.storage.from('memory-media').remove([img.path]); } catch {}
+    } catch {
+      safeToast.error('Could not delete this photo. Please try again.');
+    }
   }, []);
 
   const removeVideo = useCallback(() => {
@@ -152,44 +173,56 @@ export default function MemoryEditorPage({
     setUploadingMediaIndex(-1);
     setUploadingVideo(false);
     const supabase = getBrowserClient();
+    // Stays true after a successful save, so the button can't be pressed again while the
+    // memory page loads (a second press would upload every photo twice).
+    let saved = false;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      // The session is local (no round trip); row security is the real check.
+      const { data: { session } } = await supabase.auth.getSession();
+      const uid = session?.user?.id;
+      if (!uid) throw new Error('Your session has expired. Please sign in again.');
 
       let targetId = memoryId;
+      // Quill only writes its own HTML, but the clean-up on save costs nothing and the page
+      // cleans again when it shows the memory.
+      const cleanBody = sanitizeRichTextClient(body);
 
       setPublishStep('Saving memory…');
       if (!targetId) {
         const { data: newMemory, error: createErr } = await supabase
           .from('family_memories')
-          .insert({ family_id: familyId, author_id: user.id, title: title.trim(), body })
+          .insert({ family_id: familyId, author_id: uid, title: title.trim(), body: cleanBody })
           .select('id')
           .single();
-        if (createErr || !newMemory) { setPublishError(createErr?.message || 'Failed to save memory.'); setPublishing(false); return; }
+        if (createErr || !newMemory) { setPublishError(createErr?.message || 'Failed to save memory.'); return; }
         targetId = newMemory.id;
         setMemoryId(newMemory.id);
       } else {
-        const { error: updateErr } = await supabase
+        // Row security refuses silently (no rows back), so the rows are checked.
+        const { data: updated, error: updateErr } = await supabase
           .from('family_memories')
-          .update({ title: title.trim(), body, updated_at: new Date().toISOString() })
-          .eq('id', targetId);
-       if (updateErr) { setPublishError(updateErr.message || 'Failed to update memory.'); setPublishing(false); return; }
+          .update({ title: title.trim(), body: cleanBody })
+          .eq('id', targetId)
+          .select('id');
+        if (updateErr || !updated?.length) { setPublishError(updateErr?.message || 'This memory could not be updated.'); return; }
       }
 
+      // The memory is saved by now: a photo that fails is reported, not a reason to stop.
+      let failed = 0;
       for (let i = 0; i < media.length; i++) {
         setPublishStep(`Uploading photo ${i + 1}/${media.length}…`);
         setUploadingMediaIndex(i);
         const ext = media[i].file.name.split('.').pop() || 'jpg';
-        const filePath = `${user.id}/${targetId}/${Date.now()}-${i}.${ext}`;
+        const filePath = `${uid}/${targetId}/${Date.now()}-${i}.${ext}`;
         const { error: upErr } = await supabase.storage.from('memory-media').upload(filePath, media[i].file);
-        if (!upErr) {
-          await supabase.from('family_memory_media').insert({
-            memory_id: targetId, family_id: familyId, user_id: user.id,
-            file_path: filePath, file_type: 'image',
-            display_order: existingImages.length + i,
-          });
-        }
+        if (upErr) { failed++; continue; }
+        const { error: rowErr } = await supabase.from('family_memory_media').insert({
+          memory_id: targetId, family_id: familyId, user_id: uid,
+          file_path: filePath, file_type: 'image',
+          display_order: existingImages.length + i,
+        });
+        if (rowErr) failed++;
       }
       setUploadingMediaIndex(-1);
 
@@ -197,29 +230,37 @@ export default function MemoryEditorPage({
         setPublishStep('Uploading video…');
         setUploadingVideo(true);
         const ext = videoFile.file.name.split('.').pop() || 'mp4';
-        const videoPath = `${user.id}/${targetId}/video-${Date.now()}.${ext}`;
+        const videoPath = `${uid}/${targetId}/video-${Date.now()}.${ext}`;
         const { error: vidErr } = await supabase.storage.from('memory-media').upload(videoPath, videoFile.file);
-        if (!vidErr) {
-          await supabase.from('family_memories').update({ video_path: videoPath }).eq('id', targetId);
-        }
+        const { error: vidRowErr } = vidErr
+          ? { error: vidErr }
+          : await supabase.from('family_memories').update({ video_path: videoPath }).eq('id', targetId);
+        if (vidRowErr) safeToast.error('The video could not be uploaded.');
         setUploadingVideo(false);
       }
 
       if (voiceFile) {
         setPublishStep('Uploading voice note…');
-        const voicePath = `${user.id}/${targetId}/voice-${Date.now()}.webm`;
+        const voicePath = `${uid}/${targetId}/voice-${Date.now()}.webm`;
         const { error: voiceErr } = await supabase.storage.from('memory-media').upload(voicePath, voiceFile);
-        if (!voiceErr) {
-          await supabase.from('family_memories').update({ voice_note_path: voicePath }).eq('id', targetId);
-        }
+        const { error: voiceRowErr } = voiceErr
+          ? { error: voiceErr }
+          : await supabase.from('family_memories').update({ voice_note_path: voicePath }).eq('id', targetId);
+        if (voiceRowErr) safeToast.error('The voice note could not be uploaded.');
       } else if (!existingVoiceUrl && initialVoiceUrl) {
         setPublishStep('Updating voice note…');
         await supabase.from('family_memories').update({ voice_note_path: null }).eq('id', targetId);
       }
 
+      if (failed) safeToast.error(failed === 1 ? 'One photo could not be uploaded.' : `${failed} photos could not be uploaded.`);
+      if (!memoryId) window.dispatchEvent(new Event('dashboard-data-changed'));
+      saved = true;
+      setPublishStep('Opening your memory…');
       router.push(`/dashboard/memories/${targetId}`);
+    } catch (err) {
+      setPublishError(err instanceof Error && err.message ? err.message : 'Something went wrong. Please try again.');
     } finally {
-      setPublishing(false);
+      if (!saved) setPublishing(false);
       setUploadingMediaIndex(-1);
       setUploadingVideo(false);
     }
@@ -236,13 +277,15 @@ export default function MemoryEditorPage({
   return (
     <div>
       {/* ═══ STICKY BAR: back; the count, preview and save ═══ */}
-      <div className={cx(s.bar, mounted ? s.rise : s.preMount)}>
+      <div className={cx(s.bar, s.rise)}>
         <div className={s.barPad}>
           <div className={cx(ui.wrap, s.barRow)}>
+            {/* A real link: the shell hides its navigation here, and a fresh tab has no page to
+                go back to. Editing goes back to the memory, writing to My Family. */}
             <Btn
               variant="soft"
               size="sm"
-              onClick={() => router.back()}
+              href={mode === 'edit' && existingMemoryId ? `/dashboard/memories/${existingMemoryId}` : '/dashboard/our-family'}
               icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
             >
               Back
@@ -285,7 +328,7 @@ export default function MemoryEditorPage({
 
       {/* ═══ MAIN ═══ */}
       <div className={cx(ui.page, s.page)}>
-        <div className={cx(ui.wrap, mounted ? s.rise : s.preMount)}>
+        <div className={cx(ui.wrap, s.rise)}>
           <PageHeader
             eyebrow="Memory"
             eyebrowDot="var(--c0)"
@@ -334,7 +377,7 @@ export default function MemoryEditorPage({
                       <li key={img.id} className={s.tile}>
                         <Image src={img.url} alt="" fill sizes={TILE_SIZES} className={s.tileImg} />
                         {!publishing && (
-                          <IconBtn label="Delete this photo" size="sm" onPhoto danger onClick={() => removeExistingImage(img.id)} className={s.tileRemove}>
+                          <IconBtn label="Delete this photo" size="sm" onPhoto danger onClick={() => removeExistingImage(img)} className={s.tileRemove}>
                             <X size={15} strokeWidth={2.6} aria-hidden="true" />
                           </IconBtn>
                         )}
@@ -442,6 +485,7 @@ export default function MemoryEditorPage({
       </div>
 
       <StoryAssistanceCard
+        assistanceEnabled={assistanceEnabled}
         welcomeHeading="Need help writing your memory?"
         welcomeBody="We'll ask you the right questions to help you find the words. You write it. We just help you get started."
         entityName="your memory"
@@ -605,7 +649,7 @@ function VideoUploader({ videoFile, onAdd, onRemove, isUploading }: { videoFile:
       <IconTile Icon={Play} tone={ORANGE} />
       <span className={ui.dropzoneTitle}>Add Video</span>
       <span className={ui.dropzoneHint}>MP4, MOV, or WebM (max {maxMinutes} min)</span>
-      <input type="file" accept="video/mp4,video/quicktime,video/webm" className={ui.srOnly} onChange={(e) => { const f = e.target.files?.[0]; if (f) { const video = document.createElement('video'); video.preload = 'metadata'; video.onloadedmetadata = () => { URL.revokeObjectURL(video.src); if (video.duration > maxSeconds) { alert(`Video must be ${maxMinutes} minutes or less.`); } else { onAdd(f); } }; video.src = URL.createObjectURL(f); } e.target.value = ''; }} />
+      <input type="file" accept="video/mp4,video/quicktime,video/webm" className={ui.srOnly} onChange={(e) => { const f = e.target.files?.[0]; if (f) { const video = document.createElement('video'); video.preload = 'metadata'; video.onloadedmetadata = () => { URL.revokeObjectURL(video.src); if (video.duration > maxSeconds) { safeToast.error(`Video must be ${maxMinutes} minutes or less.`); } else { onAdd(f); } }; video.src = URL.createObjectURL(f); } e.target.value = ''; }} />
     </label>
   );
 }

@@ -217,6 +217,7 @@ export default function CanvasLeftPanel({
                             : {
                                 id: img.id,
                                 file_path: img.file_path,
+                                url: img.url,
                               }
                         )
                       }

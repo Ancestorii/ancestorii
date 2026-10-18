@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { inter } from '@/lib/fonts';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast as toast } from '@/lib/safeToast';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 import Image from 'next/image';
 
@@ -93,18 +94,25 @@ export default function Slot({
     try {
       setLoading(true);
 
-      const { data: signed } = await supabase.storage
-        .from('library-media')
-        .createSignedUrl(selectedImage.file_path, 60 * 60 * 24 * 30);
+      // The library already holds a signed URL for this photo (and the browser has the file
+      // cached under it); signing again would mean a round trip and a second download.
+      let signedUrl = selectedImage.url ?? '';
+      if (!signedUrl) {
+        const { data: signed } = await supabase.storage
+          .from('library-media')
+          .createSignedUrl(selectedImage.file_path, 60 * 60 * 24 * 30);
+        signedUrl = signed?.signedUrl ?? '';
+      }
 
       await upsertAssetRow({
         libraryMediaId: selectedImage.id,
-        signedUrl: signed?.signedUrl ?? '',
+        signedUrl,
       });
 
       clearSelectedImage();
     } catch (err) {
       console.error('INSERT ERROR:', err);
+      toast.error('Could not place that photo. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -188,10 +196,18 @@ export default function Slot({
                 e.stopPropagation();
                 if (!asset.id) return;
                 try {
-                  await supabase
+                  // Only the canvas's creator may delete a slot row; for anyone else row
+                  // security removes nothing and reports no error, so check what came back.
+                  const { data: removed, error } = await supabase
                     .from('memory_canvas_assets')
                     .delete()
-                    .eq('id', asset.id);
+                    .eq('id', asset.id)
+                    .select('id');
+                  if (error) throw error;
+                  if (!removed || removed.length === 0) {
+                    toast.error('Only the person who created this canvas can remove its photos.');
+                    return;
+                  }
                   onUpdate({
                   ...asset,
                    id: undefined,
@@ -201,6 +217,7 @@ export default function Slot({
                    });
                 } catch (err) {
                   console.error('Failed to clear slot:', err);
+                  toast.error('Could not remove that photo. Please try again.');
                 }
               }}
               style={{

@@ -13,11 +13,25 @@ export default async function AcrylicExportPage({
   );
   const { acrylicId } = await params;
 
-  const { data: acrylic, error: acrylicError } = await supabase
-    .from('acrylic_prints')
-    .select('id, title, tier_key, orientation, layout_type, acrylic_size, export_width_px, export_height_px')
-    .eq('id', acrylicId)
-    .single();
+  // The print and its slots are independent reads, so they go out together.
+  const [
+    { data: acrylic, error: acrylicError },
+    { data: assetRows, error: assetError },
+  ] = await Promise.all([
+    supabase
+      .from('acrylic_prints')
+      .select('id, title, tier_key, orientation, layout_type, acrylic_size, export_width_px, export_height_px')
+      .eq('id', acrylicId)
+      .maybeSingle(),
+    supabase
+      .from('acrylic_print_assets')
+      .select(`
+        id, asset_id, slot_index, caption, crop_data,
+        library_media!acrylic_print_assets_asset_id_fkey ( file_path, rotation )
+      `)
+      .eq('acrylic_id', acrylicId)
+      .order('slot_index', { ascending: true }),
+  ]);
 
   if (acrylicError || !acrylic) {
     return (
@@ -28,15 +42,6 @@ export default async function AcrylicExportPage({
     );
   }
 
-  const { data: assetRows, error: assetError } = await supabase
-    .from('acrylic_print_assets')
-    .select(`
-      id, asset_id, slot_index, caption, crop_data,
-      library_media!acrylic_print_assets_asset_id_fkey ( file_path, rotation )
-    `)
-    .eq('acrylic_id', acrylicId)
-    .order('slot_index', { ascending: true });
-
   if (assetError) {
     return (
       <div style={{ padding: 40, fontFamily: 'sans-serif', color: '#333' }}>
@@ -46,29 +51,34 @@ export default async function AcrylicExportPage({
     );
   }
 
-  const getSignedUrl = async (path: string): Promise<string> => {
-    const { data } = await supabase.storage
+  // One signing call for every slot's photo instead of one per slot.
+  const rows = (assetRows || []) as any[];
+  const paths = rows
+    .map((a) => a.library_media?.file_path as string | undefined)
+    .filter((p): p is string => Boolean(p));
+  const urlByPath = new Map<string, string>();
+  if (paths.length > 0) {
+    const unique = Array.from(new Set(paths));
+    const { data: signed } = await supabase.storage
       .from('library-media')
-      .createSignedUrl(path, 60 * 60 * 24);
-    return data?.signedUrl || '';
-  };
+      .createSignedUrls(unique, 60 * 60 * 24);
+    (signed ?? []).forEach((item, i) => {
+      if (item.signedUrl) urlByPath.set(unique[i], item.signedUrl);
+    });
+  }
 
-  const assets: AcrylicAsset[] = await Promise.all(
-    (assetRows || []).map(async (a: any) => {
-      const filePath = a.library_media?.file_path;
-      let url = '';
-      if (filePath) url = await getSignedUrl(filePath);
-      return {
-  id: a.id,
-  asset_id: a.asset_id,
-  slot_index: a.slot_index,
-  caption: a.caption,
-  crop_data: a.crop_data || {},
-  url,
-  rotation: a.library_media?.rotation ?? 0,
-};
-    })
-  );
+  const assets: AcrylicAsset[] = rows.map((a) => {
+    const filePath = a.library_media?.file_path as string | undefined;
+    return {
+      id: a.id,
+      asset_id: a.asset_id,
+      slot_index: a.slot_index,
+      caption: a.caption,
+      crop_data: a.crop_data || {},
+      url: filePath ? urlByPath.get(filePath) || '' : '',
+      rotation: a.library_media?.rotation ?? 0,
+    };
+  });
 
   return (
     <ExportRenderer

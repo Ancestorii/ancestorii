@@ -1,6 +1,29 @@
 import ExportRenderer from './ExportRenderer';
-import type { Asset } from '@/types/memory-book';
+import type {
+  Asset,
+  BackCoverLayoutType,
+  BookPageRow,
+  CoverDesignJson,
+  CoverLayoutType,
+} from '@/types/memory-book';
 import { createClient } from '@supabase/supabase-js';
+
+// Long enough for Puppeteer to load every photo, short because the urls go no further.
+const SIGNED_URL_TTL = 60 * 60 * 24;
+
+const COVER_LAYOUTS: string[] = ['classic_cover', 'full_bleed_cover', 'trio_cover'];
+const BACK_COVER_LAYOUTS: string[] = ['blank_back', 'dedication_back', 'photo_message_back'];
+
+// An error the print routes can see at once: they wait for data-export-ready OR
+// data-export-error, so a missing book fails in a second instead of after a 60s timeout.
+function ExportError({ message }: { message: string }) {
+  return (
+    <div data-export-error={message} style={{ padding: 40, fontFamily: 'sans-serif', color: '#333' }}>
+      <h1>Export Error</h1>
+      <p>{message}</p>
+    </div>
+  );
+}
 
 export default async function ExportPage({
   params,
@@ -13,171 +36,155 @@ export default async function ExportPage({
 );
   const { bookId } = await params;
 
-  // ── 1. Fetch book metadata ──
-  const { data: book, error: bookError } = await supabase
-    .from('memory_books')
-    .select(
+  // ── 1. Book metadata and pages (independent: one round trip) ──
+  const [{ data: book, error: bookError }, { data: pages, error: pagesError }] = await Promise.all([
+    supabase
+      .from('memory_books')
+      .select(
+        `
+        id,
+        title,
+        cover_design,
+        back_cover_design,
+        spine_text,
+        spine_bg_colour,
+        spine_text_colour
       `
-      id,
-      title,
-      cover_design,
-      back_cover_design,
-      spine_text,
-      spine_bg_colour,
-      spine_text_colour
-    `
-    )
-    .eq('id', bookId)
-    .single();
+      )
+      .eq('id', bookId)
+      .maybeSingle(),
+    supabase
+      .from('memory_book_pages')
+      .select(
+        `
+        id,
+        page_number,
+        layout_type,
+        show_subheading,
+        show_comment,
+        memory_book_page_assets (
+          id,
+          asset_id,
+          slot_index,
+          subheading,
+          comment,
+          library_media!memory_book_page_assets_asset_id_fkey (
+            file_path,
+            rotation
+          )
+        )
+      `
+      )
+      .eq('book_id', bookId)
+      .order('page_number', { ascending: true }),
+  ]);
 
   if (bookError || !book) {
-    return (
-      <div style={{ padding: 40, fontFamily: 'sans-serif', color: '#333' }}>
-        <h1>Export Error</h1>
-        <p>{bookError?.message || 'Book not found.'}</p>
-      </div>
-    );
+    return <ExportError message={bookError?.message || 'Book not found.'} />;
   }
-
-  // ── 2. Fetch pages with assets ──
-  const { data: pages, error: pagesError } = await supabase
-    .from('memory_book_pages')
-    .select(
-      `
-      id,
-      page_number,
-      layout_type,
-      show_subheading,
-      show_comment,
-      memory_book_page_assets (
-        id,
-        asset_id,
-        slot_index,
-        subheading,
-        comment,
-        library_media!memory_book_page_assets_asset_id_fkey (
-          file_path,
-          rotation
-        )
-      )
-    `
-    )
-    .eq('book_id', bookId)
-    .order('page_number', { ascending: true });
 
   if (pagesError) {
-    return (
-      <div style={{ padding: 40, fontFamily: 'sans-serif', color: '#333' }}>
-        <h1>Export Error</h1>
-        <p>{pagesError.message}</p>
-      </div>
-    );
+    return <ExportError message={pagesError.message} />;
   }
 
-  // ── 3. Helper: generate fresh 1-hour signed URL ──
-  const getSignedUrl = async (path: string): Promise<string> => {
-    const { data } = await supabase.storage
-      .from('library-media')
-      .createSignedUrl(path, 60 * 60 * 24); 
-    return data?.signedUrl || '';
-  };
+  // ── 2. Cover assets: library rows by id (one query) ──
+  const pageRows = (pages || []) as unknown as BookPageRow[];
 
-  // ── 4. Transform pages with signed URLs ──
-  const transformedPages = await Promise.all(
-    (pages || []).map(async (p: any) => {
-      const assets = await Promise.all(
-        (p.memory_book_page_assets || []).map(async (a: any) => {
-          const filePath = a.library_media?.file_path;
-          const rotation = a.library_media?.rotation ?? 0;
-          let url = '';
-          if (filePath) {
-            url = await getSignedUrl(filePath);
-          }
-          return {
-            id: a.id,
-            asset_id: a.asset_id,
-            slot_index: a.slot_index,
-            subheading: a.subheading,
-            comment: a.comment,
-            url,
-            rotation,
-          };
-        })
-      );
+  const coverDesign: CoverDesignJson =
+    book.cover_design && typeof book.cover_design === 'object'
+      ? book.cover_design
+      : {};
 
-      return {
-        id: p.id,
-        page_number: p.page_number,
-        layout_type: p.layout_type,
-        show_subheading: p.show_subheading,
-        show_comment: p.show_comment,
-        assets,
-      };
-    })
+  const backCoverDesign: CoverDesignJson =
+    book.back_cover_design && typeof book.back_cover_design === 'object'
+      ? book.back_cover_design
+      : {};
+
+  const rawCoverAssets: Asset[] = Array.isArray(coverDesign.assets) ? coverDesign.assets : [];
+  const rawBackCoverAssets: Asset[] = Array.isArray(backCoverDesign.assets) ? backCoverDesign.assets : [];
+
+  const coverAssetIds = Array.from(
+    new Set(
+      [...rawCoverAssets, ...rawBackCoverAssets]
+        .map((a) => a.asset_id)
+        .filter((id): id is string => !!id)
+    )
   );
 
-  // ── 5. Hydrate cover assets with signed URLs ──
-  const hydrateAssets = async (rawAssets: Asset[]): Promise<Asset[]> => {
-    const assetIds = rawAssets
-      .map((a) => a.asset_id)
-      .filter((id): id is string => !!id);
-
-    if (!assetIds.length) return rawAssets;
-
+  const mediaById = new Map<string, { file_path: string; rotation: number }>();
+  if (coverAssetIds.length) {
     const { data: mediaRows } = await supabase
       .from('library_media')
       .select('id, file_path, rotation')
-      .in('id', assetIds);
+      .in('id', coverAssetIds);
 
-    const filePathById = new Map(
-      (mediaRows || []).map((row: any) => [row.id, row.file_path])
-    );
+    for (const row of mediaRows || []) {
+      mediaById.set(row.id, { file_path: row.file_path, rotation: row.rotation ?? 0 });
+    }
+  }
 
-    const rotationById = new Map(
-      (mediaRows || []).map((row: any) => [row.id, row.rotation ?? 0])
-    );
+  // ── 3. Sign every photo (pages and covers) in one call ──
+  const paths = new Set<string>();
+  for (const p of pageRows) {
+    for (const a of p.memory_book_page_assets || []) {
+      if (a.library_media?.file_path) paths.add(a.library_media.file_path);
+    }
+  }
+  for (const media of mediaById.values()) paths.add(media.file_path);
 
-    return Promise.all(
-      rawAssets.map(async (asset) => {
-        if (!asset.asset_id) return asset;
-        const filePath = filePathById.get(asset.asset_id);
-        if (!filePath) return asset;
-        const url = await getSignedUrl(filePath);
-        const rotation = rotationById.get(asset.asset_id) ?? 0;
-        return { ...asset, url, rotation };
-      })
-    );
-  };
+  const urlByPath = new Map<string, string>();
+  if (paths.size) {
+    const { data: signed } = await supabase.storage
+      .from('library-media')
+      .createSignedUrls(Array.from(paths), SIGNED_URL_TTL);
 
-  const coverDesign =
-    book.cover_design && typeof book.cover_design === 'object'
-      ? (book.cover_design as any)
-      : {};
+    for (const s of signed || []) {
+      if (s.path && s.signedUrl) urlByPath.set(s.path, s.signedUrl);
+    }
+  }
 
-  const backCoverDesign =
-    book.back_cover_design && typeof book.back_cover_design === 'object'
-      ? (book.back_cover_design as any)
-      : {};
+  // ── 4. Pages with their urls ──
+  const transformedPages = pageRows.map((p) => ({
+    id: p.id,
+    page_number: p.page_number,
+    layout_type: p.layout_type,
+    show_subheading: p.show_subheading,
+    show_comment: p.show_comment,
+    assets: (p.memory_book_page_assets || []).map((a) => {
+      const filePath = a.library_media?.file_path;
+      return {
+        id: a.id,
+        asset_id: a.asset_id,
+        slot_index: a.slot_index,
+        subheading: a.subheading,
+        comment: a.comment,
+        url: filePath ? urlByPath.get(filePath) || '' : '',
+        rotation: a.library_media?.rotation ?? 0,
+      };
+    }),
+  }));
 
-  const coverLayout = ['classic_cover', 'full_bleed_cover', 'trio_cover'].includes(
-    coverDesign.layout
-  )
-    ? coverDesign.layout
-    : 'classic_cover';
+  // ── 5. Covers with their urls ──
+  const hydrateAssets = (rawAssets: Asset[]): Asset[] =>
+    rawAssets.map((asset) => {
+      if (!asset.asset_id) return asset;
+      const media = mediaById.get(asset.asset_id);
+      if (!media) return asset;
+      return { ...asset, url: urlByPath.get(media.file_path) || '', rotation: media.rotation };
+    });
 
-  const backCoverLayout = ['blank_back', 'dedication_back', 'photo_message_back'].includes(
-    backCoverDesign.layout
-  )
-    ? backCoverDesign.layout
-    : 'blank_back';
+  const coverLayout: CoverLayoutType =
+    typeof coverDesign.layout === 'string' && COVER_LAYOUTS.includes(coverDesign.layout)
+      ? (coverDesign.layout as CoverLayoutType)
+      : 'classic_cover';
 
-  const coverAssets = await hydrateAssets(
-    Array.isArray(coverDesign.assets) ? coverDesign.assets : []
-  );
+  const backCoverLayout: BackCoverLayoutType =
+    typeof backCoverDesign.layout === 'string' && BACK_COVER_LAYOUTS.includes(backCoverDesign.layout)
+      ? (backCoverDesign.layout as BackCoverLayoutType)
+      : 'blank_back';
 
-  const backCoverAssets = await hydrateAssets(
-    Array.isArray(backCoverDesign.assets) ? backCoverDesign.assets : []
-  );
+  const coverAssets = hydrateAssets(rawCoverAssets);
+  const backCoverAssets = hydrateAssets(rawBackCoverAssets);
 
   return (
     <ExportRenderer

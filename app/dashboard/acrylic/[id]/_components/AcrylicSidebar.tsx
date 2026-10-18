@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast as toast } from '@/lib/safeToast';
 import { ensureDisplayableImage } from '@/lib/convertImage';
 
 type Image = {
@@ -34,11 +35,11 @@ export default function Sidebar({
 
     const load = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        // getSession reads the local cookie (getUser is a round trip to the auth server); row
+        // security is what scopes the library to the family.
+        const { data: sess } = await supabase.auth.getSession();
 
-        if (!user) {
+        if (!sess?.session?.user) {
           if (active) setImages([]);
           return;
         }
@@ -51,20 +52,25 @@ export default function Sidebar({
 
         if (error) throw error;
 
-        const withUrls = await Promise.all(
-          (data || []).map(async (img: { id: string; file_path: string; rotation: number }) => {
-            const { data: signed } = await supabase.storage
-              .from('library-media')
-              .createSignedUrl(img.file_path, 60 * 60 * 24 * 30);
+        // One signing call for the whole library instead of one per photo.
+        const rows = (data || []) as { id: string; file_path: string; rotation: number }[];
+        const urlByPath = new Map<string, string>();
+        if (rows.length > 0) {
+          const paths = Array.from(new Set(rows.map((r) => r.file_path)));
+          const { data: signed } = await supabase.storage
+            .from('library-media')
+            .createSignedUrls(paths, 60 * 60 * 24 * 30);
+          (signed ?? []).forEach((item, i) => {
+            if (item.signedUrl) urlByPath.set(paths[i], item.signedUrl);
+          });
+        }
 
-            return {
-              id: img.id,
-              url: signed?.signedUrl || '',
-              file_path: img.file_path,
-              rotation: img.rotation ?? 0,
-            };
-          })
-        );
+        const withUrls = rows.map((img) => ({
+          id: img.id,
+          url: urlByPath.get(img.file_path) || '',
+          file_path: img.file_path,
+          rotation: img.rotation ?? 0,
+        }));
 
         if (active) {
           setImages(withUrls.filter((img) => !!img.url));
@@ -104,9 +110,8 @@ export default function Sidebar({
     try {
       file = await ensureDisplayableImage(file);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: sess } = await supabase.auth.getSession();
+      const user = sess?.session?.user;
 
       if (!user) throw new Error('User not authenticated');
 
@@ -162,6 +167,7 @@ export default function Sidebar({
       return newImage;
     } catch (error) {
       console.error('Failed to upload image:', error);
+      toast.error(`Could not upload ${file.name}.`);
       return null;
     }
   };
@@ -180,14 +186,18 @@ export default function Sidebar({
     );
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('library_media')
         .update({ rotation: newRotation })
-        .eq('id', imageId);
+        .eq('id', imageId)
+        .select('id');
 
       if (error) throw error;
+      // Row security refuses quietly (0 rows, no error): put the thumbnail back.
+      if (!data || data.length === 0) throw new Error('Rotation not saved');
     } catch (err) {
       console.error('Failed to rotate image:', err);
+      toast.error('Could not rotate that photo.');
       // Revert on failure
       setImages((prev) =>
         prev.map((img) =>

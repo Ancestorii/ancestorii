@@ -12,8 +12,10 @@ import BookCanvasHeader from './BookCanvasHeader';
 import BookCanvasLeftPanel, { type CoverLayoutType, type BackCoverLayoutType } from './BookCanvasLeftPanel';
 import BookCanvasStage from './BookCanvasStage';
 import BookCanvasRightPanel from './BookCanvasRightPanel';
-import type { Asset, Page, SelectedImage, LayoutType } from '@/types/memory-book';
+import type { Asset, BookCoverState, Page, SelectedImage, LayoutType } from '@/types/memory-book';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast as toast } from '@/lib/safeToast';
+import { flushBookWrites, queueBookWrite } from '../bookAutosave';
 import BookGuideOverlay from './BookGuideOverlay';
 import BookPreviewOverlay from './BookPreviewOverlay';
 
@@ -54,6 +56,7 @@ const SPREAD_RATIO = (29.7 * 2) / 21;
 export default function BookCanvas({
   bookId,
   pages,
+  initialCover,
   selectedImage,
   setSelectedImage,
   onOpenLayoutModal,
@@ -64,6 +67,7 @@ export default function BookCanvas({
 }: {
   bookId: string;
   pages: Page[];
+  initialCover: BookCoverState;
   selectedImage: SelectedImage | null;
   setSelectedImage: (img: SelectedImage | null) => void;
   onOpenLayoutModal: (pageId: string, layout: LayoutType) => void;
@@ -88,18 +92,17 @@ export default function BookCanvas({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-  // ── Cover layout state ──
-  const [coverLayout, setCoverLayout] = useState<CoverLayoutType>('classic_cover');
-  const [backCoverLayout, setBackCoverLayout] = useState<BackCoverLayoutType>('blank_back');
+  // ── Cover layout state (loaded with the page, so the cover is drawn from the first frame) ──
+  const [coverLayout, setCoverLayout] = useState<CoverLayoutType>(initialCover.coverLayout);
+  const [backCoverLayout, setBackCoverLayout] = useState<BackCoverLayoutType>(initialCover.backCoverLayout);
 
-  const [spineText, setSpineText] = useState('');
-  const [spineBgColour, setSpineBgColour] = useState('#0f2040');
-  const [spineTextColour, setSpineTextColour] = useState('#d4af37');
+  const [spineText, setSpineText] = useState(initialCover.spineText);
+  const [spineBgColour, setSpineBgColour] = useState(initialCover.spineBgColour);
+  const [spineTextColour, setSpineTextColour] = useState(initialCover.spineTextColour);
 
-  // ── NEW: Cover asset state ──
-  const [coverAssets, setCoverAssets] = useState<Asset[]>([]);
-  const [backCoverAssets, setBackCoverAssets] = useState<Asset[]>([]);
-  const [coversHydrated, setCoversHydrated] = useState(false);
+  // ── Cover asset state ──
+  const [coverAssets, setCoverAssets] = useState<Asset[]>(initialCover.coverAssets);
+  const [backCoverAssets, setBackCoverAssets] = useState<Asset[]>(initialCover.backCoverAssets);
 
   const handleTogglePageText = async (
   pageId: string,
@@ -107,16 +110,20 @@ export default function BookCanvas({
   value: boolean
 ) => {
   try {
-    const { error } = await supabase
+    // The reply is checked: row security refuses with no error and no rows.
+    const { data, error } = await supabase
       .from('memory_book_pages')
       .update({ [field]: value })
-      .eq('id', pageId);
+      .eq('id', pageId)
+      .select('id');
 
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Page text setting was not saved');
 
     onUpdatePage(pageId, field, value);
   } catch (err) {
     console.error('Failed to toggle page text:', err);
+    toast.error('Could not change the page text setting. Please try again.');
   }
 };
 
@@ -144,178 +151,57 @@ export default function BookCanvas({
     });
   };
 
-    useEffect(() => {
-    let active = true;
+  // ── Cover autosave ──
+  // What the database last received (to begin with, what the server handed us), so a render
+  // that changes nothing sends nothing. A change waits 300ms in the queue, where later changes
+  // merge into it; the queue checks the reply, flushes on Save and when the editor is left, and
+  // its timer is no longer cleared on unmount (which used to drop the last keystroke).
+  const lastSavedCoverRef = useRef<string | null>(null);
 
-    const loadCoverState = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('memory_books')
-          .select('cover_design, back_cover_design, spine_text, spine_bg_colour, spine_text_colour')
-          .eq('id', bookId)
-          .single();
-
-        if (error) throw error;
-        if (!active) return;
-
-        const coverDesign =
-          data?.cover_design && typeof data.cover_design === 'object'
-            ? data.cover_design
-            : {};
-
-        const backCoverDesign =
-          data?.back_cover_design && typeof data.back_cover_design === 'object'
-            ? data.back_cover_design
-            : {};
-
-        setCoverLayout(
-          coverDesign.layout === 'classic_cover' ||
-          coverDesign.layout === 'full_bleed_cover' ||
-          coverDesign.layout === 'trio_cover'
-            ? coverDesign.layout
-            : 'classic_cover'
-        );
-
-                setBackCoverLayout(
-          backCoverDesign.layout === 'blank_back' ||
-          backCoverDesign.layout === 'dedication_back' ||
-          backCoverDesign.layout === 'photo_message_back'
-            ? backCoverDesign.layout
-            : 'blank_back'
-        );
-
-        setSpineText(data?.spine_text || '');
-        setSpineBgColour(data?.spine_bg_colour || '#0f2040');
-        setSpineTextColour(data?.spine_text_colour || '#d4af37');
-
-        const hydrateAssetsWithUrls = async (assets: Asset[]) => {
-          const assetIds = assets
-            .map((a) => a.asset_id)
-            .filter((id): id is string => !!id);
-
-          if (!assetIds.length) return assets;
-
-          const { data: mediaRows, error: mediaError } = await supabase
-            .from('library_media')
-            .select('id, file_path, rotation')
-            .in('id', assetIds);
-
-          if (mediaError) throw mediaError;
-
-          const filePathById = new Map(
-            (mediaRows || []).map((row) => [row.id, row.file_path])
-          );
-
-          const rotationById = new Map(
-            (mediaRows || []).map((row) => [row.id, row.rotation ?? 0])
-          );
-
-          const hydrated = await Promise.all(
-            assets.map(async (asset) => {
-              if (!asset.asset_id) return asset;
-
-              const filePath = filePathById.get(asset.asset_id);
-              if (!filePath) return asset;
-
-              const rotation = rotationById.get(asset.asset_id) ?? 0;
-
-              const { data: signed, error: signedError } = await supabase.storage
-                .from('library-media')
-                .createSignedUrl(filePath, 60 * 60 * 24 * 30);
-
-              if (signedError) {
-                console.error('FAILED TO SIGN COVER IMAGE:', signedError);
-                return asset;
-              }
-
-              return {
-                ...asset,
-                url: signed?.signedUrl || '',
-                rotation,
-              };
-            })
-          );
-
-          return hydrated;
-        };
-
-        const rawCoverAssets = Array.isArray(coverDesign.assets)
-          ? coverDesign.assets
-          : [];
-
-        const rawBackCoverAssets = Array.isArray(backCoverDesign.assets)
-          ? backCoverDesign.assets
-          : [];
-
-        const hydratedCoverAssets = await hydrateAssetsWithUrls(rawCoverAssets);
-        const hydratedBackCoverAssets = await hydrateAssetsWithUrls(rawBackCoverAssets);
-
-        if (!active) return;
-
-        setCoverAssets(hydratedCoverAssets);
-        setBackCoverAssets(hydratedBackCoverAssets);
-      } catch (err) {
-        console.error('FAILED TO LOAD COVER STATE:', err);
-      } finally {
-        if (active) setCoversHydrated(true);
-      }
+  useEffect(() => {
+    const payload = {
+      cover_asset_id: coverAssets.find((a) => a.slot_index === 0)?.asset_id ?? null,
+      back_cover_asset_id: backCoverAssets.find((a) => a.slot_index === 0)?.asset_id ?? null,
+      cover_design: {
+        layout: coverLayout,
+        assets: coverAssets.map(({ url, ...asset }) => asset),
+      },
+      back_cover_design: {
+        layout: backCoverLayout,
+        assets: backCoverAssets.map(({ url, ...asset }) => asset),
+      },
+      spine_text: spineText,
+      spine_bg_colour: spineBgColour,
+      spine_text_colour: spineTextColour,
     };
 
-    loadCoverState();
+    const snapshot = JSON.stringify(payload);
 
-    return () => {
-      active = false;
-    };
-  }, [bookId]);
+    if (lastSavedCoverRef.current === null) {
+      lastSavedCoverRef.current = snapshot;
+      return;
+    }
+    if (snapshot === lastSavedCoverRef.current) return;
 
-    useEffect(() => {
-    if (!coversHydrated) return;
-
-    const timeout = window.setTimeout(async () => {
-      try {
-        const frontMain =
-          coverAssets.find((a) => a.slot_index === 0)?.asset_id ?? null;
-
-        const backMain =
-          backCoverAssets.find((a) => a.slot_index === 0)?.asset_id ?? null;
-
-        const { error } = await supabase
-          .from('memory_books')
-          .update({
-            cover_asset_id: frontMain,
-            back_cover_asset_id: backMain,
-            cover_design: {
-  layout: coverLayout,
-  assets: coverAssets.map(({ url, ...asset }) => asset),
-},
-back_cover_design: {
-  layout: backCoverLayout,
-  assets: backCoverAssets.map(({ url, ...asset }) => asset),
-},
-spine_text: spineText,
-spine_bg_colour: spineBgColour,
-spine_text_colour: spineTextColour,
-          })
-          .eq('id', bookId);
-
-        if (error) throw error;
-      } catch (err) {
-        console.error('FAILED TO SAVE COVER STATE:', err);
-      }
-    }, 300);
-
-    return () => window.clearTimeout(timeout);
+    lastSavedCoverRef.current = snapshot;
+    queueBookWrite('memory_books', bookId, payload, 300);
   }, [
-  bookId,
-  coverLayout,
-  backCoverLayout,
-  coverAssets,
-  backCoverAssets,
-  coversHydrated,
-  spineText,
-  spineBgColour,
-  spineTextColour,
-]);
+    bookId,
+    coverLayout,
+    backCoverLayout,
+    coverAssets,
+    backCoverAssets,
+    spineText,
+    spineBgColour,
+    spineTextColour,
+  ]);
+
+  // Leaving the editor (Back to Books, another route): send whatever is still waiting.
+  useEffect(() => {
+    return () => {
+      void flushBookWrites();
+    };
+  }, []);
 
   useLayoutEffect(() => {
     const measure = () => {
@@ -586,28 +472,37 @@ const filled = pages.filter((page) =>
   tierKey={tierKey}
   onPreview={() => setPreviewOpen(true)}
   onExport={async () => {
-  const res = await fetch(`/api/export/${bookId}`);
+  try {
+    // Anything typed in the last moment goes to the database before the PDF is drawn from it.
+    await flushBookWrites();
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error('EXPORT ERROR:', text);
-    alert('Sorry, the PDF export failed. Please try again or contact support.');
-    throw new Error(text);
+    const res = await fetch(`/api/export/${bookId}`);
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('EXPORT ERROR:', text);
+      toast.error('Sorry, the PDF export failed. Please try again or contact support.');
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${bookTitle || 'memory-book'}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('EXPORT ERROR:', err);
+    toast.error('Sorry, the PDF export failed. Please try again or contact support.');
   }
-
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${bookTitle || 'memory-book'}.pdf`;
-  a.click();
-  URL.revokeObjectURL(url);
 }}
   onSave={async () => {
+    // Everything autosaves; Save sends what is still waiting and reports the result.
     setSaveState('saving');
-    await new Promise((r) => setTimeout(r, 500));
-    setSaveState('saved');
-    setTimeout(() => setSaveState('idle'), 1500);
+    const ok = await flushBookWrites();
+    setSaveState(ok ? 'saved' : 'idle');
+    if (ok) setTimeout(() => setSaveState('idle'), 1500);
   }}
   saveState={saveState}
 />

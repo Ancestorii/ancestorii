@@ -1,21 +1,24 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Monitor } from 'lucide-react';
 import { Btn, EmptyState, toneByKey } from '@/components/dashboard/ui/AppBits';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast as toast } from '@/lib/safeToast';
 import BookCanvas from './book-canvas/BookCanvas';
-import type { Asset, Page, SelectedImage, LayoutType } from '@/types/memory-book';
+import type { Asset, BookCoverState, Page, SelectedImage, LayoutType } from '@/types/memory-book';
 import BookAI from './BookAI';
 
 export default function BookBuilder({
   bookId,
   initialPages,
+  initialCover,
   bookTitle,
   tierKey,
 }: {
   bookId: string;
   initialPages: Page[];
+  initialCover: BookCoverState;
   bookTitle: string;
   tierKey: string;
 }) {
@@ -25,23 +28,40 @@ export default function BookBuilder({
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
 
+  // Back from Stripe: checkout returns to this page with order_success or order_canceled in the
+  // url. Say so once, then drop the flag so a refresh does not repeat it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('order_success');
+    const canceled = params.get('order_canceled');
+    if (!success && !canceled) return;
+
+    if (success) {
+      toast.success('Thank you! Your order is confirmed. We will email you when your book ships.');
+    } else {
+      toast.info('Checkout cancelled. Your book is saved and ready whenever you are.');
+    }
+
+    window.history.replaceState(window.history.state, '', window.location.pathname);
+  }, []);
+
   const sortedPages = useMemo(
     () => [...pages].sort((a, b) => a.page_number - b.page_number),
     [pages]
   );
 
  const handleSetLayout = async (pageId: string, layout: LayoutType) => {
-    console.log('LAYOUT CHANGE:', pageId, layout);
     try {
       setLoading(true);
 
+      // .maybeSingle(): a change row security refuses comes back as no row, not a 406.
       const { data, error } = await supabase
         .from('memory_book_pages')
         .update({ layout_type: layout })
         .eq('id', pageId)
         .eq('book_id', bookId)
         .select('id, layout_type')
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       if (!data) throw new Error('Failed to update page layout');
@@ -55,6 +75,7 @@ export default function BookBuilder({
       );
     } catch (err) {
       console.error('LAYOUT CHANGE FAILED:', err);
+      toast.error('Could not change the page layout. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -117,6 +138,7 @@ export default function BookBuilder({
         <BookCanvas
           bookId={bookId}
           pages={sortedPages}
+          initialCover={initialCover}
           selectedImage={selectedImage}
           setSelectedImage={setSelectedImage}
           onOpenLayoutModal={handleSetLayout}

@@ -11,6 +11,8 @@ export type CanvasAsset = {
 export type SelectedImage = {
   id: string;
   file_path: string;
+  /** The library's signed URL, when known, so placing a photo need not sign it again. */
+  url?: string;
 };
 
 export type LayoutType =

@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
+import { safeToast } from '@/lib/safeToast';
 import CommentItem from '@/components/stories/comments/CommentItem';
 import CommentInput from '@/components/stories/comments/CommentInput';
 import VoiceNotePlayer from '@/components/voice/VoiceNotePlayer';
@@ -51,6 +53,18 @@ const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boo
 const STAGE_SIZES = '(max-width: 759px) 100vw, (max-width: 1279px) 46vw, 560px';
 
 type PendingPhoto = { id: string; file: File; preview: string };
+
+// The lead and the live preview show the words without their tags; the entities the editor
+// writes ("Mum &amp; Dad") read as typed.
+function decodeEntities(text: string): string {
+  return text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&amp;/g, '&');
+}
 
 type Props = {
   memoryId: string;
@@ -121,7 +135,10 @@ export default function MemoryPageContent({
     ? new Date(activeTab.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
     : '';
   const timeAgo = activeTab.createdAt ? getTimeAgo(activeTab.createdAt) : '';
-  const strippedBody = activeTab.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const isHtmlBody = activeTab.body.includes('<');
+  const strippedBody = (isHtmlBody ? decodeEntities(activeTab.body.replace(/<[^>]*>/g, ' ')) : activeTab.body)
+    .replace(/\s+/g, ' ')
+    .trim();
   const preview = strippedBody.length > 160 ? strippedBody.slice(0, 160).trim() + '…' : strippedBody;
 
   useEffect(() => { setMounted(true); }, []);
@@ -138,21 +155,53 @@ export default function MemoryPageContent({
     if (menuOpen) menuRef.current?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
   }, [menuOpen]);
 
+  // While a dialog is open the page behind it stays put (the root ScrollLockGutter keeps the
+  // width steady, so nothing here compensates for the scrollbar).
+  const dialogOpen = reportOpen || !!deleteModalId || showAddModal;
+  useEffect(() => {
+    if (!dialogOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [dialogOpen]);
+
+  // A note to the memory's author (never to themselves); it never blocks the action.
+  const notifyAuthor = async (type: 'memory_reaction' | 'memory_comment') => {
+    const memoryAuthorId = tabs[0]?.authorId;
+    if (!memoryAuthorId || memoryAuthorId === currentUserId) return;
+    try {
+      await getBrowserClient().from('notifications').insert({ user_id: memoryAuthorId, type, actor_id: currentUserId, target_id: memoryId, target_type: 'family_memory' });
+    } catch {}
+  };
+
+  // The heart flips at once and the row follows; if the row is refused, the heart goes back.
+  // One toggle at a time, so a double tap can't send two rows.
+  const reactingRef = useRef(false);
   const handleReaction = async () => {
+    if (reactingRef.current) return;
+    reactingRef.current = true;
     const supabase = getBrowserClient();
-    if (hasReacted) {
-      const { error } = await supabase.from('family_memory_reactions').delete().eq('memory_id', memoryId).eq('user_id', currentUserId);
-      if (!error) { setReactionCount((c) => c - 1); setHasReacted(false); }
-    } else {
-      const { error } = await supabase.from('family_memory_reactions').insert({ memory_id: memoryId, family_id: familyId, user_id: currentUserId });
-      if (!error) {
-        setReactionCount((c) => c + 1);
-        setHasReacted(true);
-        const rootAuthorId = tabs[0]?.authorId;
-        if (rootAuthorId && rootAuthorId !== currentUserId) {
-          try { await supabase.from('notifications').insert({ user_id: rootAuthorId, type: 'memory_reaction', actor_id: currentUserId, target_id: memoryId, target_type: 'family_memory' }); } catch {}
-        }
+    const wasReacted = hasReacted;
+    setHasReacted(!wasReacted);
+    setReactionCount((c) => c + (wasReacted ? -1 : 1));
+    try {
+      if (wasReacted) {
+        const { data, error } = await supabase.from('family_memory_reactions').delete().eq('memory_id', memoryId).eq('user_id', currentUserId).select('id');
+        if (error || !data?.length) throw error || new Error('Nothing deleted');
+      } else {
+        const { error } = await supabase.from('family_memory_reactions').insert({ memory_id: memoryId, family_id: familyId, user_id: currentUserId });
+        // 23505: the heart was already there (another tab, the app); the page just caught up.
+        if (error && error.code !== '23505') throw error;
+        if (!error) void notifyAuthor('memory_reaction');
       }
+    } catch {
+      setHasReacted(wasReacted);
+      setReactionCount((c) => c + (wasReacted ? 1 : -1));
+      safeToast.error('Could not save your heart. Please try again.');
+    } finally {
+      reactingRef.current = false;
     }
   };
 
@@ -160,12 +209,28 @@ export default function MemoryPageContent({
     if (!deleteModalId || deleting) return;
     setDeleting(true);
     const supabase = getBrowserClient();
-    const { error } = await supabase.from('family_memories').delete().eq('id', deleteModalId);
-    if (!error) {
+    const targetId = deleteModalId;
+    try {
+      // The row first: row security only lets the author delete, and a refused delete returns
+      // no rows (deleteWithOwnerCheck says so). Photos, comments, hearts and voice notes cascade.
+      const ok = await deleteWithOwnerCheck(supabase, 'family_memories', targetId, 'memory');
+      if (!ok) { setDeleting(false); return; }
+      // Then the author's own files for it (photos, video, voice note). Other members' voice
+      // notes and voice comments live in their own folders, which only they can clear.
+      try {
+        const folder = `${currentUserId}/${targetId}`;
+        const { data: files } = await supabase.storage.from('memory-media').list(folder, { limit: 1000 });
+        if (files?.length) await supabase.storage.from('memory-media').remove(files.map((f) => `${folder}/${f.name}`));
+      } catch {}
+      window.dispatchEvent(new Event('dashboard-data-changed'));
       setDeleteModalId(null);
       setDeleting(false);
-      if (deleteModalId === memoryId) { router.replace('/dashboard/home'); } else { router.refresh(); setActiveTabIndex(0); }
-    } else { setDeleting(false); }
+      if (targetId === memoryId) { router.replace('/dashboard/our-family'); } else { router.refresh(); setActiveTabIndex(0); }
+    } catch (err) {
+      console.error('Memory delete failed:', err);
+      setDeleting(false);
+      safeToast.error('Could not delete this memory. Please try again.');
+    }
   };
 
   const handleShare = async () => {
@@ -173,111 +238,129 @@ export default function MemoryPageContent({
     const text = `${activeTab.title}, a memory on Ancestorii`;
     if (navigator.share) {
       try { await navigator.share({ title: 'Ancestorii', text, url }); } catch {}
-    } else {
+      return;
+    }
+    try {
       await navigator.clipboard.writeText(url);
+      safeToast.success('Link copied. Only members of your family can open it.');
+    } catch {
+      safeToast.error('Could not copy the link.');
     }
   };
 
-  const fetchComments = async () => {
+  // The signed-in member's name and photo, read once (for their first comment or voice note).
+  // The id comes from the server, so nothing here asks the auth server again.
+  const selfRef = useRef<{ name: string; avatarPath: string | null; avatarUrl: string | null } | null>(null);
+  const loadSelf = async () => {
+    if (selfRef.current) return selfRef.current;
     const supabase = getBrowserClient();
-    const { data } = await supabase.from('family_memory_comments').select('id, user_id, author_name, author_avatar_url, content, voice_note_path, created_at, parent_id').eq('memory_id', memoryId).order('created_at');
-    if (data) {
-      const signed = await Promise.all(
-        data.map(async (c) => {
-          let author_avatar_url = c.author_avatar_url;
-          if (author_avatar_url && !author_avatar_url.startsWith('http')) {
-            const { data: s } = await supabase.storage.from('user-media').createSignedUrl(author_avatar_url, 3600);
-            author_avatar_url = s?.signedUrl || null;
-          }
-          let voice_note_path: string | null = null;
-          if (c.voice_note_path) {
-            const { data: s } = await supabase.storage.from('memory-media').createSignedUrl(c.voice_note_path, 3600);
-            voice_note_path = s?.signedUrl || null;
-          }
-          return { ...c, author_avatar_url, voice_note_path };
-        })
-      );
-      setComments(signed);
+    const { data: profile } = await supabase.from('Profiles').select('full_name, profile_image_url, avatar_url').eq('id', currentUserId).maybeSingle();
+    const avatarPath = profile?.profile_image_url || profile?.avatar_url || null;
+    let avatarUrl = avatarPath;
+    if (avatarPath && !avatarPath.startsWith('http')) {
+      const { data: s } = await supabase.storage.from('user-media').createSignedUrl(avatarPath, 3600);
+      avatarUrl = s?.signedUrl || null;
     }
+    selfRef.current = { name: profile?.full_name || 'Family Member', avatarPath, avatarUrl };
+    return selfRef.current;
+  };
+
+  // The files behind a voice note or voice comment: the path on the row (the converted .m4a
+  // once the converter has run) and the .webm it was uploaded as. Only the uploader's own.
+  const removeVoiceFiles = async (path: string) => {
+    const paths = [...new Set([path, path.replace(/\.[^/.]+$/, '.webm')])];
+    try { await getBrowserClient().storage.from('memory-media').remove(paths); } catch {}
   };
 
   const handleVoiceComment = async (file: File) => {
     const supabase = getBrowserClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('You must be signed in.');
-    const { data: profile } = await supabase.from('Profiles').select('full_name, profile_image_url, avatar_url').eq('id', user.id).single();
-    const avatarPath = profile?.profile_image_url || profile?.avatar_url || null;
-    const path = `${user.id}/${memoryId}/comment-voice-${Date.now()}.webm`;
+    const self = await loadSelf();
+    const path = `${currentUserId}/${memoryId}/comment-voice-${Date.now()}.webm`;
     const { error: upErr } = await supabase.storage.from('memory-media').upload(path, file, { contentType: file.type || 'audio/webm', upsert: true });
     if (upErr) throw upErr;
-    const { error } = await supabase.from('family_memory_comments').insert({ memory_id: memoryId, family_id: familyId, user_id: user.id, author_name: profile?.full_name || 'Family Member', author_avatar_url: avatarPath, content: null, voice_note_path: path, parent_id: replyingTo?.id || null });
-    if (error) throw error;
-    const memoryAuthorId = tabs[0]?.authorId;
-    if (memoryAuthorId && memoryAuthorId !== user.id) {
-      try { await supabase.from('notifications').insert({ user_id: memoryAuthorId, type: 'memory_comment', actor_id: user.id, target_id: memoryId, target_type: 'family_memory' }); } catch {}
-    }
-    await fetchComments();
+    const parentId = replyingTo?.id || null;
+    const { data: row, error } = await supabase
+      .from('family_memory_comments')
+      .insert({ memory_id: memoryId, family_id: familyId, user_id: currentUserId, author_name: self.name, author_avatar_url: self.avatarPath, content: null, voice_note_path: path, parent_id: parentId })
+      .select('id, created_at')
+      .single();
+    if (error || !row) throw error || new Error('Could not save your voice note.');
+    // Played from the file just uploaded (the converted copy takes over on the next visit).
+    const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(path, 3600);
+    setComments((prev) => [...prev, {
+      id: row.id, user_id: currentUserId, author_name: self.name, author_avatar_url: self.avatarUrl,
+      content: null, voice_note_path: signed?.signedUrl || null, voice_path: path, created_at: row.created_at, parent_id: parentId,
+    }]);
+    void notifyAuthor('memory_comment');
     setReplyingTo(null);
     setRecordingComment(false);
   };
 
   const handleAddVoiceNote = async (file: File) => {
     const supabase = getBrowserClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('You must be signed in.');
     const targetId = activeTab.id;
-    const path = `${user.id}/${targetId}/voice-${Date.now()}.webm`;
+    const path = `${currentUserId}/${targetId}/voice-${Date.now()}.webm`;
     const { error: upErr } = await supabase.storage.from('memory-media').upload(path, file, { contentType: file.type || 'audio/webm', upsert: true });
     if (upErr) throw upErr;
-    const { data: row, error: insErr } = await supabase.from('family_memory_voice_notes').insert({ memory_id: targetId, family_id: familyId, user_id: user.id, file_path: path }).select('id, created_at').single();
-    if (insErr) throw insErr;
-    const { data: profile } = await supabase.from('Profiles').select('full_name, profile_image_url, avatar_url').eq('id', user.id).single();
-    let avatarUrl = profile?.profile_image_url || profile?.avatar_url || null;
-    if (avatarUrl && !avatarUrl.startsWith('http')) {
-      const { data: s } = await supabase.storage.from('user-media').createSignedUrl(avatarUrl, 3600);
-      avatarUrl = s?.signedUrl || null;
-    }
-    const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(path, 3600);
+    const [{ data: row, error: insErr }, self, { data: signed }] = await Promise.all([
+      supabase.from('family_memory_voice_notes').insert({ memory_id: targetId, family_id: familyId, user_id: currentUserId, file_path: path }).select('id, created_at').single(),
+      loadSelf(),
+      supabase.storage.from('memory-media').createSignedUrl(path, 3600),
+    ]);
+    if (insErr || !row) throw insErr || new Error('Could not save your voice note.');
     const newNote: MemoryVoiceNote = {
-      id: row.id, memoryId: targetId, recorderId: user.id,
-      recorderName: profile?.full_name || 'Family Member', recorderAvatarUrl: avatarUrl,
-      url: signed?.signedUrl || '', createdAt: row.created_at, isRecorder: true,
+      id: row.id, memoryId: targetId, recorderId: currentUserId,
+      recorderName: self.name, recorderAvatarUrl: self.avatarUrl,
+      url: signed?.signedUrl || '', path, createdAt: row.created_at, isRecorder: true,
     };
     setVoiceNotesByTab((prev) => ({ ...prev, [targetId]: [...(prev[targetId] || []), newNote] }));
     setAddingVoiceNote(false);
   };
 
-  const handleDeleteVoiceNote = async (noteId: string) => {
-    const supabase = getBrowserClient();
-    const { error } = await supabase.from('family_memory_voice_notes').delete().eq('id', noteId);
-    if (!error) {
-      setVoiceNotesByTab((prev) => ({ ...prev, [activeTab.id]: (prev[activeTab.id] || []).filter((n) => n.id !== noteId) }));
+  const handleDeleteVoiceNote = async (note: MemoryVoiceNote) => {
+    try {
+      const ok = await deleteWithOwnerCheck(getBrowserClient(), 'family_memory_voice_notes', note.id, 'voice note');
+      if (!ok) return;
+      setVoiceNotesByTab((prev) => ({ ...prev, [note.memoryId]: (prev[note.memoryId] || []).filter((n) => n.id !== note.id) }));
+      void removeVoiceFiles(note.path);
+    } catch {
+      safeToast.error('Could not delete this voice note. Please try again.');
     }
   };
 
   const handleCommentSubmit = async (content: string) => {
     const supabase = getBrowserClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data: profile } = await supabase.from('Profiles').select('full_name, profile_image_url, avatar_url').eq('id', user.id).single();
-    const avatarPath = profile?.profile_image_url || profile?.avatar_url || null;
-    const { error } = await supabase.from('family_memory_comments').insert({ memory_id: memoryId, family_id: familyId, user_id: user.id, author_name: profile?.full_name || 'Family Member', author_avatar_url: avatarPath, content, parent_id: replyingTo?.id || null });
-    if (!error) {
-      const memoryAuthorId = tabs[0]?.authorId;
-      if (memoryAuthorId && memoryAuthorId !== user.id) {
-        try { await supabase.from('notifications').insert({ user_id: memoryAuthorId, type: 'memory_comment', actor_id: user.id, target_id: memoryId, target_type: 'family_memory' }); } catch {}
-      }
-      await fetchComments();
-      setReplyingTo(null);
-    } else {
-      console.error('Comment insert failed:', error.message);
+    const self = await loadSelf();
+    const parentId = replyingTo?.id || null;
+    const { data: row, error } = await supabase
+      .from('family_memory_comments')
+      .insert({ memory_id: memoryId, family_id: familyId, user_id: currentUserId, author_name: self.name, author_avatar_url: self.avatarPath, content, parent_id: parentId })
+      .select('id, created_at')
+      .single();
+    if (error || !row) {
+      console.error('Comment insert failed:', error?.message);
+      safeToast.error('Could not post your comment. Please try again.');
+      return;
     }
+    setComments((prev) => [...prev, {
+      id: row.id, user_id: currentUserId, author_name: self.name, author_avatar_url: self.avatarUrl,
+      content, voice_note_path: null, voice_path: null, created_at: row.created_at, parent_id: parentId,
+    }]);
+    void notifyAuthor('memory_comment');
+    setReplyingTo(null);
   };
 
   const handleCommentDelete = async (commentId: string) => {
-    const supabase = getBrowserClient();
-    const { error } = await supabase.from('family_memory_comments').delete().eq('id', commentId);
-    if (!error) { setComments((prev) => prev.filter((c) => c.id !== commentId && c.parent_id !== commentId)); }
+    try {
+      const ok = await deleteWithOwnerCheck(getBrowserClient(), 'family_memory_comments', commentId, 'comment');
+      if (!ok) return;
+      // Replies to it go with it (the database cascades), and so do its own voice files.
+      const gone = comments.filter((c) => c.id === commentId || c.parent_id === commentId);
+      setComments((prev) => prev.filter((c) => c.id !== commentId && c.parent_id !== commentId));
+      gone.forEach((c) => { if (c.voice_path && c.user_id === currentUserId) void removeVoiceFiles(c.voice_path); });
+    } catch {
+      safeToast.error('Could not delete this comment. Please try again.');
+    }
   };
 
   const topLevelComments = comments.filter((c) => !c.parent_id);
@@ -303,13 +386,15 @@ export default function MemoryPageContent({
           <div className={ui.headerGlow} aria-hidden="true" />
 
           <div className={s.topRow}>
+            {/* A real link: the shell hides its navigation here, and a fresh tab (a notification,
+                an email) has no page to go back to. */}
             <Btn
               variant="soft"
               size="sm"
-              onClick={() => router.back()}
+              href="/dashboard/our-family"
               icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
             >
-              Back to feed
+              Back to My Family
             </Btn>
 
             <div className={s.topActions}>
@@ -437,7 +522,7 @@ export default function MemoryPageContent({
         {/* ═══ BODY: the story, the voice notes beside it, the comments under it ═══ */}
         <div className={s.body}>
           <div className={s.story}>
-            {activeTab.body.includes('<') ? (
+            {isHtmlBody ? (
               <div className={s.richBody} dangerouslySetInnerHTML={{ __html: sanitiseHtml(activeTab.body) }} />
             ) : (
               <div className={s.richBody}>
@@ -473,7 +558,7 @@ export default function MemoryPageContent({
               {activeVoiceNotes.length > 0 && (
                 <ul className={s.voiceList}>
                   {activeVoiceNotes.map((note) => (
-                    <MemoryVoiceNoteItem key={note.id} note={note} onDelete={() => handleDeleteVoiceNote(note.id)} />
+                    <MemoryVoiceNoteItem key={note.id} note={note} onDelete={() => handleDeleteVoiceNote(note)} />
                   ))}
                 </ul>
               )}
@@ -667,7 +752,7 @@ export default function MemoryPageContent({
       )}
 
       {/* ═══ ADD MEMORY MODAL ═══ */}
-      {showAddModal && (<AddMemoryModal memoryId={memoryId} familyId={familyId} promptQuestion={promptQuestion} parentAuthorId={tabs[0]?.authorId || ''} onClose={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); router.refresh(); }} />)}
+      {showAddModal && (<AddMemoryModal memoryId={memoryId} familyId={familyId} currentUserId={currentUserId} promptQuestion={promptQuestion} parentAuthorId={tabs[0]?.authorId || ''} onClose={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); router.refresh(); }} />)}
     </article>
   );
 }
@@ -738,7 +823,7 @@ function MemoryVoiceNoteItem({ note, onDelete }: { note: MemoryVoiceNote; onDele
         </span>
         <div className={s.voiceWho}>
           <p className={s.voiceName}>{note.recorderName}</p>
-          <p className={s.voiceDate}>{dateLabel}</p>
+          <p className={s.voiceDate} suppressHydrationWarning>{dateLabel}</p>
         </div>
         {note.isRecorder && (
           <div className={s.voiceCtrl}>
@@ -775,7 +860,7 @@ function AuthorAvatar({ avatarUrl, name, initials, size }: { avatarUrl: string |
   );
 }
 
-function AddMemoryModal({ memoryId, familyId, promptQuestion, parentAuthorId, onClose, onSuccess }: { memoryId: string; familyId: string; promptQuestion: string | null; parentAuthorId: string; onClose: () => void; onSuccess: () => void }) {
+function AddMemoryModal({ memoryId, familyId, currentUserId, promptQuestion, parentAuthorId, onClose, onSuccess }: { memoryId: string; familyId: string; currentUserId: string; promptQuestion: string | null; parentAuthorId: string; onClose: () => void; onSuccess: () => void }) {
   const supabase = getBrowserClient();
   const [body, setBody] = useState('');
   const [photos, setPhotos] = useState<PendingPhoto[]>([]);
@@ -796,14 +881,26 @@ function AddMemoryModal({ memoryId, familyId, promptQuestion, parentAuthorId, on
   const handleSubmit = async () => {
     if (!body.trim() || submitting) return; setSubmitting(true); setError('');
     try {
-      const { data: { user } } = await supabase.auth.getUser(); if (!user) throw new Error('Not authenticated');
       setSubmitStep('Saving…');
-      const { data: memory, error: memErr } = await supabase.from('family_memories').insert({ family_id: familyId, author_id: user.id, parent_memory_id: memoryId, title: promptQuestion || 'My memory of this moment', body: body.trim() }).select('id').single();
-      if (memErr) throw memErr;
-      for (let i = 0; i < photos.length; i++) { setSubmitStep(`Uploading photo ${i + 1}/${photos.length}…`); const ext = photos[i].file.name.split('.').pop() || 'jpg'; const filePath = `${user.id}/${memory.id}/${Date.now()}-${i}.${ext}`; const { error: upErr } = await supabase.storage.from('memory-media').upload(filePath, photos[i].file); if (upErr) throw upErr; await supabase.from('family_memory_media').insert({ memory_id: memory.id, family_id: familyId, user_id: user.id, file_path: filePath, file_type: 'image', display_order: i }); }
-      if (parentAuthorId && parentAuthorId !== user.id) { try { await supabase.from('notifications').insert({ user_id: parentAuthorId, type: 'memory_addition', actor_id: user.id, target_id: memoryId, target_type: 'family_memory' }); } catch {} }
+      const { data: memory, error: memErr } = await supabase.from('family_memories').insert({ family_id: familyId, author_id: currentUserId, parent_memory_id: memoryId, title: promptQuestion || 'My memory of this moment', body: body.trim() }).select('id').single();
+      if (memErr || !memory) throw memErr || new Error('Could not save your memory.');
+      // The memory is saved by now: a photo that fails is reported, not a reason to stop (a
+      // retry would save the memory twice).
+      let failed = 0;
+      for (let i = 0; i < photos.length; i++) {
+        setSubmitStep(`Uploading photo ${i + 1}/${photos.length}…`);
+        const ext = photos[i].file.name.split('.').pop() || 'jpg';
+        const filePath = `${currentUserId}/${memory.id}/${Date.now()}-${i}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('memory-media').upload(filePath, photos[i].file);
+        if (upErr) { failed++; continue; }
+        const { error: rowErr } = await supabase.from('family_memory_media').insert({ memory_id: memory.id, family_id: familyId, user_id: currentUserId, file_path: filePath, file_type: 'image', display_order: i });
+        if (rowErr) failed++;
+      }
+      if (failed) safeToast.error(failed === 1 ? 'One photo could not be uploaded.' : `${failed} photos could not be uploaded.`);
+      if (parentAuthorId && parentAuthorId !== currentUserId) { try { await supabase.from('notifications').insert({ user_id: parentAuthorId, type: 'memory_addition', actor_id: currentUserId, target_id: memoryId, target_type: 'family_memory' }); } catch {} }
+      window.dispatchEvent(new Event('dashboard-data-changed'));
       onSuccess();
-    } catch (err: any) { setError(err?.message || 'Something went wrong.'); setSubmitting(false); }
+    } catch (err) { setError(err instanceof Error && err.message ? err.message : 'Something went wrong.'); setSubmitting(false); }
   };
   return (
     <div className={s.addLayer}>

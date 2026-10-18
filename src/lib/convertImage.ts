@@ -57,7 +57,10 @@ export const ensureDisplayableImage = async (file: File): Promise<File> => {
     // heic2any failed
   }
 
-  // ── Attempt 3: server-side Sharp conversion (bulletproof) ──
+  // ── Attempt 3: server-side conversion (/api/convert-image, heic-convert) ──
+  // Given up on after 40 seconds, so a stuck request never leaves an upload spinning.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 40_000);
   try {
     const formData = new FormData();
     formData.append('file', file);
@@ -65,6 +68,7 @@ export const ensureDisplayableImage = async (file: File): Promise<File> => {
     const res = await fetch('/api/convert-image', {
       method: 'POST',
       body: formData,
+      signal: controller.signal,
     });
 
     if (res.ok) {
@@ -72,9 +76,14 @@ export const ensureDisplayableImage = async (file: File): Promise<File> => {
       if (jpegBlob && jpegBlob.size > 0) {
         return new File([jpegBlob], newName, { type: 'image/jpeg' });
       }
+    } else {
+      const body = await res.json().catch(() => null);
+      console.warn('Server HEIC conversion refused:', res.status, body?.error ?? '');
     }
   } catch {
-    // Server conversion failed
+    // Server conversion failed or timed out
+  } finally {
+    clearTimeout(timer);
   }
 
   // ── Last resort: return original ──

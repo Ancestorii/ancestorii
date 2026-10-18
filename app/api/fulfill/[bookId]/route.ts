@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import { createClient } from '@supabase/supabase-js';
-import { prodigiCallbackUrl } from '@/lib/prodigiCallback';
+import { fulfillSecretMatches, prodigiCallbackUrl } from '@/lib/prodigiCallback';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,9 +14,8 @@ export async function POST(
 ) {
   const { bookId } = await params;
 
-  // ── Auth: shared secret ──
-  const authHeader = request.headers.get('x-fulfill-secret') || '';
-  if (authHeader !== process.env.FULFILL_SECRET) {
+  // ── Auth: shared secret (compared in constant time) ──
+  if (!fulfillSecretMatches(request.headers.get('x-fulfill-secret'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -48,7 +47,47 @@ export async function POST(
       throw new Error('Book not found: ' + (bookError?.message ?? ''));
     }
 
-    // ── 2. Update order status ──
+    // ── 2. The order, read BEFORE the browser work (it used to be read after two minutes of
+    //       rendering, so an unpaid, repeated or address-less order only failed then) ──
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .eq('book_id', bookId)
+      .maybeSingle();
+
+    if (orderError || !order) {
+      throw new Error('Order not found: ' + (orderError?.message ?? ''));
+    }
+
+    // Only a paid order goes to print (the webhook marks it paid before calling here).
+    if (order.payment_status !== 'paid') {
+      return NextResponse.json({ error: 'Order is not paid' }, { status: 409 });
+    }
+
+    // Called again (a retry, a manual re-trigger) for a book already with Prodigi: nothing to do.
+    if (order.prodigi_order_id) {
+      return NextResponse.json({
+        success: true,
+        prodigi_order_id: order.prodigi_order_id,
+        already_submitted: true,
+      });
+    }
+
+    // ── Guard: don't submit with incomplete address ──
+    if (!order.shipping_line1 || !order.shipping_city || !order.shipping_country) {
+      await supabase
+        .from('orders')
+        .update({ status: 'error', prodigi_status: 'error' })
+        .eq('id', orderId);
+
+      return NextResponse.json(
+        { error: 'Incomplete shipping address: cannot submit to Prodigi' },
+        { status: 400 }
+      );
+    }
+
+    // ── Update order status ──
     await supabase
       .from('orders')
       .update({ status: 'generating_pdf' })
@@ -156,10 +195,18 @@ export async function POST(
     console.log('[FULFILL] page loaded, html length:', pageContent.length);
 
     console.log('[FULFILL] waiting for data-export-ready signal');
+    // Ready, or the page says why it cannot be (a missing book), instead of a 60s timeout.
     await page.waitForFunction(
-      () => document.querySelector('[data-export-ready="true"]') !== null,
+      () => document.querySelector('[data-export-ready="true"], [data-export-error]') !== null,
       { timeout: 60_000 }
     );
+
+    const exportError = await page.evaluate(
+      () => document.querySelector('[data-export-error]')?.getAttribute('data-export-error') ?? null
+    );
+    if (exportError) {
+      throw new Error(`Export page error: ${exportError}`);
+    }
     console.log('[FULFILL] export ready signal received');
 
     await new Promise((r) => setTimeout(r, 1500));
@@ -202,30 +249,6 @@ export async function POST(
       clearInterval(memInterval);
     }
     console.log('[FULFILL] page.pdf() complete, buffer size:', pdfBuffer.length);
-
-    // ── 4. Get order details (need shipping_country for spine dimensions) ──
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single();
-
-    if (orderError || !order) {
-      throw new Error('Order not found: ' + (orderError?.message ?? ''));
-    }
-
-    // ── Guard: don't submit with incomplete address ──
-    if (!order.shipping_line1 || !order.shipping_city || !order.shipping_country) {
-      await supabase
-        .from('orders')
-        .update({ status: 'error', prodigi_status: 'error' })
-        .eq('id', orderId);
-
-      return NextResponse.json(
-        { error: 'Incomplete shipping address: cannot submit to Prodigi' },
-        { status: 400 }
-      );
-    }
 
     // ── 5. Generate spine image ──
     let spineUrl: string | null = null;

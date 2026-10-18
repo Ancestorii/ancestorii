@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from 'react'; // ✅ ADDED useEffect
 import { inter } from '@/lib/fonts';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast as toast } from '@/lib/safeToast';
 import type { Asset, SelectedImage } from '@/types/memory-book';
 import Image from "next/image";
 
@@ -86,12 +87,16 @@ export default function Slot({
       return;
     }
 
+    // A heading or comment typed before the photo (or kept after the last one was removed)
+    // travels with the new row, instead of vanishing from the page.
     const { data: insertedRow, error: insertError } = await supabase
       .from('memory_book_page_assets')
       .insert({
         page_id: pageId,
         asset_id: libraryMediaId,
         slot_index: asset.slot_index,
+        subheading: asset.subheading ?? null,
+        comment: asset.comment ?? null,
       })
       .select()
       .maybeSingle();
@@ -130,6 +135,7 @@ export default function Slot({
       clearSelectedImage();
     } catch (err) {
       console.error('INSERT ERROR:', err);
+      toast.error('Could not place the photo. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -216,13 +222,24 @@ export default function Slot({
           e.stopPropagation();
           if (!asset.id) return;
           try {
-            await supabase
-  .from('memory_book_page_assets')
-  .delete()
-  .eq('id', asset.id);
-onUpdate({ ...asset, id: undefined, asset_id: undefined, url: undefined });
+            // Only the book's creator may delete its rows (creator_delete): a refused delete
+            // returns no rows and no error, so the reply is checked before the slot clears.
+            const { data, error } = await supabase
+              .from('memory_book_page_assets')
+              .delete()
+              .eq('id', asset.id)
+              .select('id');
+
+            if (error) throw error;
+            if (!data || data.length === 0) {
+              toast.error('Only the person who created this book can remove its photos.');
+              return;
+            }
+
+            onUpdate({ ...asset, id: undefined, asset_id: undefined, url: undefined });
           } catch (err) {
             console.error('Failed to clear slot:', err);
+            toast.error('Could not remove the photo. Please try again.');
           }
         }}
         style={{

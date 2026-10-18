@@ -2,7 +2,7 @@
 
 import Slot from '../Slot';
 import { inter } from '@/lib/fonts';
-import { getBrowserClient } from '@/lib/supabase/browser';
+import { queueBookWrite } from '../bookAutosave';
 import type { Asset, SelectedImage } from '@/types/memory-book';
 import { safeToast as toast } from '@/lib/safeToast';
 
@@ -85,12 +85,7 @@ export default function DuoLayout({
               e.target.style.height = 'auto';
               e.target.style.height = e.target.scrollHeight + 'px';
               if (!asset.id) return;
-              const supabase = getBrowserClient();
-              supabase
-                .from('memory_book_page_assets')
-                .update({ subheading: e.target.value })
-                .eq('id', asset.id)
-                .then();
+              queueBookWrite('memory_book_page_assets', asset.id, { subheading: e.target.value });
               onUpdateAsset({ ...asset, subheading: e.target.value });
             }}
             style={{
@@ -143,12 +138,7 @@ export default function DuoLayout({
             onChange={(e) => {
               if (!asset.id) return;
               if (e.target.value.length > 180) return;
-              const supabase = getBrowserClient();
-              supabase
-                .from('memory_book_page_assets')
-                .update({ comment: e.target.value })
-                .eq('id', asset.id)
-                .then();
+              queueBookWrite('memory_book_page_assets', asset.id, { comment: e.target.value });
               onUpdateAsset({ ...asset, comment: e.target.value });
             }}
             rows={4}

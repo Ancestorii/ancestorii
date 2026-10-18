@@ -16,6 +16,12 @@ import {
   useDialog,
 } from '@/components/dashboard/ui/AppBits';
 import s from './LibraryPickerModal.module.css';
+import {
+  fetchLibraryFolders,
+  getCachedLibraryFolders,
+  signLibraryPaths,
+  type LibraryFolderSummary,
+} from '@/lib/libraryData';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
@@ -42,16 +48,7 @@ export type LibraryPickerItem = {
   file_size?: number | null;
 };
 
-type LibraryFolder = {
-  id: string;
-  name: string;
-  description: string | null;
-  folder_date: string | null;
-  created_at: string | null;
-  media_count: number;
-  cover_url: string | null;
-  cover_file_type: string | null;
-};
+type LibraryFolder = LibraryFolderSummary;
 
 type Props = {
   open: boolean;
@@ -79,8 +76,11 @@ export default function LibraryPickerModal({
   const [view, setView] = useState<'folders' | 'media'>('folders');
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
 
-  // Data
+  // Data. The folder list (with its covers) is shared with the Library page and kept per tab, so
+  // the picker opens on the last list at once and refreshes it behind; foldersLoading shows only
+  // when there is no list yet. `loading` is a folder's own photos.
   const [loading, setLoading] = useState(false);
+  const [foldersLoading, setFoldersLoading] = useState(false);
   const [folders, setFolders] = useState<LibraryFolder[]>([]);
   const [media, setMedia] = useState<LibraryPickerItem[]>([]);
   const [signedMap, setSignedMap] = useState<Record<string, string>>({});
@@ -133,79 +133,30 @@ export default function LibraryPickerModal({
   const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
   // ── Data fetching ──────────────────────────────────────────
+  // One query for the folders, their counts and their covers (it was the folders, then every
+  // media row of every folder, then the signing). With a list from earlier in this tab it shows
+  // that at once and refreshes behind, with no loader.
   const fetchFolders = async () => {
-    setLoading(true);
-    try {
-      // Folders (RLS scopes to current user's family)
-      const { data: foldersData, error: foldersErr } = await supabase
-        .from('library_folders')
-        .select('id, name, description, folder_date, created_at')
-        .order('created_at', { ascending: false });
-
-      if (foldersErr) throw foldersErr;
-
-      const folderRows = foldersData || [];
-
-      if (folderRows.length === 0) {
-        setFolders([]);
-        return;
-      }
-
-      // All media for those folders, one query, sorted desc.
-      // We use it for both: per-folder counts AND the cover (first row per folder).
-      const folderIds = folderRows.map((f) => f.id);
-      const { data: mediaData, error: mediaErr } = await supabase
-        .from('library_media')
-        .select('id, folder_id, file_path, file_type, created_at')
-        .in('folder_id', folderIds)
-        .order('created_at', { ascending: false });
-
-      if (mediaErr) throw mediaErr;
-
-      const countByFolder: Record<string, number> = {};
-      const coverByFolder: Record<string, { file_path: string; file_type: string }> = {};
-      (mediaData || []).forEach((m: any) => {
-        if (!m.folder_id) return;
-        countByFolder[m.folder_id] = (countByFolder[m.folder_id] || 0) + 1;
-        if (!coverByFolder[m.folder_id]) {
-          coverByFolder[m.folder_id] = {
-            file_path: m.file_path,
-            file_type: m.file_type,
-          };
-        }
-      });
-
-      // Sign the covers in one request (it was one request per folder, each with a cache buster
-      // that made the browser download every cover again on every open)
-      const coverMap: Record<string, { url: string | null; file_type: string | null }> = {};
-      const withCover = folderRows.filter((f) => coverByFolder[f.id]);
-      if (withCover.length > 0) {
-        const { data: signed } = await supabase.storage
-          .from(bucket)
-          .createSignedUrls(withCover.map((f) => coverByFolder[f.id].file_path), 60 * 60 * 24 * 7);
-        withCover.forEach((f, i) => {
-          coverMap[f.id] = { url: signed?.[i]?.signedUrl ?? null, file_type: coverByFolder[f.id].file_type };
-        });
-      }
-
-      const merged: LibraryFolder[] = folderRows.map((f) => ({
-        id: f.id,
-        name: f.name,
-        description: f.description,
-        folder_date: f.folder_date,
-        created_at: f.created_at,
-        media_count: countByFolder[f.id] || 0,
-        cover_url: coverMap[f.id]?.url ?? null,
-        cover_file_type: coverMap[f.id]?.file_type ?? null,
-      }));
-
-      setFolders(merged);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err?.message || 'Failed to load library.');
+    // The local session, not a round trip to the auth server.
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user?.id;
+    if (!uid) {
       setFolders([]);
+      return;
+    }
+
+    const cached = getCachedLibraryFolders(uid, bucket);
+    if (cached) setFolders(cached);
+    else setFoldersLoading(true);
+
+    try {
+      setFolders(await fetchLibraryFolders(supabase, uid, bucket));
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error && err.message ? err.message : 'Failed to load library.');
+      if (!cached) setFolders([]);
     } finally {
-      setLoading(false);
+      setFoldersLoading(false);
     }
   };
 
@@ -228,15 +179,14 @@ export default function LibraryPickerModal({
         return;
       }
 
-      // One signing request for the folder, and the rows land together with their URLs (they
-      // showed "Preview unavailable" until each one's own request came back)
-      const { data: signed } = await supabase.storage
-        .from(bucket)
-        .createSignedUrls(rows.map((item) => item.file_path), 60 * 60 * 24 * 7);
+      // One signing request for whatever this tab has not signed yet (a URL is kept for days, so
+      // the browser's cache holds the thumbnails between opens), and the rows land together with
+      // their URLs (they showed "Preview unavailable" until each one's own request came back).
+      const urls = await signLibraryPaths(supabase, bucket, rows.map((item) => item.file_path));
 
       const next: Record<string, string> = {};
-      rows.forEach((item, i) => {
-        const url = signed?.[i]?.signedUrl;
+      rows.forEach((item) => {
+        const url = urls[item.file_path];
         if (url) next[item.id] = url;
       });
       setMedia(rows);
@@ -385,9 +335,9 @@ export default function LibraryPickerModal({
         )}
 
         {/* Body */}
-        <div className={ui.sheetBody} aria-busy={loading || undefined}>
-          {loading ? (
-            <AppLoader label="Loading your library" className="min-h-full" />
+        <div className={ui.sheetBody} aria-busy={loading || foldersLoading || undefined}>
+          {(view === 'folders' ? foldersLoading && folders.length === 0 : loading) ? (
+            <DelayedLoader />
           ) : view === 'folders' ? (
             folders.length === 0 ? (
               <EmptyState
@@ -560,6 +510,21 @@ function prettyType(t: string) {
   if (x === 'file') return 'File';
   if (x === 'other') return 'Other';
   return x ? x[0].toUpperCase() + x.slice(1) : 'Media';
+}
+
+// A loader that holds back for a moment: a folder that lands inside it goes straight on screen
+// instead of three dots flashing first. The box keeps the body's height meanwhile.
+function DelayedLoader() {
+  const [due, setDue] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setDue(true), 150);
+    return () => clearTimeout(t);
+  }, []);
+  return due ? (
+    <AppLoader label="Loading your library" className="min-h-full" />
+  ) : (
+    <div className="min-h-full" aria-hidden="true" />
+  );
 }
 
 function PickerImage({ src, alt }: { src: string; alt: string }) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import { createClient } from '@supabase/supabase-js';
+import { getServerClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,26 @@ export async function GET(
     return NextResponse.json({ error: 'Missing acrylicId' }, { status: 400 });
   }
 
+  // Only a signed-in member of the print's family may download it. The cookie-bound client
+  // verifies the user (getUser checks the token with the auth server, which is right for a
+  // route handler) and asks for the print under row security; the service role below is used
+  // only after that for the export dimensions. The route used to answer anyone who knew the id.
+  const authed = await getServerClient();
+  const {
+    data: { user },
+  } = await authed.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const { data: visible } = await authed
+    .from('acrylic_prints')
+    .select('id')
+    .eq('id', acrylicId)
+    .maybeSingle();
+  if (!visible) {
+    return NextResponse.json({ error: 'Acrylic print not found' }, { status: 404 });
+  }
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -25,7 +46,7 @@ export async function GET(
     .from('acrylic_prints')
     .select('title, export_width_px, export_height_px')
     .eq('id', acrylicId)
-    .single();
+    .maybeSingle();
 
   if (acrylicError || !acrylic) {
     return NextResponse.json({ error: 'Acrylic print not found' }, { status: 404 });
@@ -40,15 +61,8 @@ export async function GET(
 
   const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/acrylic/${acrylicId}`;
 
-  const cookieHeader = request.headers.get('cookie') || '';
-  const cookies = cookieHeader
-    .split(';')
-    .map((c) => {
-      const [name, ...rest] = c.trim().split('=');
-      return { name: name?.trim(), value: rest.join('=')?.trim(), domain: 'www.ancestorii.com', path: '/' };
-    })
-    .filter((c) => c.name && c.value);
-
+  // The export page reads with the service role, so the caller's session cookies are not
+  // forwarded to the (third-party) print browser: it never needed them.
   let browser;
   const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
@@ -91,8 +105,6 @@ export async function GET(
         req.continue();
       }
     });
-
-    if (cookies.length) await page.setCookie(...cookies);
 
     await page.setViewport({ width: vpW, height: vpH, deviceScaleFactor: dpr });
 

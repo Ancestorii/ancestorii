@@ -79,27 +79,20 @@ export default function CreateFolderModal({
     };
   }, [open]);
 
-  // Pre-fill in edit mode whenever the modal opens or the folder changes
-  useEffect(() => {
-    if (!open) return;
-    if (mode === 'edit' && folder) {
-      setName(folder.name);
-      setDescription(folder.description || '');
-      setFolderDate(folder.folder_date || '');
-    }
-  }, [open, mode, folder]);
-
-  // Reset on close
-  useEffect(() => {
-    if (open) return;
-    const t = setTimeout(() => {
-      setName('');
-      setDescription('');
-      setFolderDate('');
+  // The fields follow the folder as the modal opens. Set during render (not in an effect after
+  // it), so the first frame never shows empty fields, or the previous folder's words, in edit.
+  const [openedFor, setOpenedFor] = useState<string | null>(null);
+  const openKey = open ? `${mode}:${folder?.id ?? 'new'}` : null;
+  if (openKey !== openedFor) {
+    setOpenedFor(openKey);
+    if (openKey) {
+      const editing = mode === 'edit' && folder ? folder : null;
+      setName(editing?.name ?? '');
+      setDescription(editing?.description ?? '');
+      setFolderDate(editing?.folder_date ?? '');
       setSubmitting(false);
-    }, 200);
-    return () => clearTimeout(t);
-  }, [open]);
+    }
+  }
 
   const handleSubmit = async () => {
     if (submitting) return;
@@ -124,13 +117,19 @@ export default function CreateFolderModal({
           })
           .eq('id', folder.id)
           .select('*')
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        // Row security returns no row, not an error, when the update is not allowed.
+        if (!data) {
+          toast.error('This folder could not be updated.');
+          return;
+        }
         toast.success('Folder updated.');
         onUpdated?.(data as LibraryFolderRow);
       } else {
-        const { data: { user } } = await supabase.auth.getUser();
+        // The local session, not a round trip to the auth server.
+        const user = (await supabase.auth.getSession()).data.session?.user;
         if (!user) {
           toast.error('Not authenticated.');
           setSubmitting(false);

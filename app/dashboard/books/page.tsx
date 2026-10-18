@@ -8,7 +8,6 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import LegacyCelebration from '@/components/LegacyCelebration';
 import { ContextMenuDots } from '@/components/ContextMenuDots';
-import { usePlanLimits } from '@/lib/usePlanLimits';
 import CreateBookDrawer from './_components/CreateBookDrawer';
 import Image from "next/image";
 import {
@@ -68,8 +67,6 @@ export default function BooksPage() {
   const confirmTitleId = useId();
   const confirmTextId = useId();
 
-  const { loading: limitsLoading, canCreate } = usePlanLimits();
-
   const line1 = '“Turn your memories into something you can hold.”';
   const line2 = 'Create beautifully structured memory books from your moments.';
 
@@ -122,21 +119,22 @@ export default function BooksPage() {
 
           if (coverError) throw coverError;
 
-          const signedEntries = await Promise.all(
-            (coverRows || []).map(async (cover: any) => {
-              const { data: signed } = await supabase.storage
-                .from('library-media')
-                .createSignedUrl(cover.file_path, 60 * 60 * 24 * 30);
+          // One signing call for every cover (not one per book), and no cache buster: the
+          // browser keeps the image between visits, so covers no longer pop in late.
+          const rows = (coverRows || []) as { id: string; file_path: string }[];
+          const { data: signed } = await supabase.storage
+            .from('library-media')
+            .createSignedUrls(rows.map((cover) => cover.file_path), 60 * 60 * 24 * 30);
 
-              return [
-                cover.id,
-                signed?.signedUrl ? `${signed.signedUrl}&cb=${Date.now()}` : '',
-              ] as const;
-            })
-          );
+          const urlByPath = new Map<string, string>();
+          for (const s of signed || []) {
+            if (s.path && s.signedUrl) urlByPath.set(s.path, s.signedUrl);
+          }
 
           coverMap = new Map(
-            signedEntries.filter(([, url]) => Boolean(url))
+            rows
+              .map((cover) => [cover.id, urlByPath.get(cover.file_path) || ''] as const)
+              .filter(([, url]) => Boolean(url))
           );
         }
 
@@ -171,27 +169,16 @@ export default function BooksPage() {
 
       setBooks((prev) => (prev ? prev.filter((b) => b.id !== id) : prev));
       toast.success('Memory book deleted.');
+      window.dispatchEvent(new Event('dashboard-data-changed'));
     } catch {
       toast.error('Failed to delete memory book.');
     }
   };
 
-  const canCreateBook =
-    (canCreate as any)?.book ??
-    (canCreate as any)?.memory_book ??
-    (canCreate as any)?.memoryBooks ??
-    (canCreate as any)?.album ??
-    true;
-
-  // The create button (in the header and in the empty state).
+  // The create button (in the header and in the empty state). Memory Books have no plan limit
+  // (they are bought, not stored against a tier): the page used to run the five plan-limit
+  // queries and, finding no book limit, gate this button on the ALBUM limit by mistake.
   const openCreate = () => {
-    if (limitsLoading) return;
-
-    if (!canCreateBook) {
-      toast.error('You’ve reached your plan limit.');
-      return;
-    }
-
     setDrawerMode('create');
     setSelectedBook(null);
     setDrawerOpen(true);
@@ -389,6 +376,7 @@ export default function BooksPage() {
   };
 
   setBooks((prev) => [nextBook, ...(prev ?? [])]);
+  window.dispatchEvent(new Event('dashboard-data-changed'));
 
   setTimeout(() => setCelebrate(true), 200);
 }}

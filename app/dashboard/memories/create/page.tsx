@@ -8,12 +8,20 @@ export default async function CreateMemoryPage() {
   const user = auth?.user;
   if (!user) return notFound();
 
-  const { data: membership } = await supabase
-    .from('family_memberships')
-    .select('family_id')
-    .eq('user_id', user.id)
-    .limit(1)
-    .maybeSingle();
+  // The family to write into, and whether this member wants Story Assistance: both at once.
+  const [{ data: membership }, { data: profile }] = await Promise.all([
+    supabase
+      .from('family_memberships')
+      .select('family_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('Profiles')
+      .select('writing_assistance_enabled')
+      .eq('id', user.id)
+      .maybeSingle(),
+  ]);
 
   if (!membership) return notFound();
 
@@ -21,6 +29,7 @@ export default async function CreateMemoryPage() {
     <MemoryEditorPage
       mode="create"
       familyId={membership.family_id}
+      assistanceEnabled={profile?.writing_assistance_enabled !== false}
     />
   );
 }

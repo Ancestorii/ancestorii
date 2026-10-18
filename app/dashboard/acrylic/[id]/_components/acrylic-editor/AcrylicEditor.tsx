@@ -83,7 +83,11 @@ export default function AcrylicEditor({
 
   const aspectRatio = getAspectRatio(acrylicSize, orientation);
   const totalSlots = getSlotCount(layoutType);
-  const filledSlots = assets.filter((a) => a.url || a.asset_id).length;
+  // Counted per slot of the current layout, so a row left over from an earlier layout (a higher
+  // slot_index) neither inflates the progress nor lets an order through with slot 0 empty.
+  const filledSlots = Array.from({ length: totalSlots }, (_, i) =>
+    assets.some((a) => a.slot_index === i && (a.url || a.asset_id))
+  ).filter(Boolean).length;
   const totalPhotos = filledSlots;
   const totalCaptions = assets.filter((a) => a.caption?.trim()).length;
   const progress = totalSlots > 0 ? Math.round((filledSlots / totalSlots) * 100) : 0;
@@ -187,6 +191,7 @@ export default function AcrylicEditor({
               title={acrylicTitle}
               acrylicId={acrylicId}
               tierKey={tierKey}
+              emptySlots={Math.max(0, totalSlots - filledSlots)}
               onPreview={() => setPreviewOpen(true)}
               onSave={async () => {
                 setSaveState('saving');

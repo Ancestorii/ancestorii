@@ -149,7 +149,7 @@ export default function CanvasPage() {
 
         /* 3: Sign URLs for the preview assets */
         const assetIds = Array.from(new Set(Array.from(previewMap.values())));
-        let urlMap = new Map<string, string>(); // asset_id → signed URL
+        const urlMap = new Map<string, string>(); // asset_id → signed URL
 
         if (assetIds.length > 0) {
           const { data: mediaRows, error: mediaError } = await supabase
@@ -159,22 +159,21 @@ export default function CanvasPage() {
 
           if (mediaError) throw mediaError;
 
-          const signedEntries = await Promise.all(
-            (mediaRows || []).map(async (media: any) => {
-              const { data: signed } = await supabase.storage
-                .from('library-media')
-                .createSignedUrl(media.file_path, 60 * 60 * 24 * 30);
+          // One signing call for every preview (it used to be one round trip per canvas), and
+          // no cache buster: a replaced photo gets a new path, so the browser may keep these.
+          const rows = (mediaRows || []) as { id: string; file_path: string }[];
+          if (rows.length > 0) {
+            const paths = rows.map((m) => m.file_path);
+            const { data: signed } = await supabase.storage
+              .from('library-media')
+              .createSignedUrls(paths, 60 * 60 * 24 * 30);
 
-              return [
-                media.id,
-                signed?.signedUrl
-                  ? `${signed.signedUrl}&cb=${Date.now()}`
-                  : '',
-              ] as const;
-            })
-          );
-
-          urlMap = new Map(signedEntries.filter(([, url]) => Boolean(url)));
+            const idByPath = new Map(rows.map((m) => [m.file_path, m.id]));
+            (signed ?? []).forEach((item, i) => {
+              const id = idByPath.get(item.path ?? paths[i]);
+              if (id && item.signedUrl) urlMap.set(id, item.signedUrl);
+            });
+          }
         }
 
         /* 4: Assemble final canvas list */
@@ -223,11 +222,13 @@ export default function CanvasPage() {
     }
   };
 
+  // Canvases have no plan limit (no plans column, no database trigger), so none is applied here.
+  // This used to fall back to the ALBUM limit, which told a Free family at its album cap that it
+  // had "reached its plan limit" when it tried to buy a canvas.
   const canCreateCanvas =
     (canCreate as any)?.canvas ??
     (canCreate as any)?.memory_canvas ??
     (canCreate as any)?.memoryCanvases ??
-    (canCreate as any)?.album ??
     true;
 
   // The create button (in the header and in the empty state).

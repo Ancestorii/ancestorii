@@ -13,6 +13,7 @@ export default function CanvasHeader({
   title,
   canvasId,
   tierKey,
+  filledSlots,
   onSave,
   onPreview,
   saveState = 'idle',
@@ -20,6 +21,7 @@ export default function CanvasHeader({
   title: string;
   canvasId: string;
   tierKey: string;
+  filledSlots: number;
   onSave: () => void;
   onPreview: () => void;
   saveState?: 'idle' | 'saving' | 'saved';
@@ -31,6 +33,11 @@ export default function CanvasHeader({
 
   const handleOrder = async () => {
     if (ordering) return;
+    // A canvas with no photo at all would be printed blank.
+    if (filledSlots === 0) {
+      toast.error('Add at least one photo before ordering your canvas.');
+      return;
+    }
     setOrdering(true);
 
     try {
@@ -77,11 +84,18 @@ export default function CanvasHeader({
       );
 
       const text = await res.text();
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
-
-      const data = JSON.parse(text);
+      let data: { url?: string; error?: string } | null = null;
+      try {
+        data = JSON.parse(text) as { url?: string; error?: string };
+      } catch {
+        data = null;
+      }
+      // The checkout function answers errors as { error: "plain English" }: show that, not the
+      // raw JSON.
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}: ${text}`);
 
       if (data?.url) {
+        // Stripe Checkout lives on stripe.com: a full navigation is the only way there.
         window.location.href = data.url;
       } else {
         throw new Error('No checkout URL returned.');

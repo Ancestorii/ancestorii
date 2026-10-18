@@ -1,6 +1,6 @@
 import { getServerClient } from '@/lib/supabase/server';
 import { sanitizeRichText } from '@/lib/richText/server';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import MemoryPageContent from './MemoryPageContent';
 
 export type MemoryVoiceNote = {
@@ -10,6 +10,8 @@ export type MemoryVoiceNote = {
   recorderName: string;
   recorderAvatarUrl: string | null;
   url: string;
+  /** The storage path (memory-media), so the recorder's delete can remove the file too. */
+  path: string;
   createdAt: string;
   isRecorder: boolean;
 };
@@ -34,10 +36,31 @@ export type MemoryComment = {
   author_name: string;
   author_avatar_url: string | null;
   content: string | null;
+  /** A signed URL for the voice comment, when it has one. */
   voice_note_path: string | null;
+  /** The storage path (memory-media) of that voice comment, for the delete. */
+  voice_path: string | null;
   created_at: string;
   parent_id: string | null;
 };
+
+type SignedMap = Map<string, string>;
+
+/** One signing call for a whole bucket: path -> signed URL (paths that fail are left out). */
+async function signAll(
+  supabase: Awaited<ReturnType<typeof getServerClient>>,
+  bucket: string,
+  paths: string[]
+): Promise<SignedMap> {
+  const map: SignedMap = new Map();
+  const unique = [...new Set(paths.filter(Boolean))];
+  if (!unique.length) return map;
+  const { data } = await supabase.storage.from(bucket).createSignedUrls(unique, 3600);
+  (data || []).forEach((r) => {
+    if (r.path && r.signedUrl && !r.error) map.set(r.path, r.signedUrl);
+  });
+  return map;
+}
 
 export default async function MemoryPage(props: {
   params: Promise<{ id: string }>;
@@ -50,43 +73,67 @@ export default async function MemoryPage(props: {
 
   const memoryId = params.id;
 
-  /* ── Fetch the memory ── */
+  /* ── Fetch the memory (row security already limits it to the user's families) ── */
   const { data: memory } = await supabase
     .from('family_memories')
-   .select('id, family_id, author_id, parent_memory_id, prompt_id, title, body, video_path, created_at')
+    .select('id, family_id, author_id, parent_memory_id, prompt_id, title, body, video_path, created_at')
     .eq('id', memoryId)
-    .single();
+    .maybeSingle();
 
   if (!memory) return notFound();
 
-  /* ── Verify family membership ── */
-  const { data: membership } = await supabase
-    .from('family_memberships')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('family_id', memory.family_id)
-    .maybeSingle();
-
-  if (!membership) return notFound();
-
   /* ── If this is a child memory, redirect to the parent ── */
   if (memory.parent_memory_id) {
-    const { redirect } = await import('next/navigation');
     redirect(`/dashboard/memories/${memory.parent_memory_id}`);
   }
 
-  /* ── Fetch child memories (tabs) ── */
-  const { data: childMemories } = await supabase
-    .from('family_memories')
-    .select('id, author_id, title, body, video_path, created_at')
-    .eq('parent_memory_id', memoryId)
-    .order('created_at');
+  /* ── Everything that only needs the memory, in one round ── */
+  const [
+    { data: membership },
+    { data: childMemories },
+    { count: reactionCount },
+    { data: userReaction },
+    { data: commentsData },
+    { data: prompt },
+  ] = await Promise.all([
+    supabase
+      .from('family_memberships')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('family_id', memory.family_id)
+      .maybeSingle(),
+    supabase
+      .from('family_memories')
+      .select('id, author_id, title, body, video_path, created_at')
+      .eq('parent_memory_id', memoryId)
+      .order('created_at'),
+    supabase
+      .from('family_memory_reactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('memory_id', memoryId),
+    supabase
+      .from('family_memory_reactions')
+      .select('id')
+      .eq('memory_id', memoryId)
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('family_memory_comments')
+      .select('id, user_id, author_name, author_avatar_url, content, voice_note_path, created_at, parent_id')
+      .eq('memory_id', memoryId)
+      .order('created_at'),
+    memory.prompt_id
+      ? supabase.from('memory_prompts').select('question').eq('id', memory.prompt_id).maybeSingle()
+      : Promise.resolve({ data: null as { question: string } | null }),
+  ]);
+
+  if (!membership) return notFound();
 
   const allMemoryRows = [memory, ...(childMemories || [])];
   const allMemoryIds = allMemoryRows.map((m) => m.id);
   const allAuthorIds = [...new Set(allMemoryRows.map((m) => m.author_id))];
 
-  /* ── Batch fetch: media (images) + voice notes (keyed by memory id) ── */
+  /* ── Media (images) + voice notes for every perspective, keyed by memory id ── */
   const [{ data: allMedia }, { data: allVoiceNotes }] = await Promise.all([
     supabase
       .from('family_memory_media')
@@ -101,57 +148,52 @@ export default async function MemoryPage(props: {
       .order('created_at'),
   ]);
 
-  /* ── Profiles for memory authors AND voice-note recorders ── */
+  /* ── Profiles for authors and recorders, and every memory-media file, in one round ── */
   const allProfileIds = [...new Set([...allAuthorIds, ...(allVoiceNotes || []).map((v) => v.user_id)])];
-  const { data: authorProfiles } = await supabase
-    .from('Profiles')
-    .select('id, full_name, profile_image_url, avatar_url')
-    .in('id', allProfileIds);
-
-  /* ── Sign all URLs ── */
-  const mediaByMemory = new Map<string, string[]>();
-  const mediaResults = await Promise.all(
-    (allMedia || []).map(async (m) => {
-      const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(m.file_path, 3600);
-      return { memory_id: m.memory_id, signedUrl: signed?.signedUrl || null };
-    })
-  );
-  mediaResults.forEach((r) => {
-    if (!r.signedUrl) return;
-    if (!mediaByMemory.has(r.memory_id)) mediaByMemory.set(r.memory_id, []);
-    mediaByMemory.get(r.memory_id)!.push(r.signedUrl);
-  });
-
-  const avatarMap = new Map<string, string>();
-  const videoUrlMap = new Map<string, string>();
-  const voiceNoteSignedMap = new Map<string, string>(); // voice note id -> signed url
-
-  await Promise.all([
-    ...(authorProfiles || []).map(async (p: any) => {
-      const imgPath = p.profile_image_url || p.avatar_url;
-      if (!imgPath) return;
-      if (imgPath.startsWith('http')) { avatarMap.set(p.id, imgPath); return; }
-      const { data: signed } = await supabase.storage.from('user-media').createSignedUrl(imgPath, 3600);
-      if (signed?.signedUrl) avatarMap.set(p.id, signed.signedUrl);
-    }),
-    ...(allVoiceNotes || []).map(async (v) => {
-      const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(v.file_path, 3600);
-      if (signed?.signedUrl) voiceNoteSignedMap.set(v.id, signed.signedUrl);
-    }),
-    ...allMemoryRows.filter((m) => m.video_path).map(async (m) => {
-      const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(m.video_path, 3600);
-      if (signed?.signedUrl) videoUrlMap.set(m.id, signed.signedUrl);
-    }),
+  const comments = commentsData || [];
+  const [{ data: authorProfiles }, mediaSigned] = await Promise.all([
+    supabase
+      .from('Profiles')
+      .select('id, full_name, profile_image_url, avatar_url')
+      .in('id', allProfileIds),
+    signAll(supabase, 'memory-media', [
+      ...(allMedia || []).map((m) => m.file_path),
+      ...(allVoiceNotes || []).map((v) => v.file_path),
+      ...allMemoryRows.map((m) => m.video_path).filter((p): p is string => !!p),
+      ...comments.map((c) => c.voice_note_path).filter((p): p is string => !!p),
+    ]),
   ]);
 
-  /* ── Build tabs ── */
+  /* ── Avatars (authors, recorders and commenters): one signing call for user-media ── */
+  const avatarPathOf = (p: { profile_image_url: string | null; avatar_url: string | null }) =>
+    p.profile_image_url || p.avatar_url || null;
+  const avatarSigned = await signAll(supabase, 'user-media', [
+    ...(authorProfiles || []).map(avatarPathOf).filter((p): p is string => !!p && !p.startsWith('http')),
+    ...comments.map((c) => c.author_avatar_url).filter((p): p is string => !!p && !p.startsWith('http')),
+  ]);
+  const avatarUrlFor = (path: string | null) =>
+    !path ? null : path.startsWith('http') ? path : avatarSigned.get(path) || null;
+
+  const mediaByMemory = new Map<string, string[]>();
+  (allMedia || []).forEach((m) => {
+    const url = mediaSigned.get(m.file_path);
+    if (!url) return;
+    if (!mediaByMemory.has(m.memory_id)) mediaByMemory.set(m.memory_id, []);
+    mediaByMemory.get(m.memory_id)!.push(url);
+  });
+
   const profileMap = new Map<string, string>();
-  (authorProfiles || []).forEach((p: any) => profileMap.set(p.id, p.full_name || 'Family Member'));
+  const avatarMap = new Map<string, string>();
+  (authorProfiles || []).forEach((p) => {
+    profileMap.set(p.id, p.full_name || 'Family Member');
+    const url = avatarUrlFor(avatarPathOf(p));
+    if (url) avatarMap.set(p.id, url);
+  });
 
   /* ── Group voice notes per memory (per tab) ── */
   const voiceNotesByMemory = new Map<string, MemoryVoiceNote[]>();
   (allVoiceNotes || []).forEach((v) => {
-    const url = voiceNoteSignedMap.get(v.id);
+    const url = mediaSigned.get(v.file_path);
     if (!url) return;
     const note: MemoryVoiceNote = {
       id: v.id,
@@ -160,6 +202,7 @@ export default async function MemoryPage(props: {
       recorderName: profileMap.get(v.user_id) || 'Family Member',
       recorderAvatarUrl: avatarMap.get(v.user_id) || null,
       url,
+      path: v.file_path,
       createdAt: v.created_at,
       isRecorder: v.user_id === user.id,
     };
@@ -178,62 +221,22 @@ export default async function MemoryPage(props: {
     authorId: m.author_id,
     images: (mediaByMemory.get(m.id) || []).map((url) => ({ url })),
     voiceNotes: voiceNotesByMemory.get(m.id) || [],
-    videoPath: videoUrlMap.get(m.id) || null,
+    videoPath: (m.video_path && mediaSigned.get(m.video_path)) || null,
     createdAt: m.created_at,
     isAuthor: m.author_id === user.id,
   }));
 
-  /* ── Reactions ── */
-  const { count: reactionCount } = await supabase
-    .from('family_memory_reactions')
-    .select('*', { count: 'exact', head: true })
-    .eq('memory_id', memoryId);
-
-  const { data: userReaction } = await supabase
-    .from('family_memory_reactions')
-    .select('id')
-    .eq('memory_id', memoryId)
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  /* ── Comments ── */
-  const { data: commentsData } = await supabase
-    .from('family_memory_comments')
-    .select('id, user_id, author_name, author_avatar_url, content, voice_note_path, created_at, parent_id')
-    .eq('memory_id', memoryId)
-    .order('created_at');
-
-  const commentsWithAvatars = await Promise.all(
-    (commentsData || []).map(async (c: any) => {
-      let avatarUrl = c.author_avatar_url;
-      if (avatarUrl && !avatarUrl.startsWith('http')) {
-        const { data: signed } = await supabase.storage.from('user-media').createSignedUrl(avatarUrl, 3600);
-        avatarUrl = signed?.signedUrl || null;
-      }
-      let voiceUrl: string | null = null;
-      if (c.voice_note_path) {
-        const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(c.voice_note_path, 3600);
-        voiceUrl = signed?.signedUrl || null;
-      }
-      return {
-        id: c.id, user_id: c.user_id, author_name: c.author_name,
-        author_avatar_url: avatarUrl, content: c.content, voice_note_path: voiceUrl,
-        created_at: c.created_at, parent_id: c.parent_id,
-      };
-    })
-  );
-  const comments: MemoryComment[] = commentsWithAvatars;
-
-  /* ── Prompt question (if memory came from a prompt) ── */
-  let promptQuestion: string | null = null;
-  if (memory.prompt_id) {
-    const { data: prompt } = await supabase
-      .from('memory_prompts')
-      .select('question')
-      .eq('id', memory.prompt_id)
-      .single();
-    promptQuestion = prompt?.question || null;
-  }
+  const commentRows: MemoryComment[] = comments.map((c) => ({
+    id: c.id,
+    user_id: c.user_id,
+    author_name: c.author_name,
+    author_avatar_url: avatarUrlFor(c.author_avatar_url),
+    content: c.content,
+    voice_note_path: (c.voice_note_path && mediaSigned.get(c.voice_note_path)) || null,
+    voice_path: c.voice_note_path,
+    created_at: c.created_at,
+    parent_id: c.parent_id,
+  }));
 
   return (
     <MemoryPageContent
@@ -242,9 +245,9 @@ export default async function MemoryPage(props: {
       tabs={tabs}
       reactionCount={reactionCount || 0}
       userHasReacted={!!userReaction}
-      comments={comments}
+      comments={commentRows}
       currentUserId={user.id}
-      promptQuestion={promptQuestion}
+      promptQuestion={prompt?.question || null}
     />
   );
 }

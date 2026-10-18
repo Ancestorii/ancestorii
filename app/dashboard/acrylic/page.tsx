@@ -8,7 +8,6 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import LegacyCelebration from '@/components/LegacyCelebration';
 import { ContextMenuDots } from '@/components/ContextMenuDots';
-import { usePlanLimits } from '@/lib/usePlanLimits';
 import CreateAcrylicDrawer from './_components/CreateAcrylicDrawer';
 import Image from 'next/image';
 import {
@@ -79,8 +78,6 @@ export default function AcrylicPage() {
   const confirmTitleId = useId();
   const confirmTextId = useId();
 
-  const { loading: limitsLoading, canCreate } = usePlanLimits();
-
   const line1 = '“Crystal-clear memories that last a lifetime.”';
   const line2 =
     'Create gallery-grade acrylic prints from your most treasured photos.';
@@ -125,49 +122,45 @@ export default function AcrylicPage() {
 
         const printIds = (data || []).map((p: any) => p.id);
 
-        let previewMap = new Map<string, string>();
+        // The first slot of every print, with its file path in the same read (one query instead
+        // of two), then one signing call for all of them. No cache buster: a replaced photo gets
+        // a new path, so the browser may keep these between visits.
+        const previewMap = new Map<string, string>();
+        const pathByAsset = new Map<string, string>();
 
         if (printIds.length > 0) {
           const { data: previewRows, error: previewError } = await supabase
             .from('acrylic_print_assets')
-            .select('acrylic_id, asset_id')
+            .select('acrylic_id, asset_id, library_media!acrylic_print_assets_asset_id_fkey ( file_path )')
             .in('acrylic_id', printIds)
             .eq('slot_index', 0);
 
           if (previewError) throw previewError;
 
-          for (const row of previewRows || []) {
+          for (const row of (previewRows || []) as any[]) {
             previewMap.set(row.acrylic_id, row.asset_id);
+            const filePath = row.library_media?.file_path;
+            if (filePath) pathByAsset.set(row.asset_id, filePath);
           }
         }
 
-        const assetIds = Array.from(new Set(Array.from(previewMap.values())));
-        let urlMap = new Map<string, string>();
+        const urlMap = new Map<string, string>();
+        const paths = Array.from(new Set(pathByAsset.values()));
 
-        if (assetIds.length > 0) {
-          const { data: mediaRows, error: mediaError } = await supabase
-            .from('library_media')
-            .select('id, file_path')
-            .in('id', assetIds);
+        if (paths.length > 0) {
+          const { data: signed } = await supabase.storage
+            .from('library-media')
+            .createSignedUrls(paths, 60 * 60 * 24 * 30);
 
-          if (mediaError) throw mediaError;
+          const urlByPath = new Map<string, string>();
+          (signed ?? []).forEach((item, i) => {
+            if (item.signedUrl) urlByPath.set(paths[i], item.signedUrl);
+          });
 
-          const signedEntries = await Promise.all(
-            (mediaRows || []).map(async (media: any) => {
-              const { data: signed } = await supabase.storage
-                .from('library-media')
-                .createSignedUrl(media.file_path, 60 * 60 * 24 * 30);
-
-              return [
-                media.id,
-                signed?.signedUrl
-                  ? `${signed.signedUrl}&cb=${Date.now()}`
-                  : '',
-              ] as const;
-            })
-          );
-
-          urlMap = new Map(signedEntries.filter(([, url]) => Boolean(url)));
+          for (const [assetId, filePath] of pathByAsset) {
+            const url = urlByPath.get(filePath);
+            if (url) urlMap.set(assetId, url);
+          }
         }
 
         const printsWithPreviews: AcrylicPrint[] = (data || []).map(
@@ -216,21 +209,10 @@ export default function AcrylicPage() {
     }
   };
 
-  const canCreatePrint =
-    (canCreate as any)?.acrylic ??
-    (canCreate as any)?.acrylic_print ??
-    (canCreate as any)?.album ??
-    true;
-
-  // The create button (in the header and in the empty state).
+  // The create button (in the header and in the empty state). Acrylic prints have no plan
+  // limit (plans cap albums, timelines and capsules only), so nothing gates this: the old check
+  // fell through to the ALBUM limit and refused a print to anyone whose album quota was full.
   const openCreate = () => {
-    if (limitsLoading) return;
-
-    if (!canCreatePrint) {
-      toast.error('You’ve reached your plan limit.');
-      return;
-    }
-
     setDrawerMode('create');
     setSelectedPrint(null);
     setDrawerOpen(true);

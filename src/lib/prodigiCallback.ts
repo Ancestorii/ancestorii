@@ -1,4 +1,15 @@
-import { createHash } from 'crypto';
+import { createHash, timingSafeEqual } from 'crypto';
+
+// The gate on the fulfil routes: does the x-fulfill-secret header match FULFILL_SECRET? A plain
+// !== finishes sooner the earlier the strings differ, which a patient caller can measure;
+// comparing fixed-length digests takes the same time whatever was sent (and whatever length).
+export function fulfillSecretMatches(given: string | null | undefined): boolean {
+  const expected = process.env.FULFILL_SECRET;
+  if (!expected || !given) return false;
+  const a = createHash('sha256').update(given).digest();
+  const b = createHash('sha256').update(expected).digest();
+  return timingSafeEqual(a, b);
+}
 
 // The URL Prodigi calls with order status events, built per order by the fulfil routes.
 //

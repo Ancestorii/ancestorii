@@ -17,36 +17,47 @@ export default async function EditMemoryPage(props: {
     .from('family_memories')
     .select('id, family_id, author_id, title, body, voice_note_path, video_path')
     .eq('id', memoryId)
-    .single();
+    .maybeSingle();
 
   if (!memory) return notFound();
 
   // Only the author can edit
   if (memory.author_id !== user.id) return notFound();
 
-  // Fetch existing images
-  const { data: mediaRows } = await supabase
-    .from('family_memory_media')
-    .select('id, file_path, file_type')
-    .eq('memory_id', memoryId)
-    .eq('file_type', 'image')
-    .order('display_order');
-
-  const [existingImages, videoUrl, voiceUrl] = await Promise.all([
-    Promise.all(
-      (mediaRows || []).map(async (m) => {
-        const { data: signed } = await supabase.storage.from('memory-media').createSignedUrl(m.file_path, 3600);
-        return signed?.signedUrl ? { id: m.id, url: signed.signedUrl } : null;
-      })
-    ).then((results) => results.filter((img): img is { id: string; url: string } => img !== null)),
-    memory.video_path
-      ? supabase.storage.from('memory-media').createSignedUrl(memory.video_path, 3600).then((r) => r.data?.signedUrl || null)
-      : Promise.resolve(null),
-    memory.voice_note_path
-      ? supabase.storage.from('memory-media').createSignedUrl(memory.voice_note_path, 3600).then((r) => r.data?.signedUrl || null)
-      : Promise.resolve(null),
+  // The saved photos and whether this member wants Story Assistance: both at once.
+  const [{ data: mediaRows }, { data: profile }] = await Promise.all([
+    supabase
+      .from('family_memory_media')
+      .select('id, file_path, file_type')
+      .eq('memory_id', memoryId)
+      .eq('file_type', 'image')
+      .order('display_order'),
+    supabase
+      .from('Profiles')
+      .select('writing_assistance_enabled')
+      .eq('id', user.id)
+      .maybeSingle(),
   ]);
-  
+
+  // One signing call for every file (photos, video, voice note).
+  const paths = [
+    ...(mediaRows || []).map((m) => m.file_path),
+    ...(memory.video_path ? [memory.video_path] : []),
+    ...(memory.voice_note_path ? [memory.voice_note_path] : []),
+  ];
+  const signed = new Map<string, string>();
+  if (paths.length) {
+    const { data } = await supabase.storage.from('memory-media').createSignedUrls([...new Set(paths)], 3600);
+    (data || []).forEach((r) => {
+      if (r.path && r.signedUrl && !r.error) signed.set(r.path, r.signedUrl);
+    });
+  }
+
+  const existingImages = (mediaRows || []).flatMap((m) => {
+    const url = signed.get(m.file_path);
+    return url ? [{ id: m.id, url, path: m.file_path }] : [];
+  });
+
   return (
     <MemoryEditorPage
       mode="edit"
@@ -55,8 +66,9 @@ export default async function EditMemoryPage(props: {
       initialTitle={memory.title}
       initialBody={memory.body}
       initialImages={existingImages}
-      initialVideoUrl={videoUrl}
-      initialVoiceUrl={voiceUrl}
+      initialVideoUrl={(memory.video_path && signed.get(memory.video_path)) || null}
+      initialVoiceUrl={(memory.voice_note_path && signed.get(memory.voice_note_path)) || null}
+      assistanceEnabled={profile?.writing_assistance_enabled !== false}
     />
   );
 }

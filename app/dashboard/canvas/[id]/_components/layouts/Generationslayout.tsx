@@ -2,7 +2,7 @@
 
 import Slot from '../Slot';
 import { inter } from '@/lib/fonts';
-import { getBrowserClient } from '@/lib/supabase/browser';
+import { useCaptionSave } from '../useCaptionSave';
 import type { CanvasAsset, SelectedImage } from '@/types/memory-canvas';
 
 /**
@@ -29,29 +29,8 @@ export default function GenerationsLayout({
     assets.find((a) => a.slot_index === i) || { slot_index: i }
   );
 
-  const handleCaptionSave = (slot: CanvasAsset, caption: string) => {
-    onUpdateAsset({ ...slot, caption });
-    const supabase = getBrowserClient();
-    if (slot.id) {
-      supabase
-        .from('memory_canvas_assets')
-        .update({ caption })
-        .eq('id', slot.id)
-        .then();
-    } else {
-      supabase
-        .from('memory_canvas_assets')
-        .upsert(
-          { canvas_id: canvasId, slot_index: slot.slot_index, caption },
-          { onConflict: 'canvas_id,slot_index' }
-        )
-        .select()
-        .maybeSingle()
-        .then(({ data }) => {
-          if (data) onUpdateAsset({ ...slot, id: data.id, caption });
-        });
-    }
-  };
+  // Captions save after a pause in typing, and failures are reported (see useCaptionSave).
+  const handleCaptionSave = useCaptionSave(canvasId, onUpdateAsset);
 
   return (
     <div

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
-import { createClient } from '@supabase/supabase-js';
+import { getServerClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120;
+// The same budget as the fulfil route, which draws the identical PDF: a 48-page book with
+// full-size photos can take longer than two minutes, and a function killed mid-render hands
+// the browser a dropped connection instead of an error.
+export const maxDuration = 300;
 
 export async function GET(
   request: NextRequest,
@@ -16,23 +19,36 @@ export async function GET(
     return NextResponse.json({ error: 'Missing bookId' }, { status: 400 });
   }
 
-  // ── Build the export page URL ──
-  const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/book/${bookId}`;
+  // ── Who may download: a signed-in member of the book's family ──
+  // The route used to serve any book to anyone who knew its id. The cookie-bound client sees
+  // the book through row security (family_select), so a book outside the family reads as
+  // missing. getUser verifies the token with the auth server (this is server code).
+  const authClient = await getServerClient();
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
 
-  // ── Forward auth cookies so server component can query Supabase ──
-  const cookieHeader = request.headers.get('cookie') || '';
-  const cookies = cookieHeader
-    .split(';')
-    .map((c) => {
-      const [name, ...rest] = c.trim().split('=');
-      return {
-        name: name?.trim(),
-        value: rest.join('=')?.trim(),
-        domain: 'www.ancestorii.com',
-        path: '/',
-      };
-    })
-    .filter((c) => c.name && c.value);
+  if (!user) {
+    return NextResponse.json({ error: 'Please sign in to download this book.' }, { status: 401 });
+  }
+
+  const { data: visibleBook, error: visibleError } = await authClient
+    .from('memory_books')
+    .select('id')
+    .eq('id', bookId)
+    .maybeSingle();
+
+  if (visibleError) {
+    return NextResponse.json({ error: visibleError.message }, { status: 500 });
+  }
+  if (!visibleBook) {
+    return NextResponse.json({ error: 'Book not found' }, { status: 404 });
+  }
+
+  // ── Build the export page URL ──
+  // The export page reads with the service role, so the user's session cookies are NOT
+  // forwarded to the (third-party) browser any more: it never needed them.
+  const exportUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ancestorii.com'}/export/book/${bookId}`;
 
   let browser;
   const isVercel = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
@@ -94,11 +110,6 @@ export async function GET(
       }
     });
 
-    // ── Set auth cookies before navigation ──
-    if (cookies.length) {
-      await page.setCookie(...cookies);
-    }
-
     // ── Viewport: A4 landscape at 96 DPI (CSS pixels) ──
     await page.setViewport({ width: 1123, height: 794, deviceScaleFactor: 2 });
 
@@ -110,12 +121,19 @@ export async function GET(
     });
     console.log('[EXPORT] page loaded');
 
-    // ── Wait for all images to load ──
+    // ── Wait for all images to load (or for the page to report an error) ──
     console.log('[EXPORT] waiting for data-export-ready signal');
     await page.waitForFunction(
-      () => document.querySelector('[data-export-ready="true"]') !== null,
+      () => document.querySelector('[data-export-ready="true"], [data-export-error]') !== null,
       { timeout: 60_000 }
     );
+
+    const exportError = await page.evaluate(
+      () => document.querySelector('[data-export-error]')?.getAttribute('data-export-error') ?? null
+    );
+    if (exportError) {
+      throw new Error(`Export page error: ${exportError}`);
+    }
     console.log('[EXPORT] export ready signal received');
 
     // ── Extra buffer for font rendering + final paints ──

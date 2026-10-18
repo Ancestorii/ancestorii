@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
 import { createClient } from '@supabase/supabase-js';
-import { prodigiCallbackUrl } from '@/lib/prodigiCallback';
+import { fulfillSecretMatches, prodigiCallbackUrl } from '@/lib/prodigiCallback';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,8 +13,8 @@ export async function POST(
 ) {
   const { acrylicId } = await params;
 
-  const authHeader = request.headers.get('x-fulfill-secret') || '';
-  if (authHeader !== process.env.FULFILL_SECRET) {
+  // Constant-time compare (see fulfillSecretMatches), as on the book route.
+  if (!fulfillSecretMatches(request.headers.get('x-fulfill-secret'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -39,7 +39,7 @@ export async function POST(
       .from('acrylic_prints')
       .select('title, export_width_px, export_height_px, prodigi_sku')
       .eq('id', acrylicId)
-      .single();
+      .maybeSingle();
 
     if (acrylicError || !acrylic) {
       throw new Error('Acrylic not found: ' + (acrylicError?.message ?? ''));
@@ -50,10 +50,24 @@ export async function POST(
       .from('acrylic_orders')
       .select('*')
       .eq('id', orderId)
-      .single();
+      .maybeSingle();
 
     if (orderError || !order) {
       throw new Error('Order not found: ' + (orderError?.message ?? ''));
+    }
+
+    // Idempotent: the webhook can be retried and the route re-run by hand, and neither may
+    // print twice or print an unpaid order. A Prodigi id means it was already submitted (the
+    // Prodigi idempotencyKey below is the second line of defence); anything not paid waits.
+    if (order.prodigi_order_id) {
+      return NextResponse.json({
+        success: true,
+        prodigi_order_id: order.prodigi_order_id,
+        already_submitted: true,
+      });
+    }
+    if (order.payment_status !== 'paid') {
+      return NextResponse.json({ error: 'Order is not paid' }, { status: 409 });
     }
 
     if (!order.shipping_line1 || !order.shipping_city || !order.shipping_country) {

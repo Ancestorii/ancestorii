@@ -15,6 +15,7 @@ export default function AcrylicHeader({
   title,
   acrylicId,
   tierKey,
+  emptySlots = 0,
   onSave,
   onPreview,
   saveState = 'idle',
@@ -22,6 +23,7 @@ export default function AcrylicHeader({
   title: string;
   acrylicId: string;
   tierKey: string;
+  emptySlots?: number;
   onSave: () => void;
   onPreview: () => void;
   saveState?: 'idle' | 'saving' | 'saved';
@@ -33,6 +35,18 @@ export default function AcrylicHeader({
 
   const handleOrder = async () => {
     if (ordering) return;
+
+    // An empty slot prints as an empty slot (the export draws the print as it stands), so the
+    // order waits until every slot has a photo.
+    if (emptySlots > 0) {
+      toast.error(
+        emptySlots === 1
+          ? 'Add a photo to the empty slot before ordering.'
+          : `Add a photo to every slot before ordering (${emptySlots} still empty).`
+      );
+      return;
+    }
+
     setOrdering(true);
 
     try {
@@ -84,6 +98,8 @@ export default function AcrylicHeader({
       const data = JSON.parse(text);
 
       if (data?.url) {
+        // Stripe Checkout lives on checkout.stripe.com: a full navigation is the only way there
+        // (the router only moves within this site).
         window.location.href = data.url;
       } else {
         throw new Error('No checkout URL returned.');

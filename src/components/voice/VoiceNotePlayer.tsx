@@ -63,6 +63,10 @@ export default function VoiceNotePlayer({
   // An unknown (Infinity) duration showed as "Infinity:NaN".
   const fmt = (s: number) => (Number.isFinite(s) ? `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}` : '0:00');
   const pPct = duration > 0 ? progress / duration : 0;
+  // The file lives on the storage host, so the link's "download" attribute is ignored (the
+  // browser opened the audio in the tab). Storage's own download flag (what the SDK appends for
+  // createSignedUrl's download option) makes it save the file instead.
+  const downloadHref = /^https?:/.test(src) ? `${src}${src.includes('?') ? '&' : '?'}download=` : src;
 
   return (
     <div className={cx(s.player, compact && s.compact, showDownload && s.withDownload)}>
@@ -113,7 +117,7 @@ export default function VoiceNotePlayer({
       </div>
       {showDownload && (
         <a
-          href={src}
+          href={downloadHref}
           download
           className={s.download}
           aria-label="Download voice note"

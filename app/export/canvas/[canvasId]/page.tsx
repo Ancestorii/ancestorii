@@ -2,6 +2,16 @@ import ExportRenderer from './ExportRenderer';
 import type { CanvasAsset } from '@/types/memory-canvas';
 import { createClient } from '@supabase/supabase-js';
 
+// A memory_canvas_assets row with its library photo (the shape the select below returns).
+type SlotRow = {
+  id: string;
+  asset_id: string | null;
+  slot_index: number;
+  caption: string | null;
+  crop_data: Record<string, unknown> | null;
+  library_media: { file_path: string; rotation: number | null } | null;
+};
+
 export default async function CanvasExportPage({
   params,
 }: {
@@ -17,7 +27,7 @@ export default async function CanvasExportPage({
     .from('memory_canvases')
     .select('id, title, tier_key, orientation, layout_type, canvas_size, export_width_px, export_height_px')
     .eq('id', canvasId)
-    .single();
+    .maybeSingle();
 
   if (canvasError || !canvas) {
     return (
@@ -46,29 +56,29 @@ export default async function CanvasExportPage({
     );
   }
 
-  const getSignedUrl = async (path: string): Promise<string> => {
-    const { data } = await supabase.storage
+  // One signing call for every placed photo (it used to be one round trip per slot).
+  // (The untyped client infers the relation as an array; the FK hint makes it one row.)
+  const rows = (assetRows || []) as unknown as SlotRow[];
+  const paths = rows.map((a) => a.library_media?.file_path).filter(Boolean) as string[];
+  const urlByPath = new Map<string, string>();
+  if (paths.length > 0) {
+    const { data: signed } = await supabase.storage
       .from('library-media')
-      .createSignedUrl(path, 60 * 60 * 24);
-    return data?.signedUrl || '';
-  };
+      .createSignedUrls(paths, 60 * 60 * 24);
+    (signed ?? []).forEach((item, i) => {
+      if (item.signedUrl) urlByPath.set(item.path ?? paths[i], item.signedUrl);
+    });
+  }
 
-  const assets: CanvasAsset[] = await Promise.all(
-    (assetRows || []).map(async (a: any) => {
-      const filePath = a.library_media?.file_path;
-      let url = '';
-      if (filePath) url = await getSignedUrl(filePath);
-      return {
-  id: a.id,
-  asset_id: a.asset_id,
-  slot_index: a.slot_index,
-  caption: a.caption,
-  crop_data: a.crop_data || {},
-  url,
-  rotation: a.library_media?.rotation ?? 0,
-};
-    })
-  );
+  const assets: CanvasAsset[] = rows.map((a) => ({
+    id: a.id,
+    asset_id: a.asset_id ?? undefined,
+    slot_index: a.slot_index,
+    caption: a.caption,
+    crop_data: a.crop_data || {},
+    url: (a.library_media && urlByPath.get(a.library_media.file_path)) || '',
+    rotation: a.library_media?.rotation ?? 0,
+  }));
 
   return (
     <ExportRenderer

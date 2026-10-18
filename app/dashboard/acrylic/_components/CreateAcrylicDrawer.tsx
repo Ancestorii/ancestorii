@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useId, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, X } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
@@ -97,7 +97,6 @@ export default function CreateAcrylicDrawer({
   const [orientation, setOrientation] = useState<Orientation>('square');
   const [currency, setCurrency] = useState<'GBP' | 'USD' | 'EUR'>('GBP');
   const [uploading, setUploading] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const isSubmittingRef = useRef(false);
 
@@ -109,8 +108,6 @@ export default function CreateAcrylicDrawer({
   const tierLabelId = useId();
   const tierHintId = useId();
 
-  useEffect(() => setMounted(true), []);
-
   /* ── Auto-set orientation when tier changes ── */
   const activeTier = useMemo(
     () =>
@@ -118,29 +115,35 @@ export default function CreateAcrylicDrawer({
     [selectedTier]
   );
 
-  useEffect(() => {
-    if (activeTier.isSquare) {
-      setOrientation('square');
-    } else if (orientation === 'square') {
-      setOrientation('landscape');
-    }
-  }, [activeTier, orientation]);
+  // The orientation a tier allows: a square tier is square, the others keep the landscape or
+  // portrait choice. Applied when a tier is picked and when the drawer opens, so no effect has
+  // to correct the orientation after a frame has already been painted.
+  const orientationFor = (tierKey: TierKey, wanted: Orientation): Orientation => {
+    const tier = ACRYLIC_TIERS.find((t) => t.key === tierKey) ?? ACRYLIC_TIERS[1];
+    if (tier.isSquare) return 'square';
+    return wanted === 'square' ? 'landscape' : wanted;
+  };
 
   /* ── Reset / hydrate on open ── */
-  useEffect(() => {
-    if (!open) return;
-
-    if (mode === 'edit' && acrylic) {
-      setTitle(acrylic.title || '');
-      setSelectedTier((acrylic.tier_key as TierKey) || 'centrepiece');
-      setOrientation((acrylic.orientation as Orientation) || 'square');
-      return;
+  // Set during render (not in an effect after it), so the first frame never shows the previous
+  // print's title or tier.
+  const [openedFor, setOpenedFor] = useState<string | null>(null);
+  const openKey = open ? `${mode}:${acrylic?.id ?? 'new'}` : null;
+  if (openKey !== openedFor) {
+    setOpenedFor(openKey);
+    if (openKey) {
+      if (mode === 'edit' && acrylic) {
+        const tierKey = (acrylic.tier_key as TierKey) || 'centrepiece';
+        setTitle(acrylic.title || '');
+        setSelectedTier(tierKey);
+        setOrientation(orientationFor(tierKey, (acrylic.orientation as Orientation) || 'square'));
+      } else {
+        setTitle('');
+        setSelectedTier('centrepiece');
+        setOrientation('square');
+      }
     }
-
-    setTitle('');
-    setSelectedTier('centrepiece');
-    setOrientation('square');
-  }, [open, mode, acrylic]);
+  }
 
   const isEditMode = mode === 'edit';
 
@@ -176,9 +179,11 @@ export default function CreateAcrylicDrawer({
           .select(
             `id, title, tier_key, tier_name, acrylic_size, orientation, layout_type, price_gbp`
           )
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        // Row security refuses quietly (0 rows, no error): say so instead of pretending.
+        if (!data) throw new Error('This acrylic print could not be updated.');
 
         onUpdated?.(data as MemoryAcrylic);
         toast.success('Acrylic print updated!');
@@ -204,9 +209,10 @@ export default function CreateAcrylicDrawer({
             `id, title, tier_key, tier_name, acrylic_size, orientation, layout_type, price_gbp`
           )
           .eq('id', newId)
-          .single();
+          .maybeSingle();
 
         if (fetchError) throw fetchError;
+        if (!created) throw new Error('The acrylic print was created but could not be loaded. Please refresh.');
 
         onCreated?.(created as MemoryAcrylic);
         toast.success('Acrylic print created!');
@@ -228,8 +234,6 @@ export default function CreateAcrylicDrawer({
     if (!uploading) onClose();
   };
   const panelRef = useDialog<HTMLDivElement>(open, requestClose);
-
-  if (!mounted) return null;
 
   const showOrientationToggle = !activeTier.isSquare;
 
@@ -382,6 +386,7 @@ export default function CreateAcrylicDrawer({
                         onClick={() => {
                           if (isEditMode) return;
                           setSelectedTier(tier.key);
+                          setOrientation((o) => orientationFor(tier.key, o));
                         }}
                         disabled={isEditMode}
                         aria-pressed={active}

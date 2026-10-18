@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { inter } from '@/lib/fonts';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast as toast } from '@/lib/safeToast';
 import type { AcrylicAsset, SelectedImage } from '@/types/acrylic-print';
 import Image from 'next/image';
 
@@ -84,7 +85,8 @@ export default function Slot({
   };
 
   const handleInsertFromLibrary = async () => {
-    if (!selectedImage) return;
+    // A second click while the first is still placing would insert the same slot twice.
+    if (!selectedImage || loading) return;
 
     try {
       setLoading(true);
@@ -101,6 +103,7 @@ export default function Slot({
       clearSelectedImage();
     } catch (err) {
       console.error('INSERT ERROR:', err);
+      toast.error('Could not place that photo. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -181,10 +184,19 @@ export default function Slot({
                 e.stopPropagation();
                 if (!asset.id) return;
                 try {
-                  await supabase
+                  // Only the print's creator may delete a slot, and row security refuses a
+                  // family member quietly (0 rows, no error), so the result is checked before
+                  // the slot empties on screen.
+                  const { data: removed, error } = await supabase
                     .from('acrylic_print_assets')
                     .delete()
-                    .eq('id', asset.id);
+                    .eq('id', asset.id)
+                    .select('id');
+                  if (error) throw error;
+                  if (!removed || removed.length === 0) {
+                    toast.error('Only the person who created this acrylic print can remove its photos.');
+                    return;
+                  }
                   onUpdate({
   ...asset,
   id: undefined,
@@ -194,6 +206,7 @@ export default function Slot({
 });
                 } catch (err) {
                   console.error('Failed to clear slot:', err);
+                  toast.error('Could not remove that photo. Please try again.');
                 }
               }}
               style={{

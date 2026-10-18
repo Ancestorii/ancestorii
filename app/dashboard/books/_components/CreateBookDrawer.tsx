@@ -108,7 +108,6 @@ export default function CreateBookDrawer({
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const dropRef = useRef<HTMLLabelElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,8 +126,6 @@ export default function CreateBookDrawer({
     if (!uploading) onClose();
   };
   const panelRef = useDialog<HTMLDivElement>(open, requestClose);
-
-  useEffect(() => setMounted(true), []);
 
   const getTierFromBook = useCallback((value?: Partial<MemoryBook> | null): TierKey => {
     if (!value) return 'story';
@@ -152,23 +149,28 @@ export default function CreateBookDrawer({
     return 'story';
   }, []);
 
-  /* ── Reset / hydrate on open ── */
-  useEffect(() => {
-    if (!open) return;
-
-    if (mode === 'edit' && book) {
-      setTitle(book.title || '');
-      setSelectedTier(getTierFromBook(book));
-      setPreviewUrl(book._signed_cover || book.cover_image || null);
-      setCoverFile(null);
-      return;
+  /* ── Reset / hydrate on open ──
+     Decided during render, keyed by what is being opened (not in an effect after the first
+     paint, which showed the previous book's fields for a frame). Nothing resets while the
+     dialog fades out. */
+  const resetKey = open ? `${mode}:${book?.id ?? 'new'}` : null;
+  const [appliedKey, setAppliedKey] = useState<string | null>(null);
+  if (resetKey !== appliedKey) {
+    setAppliedKey(resetKey);
+    if (resetKey) {
+      if (mode === 'edit' && book) {
+        setTitle(book.title || '');
+        setSelectedTier(getTierFromBook(book));
+        setPreviewUrl(book._signed_cover || book.cover_image || null);
+        setCoverFile(null);
+      } else {
+        setTitle('');
+        setSelectedTier('story');
+        setCoverFile(null);
+        setPreviewUrl(null);
+      }
     }
-
-    setTitle('');
-    setSelectedTier('story');
-    setCoverFile(null);
-    setPreviewUrl(null);
-  }, [open, mode, book, getTierFromBook]);
+  }
 
   /* ── Preview URL from file ── */
   useEffect(() => {
@@ -357,9 +359,11 @@ export default function CreateBookDrawer({
               cover_asset_id
             `,
           )
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        // Row security refuses an update with no error and no row.
+        if (!data) throw new Error('This memory book could not be updated.');
 
         onUpdated?.({
           ...(data as MemoryBook),
@@ -421,8 +425,6 @@ export default function CreateBookDrawer({
       isSubmittingRef.current = false;
     }
   };
-
-  if (!mounted) return null;
 
   /* ────────────────────────────────────────────
      Render

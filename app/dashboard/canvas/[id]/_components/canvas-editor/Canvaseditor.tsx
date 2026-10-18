@@ -214,6 +214,7 @@ export default function CanvasEditor({
               title={canvasTitle}
               canvasId={canvasId}
               tierKey={tierKey}
+              filledSlots={filledSlots}
               onPreview={() => setPreviewOpen(true)}
               onSave={async () => {
                 setSaveState('saving');
