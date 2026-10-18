@@ -1,0 +1,196 @@
+/* ============================================================
+   Comments on a memory in the private My Family feed (CommentItem,
+   CommentInput). The public story page has its own copies
+   (StoryCommentItem, StoryCommentInput). These render inside the
+   dashboard's .app root, so the app kit's tokens and classes are
+   available; only the looks the kit doesn't have live here (a plain
+   rule here wins over the kit's "components" layer).
+   ============================================================ */
+
+/* ── One comment: the avatar, then the name, time, words and actions ── */
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* The avatar's coloured ring sits outside its box: a little room above it. */
+.avatar {
+  margin-top: 5px;
+}
+
+.main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.head {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+
+.name {
+  font-size: 14px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.time {
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.role {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.text {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.voice {
+  margin-top: 8px;
+  max-width: 440px;
+}
+
+/* Reply and Delete: small ghost buttons under the words, the first lined up with the text. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin: 4px 0 0 -10px;
+}
+
+.act {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+/* The second tap of a delete: the kit's red. */
+.actDanger {
+  margin-left: 4px;
+  padding: 0 12px;
+  background: var(--danger);
+  color: #fff;
+}
+
+@media (hover: hover) {
+  .act:not(.actDanger):hover {
+    background: var(--hover);
+  }
+}
+
+/* With a mouse, Delete shows on hover or keyboard focus (as before); touch screens always
+   see it. */
+@media (hover: hover) and (pointer: fine) {
+  .reveal {
+    opacity: 0;
+  }
+
+  .row:hover .reveal,
+  .reveal:focus-visible {
+    opacity: 1;
+  }
+
+  /* When the hidden Delete is the only action (my own reply), it waits on the name's line, as
+     it did before, instead of leaving an empty line under the words. */
+  .main:has(> .actions > .reveal:only-child) {
+    position: relative;
+  }
+
+  .main:has(> .actions > .reveal:only-child) > .head {
+    padding-right: 76px;
+  }
+
+  .actions:has(> .reveal:only-child) {
+    position: absolute;
+    top: -8px;
+    right: 0;
+    margin: 0;
+  }
+}
+
+/* Replies sit under the comment, lined up with its words. */
+.replies {
+  display: grid;
+  gap: 14px;
+  margin: 12px 0 0 52px;
+}
+
+.replies .row {
+  gap: 10px;
+}
+
+@media (max-width: 599px) {
+  .replies {
+    margin-left: 24px;
+  }
+}
+
+/* ── Writing a comment: the kit field and an ink send button ── */
+
+.inputRow {
+  display: flex;
+  gap: 10px;
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.send {
+  width: 52px;
+  height: 52px;
+}
+
+/* Signed out: a field-shaped button in place of the box. */
+.login {
+  width: 100%;
+  min-height: 52px;
+  justify-content: flex-start;
+  padding: 0 16px;
+  font-weight: 600;
+  text-align: left;
+  white-space: normal;
+}
+
+/* Touch screens: 44px tap targets for Reply, Delete and Cancel. Last, so it wins. */
+@media (pointer: coarse) {
+  .act {
+    min-height: 44px;
+  }
+}

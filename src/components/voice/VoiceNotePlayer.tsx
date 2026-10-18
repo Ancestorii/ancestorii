@@ -2,6 +2,9 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { Play, Pause, Download } from 'lucide-react';
+import s from './voice.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 /**
  * Bar heights (0.2 to 1) from a seeded generator, so the server and the browser
@@ -20,8 +23,9 @@ function waveformBars(src: string, count: number) {
 }
 
 /**
- * Waveform audio player for a single voice note (signed URL).
- * Pure player row: callers provide any surrounding frame/header.
+ * Waveform audio player for a single voice note (signed URL), in the app kit's look:
+ * a pill with an ink play button, the waveform (played bars in pink) and the times.
+ * Callers provide any surrounding header (who recorded it, and when).
  */
 export default function VoiceNotePlayer({
   src,
@@ -48,21 +52,18 @@ export default function VoiceNotePlayer({
   };
   const seek = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = audioRef.current;
-    if (!el || !duration) return;
+    // A WebM recording can report an Infinity duration: there is nothing to seek across.
+    if (!el || !duration || !Number.isFinite(duration)) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     el.currentTime = pct * duration;
   };
-  const fmt = (s: number) => `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
+  // An unknown (Infinity) duration showed as "Infinity:NaN".
+  const fmt = (s: number) => (Number.isFinite(s) ? `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}` : '0:00');
   const pPct = duration > 0 ? progress / duration : 0;
 
-  const btnSize = compact
-    ? 'h-9 w-9'
-    : 'h-[48px] w-[48px] sm:h-[52px] sm:w-[52px]';
-  const barsHeight = compact ? 'h-[24px]' : 'h-[36px]';
-
   return (
-    <div className="flex items-center gap-3 sm:gap-4">
+    <div className={cx(s.player, compact && s.compact, showDownload && s.withDownload)}>
       <audio
         ref={audioRef}
         src={src}
@@ -72,31 +73,36 @@ export default function VoiceNotePlayer({
         onEnded={() => setPlaying(false)}
       />
       <button
+        type="button"
         onClick={toggle}
-        className={`flex ${btnSize} flex-shrink-0 items-center justify-center text-white transition-transform duration-200 hover:scale-105 active:scale-95`}
-        style={{ background: 'linear-gradient(135deg, #D8BE8B 0%, #A9782F 100%)' }}
+        className={s.play}
         aria-label={playing ? 'Pause' : 'Play'}
       >
-        {playing ? <Pause size={compact ? 14 : 18} strokeWidth={2.2} /> : <Play size={compact ? 14 : 18} strokeWidth={2.2} className="ml-0.5" />}
+        {playing ? (
+          <Pause size={compact ? 15 : 17} strokeWidth={2.6} fill="currentColor" aria-hidden="true" />
+        ) : (
+          <Play size={compact ? 15 : 17} strokeWidth={2.6} fill="currentColor" className={s.playGlyph} aria-hidden="true" />
+        )}
       </button>
-      <div className="flex-1 min-w-0">
+      <div className={s.track}>
         <div
-          className={`flex items-end gap-[2px] ${barsHeight} cursor-pointer`}
+          className={s.wave}
           onClick={seek}
           role="slider"
+          aria-label="Playback position"
           aria-valuenow={Math.round(pPct * 100)}
           aria-valuemin={0}
           aria-valuemax={100}
         >
           {bars.map((h, i) => (
-            <div
+            <span
               key={i}
-              className="flex-1 transition-colors duration-150"
-              style={{ height: `${h * 100}%`, minWidth: '2px', backgroundColor: i / barCount <= pPct ? '#A9782F' : '#DDD6CC' }}
+              className={cx(s.bar, i / barCount <= pPct && s.barOn)}
+              style={{ height: `${h * 100}%` }}
             />
           ))}
         </div>
-        <div className="mt-1.5 flex justify-between text-[10px] sm:text-[11px] text-[#9C9488] tabular-nums">
+        <div className={s.times}>
           <span>{fmt(progress)}</span>
           <span>{fmt(duration)}</span>
         </div>
@@ -105,10 +111,11 @@ export default function VoiceNotePlayer({
         <a
           href={src}
           download
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-[#9C9488] transition-colors duration-200 hover:text-[#A9782F]"
+          className={s.download}
           aria-label="Download voice note"
+          title="Download voice note"
         >
-          <Download size={16} strokeWidth={1.6} />
+          <Download size={18} strokeWidth={2.2} aria-hidden="true" />
         </a>
       )}
     </div>

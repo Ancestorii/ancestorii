@@ -1,0 +1,819 @@
+/* ============================================================
+   Writing a memory (/dashboard/memories/create and
+   /dashboard/memories/[id]/edit): the sticky action bar, the four
+   sections (title, the words, photos and video, a voice note) and
+   the live preview. Only the looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have: the kit
+   sits in the "components" cascade layer, so a plain rule here wins.
+   ============================================================ */
+
+/* ── Motion: the bar and the page rise in once, as they did before ── */
+
+.preMount {
+  opacity: 0;
+}
+
+/* "backwards" applies the first frame until it starts and nothing after the end, so no
+   transform is left on the sticky bar. */
+.rise {
+  animation: edRise 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes edRise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* ── The sticky bar: back on the left; the counts, preview and save on the right ── */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: #fff;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+/* The same side gutters as the page under it. */
+.barPad {
+  padding: 10px clamp(16px, 3.2vw, 44px);
+}
+
+.barRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+}
+
+.barActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* The word count and the two progress dots: from 640px, as before. */
+.words,
+.progress {
+  display: none;
+}
+
+.progress {
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px;
+}
+
+@media (min-width: 640px) {
+  .words,
+  .progress {
+    display: inline-flex;
+  }
+}
+
+.words {
+  font-variant-numeric: tabular-nums;
+}
+
+.progressDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(10, 10, 15, 0.14);
+  transition: background-color 0.5s ease;
+}
+
+.progressDotOn {
+  background: var(--c0);
+}
+
+/* Preview: on desktops only (the preview has no room beside the form below 1024px). Pressed,
+   it takes the kit's 2px ink ring. */
+.previewToggle {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .previewToggle {
+    display: inline-flex;
+  }
+}
+
+.previewToggle[aria-pressed='true'] {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+/* "Uploading photo 3/10…" can be long: it shortens with an ellipsis on the smallest phones. */
+.saveBtn {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.saveBtn > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Page ── */
+
+/* Phones and tablets: room at the end for the floating phone navigation and the Story
+   Assistance pill above it. */
+.page {
+  padding-bottom: 176px;
+}
+
+@media (min-width: 1024px) {
+  .page {
+    padding-bottom: 104px;
+  }
+}
+
+.error {
+  align-items: center;
+  margin-top: 22px;
+  padding-right: 6px;
+}
+
+.errorText {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  margin-top: clamp(28px, 3.4vw, 40px);
+}
+
+@media (min-width: 1024px) {
+  .layoutPreview {
+    grid-template-columns: minmax(0, 1fr) clamp(320px, 28vw, 380px);
+    column-gap: clamp(24px, 2.6vw, 36px);
+  }
+}
+
+.form {
+  min-width: 0;
+  display: grid;
+  gap: 20px;
+}
+
+/* ── A section: a white card with a colour tile and its name ── */
+
+/* Its own width sets the photo grid's columns. */
+.section {
+  container-type: inline-size;
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+/* The title field: the kit's field at a title's size and weight. */
+.titleInput {
+  height: 60px;
+  font-size: clamp(18px, 1.6vw, 20px);
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+/* ── The words: Quill's editor in the kit's field look ── */
+
+/* No overflow clip: Quill's link bubble can reach past the field's edges (clipped, its Remove
+   was cut off on phones); the toolbar rounds its own top corners instead. */
+.editor {
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.editor:focus-within {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+.editor :global(.ql-toolbar.ql-snow) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 0;
+  border-bottom: 1.5px solid var(--rule);
+  border-radius: 16.5px 16.5px 0 0;
+  background: #fff;
+  font-family: inherit;
+}
+
+.editor :global(.ql-toolbar.ql-snow .ql-formats) {
+  display: flex;
+  gap: 2px;
+  margin-right: 8px;
+}
+
+.editor :global(.ql-snow.ql-toolbar button) {
+  float: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 10px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.editor :global(.ql-snow.ql-toolbar button svg) {
+  float: none;
+  width: 20px;
+  height: 20px;
+}
+
+.editor :global(.ql-snow .ql-stroke) {
+  stroke: var(--ink);
+}
+
+.editor :global(.ql-snow .ql-fill),
+.editor :global(.ql-snow .ql-stroke.ql-fill) {
+  fill: var(--ink);
+}
+
+/* Hover and focus: the kit's light grey; the format in use: blue on the blue tint. The doubled
+   class outranks Quill's own hover, focus and touch rules. */
+@media (hover: hover) {
+  .editor.editor :global(.ql-snow.ql-toolbar button:hover) {
+    background: var(--hover);
+  }
+}
+
+.editor.editor :global(.ql-snow.ql-toolbar button:hover .ql-stroke),
+.editor.editor :global(.ql-snow.ql-toolbar button:focus .ql-stroke) {
+  stroke: var(--ink);
+}
+
+.editor.editor :global(.ql-snow.ql-toolbar button:hover .ql-fill),
+.editor.editor :global(.ql-snow.ql-toolbar button:focus .ql-fill) {
+  fill: var(--ink);
+}
+
+.editor.editor :global(.ql-snow.ql-toolbar button.ql-active) {
+  background: var(--blue-tint);
+}
+
+.editor.editor :global(.ql-snow.ql-toolbar button.ql-active .ql-stroke) {
+  stroke: var(--c1);
+}
+
+.editor.editor :global(.ql-snow.ql-toolbar button.ql-active .ql-fill) {
+  fill: var(--c1);
+}
+
+.editor :global(.ql-container.ql-snow) {
+  border: 0;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.editor :global(.ql-editor) {
+  min-height: 280px;
+  padding: 18px 20px 24px;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.75;
+  font-weight: 500;
+}
+
+.editor :global(.ql-editor p) {
+  margin-bottom: 0.6rem;
+}
+
+.editor :global(.ql-editor strong) {
+  font-weight: 800;
+}
+
+.editor :global(.ql-editor.ql-blank::before) {
+  left: 20px;
+  right: 20px;
+  color: var(--placeholder);
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* Pasted text can bring links: the kit's blue link, not Quill's own blue. */
+.editor :global(.ql-editor a) {
+  color: var(--c1);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* Quill's link bubble (it shows while the cursor is in a link): the kit's menu look. */
+.editor :global(.ql-snow .ql-tooltip) {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--hairline-ring), var(--float);
+}
+
+.editor :global(.ql-snow .ql-tooltip a) {
+  color: var(--c1);
+  font-weight: 700;
+}
+
+.editor :global(.ql-snow .ql-tooltip a.ql-action::after) {
+  border-right-color: var(--rule);
+}
+
+.editor :global(.ql-snow .ql-tooltip input[type='text']) {
+  height: 32px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  font: inherit;
+}
+
+/* Phones: a shorter link preview, so the whole bubble (Edit and Remove too) fits the screen. */
+@media (max-width: 599px) {
+  .editor :global(.ql-snow .ql-tooltip a.ql-preview) {
+    max-width: 110px;
+  }
+}
+
+/* Touch screens: 44px format buttons. */
+@media (pointer: coarse) {
+  .editor :global(.ql-snow.ql-toolbar button) {
+    width: 44px;
+    height: 44px;
+    padding: 12px;
+  }
+}
+
+/* ── Photos and video ── */
+
+.mediaGrid {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@container (min-width: 520px) {
+  .mediaGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 720px) {
+  .mediaGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+/* A photo: a square tile with the faint inset hairline (a white photo keeps its edge). */
+.tile {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--hover);
+}
+
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(10, 10, 15, 0.08);
+  pointer-events: none;
+}
+
+.tileImg {
+  object-fit: cover;
+  transition: opacity 0.2s ease;
+}
+
+.busy {
+  opacity: 0.6;
+}
+
+/* Uploading this one: a spinner over a light veil. */
+.tileBusy {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--ink);
+}
+
+/* Remove: on the photo's corner; with a mouse it shows on hover or keyboard focus, on touch
+   screens it is always there. */
+.tileRemove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.tile:hover .tileRemove,
+.tileRemove:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .tileRemove {
+    opacity: 1;
+  }
+}
+
+/* "Saved" (already in the memory) and the uploaded tick: the kit's photo chips. */
+.savedChip {
+  top: auto;
+  bottom: 6px;
+  left: 6px;
+  padding: 4px 9px;
+  font-size: 11.5px;
+}
+
+.doneChip {
+  top: 6px;
+  left: 6px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* The photo drop zone and the video one: side by side when the section has the room. */
+.uploaders {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+@container (min-width: 520px) {
+  .uploaders {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.drop {
+  min-height: 176px;
+}
+
+.dropSpin {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notice {
+  margin-top: 12px;
+}
+
+/* A video: whole (never cropped) on ink, its name and size under it. */
+.videoCard {
+  overflow: hidden;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.videoBox {
+  position: relative;
+  background: var(--ink);
+}
+
+.videoPreview {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: var(--ink);
+  transition: opacity 0.2s ease;
+}
+
+.videoBusy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.videoMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 8px 8px 16px;
+}
+
+.videoText {
+  min-width: 0;
+}
+
+.videoName {
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.videoSize {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+/* ── The voice note ── */
+
+/* A saved or new recording: an ink play button, then its name or waveform, then remove. */
+.voiceRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+
+.voicePlay {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .voicePlay:hover {
+    transform: scale(1.05);
+  }
+}
+
+.voicePlay:active {
+  transform: scale(0.94);
+  transition-duration: 80ms;
+}
+
+.playGlyph {
+  margin-left: 2px;
+}
+
+.voiceText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.voiceTitle {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+.voiceSub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+/* Thin bars spread across the row (wide bars read as dashes). */
+.wave {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5px;
+  overflow: hidden;
+}
+
+.waveBar {
+  flex: 0 1 4px;
+  min-width: 1px;
+  min-height: 3px;
+  border-radius: 2px;
+  background: rgba(10, 10, 15, 0.14);
+}
+
+.waveBarOn {
+  background: var(--c0);
+}
+
+.time {
+  flex: none;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Record or upload: side by side, sharing the width. */
+.voiceActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.voiceActions > * {
+  min-width: 0;
+}
+
+/* Recording: the stop button in pink with a pulsing ink dot. */
+.stopRec {
+  width: 100%;
+  min-height: 56px;
+  gap: 10px;
+  background: var(--c0);
+  color: var(--ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: normal;
+}
+
+@media (hover: hover) {
+  .stopRec:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* The dot pulses (transform and opacity) inside its own tight clip box. */
+.pulseBox {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  overflow: clip;
+}
+
+.pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  animation: edPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes edPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(0.6);
+  }
+}
+
+/* ── Live preview (desktops): sticks under the bar while the form scrolls ── */
+
+.preview {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .preview {
+    display: block;
+    position: sticky;
+    top: 92px;
+  }
+}
+
+.previewHead {
+  padding: 16px 20px 14px;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+.previewMedia {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--hover);
+}
+
+.previewEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewImg {
+  object-fit: cover;
+}
+
+.previewMore {
+  top: auto;
+  left: auto;
+  right: 10px;
+  bottom: 10px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.previewBody {
+  padding: 18px 20px 20px;
+}
+
+.previewTitle {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.previewText {
+  display: -webkit-box;
+  margin: 8px 0 0;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+/* Nothing written yet: the field placeholder's colour. */
+.placeholder {
+  color: var(--placeholder);
+}
+
+.previewFoot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1.5px solid var(--rule);
+}

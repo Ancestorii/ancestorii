@@ -1,0 +1,361 @@
+/* ============================================================
+   Create or edit an Acrylic Print (CreateAcrylicDrawer): the looks
+   the app kit (ui) doesn't have. A centred dialog from 640px, a
+   full-height bottom sheet on phones. Kit classes sit in the
+   "components" cascade layer, so any rule here wins over them:
+   set only what the kit doesn't (never the kit's chosen ring or
+   hover on .option and .tab). The Memory Canvas dialog
+   (CreateCanvasDrawer.module.css) is the same: keep them in step.
+   ============================================================ */
+
+/* ── The panel ────────────────────────────────────────────── */
+
+/* Phones: a full-height sheet from the bottom, a sliver of the page showing above it.
+   The font is set here as a page can wrap its content in another one. */
+.panel {
+  width: 100%;
+  height: calc(100vh - 20px);
+  height: calc(100dvh - 20px);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+}
+
+/* Tablets and desktops: a centred dialog, as tall as its content. */
+@media (min-width: 640px) {
+  .panel {
+    max-width: 760px;
+    height: auto;
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    border-radius: 28px;
+  }
+}
+
+/* Short screens (a phone on its side): the whole dialog scrolls, the header and the buttons
+   with it, so the choices aren't squeezed into a sliver between them. */
+@media (max-height: 520px) {
+  .panel {
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .body {
+    flex: none;
+    min-height: auto;
+    overflow: visible;
+  }
+}
+
+/* The centred dialog keeps a small margin round it there. */
+@media (max-height: 520px) and (min-width: 640px) {
+  .scrim {
+    padding: 8px;
+  }
+}
+
+.block {
+  margin-top: 28px;
+}
+
+/* ── Currency and orientation ─────────────────────────────── */
+
+.pickers {
+  display: grid;
+  gap: 22px 16px;
+  margin-top: 24px;
+}
+
+/* Side by side once each switch has room for its labels. */
+@media (min-width: 768px) {
+  .pickers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Edit mode locks the orientation: the chosen one stays ink, the other fades. */
+.tabs > button:disabled {
+  cursor: not-allowed;
+}
+
+.tabs > button:disabled:not([aria-pressed='true']) {
+  opacity: 0.45;
+  background: transparent;
+}
+
+/* The print's shape in miniature, in the tab's text colour. */
+.oriGlyph {
+  flex: none;
+  display: inline-block;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+}
+
+.oriGlyph[data-ori='landscape'] {
+  width: 18px;
+  height: 12px;
+}
+
+.oriGlyph[data-ori='portrait'] {
+  width: 12px;
+  height: 18px;
+}
+
+/* ── Tier choice cards (on the kit's .option) ─────────────── */
+
+.lockedHint {
+  margin: -2px 0 12px;
+}
+
+.tiers {
+  display: grid;
+  gap: 10px;
+}
+
+.tier {
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px 16px 16px;
+  border-radius: 20px;
+}
+
+.tier:disabled {
+  cursor: not-allowed;
+}
+
+/* Edit mode: the tier is fixed, the others fade (and don't answer the pointer). */
+.tier:disabled:not([aria-pressed='true']) {
+  opacity: 0.45;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+
+/* Round check: an empty circle, ink with a white tick when chosen. */
+.check {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.22);
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tier[aria-pressed='true'] .check {
+  background: var(--ink);
+  box-shadow: none;
+}
+
+.tierBody {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The name (and the Recommended chip) on the left, the price on the right. */
+.tierHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 14px;
+}
+
+.tierTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+  min-height: 26px;
+}
+
+.tierName {
+  font-size: 17px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.tierPrice {
+  font-size: 17px;
+  line-height: 26px;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tierChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tierBlurb {
+  display: block;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* A shipping note on the chosen card, in the kit's orange notice. */
+.tierNotice {
+  margin-top: 12px;
+  padding: 11px 13px;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.noticeIcon {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* ── Preview and the selection ────────────────────────────── */
+
+.summary {
+  display: grid;
+  gap: 26px;
+}
+
+@media (min-width: 768px) {
+  .summary {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+}
+
+/* A light wall with the print on it, at the chosen size and orientation. One steady
+   height (the tallest shape fits), so switching orientation moves nothing. */
+.stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 228px;
+  margin-top: 14px;
+  border-radius: 18px;
+  background: var(--hover);
+}
+
+.shape {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: var(--c2);
+  color: var(--ink);
+  box-shadow: 0 18px 30px -18px rgba(10, 10, 15, 0.55);
+  font-size: 12.5px;
+  line-height: 1;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.stageNote {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.selName {
+  margin: 14px 0 0;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.selMeta {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.priceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-top: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+.selPrice {
+  margin: 0;
+  font-size: clamp(30px, 3vw, 36px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tierLabel {
+  margin: 0;
+  text-align: right;
+}
+
+.tierLabelKey {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tierLabelValue {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.features {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.features li {
+  position: relative;
+  padding-left: 17px;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+/* Round orange dots (Acrylic Prints are orange in the landing's feature index). */
+.features li::before {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c2);
+}
+
+.features .featureStrong {
+  font-weight: 800;
+}

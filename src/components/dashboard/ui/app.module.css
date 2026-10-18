@@ -372,6 +372,13 @@
   letter-spacing: 0.02em;
 }
 
+/* A chip holding text someone typed (tier names, codes): wraps instead of running out. */
+.chipWrap {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 /* Pink count bubble (unread, new), ink number (white text only goes on blue and ink). */
 .count {
   min-width: 21px;
@@ -1102,7 +1109,7 @@
 }
 
 @media (hover: hover) {
-  .option:not([aria-pressed='true']):not([aria-checked='true']):not(.optionActive):hover {
+  .option:not(:disabled):not([aria-pressed='true']):not([aria-checked='true']):not(.optionActive):hover {
     box-shadow: inset 0 0 0 1.5px var(--ink);
   }
 }
@@ -1120,6 +1127,37 @@
 
 .listRow + .listRow {
   border-top: 1.5px solid var(--rule);
+}
+
+/* A disabled choice: faded, no hover ring; a chosen one keeps its ink ring. */
+.option:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* Round check badge for choice cards: an empty circle that turns ink with a white tick
+   when its card is chosen (put it inside .option, an aria-pressed card or .photoTile). */
+.checkBadge {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(10, 10, 15, 0.22);
+  background: #fff;
+  color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.option[aria-pressed='true'] .checkBadge,
+.option[aria-checked='true'] .checkBadge,
+.optionActive .checkBadge,
+.photoTile[aria-pressed='true'] .checkBadge,
+.checkBadgeOn {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: none;
 }
 
 /* ── Tabs (segmented control) ─────────────────────────────── */
@@ -1168,6 +1206,11 @@
   color: #fff;
 }
 
+.tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 /* The tab row scrolls sideways, which would clip an outside ring: draw it inside. */
 .app .tab:focus-visible {
   outline-offset: -3px;
@@ -1191,7 +1234,7 @@
 }
 
 @media (hover: hover) {
-  .tab:not([aria-selected='true']):not([aria-pressed='true']):not(.tabActive):hover {
+  .tab:not(:disabled):not([aria-selected='true']):not([aria-pressed='true']):not(.tabActive):hover {
     background: var(--hover);
   }
 }
@@ -1569,6 +1612,20 @@
   from {
     opacity: 0;
     transform: translateY(16px) scale(0.97);
+  }
+}
+
+/* Short screens (a phone turned sideways): the whole dialog scrolls, instead of the body
+   being squeezed between a fixed header and footer. */
+@media (max-height: 520px) {
+  .sheet {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .sheet > .sheetBody {
+    flex: none;
+    overflow: visible;
   }
 }
 

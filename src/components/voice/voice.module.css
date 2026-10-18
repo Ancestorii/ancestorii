@@ -1,0 +1,268 @@
+/* ============================================================
+   Voice notes on a memory (VoiceNotePlayer, VoiceRecorder), in the
+   app kit's look. Both render inside the dashboard's .app root, so
+   the kit tokens (--c0..--c3, --ink, --hover, --line, --rule,
+   --hairline-ring) are available. Only the looks the kit doesn't
+   have: a plain rule here wins over the kit's "components" layer.
+   ============================================================ */
+
+/* ── Player: a pill with an ink play button, the waveform and the times ── */
+
+.player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 6px 16px 6px 6px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+
+/* The download button sits inside the pill's right end. */
+.withDownload {
+  padding-right: 6px;
+}
+
+.play {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .play:hover {
+    transform: scale(1.05);
+  }
+}
+
+.play:active {
+  transform: scale(0.94);
+  transition-duration: 80ms;
+}
+
+/* The play triangle looks centred a touch to the right of the box's centre. */
+.playGlyph {
+  margin-left: 2px;
+}
+
+.track {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Thin bars spread across the track: in a wide player (a tablet's full-width card, a voice
+   comment) bars that grow with it read as blocks, not a waveform. */
+.wave {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2px;
+  height: 26px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.bar {
+  flex: 1 1 0;
+  min-width: 1px;
+  max-width: 4px;
+  border-radius: 2px;
+  background: rgba(10, 10, 15, 0.12);
+  transition: background-color 0.15s ease;
+}
+
+.barOn {
+  background: var(--c0);
+}
+
+.times {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.download {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .download:hover {
+    background: var(--hover);
+  }
+}
+
+/* Compact (a voice comment): a smaller pill. */
+.compact {
+  gap: 10px;
+  padding: 5px 14px 5px 5px;
+}
+
+.compact.withDownload {
+  padding-right: 5px;
+}
+
+.compact .play {
+  width: 38px;
+  height: 38px;
+}
+
+.compact .wave {
+  height: 20px;
+}
+
+.compact .times {
+  margin-top: 4px;
+}
+
+/* Touch screens: 44px targets. */
+@media (pointer: coarse) {
+  .compact .play,
+  .download {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ── Recorder: record (or upload), listen back, then send ── */
+
+.recorder {
+  padding: 10px;
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--hairline-ring);
+}
+
+/* Idle: Record, Upload and Cancel share the row, and wrap in a narrow column. */
+.idle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.recordBtn {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.uploadBtn {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.recordBtn > span,
+.uploadBtn > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Recording: the stop button in pink with a pulsing ink dot. */
+.stop {
+  width: 100%;
+  gap: 10px;
+  background: var(--c0);
+  color: var(--ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) {
+  .stop:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* The dot pulses (transform and opacity) inside its own tight clip box. */
+.pulseBox {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  overflow: clip;
+}
+
+.pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  animation: voicePulse 1.1s ease-in-out infinite;
+}
+
+@keyframes voicePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(0.6);
+  }
+}
+
+/* The take, ready to send: play it back, the waveform, discard, send. */
+.take {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Thin bars spread across the space (wide bars read as dashes). */
+.takeBars {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5px;
+  overflow: hidden;
+}
+
+.takeBar {
+  flex: 0 1 4px;
+  min-width: 1px;
+  min-height: 3px;
+  border-radius: 2px;
+  background: var(--c0);
+}
+
+.sendBtn {
+  flex: none;
+}
+
+.error {
+  margin: 8px 4px 2px;
+}

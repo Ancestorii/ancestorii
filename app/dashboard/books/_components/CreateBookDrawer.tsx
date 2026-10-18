@@ -1,11 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { safeToast as toast } from '@/lib/safeToast';
 import { getBrowserClient } from '@/lib/supabase/browser';
-import { ImagePlus } from 'lucide-react';
+import { ArrowRight, Check, ImagePlus, X } from 'lucide-react';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { ui, Btn, IconBtn, IconTile, Spinner, Tag, toneByKey, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './createBookDrawer.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 
 /* ────────────────────────────────────────────
@@ -110,6 +114,20 @@ export default function CreateBookDrawer({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isSubmittingRef = useRef(false);
 
+  const headingId = useId();
+  const subId = useId();
+  const titleFieldId = useId();
+  const currencyLabelId = useId();
+  const tierLabelId = useId();
+  const tierHintId = useId();
+
+  // A click outside, the close button and Escape all close it, but never while saving. Tab
+  // stays inside, and focus goes back to the button that opened it.
+  const requestClose = () => {
+    if (!uploading) onClose();
+  };
+  const panelRef = useDialog<HTMLDivElement>(open, requestClose);
+
   useEffect(() => setMounted(true), []);
 
   const getTierFromBook = useCallback((value?: Partial<MemoryBook> | null): TierKey => {
@@ -180,8 +198,8 @@ export default function CreateBookDrawer({
 
     const over = (e: DragEvent) => {
       e.preventDefault();
-      area.style.borderColor = '#C9A23C';
-      area.style.background = 'rgba(255,255,255,0.9)';
+      area.style.borderColor = 'var(--ink)';
+      area.style.background = 'var(--hover)';
     };
 
     const leave = (e: DragEvent) => {
@@ -418,211 +436,153 @@ export default function CreateBookDrawer({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
-          className="fixed inset-0 z-[200] flex items-center justify-center px-4"
-          style={{
-            background: 'rgba(10, 13, 20, 0.6)',
-            backdropFilter: 'blur(12px)',
-          }}
-          onClick={() => {
-            if (!uploading) onClose();
-          }}
+          // A bottom sheet on phones, a centred dialog from 640px. scrim-blur (globals.css) blurs
+          // only with a mouse. Above the floating phone nav (z-[200]).
+          className={cx(ui.scrim, s.scrim, 'scrim-blur z-[9999] flex items-end justify-center sm:items-center sm:p-6')}
+          onClick={requestClose}
         >
-          {/* ── Loading bar ── */}
-          {uploading && (
-            <div className="fixed left-0 top-0 h-[3px] w-full overflow-hidden">
-              <div
-                className="h-full w-full"
-                style={{
-                  background:
-                    'linear-gradient(90deg, #CDA349 0%, #F3D99B 50%, #CDA349 100%)',
-                  backgroundSize: '200% 100%',
-                  animation: 'shimmer 1.5s linear infinite',
-                }}
-              />
-            </div>
-          )}
-
+          {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.97 }}
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={headingId}
+            aria-describedby={subId}
+            aria-busy={uploading || undefined}
+            initial={{ opacity: 0, transform: 'translateY(30px) scale(0.97)' }}
+            animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
+            exit={{ opacity: 0, transform: 'translateY(30px) scale(0.97)' }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-[1060px] overflow-y-auto rounded-3xl grid grid-cols-1 lg:grid-cols-[1fr_320px] max-h-[90vh]"
-            style={{
-              background: '#FEFCF8',
-              border: '1px solid rgba(205, 178, 100, 0.35)',
-              boxShadow:
-                '0 1px 0 0 rgba(255,255,255,0.6) inset, 0 24px 80px rgba(0,0,0,0.25), 0 0 0 1px rgba(205,178,100,0.1)',
-            }}
+            className={cx(ui.sheet, ui.sheetBottom, s.panel)}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ═══════════ LEFT PANEL ═══════════ */}
-            <div className="min-h-0 px-6 pb-8 pt-9 sm:px-10 sm:pb-10 sm:pt-11 overflow-y-auto" data-lenis-prevent>
-              {/* Header */}
-              <div className="mb-6">
-                <h2
-                  className="text-[1.85rem] font-bold leading-tight text-[#14213D]"
-                  style={{ letterSpacing: '-0.025em' }}
-                >
-                  {mode === 'edit' ? 'Edit Memory Book' : 'Create Memory Book'}
-                </h2>
-                <p className="mt-2.5 text-sm text-[#5A6270]">
-                  This will become a real, printed memory.
-                </p>
-                <div
-                  className="mt-4 h-[2px] w-12 rounded-full"
-                  style={{
-                    background: 'linear-gradient(90deg, #C9A23C, #E2C56A)',
-                  }}
+            {/* ── Header ── */}
+            <div className={ui.sheetHeader}>
+              <div className="flex min-w-0 flex-col items-start gap-2.5">
+                <Tag dot="var(--c2)">Memory Book</Tag>
+                <div className="min-w-0">
+                  <h2 id={headingId} className={ui.sheetTitle}>
+                    {mode === 'edit' ? 'Edit Memory Book' : 'Create Memory Book'}
+                  </h2>
+                  <p id={subId} className={ui.sheetSub}>
+                    This will become a real, printed memory.
+                  </p>
+                </div>
+              </div>
+              <IconBtn label="Close" onClick={requestClose} disabled={uploading}>
+                <X size={20} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
+            </div>
+
+            {/* ── Body ── */}
+            <div className={cx(ui.sheetBody, s.body)} data-lenis-prevent>
+              {/* Title */}
+              <div className={ui.field}>
+                <label htmlFor={titleFieldId} className={ui.label}>
+                  Book Title
+                </label>
+                <input
+                  id={titleFieldId}
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="My Family Story"
+                  className={ui.input}
                 />
               </div>
 
-              {/* Title */}
-              <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1F2837]">
-                Book Title
-              </label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="My Family Story"
-                className="h-12 w-full rounded-[14px] border bg-white px-4 text-[15px] text-[#1F2837] outline-none transition placeholder:text-[#9AA0AC] focus:ring-[3px]"
-                style={{
-                  borderColor: 'rgba(200, 185, 140, 0.45)',
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#C9A23C';
-                  e.target.style.boxShadow =
-                    '0 0 0 3px rgba(201, 162, 60, 0.12)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(200, 185, 140, 0.45)';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
-
-              <div className="mt-5">
-  <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1F2837]">
-    Currency
-  </label>
-
-  <div className="flex items-center gap-2">
-    {(['GBP', 'USD', 'EUR'] as const).map((cur) => {
-      const active = currency === cur;
-
-      return (
-        <button
-          key={cur}
-          type="button"
-          onClick={() => setCurrency(cur)}
-          className="rounded-full px-4 py-1.5 text-[12px] font-semibold transition"
-          style={{
-            background: active
-              ? 'linear-gradient(135deg, #C9A23C, #E2C56A)'
-              : '#fff',
-            color: active ? '#14213D' : '#5A6270',
-            border: active
-              ? 'none'
-              : '1px solid rgba(200, 185, 140, 0.4)',
-            boxShadow: active
-              ? '0 4px 14px rgba(201,162,60,0.25)'
-              : 'none',
-          }}
-        >
-          {cur}
-        </button>
-      );
-    })}
-  </div>
-</div>
+              {/* Currency */}
+              <div className={s.pickers}>
+                <div className="min-w-0">
+                  <p id={currencyLabelId} className={ui.label}>
+                    Currency
+                  </p>
+                  <div
+                    className={cx(ui.tabs, ui.tabsBlock)}
+                    role="group"
+                    aria-labelledby={currencyLabelId}
+                  >
+                    {(['GBP', 'USD', 'EUR'] as const).map((cur) => (
+                      <button
+                        key={cur}
+                        type="button"
+                        onClick={() => setCurrency(cur)}
+                        aria-pressed={currency === cur}
+                        className={ui.tab}
+                      >
+                        {cur}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
               {/* Tiers */}
-              <div className="mt-7">
-                <label className="mb-3 block text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1F2837]">
-                Choose Your Book
-                </label>
+              <div className={s.block}>
+                <p id={tierLabelId} className={ui.label}>
+                  Choose Your Book
+                </p>
 
-               {isEditMode && (
-               <p className="mb-3 text-[12px] text-[#7A7A7A]">
-                Book tier cannot be changed after creation.
-               </p>
+                {isEditMode && (
+                  <p id={tierHintId} className={cx(ui.hint, s.lockedHint)}>
+                    Book tier cannot be changed after creation.
+                  </p>
                 )}
 
-                <div className="space-y-2.5">
+                <div
+                  className={s.tiers}
+                  role="group"
+                  aria-labelledby={tierLabelId}
+                  aria-describedby={isEditMode ? tierHintId : undefined}
+                >
                   {BOOK_TIERS.map((tier) => {
                     const active = selectedTier === tier.key;
 
                     return (
                       <button
-  key={tier.key}
-  type="button"
-  onClick={() => {
-    if (isEditMode) return;
-    setSelectedTier(tier.key);
-  }}
-  disabled={isEditMode}
-  className="flex w-full items-center gap-3.5 rounded-2xl border px-[18px] py-4 text-left transition-all duration-200"
-  style={{
-    borderColor: isEditMode
-      ? 'rgba(210, 210, 210, 0.7)'
-      : active
-      ? '#C9A23C'
-      : 'rgba(210, 195, 155, 0.4)',
-    background: isEditMode
-      ? '#F3F3F3'
-      : active
-      ? 'linear-gradient(180deg, #FFFBF0 0%, #FEFCF8 100%)'
-      : '#fff',
-    boxShadow: isEditMode
-      ? 'none'
-      : active
-      ? '0 8px 24px rgba(201, 162, 60, 0.14)'
-      : 'none',
-    opacity: isEditMode ? 0.7 : 1,
-    cursor: isEditMode ? 'not-allowed' : 'pointer',
-  }}
->
-                        {/* Radio */}
-                        <div
-                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all"
-                          style={{
-                            borderColor: active ? '#C9A23C' : '#CBD2DC',
-                            background: active ? '#C9A23C' : 'transparent',
-                          }}
-                        >
-                          {active && (
-                            <div className="h-[7px] w-[7px] rounded-full bg-white" />
-                          )}
-                        </div>
+                        key={tier.key}
+                        type="button"
+                        onClick={() => {
+                          if (isEditMode) return;
+                          setSelectedTier(tier.key);
+                        }}
+                        disabled={isEditMode}
+                        aria-pressed={active}
+                        className={cx(ui.option, s.tier)}
+                      >
+                        {/* Check */}
+                        <span className={s.check} aria-hidden="true">
+                          <Check size={15} strokeWidth={3} />
+                        </span>
 
                         {/* Body */}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[15px] font-semibold text-[#14213D]">
-                              {tier.name}
+                        <span className={s.tierBody}>
+                          <span className={s.tierHead}>
+                            <span className={s.tierTitle}>
+                              <span className={s.tierName}>{tier.name}</span>
+                              {'recommended' in tier && tier.recommended && (
+                                <span
+                                  className={cx(ui.chip, ui.chipSm, ui.chipColor)}
+                                  style={{ '--chip': 'var(--c2)' } as CSSProperties}
+                                >
+                                  Recommended
+                                </span>
+                              )}
                             </span>
-                            {'recommended' in tier && tier.recommended && (
-                              <span
-                                className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#8A6B1A]"
-                                style={{
-                                  background:
-                                    'linear-gradient(135deg, #FFF4D6, #FDEAB8)',
-                                }}
-                              >
-                                Recommended
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-0.5 text-xs text-[#5A6270]">
-                            {tier.contentPages} memory pages
-                          </p>
-                          <p className="mt-1.5 text-[13px] leading-relaxed text-[#4A5060]">
-                            {tier.blurb}
-                          </p>
-                        </div>
 
-                        {/* Price */}
-                        <span className="shrink-0 text-[15px] font-bold text-[#14213D]">
-                        {SYMBOL[currency]}{tier.price[currency].toFixed(2)}
+                            {/* Price */}
+                            <span className={s.tierPrice}>
+                              {SYMBOL[currency]}{tier.price[currency].toFixed(2)}
+                            </span>
+                          </span>
+
+                          <span className={s.tierChips}>
+                            <span className={cx(ui.chip, ui.chipSm)}>
+                              {tier.contentPages} memory pages
+                            </span>
+                          </span>
+
+                          <span className={s.tierBlurb}>{tier.blurb}</span>
                         </span>
                       </button>
                     );
@@ -630,140 +590,79 @@ export default function CreateBookDrawer({
                 </div>
               </div>
 
-              {/* Actions */}
-              <div
-                className="mt-8 flex flex-col-reverse gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between"
-                style={{
-                  borderTop: '1px solid rgba(210, 195, 155, 0.3)',
-                }}
-              >
-                <button
-                  onClick={onClose}
-                  disabled={uploading}
-                  className="h-11 w-full rounded-full border bg-white px-6 text-[13.5px] font-semibold text-[#1F2837] transition hover:bg-[#FBF8F0] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  style={{
-                    borderColor: 'rgba(200, 185, 140, 0.5)',
-                  }}
-                >
-                  Cancel
-                </button>
+              {/* Cover image notice + summary */}
+              <div className={cx(ui.card, s.block, s.summary)}>
+                <div className="min-w-0">
+                  <Tag dot="var(--c2)">Cover Image</Tag>
 
-                <button
-                  onClick={handleSubmit}
-                  disabled={!title.trim() || uploading}
-                  className="h-11 w-full rounded-full border-0 px-7 text-[13.5px] font-semibold transition-all disabled:cursor-not-allowed sm:w-auto"
-                  style={{
-                    background:
-                      !title.trim() || uploading
-                        ? '#E3E3E3'
-                        : 'linear-gradient(135deg, #C9A23C 0%, #DFBF5E 100%)',
-                    color:
-                      !title.trim() || uploading ? '#999' : '#14213D',
-                    boxShadow:
-                      !title.trim() || uploading
-                        ? 'none'
-                        : '0 6px 20px rgba(201, 162, 60, 0.25)',
-                  }}
-                >
-                  {uploading
-                    ? 'Saving…'
-                    : mode === 'edit'
-                    ? 'Save Changes'
-                    : `Create ${activeTier.name}`}
-                </button>
-              </div>
-            </div>
-
-            {/* ═══════════ RIGHT PANEL ═══════════ */}
-            <div
-              className="min-h-0 flex flex-col justify-between border-t border-[rgba(210,195,155,0.3)] p-6 sm:p-7 lg:border-l lg:border-t-0 overflow-y-auto" data-lenis-prevent
-              style={{
-                background:
-                  'linear-gradient(180deg, #FAF6ED 0%, #F6F1E4 100%)',
-              }}
-            >
-              {/* Cover image notice */}
-<div>
-  <p className="mb-2.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#4A5060]">
-    Cover Image
-  </p>
-
-  <div
-    className="rounded-2xl border-[1.5px] border-dashed p-5 text-center"
-    style={{
-      borderColor: 'rgba(200, 178, 110, 0.55)',
-      background: 'rgba(255, 255, 255, 0.7)',
-    }}
-  >
-    <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FFF4D8]">
-      <ImagePlus className="h-[18px] w-[18px] text-[#B4881F]" />
-    </div>
-    <p className="mt-3 text-[12.5px] font-semibold text-[#14213D]">
-      Design your cover inside the book
-    </p>
-    <p className="mt-1.5 text-[11.5px] leading-relaxed text-[#5A6270]">
-      You'll choose photos, layouts, and titles in the next step. Your cover becomes your dashboard thumbnail automatically.
-    </p>
-  </div>
-</div>
-
-              {/* Summary */}
-              <div
-                className="pt-6"
-                style={{
-                  borderTop: '1px solid rgba(200, 178, 110, 0.25)',
-                }}
-              >
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#7A6520]">
-                  Your Selection
-                </p>
-                <p
-                  className="mt-1 text-2xl font-bold text-[#14213D]"
-                  style={{ letterSpacing: '-0.02em' }}
-                >
-                  {activeTier.name}
-                </p>
-                <p className="mt-1 text-[12.5px] text-[#5A6270]">
-                  {activeTier.contentPages} memory pages to fill · A4 Hardcover
-                </p>
-
-                <div className="mt-5 flex items-end justify-between">
-                  <p
-                  className="text-[2rem] font-bold leading-none text-[#14213D]"
-                  style={{ letterSpacing: '-0.02em' }}
-                   >
-                  {SYMBOL[currency]}{activeTier.price[currency].toFixed(2)}
-                  </p>
-
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#7A6520]">
-                      Tier
-                    </p>
-                    <p className="mt-0.5 text-[13px] font-semibold text-[#14213D]">
-                      {activeTier.key === 'chapter'
-                        ? 'Entry'
-                        : activeTier.key === 'story'
-                        ? 'Most Popular'
-                        : 'Premium'}
+                  <div className={s.coverStage}>
+                    <IconTile Icon={ImagePlus} tone={toneByKey('orange')} />
+                    <p className={s.coverTitle}>Design your cover inside the book</p>
+                    <p className={s.coverText}>
+                      You&apos;ll choose photos, layouts, and titles in the next step. Your cover becomes your dashboard thumbnail automatically.
                     </p>
                   </div>
                 </div>
 
-                <ul className="mt-4 space-y-1.5 pl-4 text-xs leading-relaxed text-[#7A6520] list-disc">
-  <li>Printed hardcover with matte finish</li>
-  <li>200gsm premium gloss pages</li>
-  <li className="font-semibold text-[#14213D]">Standard or Express shipping at checkout</li>
-</ul>
+                {/* Summary */}
+                <div className="min-w-0">
+                  <Tag dot="var(--c2)">Your Selection</Tag>
+                  <p className={s.selName}>{activeTier.name}</p>
+                  <p className={s.selMeta}>
+                    {activeTier.contentPages} memory pages to fill · A4 Hardcover
+                  </p>
+
+                  <div className={s.priceRow}>
+                    <p className={s.selPrice}>
+                      {SYMBOL[currency]}{activeTier.price[currency].toFixed(2)}
+                    </p>
+
+                    <p className={s.tierLabel}>
+                      <span className={s.tierLabelKey}>Tier</span>
+                      <span className={s.tierLabelValue}>
+                        {activeTier.key === 'chapter'
+                          ? 'Entry'
+                          : activeTier.key === 'story'
+                          ? 'Most Popular'
+                          : 'Premium'}
+                      </span>
+                    </p>
+                  </div>
+
+                  <ul className={s.features}>
+                    <li>Printed hardcover with matte finish</li>
+                    <li>200gsm premium gloss pages</li>
+                    <li className={s.featureStrong}>Standard or Express shipping at checkout</li>
+                  </ul>
+                </div>
               </div>
             </div>
-          </motion.div>
 
-          <style>{`
-            @keyframes shimmer {
-              0% { background-position: -200% 0; }
-              100% { background-position: 200% 0; }
-            }
-          `}</style>
+            {/* ── Actions: on phones the main action sits on top ── */}
+            <div className={cx(ui.sheetFooter, 'max-[599px]:flex-col-reverse')}>
+              <Btn variant="soft" onClick={onClose} disabled={uploading}>
+                Cancel
+              </Btn>
+
+              <Btn
+                onClick={handleSubmit}
+                disabled={!title.trim() || uploading}
+                tile={
+                  uploading ? (
+                    <Spinner size={16} />
+                  ) : (
+                    <ArrowRight size={18} strokeWidth={2.6} />
+                  )
+                }
+              >
+                {uploading
+                  ? 'Saving…'
+                  : mode === 'edit'
+                  ? 'Save Changes'
+                  : `Create ${activeTier.name}`}
+              </Btn>
+            </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

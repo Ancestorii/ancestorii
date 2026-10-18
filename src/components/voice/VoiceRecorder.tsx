@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Mic, Square, Play, Pause, Trash2, Upload, Send, Loader2, X } from 'lucide-react';
+import { Mic, Square, Play, Pause, Trash2, Upload, Send, X } from 'lucide-react';
+import { ui, Btn, IconBtn, Spinner, btnClass } from '@/components/dashboard/ui/AppBits';
+import s from './voice.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 /**
  * Record a voice note (or optionally upload an audio file), preview it, then hand
@@ -107,85 +111,86 @@ export default function VoiceRecorder({
     }
   };
 
-  const btnSize = compact ? 'h-10 w-10' : 'h-11 w-11';
+  const iconSize = compact ? 16 : 17;
 
   return (
-    <div className="border border-[#E8E0D2] bg-[#FDFCFA] p-3 sm:p-4">
+    <div className={s.recorder}>
       {/* PREVIEW: audio captured, ready to send */}
       {file && previewUrl ? (
-        <div className="flex items-center gap-3">
+        <div className={s.take}>
           <audio ref={audioRef} src={previewUrl} onEnded={() => setPlaying(false)} />
           <button
+            type="button"
             onClick={togglePlayback}
-            className={`flex ${btnSize} items-center justify-center text-white flex-shrink-0 transition-transform hover:scale-105 active:scale-95`}
-            style={{ background: 'linear-gradient(135deg, #D8BE8B 0%, #A9782F 100%)' }}
+            className={s.play}
             aria-label={playing ? 'Pause' : 'Play'}
           >
-            {playing ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
+            {playing ? (
+              <Pause size={iconSize} strokeWidth={2.6} fill="currentColor" aria-hidden="true" />
+            ) : (
+              <Play size={iconSize} strokeWidth={2.6} fill="currentColor" className={s.playGlyph} aria-hidden="true" />
+            )}
           </button>
-          <div className="flex-1 flex items-center gap-[1.5px] h-7 min-w-0">
+          <div className={s.takeBars} aria-hidden="true">
             {bars.map((h, i) => (
-              <div key={i} className="flex-1" style={{ height: `${h}%`, minHeight: 3, background: '#D8BE8B' }} />
+              <span key={i} className={s.takeBar} style={{ height: `${h}%` }} />
             ))}
           </div>
           {!submitting && (
-            <button onClick={reset} className="flex h-8 w-8 items-center justify-center border border-[#E8E0D2] hover:bg-[#FEF2F2] transition-colors flex-shrink-0" aria-label="Discard recording">
-              <Trash2 size={13} className="text-[#C0392B]" />
-            </button>
+            <IconBtn label="Discard recording" size="sm" danger onClick={reset}>
+              <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+            </IconBtn>
           )}
-          <button
+          <Btn
+            size="sm"
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex h-9 items-center gap-1.5 px-4 text-[12px] font-semibold text-white transition-all hover:shadow-md active:scale-[0.98] disabled:opacity-50 flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #B8932A 0%, #C8A557 100%)' }}
+            icon={submitting ? <Spinner size={15} /> : <Send size={15} strokeWidth={2.4} aria-hidden="true" />}
+            className={s.sendBtn}
           >
-            {submitting ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
             {submitting ? 'Saving…' : 'Send'}
-          </button>
+          </Btn>
         </div>
       ) : recording ? (
         /* RECORDING */
-        <div className="flex items-center gap-3">
-          <button
-            onClick={stopRecording}
-            className="flex h-11 flex-1 items-center justify-center gap-2.5 bg-[#FEF2F2] border border-[#F3C9C4] text-[13px] font-semibold text-[#C0392B] transition-colors hover:bg-[#FCE8E6]"
-          >
-            <span className="h-2.5 w-2.5 rounded-full bg-[#C0392B] animate-pulse" />
-            Stop · {fmt(elapsed)}
-            <Square size={11} />
-          </button>
-        </div>
+        <button type="button" onClick={stopRecording} className={cx(ui.btn, s.stop)}>
+          <span className={s.pulseBox} aria-hidden="true">
+            <span className={s.pulse} />
+          </span>
+          Stop · {fmt(elapsed)}
+          <Square size={13} strokeWidth={2.6} fill="currentColor" aria-hidden="true" />
+        </button>
       ) : (
         /* IDLE */
-        <div className="flex items-center gap-2.5">
-          <button
+        <div className={s.idle}>
+          <Btn
             onClick={startRecording}
-            className="flex h-11 flex-1 items-center justify-center gap-2.5 border border-[#DCC7A4] bg-white text-[13px] font-semibold text-[#A9782F] transition-all hover:border-[#C8A557] hover:bg-[#FBF7EE]"
+            icon={<Mic size={18} strokeWidth={2.4} aria-hidden="true" />}
+            className={s.recordBtn}
           >
-            <Mic size={16} className="text-[#C8A557]" />
             Record a voice note
-          </button>
+          </Btn>
           {allowUpload && (
-            <label className="flex h-11 cursor-pointer items-center justify-center gap-2 px-4 border border-[#DCC7A4] bg-white text-[13px] font-semibold text-[#A9782F] transition-all hover:border-[#C8A557] hover:bg-[#FBF7EE]">
-              <Upload size={15} className="text-[#C8A557]" />
-              Upload
+            <label className={btnClass({ variant: 'soft', className: s.uploadBtn })}>
+              <Upload size={17} strokeWidth={2.4} aria-hidden="true" />
+              <span>Upload</span>
               <input
                 type="file"
                 accept="audio/*"
-                hidden
+                className={ui.srOnly}
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }}
               />
             </label>
           )}
           {onCancel && (
-            <button onClick={onCancel} className="flex h-11 w-11 items-center justify-center border border-[#E8E0D2] text-[#9C9488] transition-colors hover:bg-[#F5F0E8]" aria-label="Cancel">
-              <X size={16} />
-            </button>
+            <IconBtn label="Cancel" onClick={onCancel}>
+              <X size={18} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
           )}
         </div>
       )}
 
-      {error && <p className="mt-2.5 text-[12px] text-[#C0392B]">{error}</p>}
+      {error && <p className={cx(ui.fieldError, s.error)} role="alert">{error}</p>}
     </div>
   );
 }

@@ -1,15 +1,38 @@
 'use client';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
+import { ArrowRight, Frame, Image as ImageIcon, Plus } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
-import { motion } from 'framer-motion';
 import LegacyCelebration from '@/components/LegacyCelebration';
 import { ContextMenuDots } from '@/components/ContextMenuDots';
 import { usePlanLimits } from '@/lib/usePlanLimits';
 import CreateCanvasDrawer from './_components/CreateCanvasDrawer';
 import Image from 'next/image';
+import {
+  ui,
+  Accent,
+  AppLoader,
+  Btn,
+  EmptyState,
+  IconTile,
+  PageHeader,
+  btnClass,
+  toneByKey,
+  toneFor,
+  useDialog,
+} from '@/components/dashboard/ui/AppBits';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// Memory Canvases are orange in the landing's feature index.
+const ORANGE = toneByKey('orange');
+
+// Dates on the card, the British way: "28 Mar 2026".
+const formatDate = (value: string) =>
+  new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
 type Canvas = {
   id: string;
@@ -52,9 +75,14 @@ export default function CanvasPage() {
     title: string;
   } | null>(null);
 
+  // Escape cancels the delete question, Tab stays inside it.
+  const confirmRef = useDialog<HTMLDivElement>(!!confirmDelete, () => setConfirmDelete(null));
+  const confirmTitleId = useId();
+  const confirmTextId = useId();
+
   const { loading: limitsLoading, canCreate } = usePlanLimits();
 
-  const line1 = '"Put your memories where they belong: on the wall."';
+  const line1 = '“Put your memories where they belong: on the wall.”';
   const line2 =
     'Create stunning premium canvases from your most treasured moments.';
 
@@ -183,12 +211,10 @@ export default function CanvasPage() {
   /* ── Delete handler ── */
   const handleDeleteCanvas = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('memory_canvases')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      // deleteWithOwnerCheck: a delete blocked by the creator-only policy removes 0 rows with
+      // no error; the page used to say "deleted" and hide the card until the next reload.
+      const deleted = await deleteWithOwnerCheck(supabase, 'memory_canvases', id, 'memory canvas');
+      if (!deleted) return;
 
       setCanvases((prev) => (prev ? prev.filter((c) => c.id !== id) : prev));
       toast.success('Memory canvas deleted.');
@@ -204,268 +230,269 @@ export default function CanvasPage() {
     (canCreate as any)?.album ??
     true;
 
+  // The create button (in the header and in the empty state).
+  const openCreate = () => {
+    if (limitsLoading) return;
+
+    if (!canCreateCanvas) {
+      toast.error('You’ve reached your plan limit.');
+      return;
+    }
+
+    setDrawerMode('create');
+    setSelectedCanvas(null);
+    setDrawerOpen(true);
+  };
+
+  const createButton = (
+    <Btn onClick={openCreate} aria-haspopup="dialog" tile={<Plus size={18} strokeWidth={2.6} />}>
+      Create New Canvas
+    </Btn>
+  );
+
+  const list = canvases ?? [];
+
   return (
-    <>
-      <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
-        <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
-          {/* ── Header ── */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-start gap-6 mb-14">
-            <div className="text-center md:text-left flex-1">
-              <h1 className="text-4xl md:text-5xl font-bold text-[#222B3A] mb-4 relative inline-block whitespace-nowrap">
-                <span className="relative">
-                  My
-                  <motion.span
-                    className="absolute left-0 -bottom-2 h-[3px] bg-[#C8A557] rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: 70 }}
-                    transition={{
-                      delay: 0.2,
-                      duration: 0.8,
-                      ease: 'easeOut',
-                    }}
-                  />
-                </span>{' '}
-                <span className="text-[#C8A557]">
-                  <span className="md:hidden">Canvases</span>
-                  <span className="hidden md:inline">Memory Canvases</span>
-                </span>
-              </h1>
+    <div className={ui.page}>
+      <div className={ui.wrap}>
+        {/* ── Header ── */}
+        <PageHeader
+          eyebrow="Memory Canvases"
+          eyebrowDot="var(--c2)"
+          title={
+            <>
+              My{' '}
+              <Accent>
+                <span className="md:hidden">Canvases</span>
+                <span className="hidden md:inline">Memory Canvases</span>
+              </Accent>
+            </>
+          }
+          lead={`${line1} ${line2}`}
+          actions={createButton}
+        />
 
-              <p className="text-[#000000] mt-3 text-lg italic">{line1}</p>
-              <p className="text-[#000000] text-sm mt-2">{line2}</p>
+        <section className={ui.section} aria-label="Your memory canvases">
+          {/* ── Loading / Error / Empty states ── */}
+          {loading && <AppLoader label="Loading your canvases" />}
+
+          {!loading && error && (
+            <p className={ui.noticeError} role="alert">
+              {error}
+            </p>
+          )}
+
+          {!loading && !error && list.length === 0 && (
+            <EmptyState
+              Icon={Frame}
+              tone={ORANGE}
+              title="No memory canvases yet"
+              text="Create your first masterpiece."
+            >
+              {createButton}
+            </EmptyState>
+          )}
+
+          {/* ── Canvas grid: columns follow the space beside the sidebar, 1 on phones,
+                 2 on tablets, 3 on desktops ── */}
+          {!loading && !error && list.length > 0 && (
+            <div className="@container">
+              <ul role="list" className="grid grid-cols-1 gap-5 @xl:grid-cols-2 @4xl:grid-cols-3">
+                {list.map((c) => {
+                  const titleId = `canvas-title-${c.id}`;
+                  return (
+                    <li key={c.id} className="min-w-0">
+                      {/* A white card holding the preview in a solid colour frame (radius 22 inside
+                          28, 6px apart, so the corners stay concentric). With its menu open it sits
+                          over the cards after it. */}
+                      <article
+                        aria-labelledby={titleId}
+                        className={cx(
+                          ui.card,
+                          'group flex h-full min-w-0 flex-col rounded-[28px] p-1.5 has-[[aria-expanded=true]]:z-10'
+                        )}
+                      >
+                        <div className={ui.frame} style={{ '--frame': toneFor(c.id).bg } as CSSProperties}>
+                          {/* ── Preview image / placeholder ── */}
+                          <div className={cx(ui.frameInner, 'aspect-video', !c.preview_url && 'bg-white')}>
+                            {c.preview_url ? (
+                              <div className="relative h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.03]">
+                                <CanvasPreview src={c.preview_url} />
+                              </div>
+                            ) : (
+                              // No photo yet: the orange tile and its two lines on white. A narrow card
+                              // (three columns) gets a smaller tile, so the lines keep room around them.
+                              <div className="@container absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+                                <IconTile
+                                  Icon={ImageIcon}
+                                  tone={ORANGE}
+                                  className="@max-[300px]:size-10 @max-[300px]:rounded-[13px]"
+                                />
+                                <p className="mt-3 text-[15px] font-extrabold leading-tight tracking-[-0.01em] @max-[300px]:mt-2">
+                                  Design your canvas
+                                </p>
+                                <p className="mt-1 text-balance text-[13px] font-semibold leading-snug">
+                                  Open the canvas to add your photos
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* ── Context menu ── */}
+                          <div className="absolute right-3.5 top-3.5 z-[2]">
+                            <ContextMenuDots
+                              editLabel="Edit Canvas"
+                              onEdit={() => {
+                                setDrawerMode('edit');
+                                setSelectedCanvas(c);
+                                setDrawerOpen(true);
+                              }}
+                              onDelete={() =>
+                                setConfirmDelete({
+                                  id: c.id,
+                                  title: c.title || 'Untitled Canvas',
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        {/* ── Card body ── */}
+                        <div className="flex min-w-0 flex-1 flex-col px-3 pb-3 pt-4">
+                          <h2 id={titleId} className={cx(ui.h3, 'line-clamp-2 text-[20px]')}>
+                            {c.title || 'Untitled Canvas'}
+                          </h2>
+
+                          <div className="mt-3.5 flex flex-wrap gap-2">
+                            <span className={cx(ui.chip, ui.chipSm, 'max-w-full whitespace-normal [overflow-wrap:anywhere]')}>
+                              {c.tier_name} &middot;{' '}
+                              {SIZE_LABELS[c.canvas_size] || c.canvas_size}
+                            </span>
+                            <span className={cx(ui.chip, ui.chipSm)}>
+                              {c.filled_slots} photo{c.filled_slots !== 1 ? 's' : ''}
+                            </span>
+                            <span className={cx(ui.chip, ui.chipSm, 'max-w-full whitespace-normal [overflow-wrap:anywhere]')}>
+                              {c.orientation.charAt(0).toUpperCase() +
+                                c.orientation.slice(1)}
+                            </span>
+                            <span className={cx(ui.chip, ui.chipSm)}>
+                              Created {formatDate(c.created_at)}
+                            </span>
+                          </div>
+
+                          <div className="mt-auto pt-[18px]">
+                            <Link
+                              href={`/dashboard/canvas/${c.id}`}
+                              aria-describedby={titleId}
+                              className={btnClass({ variant: 'soft', block: true })}
+                            >
+                              Open Canvas
+                              <ArrowRight size={18} strokeWidth={2.4} aria-hidden="true" />
+                            </Link>
+                          </div>
+                        </div>
+                      </article>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
+          )}
+        </section>
+      </div>
 
-            <div className="flex justify-center md:justify-end flex-1">
-              <button
-                className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
+      {/* ── Delete confirmation ── */}
+      {confirmDelete && (
+        <div className={cx(ui.scrim, ui.fadeIn, 'scrim-blur z-[9999] flex items-center justify-center p-4')}>
+          <div
+            ref={confirmRef}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={confirmTitleId}
+            aria-describedby={confirmTextId}
+            className={cx(ui.sheet, ui.confirm, ui.popIn)}
+          >
+            <h2 id={confirmTitleId} className={ui.confirmTitle}>
+              Delete &ldquo;{confirmDelete.title}&rdquo;?
+            </h2>
+            <p id={confirmTextId} className={ui.confirmText}>
+              This action cannot be undone.
+            </p>
+            <div className={ui.confirmActions}>
+              <Btn variant="soft" onClick={() => setConfirmDelete(null)}>
+                Cancel
+              </Btn>
+              <Btn
+                variant="danger"
                 onClick={() => {
-                  if (limitsLoading) return;
-
-                  if (!canCreateCanvas) {
-                    toast.error('You\u2019ve reached your plan limit.');
-                    return;
-                  }
-
-                  setDrawerMode('create');
-                  setSelectedCanvas(null);
-                  setDrawerOpen(true);
+                  handleDeleteCanvas(confirmDelete.id);
+                  setConfirmDelete(null);
                 }}
               >
-                <span className="relative z-10">+ Create New Canvas</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
-              </button>
+                Delete
+              </Btn>
             </div>
           </div>
-
-          {/* ── Loading / Error / Empty states ── */}
-          {loading && (
-            <p className="text-center italic">Loading your canvases...</p>
-          )}
-          {!loading && error && (
-            <p className="text-center text-red-500">{error}</p>
-          )}
-          {!loading && !error && (canvases ?? []).length === 0 && (
-            <div className="text-center italic mt-12">
-              No memory canvases yet. Create your first masterpiece.
-            </div>
-          )}
-
-          {/* ── Canvas grid ── */}
-          {!loading && !error && (canvases ?? []).length > 0 && (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,280px))] gap-8">
-              {(canvases ?? []).map((c) => (
-                <div
-                  key={c.id}
-                  className="relative rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden bg-white/95 flex flex-col"
-                >
-                  {/* ── Preview image / placeholder ── */}
-                  <div className="aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
-                    {c.preview_url ? (
-                      <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 bg-[#E6C26E]/10">
-                        <CanvasPreview src={c.preview_url} />
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full gap-2 px-4 text-center bg-gradient-to-b from-[#FBF8F0] to-[#F5EFD9]">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#FFF4D8]">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#B4881F"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <rect x="3" y="3" width="18" height="18" rx="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <path d="M21 15l-5-5L5 21" />
-                          </svg>
-                        </div>
-                        <p className="text-[12px] font-semibold text-[#14213D]">
-                          Design your canvas
-                        </p>
-                        <p className="text-[11px] leading-relaxed text-[#5A6270]">
-                          Open the canvas to add your photos
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* ── Context menu ── */}
-                  <div className="absolute top-3 right-3 z-20">
-                    <ContextMenuDots
-                      editLabel="Edit Canvas"
-                      onEdit={() => {
-                        setDrawerMode('edit');
-                        setSelectedCanvas(c);
-                        setDrawerOpen(true);
-                      }}
-                      onDelete={() =>
-                        setConfirmDelete({
-                          id: c.id,
-                          title: c.title || 'Untitled Canvas',
-                        })
-                      }
-                    />
-                  </div>
-
-                  {/* ── Card body ── */}
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-xl font-semibold text-[#222B3A] mb-2 line-clamp-1">
-                      {c.title || 'Untitled Canvas'}
-                    </h3>
-
-                    <p className="text-sm text-[#5B6473] mb-1">
-                      {c.tier_name} &middot;{' '}
-                      {SIZE_LABELS[c.canvas_size] || c.canvas_size}
-                    </p>
-
-                    <p className="text-sm text-[#5B6473] mb-3">
-                      {c.filled_slots} photo{c.filled_slots !== 1 ? 's' : ''}{' '}
-                      &middot;{' '}
-                      {c.orientation.charAt(0).toUpperCase() +
-                        c.orientation.slice(1)}
-                    </p>
-
-                    <p className="text-xs text-[#7A8596] mb-4">
-                      Created{' '}
-                      {new Date(c.created_at).toLocaleDateString()}
-                    </p>
-
-                    <Link
-                      href={`/dashboard/canvas/${c.id}`}
-                      className="mt-auto block text-center font-semibold px-4 py-3 rounded-full text-[#1F2837] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]"
-                    >
-                      Open Canvas &rarr;
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
+      )}
 
-        {/* ── Delete confirmation modal ── */}
-        {confirmDelete && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-[90%] max-w-sm text-center">
-              <h3 className="text-lg font-semibold text-[#1F2837] mb-3">
-                Delete &ldquo;{confirmDelete.title}&rdquo;?
-              </h3>
-              <p className="text-sm text-[#5B6473] mb-6">
-                This action cannot be undone.
-              </p>
-              <div className="flex justify-center gap-3">
-                <button
-                  className="px-5 py-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100"
-                  onClick={() => setConfirmDelete(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-5 py-2 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837]"
-                  onClick={() => {
-                    handleDeleteCanvas(confirmDelete.id);
-                    setConfirmDelete(null);
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+      {/* ── Create / Edit drawer ── */}
+      <CreateCanvasDrawer
+        open={drawerOpen}
+        mode={drawerMode}
+        canvas={selectedCanvas as any}
+        onClose={() => setDrawerOpen(false)}
+        onCreated={(canvas) => {
+          setDrawerOpen(false);
 
-        {/* ── Create / Edit drawer ── */}
-        <CreateCanvasDrawer
-          open={drawerOpen}
-          mode={drawerMode}
-          canvas={selectedCanvas as any}
-          onClose={() => setDrawerOpen(false)}
-          onCreated={(canvas) => {
-            setDrawerOpen(false);
+          const nextCanvas: Canvas = {
+            id: canvas.id,
+            title: canvas.title || 'Untitled Canvas',
+            description: null,
+            created_at: new Date().toISOString(),
+            tier_key: canvas.tier_key ?? 'heirloom',
+            tier_name: canvas.tier_name ?? 'The Heirloom',
+            canvas_size: canvas.canvas_size ?? '20x32',
+            orientation: canvas.orientation ?? 'landscape',
+            layout_type: canvas.layout_type ?? 'solo',
+            filled_slots: 0,
+            preview_asset_id: null,
+            preview_url: null,
+          };
 
-            const nextCanvas: Canvas = {
-              id: canvas.id,
-              title: canvas.title || 'Untitled Canvas',
-              description: null,
-              created_at: new Date().toISOString(),
-              tier_key: canvas.tier_key ?? 'heirloom',
-              tier_name: canvas.tier_name ?? 'The Heirloom',
-              canvas_size: canvas.canvas_size ?? '20x32',
-              orientation: canvas.orientation ?? 'landscape',
-              layout_type: canvas.layout_type ?? 'solo',
-              filled_slots: 0,
-              preview_asset_id: null,
-              preview_url: null,
-            };
+          setCanvases((prev) => [nextCanvas, ...(prev ?? [])]);
 
-            setCanvases((prev) => [nextCanvas, ...(prev ?? [])]);
-
-            setTimeout(() => setCelebrate(true), 200);
-          }}
-          onUpdated={(canvas) => {
-            setCanvases((prev) =>
-              prev
-                ? prev.map((x) =>
-                    x.id === canvas.id
-                      ? {
-                          ...x,
-                          title: canvas.title || 'Untitled Canvas',
-                          tier_key: (canvas.tier_key ?? x.tier_key) as string,
+          setTimeout(() => setCelebrate(true), 200);
+        }}
+        onUpdated={(canvas) => {
+          setCanvases((prev) =>
+            prev
+              ? prev.map((x) =>
+                  x.id === canvas.id
+                    ? {
+                        ...x,
+                        title: canvas.title || 'Untitled Canvas',
+                        tier_key: (canvas.tier_key ?? x.tier_key) as string,
 tier_name: (canvas.tier_name ?? x.tier_name) as string,
 canvas_size: (canvas.canvas_size ?? x.canvas_size) as string,
 orientation: (canvas.orientation ?? x.orientation) as string,
 layout_type: (canvas.layout_type ?? x.layout_type) as string,
-                        }
-                      : x
-                  )
-                : prev
-            );
-          }}
-        />
+                      }
+                    : x
+                )
+              : prev
+          );
+        }}
+      />
 
-        {/* ── Celebration animation ── */}
-        <LegacyCelebration
-          open={celebrate}
-          onClose={() => setCelebrate(false)}
-          emoji="🖼️"
-          message="Your canvas awaits."
-        />
-      </div>
-
-      <style jsx global>{`
-        @keyframes shine {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-      `}</style>
-    </>
+      {/* ── Celebration animation ── */}
+      <LegacyCelebration
+        open={celebrate}
+        onClose={() => setCelebrate(false)}
+        emoji="🖼️"
+        message="Your canvas awaits."
+      />
+    </div>
   );
 }
 
@@ -478,7 +505,7 @@ function CanvasPreview({ src }: { src: string }) {
   }, [src]);
 
   return (
-    <div className="relative w-full h-full bg-[#E6C26E]/10 overflow-hidden">
+    <div className="relative w-full h-full overflow-hidden">
       <Image
         src={src}
         alt=""

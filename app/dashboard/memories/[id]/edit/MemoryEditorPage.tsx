@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import type { LucideIcon } from 'lucide-react';
 import {
   Mic,
   Square,
@@ -12,9 +13,9 @@ import {
   ImagePlus,
   X,
   Send,
-  Loader2,
   Upload,
-  ChevronLeft,
+  ArrowLeft,
+  Check,
   Eye,
   Feather,
   Image as ImageIcon,
@@ -27,6 +28,30 @@ import { usePlanLimits } from '@/lib/usePlanLimits';
 import StoryAssistanceCard from '@/components/StoryAssistanceCard';
 import { useQuill } from 'react-quilljs';
 import 'quill/dist/quill.snow.css';
+import {
+  ui,
+  Btn,
+  IconBtn,
+  IconTile,
+  PageHeader,
+  Spinner,
+  Tag,
+  btnClass,
+  toneByKey,
+  type Tone,
+} from '@/components/dashboard/ui/AppBits';
+import s from './memoryEditor.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// Each section's tile takes its own colour: the title and the words in My Family's pink and
+// aqua, photos and video in the albums' orange, the voice note in the voice notes' blue.
+const PINK = toneByKey('pink');
+const AQUA = toneByKey('aqua');
+const ORANGE = toneByKey('orange');
+const BLUE = toneByKey('blue');
+
+const TILE_SIZES = '(max-width: 639px) 31vw, 180px';
 
 type PendingMedia = { id: string; file: File; preview: string };
 type ExistingImage = { id: string; url: string };
@@ -80,6 +105,8 @@ export default function MemoryEditorPage({
   const [photoLimitNotice, setPhotoLimitNotice] = useState('');
 
   const [showPreview, setShowPreview] = useState(true);
+
+  const titleHeadingId = useId();
 
   const canPublish = title.trim().length > 0 && stripHtml(body).length > 0;
 
@@ -201,163 +228,215 @@ export default function MemoryEditorPage({
   const readTime = Math.max(1, Math.ceil(wordCount / 200));
   const allImages = [...existingImages.map((i) => i.url), ...media.map((m) => m.preview)];
   const completeness = [title.trim().length > 0, stripHtml(body).length > 0].filter(Boolean).length;
+  const previewText = stripHtml(body);
+  const hasVoice = !!(voiceFile || existingVoiceUrl);
+  const hasVideo = !!(videoFile || existingVideoUrl);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
-      <style jsx global>{`
-        @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        .rise { animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .vc-editor .ql-toolbar.ql-snow { border: 0; border-bottom: 1px solid #EEECEA; background: #FDFCFA; padding: 12px 16px; }
-        .vc-editor .ql-container.ql-snow { border: 0; font-family: 'DM Sans', sans-serif; }
-        .vc-editor .ql-editor { min-height: 280px; padding: 24px 28px 28px; font-size: 16px; line-height: 2; color: #1A1A1A; }
-        .vc-editor .ql-editor p { margin-bottom: 0.6rem; }
-        .vc-editor .ql-editor ul { padding-left: 1.15rem; }
-        .vc-editor .ql-editor.ql-blank::before { left: 28px; right: 28px; font-style: normal; color: #C0BDB5; font-family: 'DM Sans', sans-serif; }
-        .vc-editor .ql-snow .ql-stroke { stroke: #7A7A72; }
-        .vc-editor .ql-snow .ql-fill { fill: #7A7A72; }
-        .vc-editor .ql-toolbar button:hover .ql-stroke, .vc-editor .ql-toolbar button.ql-active .ql-stroke { stroke: #B8860B; }
-        .vc-editor .ql-toolbar button:hover .ql-fill, .vc-editor .ql-toolbar button.ql-active .ql-fill { fill: #B8860B; }
-      `}</style>
+    <div>
+      {/* ═══ STICKY BAR: back; the count, preview and save ═══ */}
+      <div className={cx(s.bar, mounted ? s.rise : s.preMount)}>
+        <div className={s.barPad}>
+          <div className={cx(ui.wrap, s.barRow)}>
+            <Btn
+              variant="soft"
+              size="sm"
+              onClick={() => router.back()}
+              icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
+            >
+              Back
+            </Btn>
 
-      {/* ═══ TOP BAR ═══ */}
-      <div className={`sticky top-0 z-40 bg-white border-b border-[#EEECEA] ${mounted ? 'rise' : 'opacity-0'}`}>
-        <div className="h-[60px] px-5 sm:px-8 flex items-center justify-between w-full">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FBF7EE] hover:bg-[#F5EEE0] transition-colors" aria-label="Go back"><ChevronLeft size={16} className="text-[#B8860B]" /></button>
-            <h2 className="text-[15px] font-extrabold text-[#1A1A1A]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{mode === 'create' ? 'New Memory' : 'Edit Memory'}</h2>
-            {wordCount > 0 && (<span className="hidden sm:inline text-[11px] text-[#A09E96] font-semibold tabular-nums px-2.5 py-1 rounded-full bg-[#F7F6F3]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{wordCount} {wordCount === 1 ? 'word' : 'words'} · {readTime} min read</span>)}
-          </div>
-          <div className="flex items-center gap-2.5">
-            <div className="hidden sm:flex items-center gap-1.5 mr-2">
-              {[0, 1].map((i) => (<div key={i} className={`h-1.5 w-6 rounded-full transition-all duration-500 ${i < completeness ? 'bg-[#D4A017]' : 'bg-[#E8E6E1]'}`} />))}
+            <div className={s.barActions}>
+              {wordCount > 0 && (
+                <span className={cx(ui.chip, ui.chipSm, s.words)}>
+                  {wordCount} {wordCount === 1 ? 'word' : 'words'} · {readTime} min read
+                </span>
+              )}
+              <span className={s.progress} aria-hidden="true">
+                {[0, 1].map((i) => (
+                  <span key={i} className={cx(s.progressDot, i < completeness && s.progressDotOn)} />
+                ))}
+              </span>
+              <Btn
+                variant="soft"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+                aria-pressed={showPreview}
+                icon={<Eye size={17} strokeWidth={2.4} aria-hidden="true" />}
+                className={s.previewToggle}
+              >
+                Preview
+              </Btn>
+              <Btn
+                size="sm"
+                onClick={handlePublish}
+                disabled={!canPublish || publishing}
+                tile={publishing ? <Spinner size={15} /> : <Send size={15} strokeWidth={2.4} />}
+                className={s.saveBtn}
+              >
+                {publishing ? publishStep || 'Saving…' : mode === 'edit' ? 'Update' : 'Save Memory'}
+              </Btn>
             </div>
-            <button onClick={() => setShowPreview(!showPreview)} className={`hidden lg:flex h-9 items-center gap-1.5 px-3.5 rounded-xl text-[12px] font-bold transition-all ${showPreview ? 'bg-[#FBF7EE] text-[#B8860B]' : 'bg-[#F7F6F3] text-[#A09E96] hover:text-[#7A7A72]'}`} style={{ fontFamily: "'DM Sans', sans-serif" }}><Eye size={13} /> Preview</button>
-            <button onClick={handlePublish} disabled={!canPublish || publishing} className="flex h-10 items-center gap-2 rounded-xl px-5 text-[13px] font-extrabold text-white transition-all duration-200 hover:shadow-[0_6px_24px_rgba(180,130,20,0.35)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 disabled:hover:shadow-none disabled:hover:scale-100" style={{ fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg, #E5B000 0%, #B8860B 100%)' }}>
-              {publishing ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-              {publishing ? publishStep || 'Saving…' : mode === 'edit' ? 'Update' : 'Save Memory'}
-            </button>
           </div>
         </div>
       </div>
 
-      {publishError && (
-        <div className="px-5 sm:px-8 lg:px-10 xl:px-14 pt-4">
-          <div className="border border-[#E8C4C0] bg-[#FDF6F5] px-4 py-3 flex items-center justify-between">
-            <p className="text-[13px] text-[#8B3A32]">{publishError}</p>
-            <button onClick={() => setPublishError('')} className="text-[#8B3A32] hover:text-[#6B2A22] ml-3 flex-shrink-0"><X size={14} /></button>
-          </div>
-        </div>
-      )}
-
       {/* ═══ MAIN ═══ */}
-      <div className="flex-1 w-full">
-        <div className={`w-full flex gap-6 px-5 sm:px-8 lg:px-10 xl:px-14 py-8 sm:py-10 pb-24 sm:pb-32 ${mounted ? 'rise' : 'opacity-0'}`}>
+      <div className={cx(ui.page, s.page)}>
+        <div className={cx(ui.wrap, mounted ? s.rise : s.preMount)}>
+          <PageHeader
+            eyebrow="Memory"
+            eyebrowDot="var(--c0)"
+            title={mode === 'create' ? 'New Memory' : 'Edit Memory'}
+            size="md"
+          />
 
-          {/* LEFT: Editor */}
-          <div className="flex-1 min-w-0 space-y-6">
-
-            {/* SECTION 1: TITLE */}
-            <Section icon={<Feather size={15} className="text-[#B8860B]" />} title="Title">
-              <div className="bg-white border border-[#E8E6E1] rounded-2xl px-5 py-4 focus-within:border-[#D4A017] focus-within:shadow-[0_0_0_3px_rgba(212,160,23,0.1)] transition-all">
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Sunday mornings with Nan" maxLength={200} className="w-full bg-transparent outline-none text-[18px] sm:text-[20px] font-extrabold text-[#1A1A1A] placeholder:text-[#D0CEC8] caret-[#D4A017]" style={{ fontFamily: "'DM Sans', sans-serif" }} />
-              </div>
-            </Section>
-
-            {/* SECTION 2: YOUR MEMORY */}
-            <Section icon={<Feather size={15} className="text-[#B8860B]" />} title="Your Memory">
-              <div className="bg-white border border-[#E8E6E1] rounded-2xl overflow-hidden vc-editor focus-within:border-[#D4A017] transition-colors">
-                <QuillEditor value={body} onChange={setBody} />
-              </div>
-            </Section>
-
-            {/* SECTION 3: PHOTOS & VIDEO */}
-            <Section icon={<ImageIcon size={15} className="text-[#B8860B]" />} title="Photos & Video">
-              {existingImages.length > 0 && (
-                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2.5 mb-4">
-                  {existingImages.map((img) => (
-                    <div key={img.id} className="group relative aspect-square rounded-xl overflow-hidden bg-[#F0EDE8]">
-                      <Image src={img.url} alt="" fill className="object-cover" />
-                      {!publishing && (<button onClick={() => removeExistingImage(img.id)} className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow text-[#EF4444] opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>)}
-                      <div className="absolute bottom-1 left-1 px-2 py-0.5 bg-[#10B981] rounded-full"><span className="text-[8px] font-bold text-white">Saved</span></div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {media.length > 0 && (
-                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2.5 mb-4">
-                  {media.map((item, idx) => {
-                    const isUploading = publishing && uploadingMediaIndex === idx;
-                    const isUploaded = publishing && uploadingMediaIndex > idx;
-                    return (
-                      <div key={item.id} className="group relative aspect-square rounded-xl overflow-hidden bg-[#F0EDE8]">
-                        <Image src={item.preview} alt="" fill className={`object-cover transition-opacity ${isUploading ? 'opacity-60' : ''}`} />
-                        {isUploading && (<div className="absolute inset-0 flex items-center justify-center bg-white/40"><Loader2 size={20} className="animate-spin text-[#D4A017]" /></div>)}
-                        {isUploaded && (<div className="absolute top-1.5 left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#10B981]"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg></div>)}
-                        {!publishing && (<button onClick={() => removeMedia(item.id)} className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow text-[#EF4444] opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>)}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <PhotoUploader onAdd={addMedia} currentCount={existingImages.length + media.length} onNotice={setPhotoLimitNotice} />
-                {existingVideoUrl && !videoFile && (
-                  <div className="rounded-2xl border border-[#E8E6E1] overflow-hidden bg-white">
-                    <video src={existingVideoUrl} controls playsInline preload="metadata" className="w-full max-h-[160px] bg-black" />
-                    <div className="px-4 py-2"><span className="text-[11px] font-bold text-[#A09E96]" style={{ fontFamily: "'DM Sans', sans-serif" }}>Saved video</span></div>
-                  </div>
-                )}
-                {!existingVideoUrl && (<VideoUploader videoFile={videoFile} onAdd={addVideo} onRemove={removeVideo} isUploading={uploadingVideo} />)}
-              </div>
-              {photoLimitNotice && (<p className="mt-2 text-[12px] text-[#A9782F]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{photoLimitNotice}</p>)}
-            </Section>
-
-            {/* SECTION 4: VOICE NOTE */}
-            <Section icon={<Music size={15} className="text-[#B8860B]" />} title="Voice Note" optional>
-              {existingVoiceUrl && !voiceFile && (
-                <div className="bg-white border border-[#E8E6E1] rounded-2xl p-4 flex items-center gap-3">
-                  <audio id="existing-voice" src={existingVoiceUrl} />
-                  <button onClick={() => { const el = document.getElementById('existing-voice') as HTMLAudioElement; if (el) { el.paused ? el.play() : el.pause(); } }} className="flex h-11 w-11 items-center justify-center rounded-xl text-white flex-shrink-0 transition-transform hover:scale-105 active:scale-95" style={{ background: 'linear-gradient(135deg, #E5B000, #B8860B)' }}><Play size={14} className="ml-0.5" /></button>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-bold text-[#1A1A1A]" style={{ fontFamily: "'DM Sans', sans-serif" }}>Saved voice note</p>
-                    <p className="text-[11px] text-[#A09E96]" style={{ fontFamily: "'DM Sans', sans-serif" }}>Previously recorded</p>
-                  </div>
-                  <button onClick={() => setExistingVoiceUrl(null)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E8E6E1] hover:bg-[#FEF2F2] transition-colors flex-shrink-0" aria-label="Replace voice note"><Trash2 size={12} className="text-[#EF4444]" /></button>
-                </div>
-              )}
-              {!existingVoiceUrl && (<VoiceNoteUploader voiceFile={voiceFile} onRecord={setVoiceFile} onRemove={() => setVoiceFile(null)} />)}
-            </Section>
-          </div>
-
-          {/* RIGHT: Live preview */}
-          {showPreview && (
-            <div className="hidden lg:block w-[340px] xl:w-[380px] flex-shrink-0">
-              <div className="sticky top-[80px]">
-                <div className="bg-white border border-[#E8E6E1] rounded-3xl overflow-hidden shadow-[0_8px_40px_rgba(30,30,20,0.06)]">
-                  <div className="px-5 py-4 border-b border-[#EEECEA]">
-                    <div className="flex items-center gap-2"><Eye size={13} className="text-[#A09E96]" /><span className="text-[11px] font-extrabold text-[#A09E96] uppercase tracking-[0.1em]" style={{ fontFamily: "'DM Sans', sans-serif" }}>Live Preview</span></div>
-                  </div>
-                  {allImages.length > 0 ? (
-                    <div className="relative h-[180px] bg-[#F0EDE8]">
-                      <Image src={allImages[0]} alt="" fill className="object-cover" />
-                      {allImages.length > 1 && (<div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/50 backdrop-blur-sm rounded-full"><span className="text-[10px] font-bold text-white">+{allImages.length - 1}</span></div>)}
-                    </div>
-                  ) : (
-                    <div className="h-[120px] bg-gradient-to-br from-[#FBF7EE] to-[#F0FDF4] flex items-center justify-center"><ImagePlus size={28} className="text-[#D0CEC8]" /></div>
-                  )}
-                  <div className="p-5">
-                    <h3 className="text-[18px] font-extrabold text-[#1A1A1A] leading-tight mb-2" style={{ fontFamily: "'DM Sans', sans-serif" }}>{title || 'Your title here…'}</h3>
-                    <p className="text-[13px] text-[#A09E96] leading-relaxed line-clamp-4" style={{ fontFamily: "'DM Sans', sans-serif" }}>{stripHtml(body) || 'Your memory will appear here as you write…'}</p>
-                    <div className="mt-4 pt-4 border-t border-[#F5F3EF] flex items-center gap-3">
-                      {wordCount > 0 && (<span className="text-[11px] font-bold text-[#C0BDB5] tabular-nums" style={{ fontFamily: "'DM Sans', sans-serif" }}>{readTime} min read</span>)}
-                      {(voiceFile || existingVoiceUrl) && (<span className="flex items-center gap-1 text-[11px] font-bold text-[#10B981]" style={{ fontFamily: "'DM Sans', sans-serif" }}><Music size={10} /> Voice</span>)}
-                      {(videoFile || existingVideoUrl) && (<span className="flex items-center gap-1 text-[11px] font-bold text-[#D4A017]" style={{ fontFamily: "'DM Sans', sans-serif" }}><Play size={10} /> Video</span>)}
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {publishError && (
+            <div className={cx(ui.noticeError, s.error)} role="alert">
+              <p className={s.errorText}>{publishError}</p>
+              <IconBtn label="Dismiss" ghost size="sm" onClick={() => setPublishError('')}>
+                <X size={16} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
             </div>
           )}
+
+          <div className={cx(s.layout, showPreview && s.layoutPreview)}>
+            {/* LEFT: Editor */}
+            <div className={s.form}>
+
+              {/* SECTION 1: TITLE */}
+              <Section Icon={Feather} tone={PINK} title="Title" headingId={titleHeadingId}>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Sunday mornings with Nan"
+                  maxLength={200}
+                  aria-labelledby={titleHeadingId}
+                  className={cx(ui.input, s.titleInput)}
+                />
+              </Section>
+
+              {/* SECTION 2: YOUR MEMORY */}
+              <Section Icon={Feather} tone={AQUA} title="Your Memory">
+                <div className={s.editor}>
+                  <QuillEditor value={body} onChange={setBody} />
+                </div>
+              </Section>
+
+              {/* SECTION 3: PHOTOS & VIDEO */}
+              <Section Icon={ImageIcon} tone={ORANGE} title="Photos & Video">
+                {existingImages.length > 0 && (
+                  <ul className={s.mediaGrid}>
+                    {existingImages.map((img) => (
+                      <li key={img.id} className={s.tile}>
+                        <Image src={img.url} alt="" fill sizes={TILE_SIZES} className={s.tileImg} />
+                        {!publishing && (
+                          <IconBtn label="Delete this photo" size="sm" onPhoto danger onClick={() => removeExistingImage(img.id)} className={s.tileRemove}>
+                            <X size={15} strokeWidth={2.6} aria-hidden="true" />
+                          </IconBtn>
+                        )}
+                        <span className={cx(ui.photoChip, ui.photoChipInk, s.savedChip)}>Saved</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {media.length > 0 && (
+                  <ul className={s.mediaGrid}>
+                    {media.map((item, idx) => {
+                      const isUploading = publishing && uploadingMediaIndex === idx;
+                      const isUploaded = publishing && uploadingMediaIndex > idx;
+                      return (
+                        <li key={item.id} className={s.tile}>
+                          <Image src={item.preview} alt="" fill sizes={TILE_SIZES} className={cx(s.tileImg, isUploading && s.busy)} />
+                          {isUploading && (<div className={s.tileBusy}><Spinner size={22} label="Uploading" /></div>)}
+                          {isUploaded && (
+                            <span className={cx(ui.photoChip, ui.photoChipIcon, s.doneChip)}>
+                              <Check size={14} strokeWidth={3} aria-hidden="true" />
+                              <span className={ui.srOnly}>Uploaded</span>
+                            </span>
+                          )}
+                          {!publishing && (
+                            <IconBtn label="Remove photo" size="sm" onPhoto onClick={() => removeMedia(item.id)} className={s.tileRemove}>
+                              <X size={15} strokeWidth={2.6} aria-hidden="true" />
+                            </IconBtn>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                <div className={s.uploaders}>
+                  <PhotoUploader onAdd={addMedia} currentCount={existingImages.length + media.length} onNotice={setPhotoLimitNotice} />
+                  {existingVideoUrl && !videoFile && (
+                    <div className={s.videoCard}>
+                      <div className={s.videoBox}>
+                        <video src={existingVideoUrl} controls playsInline preload="metadata" className={s.videoPreview} />
+                      </div>
+                      <div className={s.videoMeta}>
+                        <p className={s.videoName}>Saved video</p>
+                      </div>
+                    </div>
+                  )}
+                  {!existingVideoUrl && (<VideoUploader videoFile={videoFile} onAdd={addVideo} onRemove={removeVideo} isUploading={uploadingVideo} />)}
+                </div>
+                {photoLimitNotice && (<p className={cx(ui.noticeWarn, s.notice)}>{photoLimitNotice}</p>)}
+              </Section>
+
+              {/* SECTION 4: VOICE NOTE */}
+              <Section Icon={Music} tone={BLUE} title="Voice Note" optional>
+                {existingVoiceUrl && !voiceFile && (
+                  <div className={s.voiceRow}>
+                    <audio id="existing-voice" src={existingVoiceUrl} />
+                    <button type="button" onClick={() => { const el = document.getElementById('existing-voice') as HTMLAudioElement; if (el) { el.paused ? el.play() : el.pause(); } }} className={s.voicePlay} aria-label="Play saved voice note">
+                      <Play size={16} strokeWidth={2.6} fill="currentColor" className={s.playGlyph} aria-hidden="true" />
+                    </button>
+                    <div className={s.voiceText}>
+                      <p className={s.voiceTitle}>Saved voice note</p>
+                      <p className={s.voiceSub}>Previously recorded</p>
+                    </div>
+                    <IconBtn label="Replace voice note" size="sm" danger onClick={() => setExistingVoiceUrl(null)}>
+                      <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                    </IconBtn>
+                  </div>
+                )}
+                {!existingVoiceUrl && (<VoiceNoteUploader voiceFile={voiceFile} onRecord={setVoiceFile} onRemove={() => setVoiceFile(null)} />)}
+              </Section>
+            </div>
+
+            {/* RIGHT: Live preview */}
+            {showPreview && (
+              <aside className={s.preview} aria-label="Live Preview">
+                <div className={cx(ui.card, ui.cardFlush)}>
+                  <div className={s.previewHead}>
+                    <Tag dot="var(--c0)">Live Preview</Tag>
+                  </div>
+                  {allImages.length > 0 ? (
+                    <div className={s.previewMedia}>
+                      <Image src={allImages[0]} alt="" fill sizes="380px" className={s.previewImg} />
+                      {allImages.length > 1 && (<span className={cx(ui.photoChip, ui.photoChipInk, s.previewMore)}>+{allImages.length - 1}</span>)}
+                    </div>
+                  ) : (
+                    <div className={cx(s.previewMedia, s.previewEmpty)}>
+                      <IconTile Icon={ImagePlus} tone={ORANGE} />
+                    </div>
+                  )}
+                  <div className={s.previewBody}>
+                    <h2 className={cx(s.previewTitle, !title && s.placeholder)}>{title || 'Your title here…'}</h2>
+                    <p className={cx(s.previewText, !previewText && s.placeholder)}>{previewText || 'Your memory will appear here as you write…'}</p>
+                    {(wordCount > 0 || hasVoice || hasVideo) && (
+                      <div className={s.previewFoot}>
+                        {wordCount > 0 && (<span className={cx(ui.chip, ui.chipSm)}>{readTime} min read</span>)}
+                        {hasVoice && (<span className={cx(ui.chip, ui.chipSm)}><Music size={12} strokeWidth={2.6} aria-hidden="true" /> Voice</span>)}
+                        {hasVideo && (<span className={cx(ui.chip, ui.chipSm)}><Play size={12} strokeWidth={2.6} aria-hidden="true" /> Video</span>)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </aside>
+            )}
+          </div>
         </div>
       </div>
 
@@ -377,16 +456,32 @@ export default function MemoryEditorPage({
   );
 }
 
-function Section({ icon, title, optional, children }: { icon: React.ReactNode; title: string; optional?: boolean; children: React.ReactNode }) {
+function Section({
+  Icon,
+  tone,
+  title,
+  headingId,
+  optional,
+  children,
+}: {
+  Icon: LucideIcon;
+  tone: Tone;
+  title: string;
+  headingId?: string;
+  optional?: boolean;
+  children: React.ReactNode;
+}) {
+  const ownId = useId();
+  const id = headingId ?? ownId;
   return (
-    <div className="bg-white border border-[#E8E6E1] rounded-2xl p-5 sm:p-6">
-      <div className="flex items-center gap-2.5 mb-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FBF7EE]">{icon}</div>
-        <h3 className="text-[15px] font-extrabold text-[#1A1A1A]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{title}</h3>
-        {optional && (<span className="px-2 py-0.5 rounded-full bg-[#F0FDF4] text-[10px] font-bold text-[#10B981] uppercase tracking-[0.06em]" style={{ fontFamily: "'DM Sans', sans-serif" }}>Optional</span>)}
+    <section className={cx(ui.card, s.section)} aria-labelledby={id}>
+      <div className={s.sectionHead}>
+        <IconTile Icon={Icon} tone={tone} size="sm" />
+        <h2 id={id} className={s.sectionTitle}>{title}</h2>
+        {optional && (<span className={cx(ui.chip, ui.chipSm)}>Optional</span>)}
       </div>
       {children}
-    </div>
+    </section>
   );
 }
 
@@ -404,9 +499,21 @@ function PhotoUploader({ onAdd, currentCount, onNotice }: { onAdd: (files: File[
   const processFiles = async (rawFiles: FileList | File[]) => { const arr = Array.from(rawFiles).filter((f) => f.type.startsWith('image/') || f.name.toLowerCase().endsWith('.heic')); if (arr.length === 0) return; onNotice(arr.length > 10 - currentCount ? "You can add up to 10 photos. The rest weren't added." : ''); setProcessing(true); try { const converted = await Promise.all(arr.map((f) => ensureDisplayableImage(f))); onAdd(converted); } finally { setProcessing(false); } };
   if (currentCount >= 10) return null;
   return (
-    <label className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-200 px-5 py-8 ${processing ? 'border-[#D4A017] bg-[#FBF7EE]' : dragOver ? 'border-[#D4A017] bg-[#FBF7EE]' : 'border-[#DDD9D2] bg-[#FDFCFA] hover:border-[#D4A017]'}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files?.length) processFiles(e.dataTransfer.files); }}>
-      {processing ? (<><Loader2 size={24} className="animate-spin text-[#D4A017] mb-2" /><p className="text-[13px] font-extrabold text-[#B8860B]" style={{ fontFamily: "'DM Sans', sans-serif" }}>Processing photos…</p><p className="mt-0.5 text-[11px] text-[#A09E96] font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>Converting for upload</p></>) : (<><div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FBF7EE]"><ImagePlus size={20} className="text-[#B8860B]" /></div><p className="text-[13px] font-extrabold text-[#1A1A1A]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{currentCount > 0 ? 'Add more' : 'Drop photos here'}</p><p className="mt-0.5 text-[11px] text-[#A09E96] font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>JPG, PNG up to 10 photos</p></>)}
-      <input type="file" accept="image/*,.heic" multiple hidden disabled={processing} onChange={(e) => { if (e.target.files?.length) processFiles(e.target.files); e.target.value = ''; }} />
+    <label className={cx(ui.dropzone, (processing || dragOver) && ui.dropzoneActive, s.drop)} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files?.length) processFiles(e.dataTransfer.files); }}>
+      {processing ? (
+        <>
+          <span className={s.dropSpin}><Spinner size={24} /></span>
+          <span className={ui.dropzoneTitle}>Processing photos…</span>
+          <span className={ui.dropzoneHint}>Converting for upload</span>
+        </>
+      ) : (
+        <>
+          <IconTile Icon={ImagePlus} tone={ORANGE} />
+          <span className={ui.dropzoneTitle}>{currentCount > 0 ? 'Add more' : 'Drop photos here'}</span>
+          <span className={ui.dropzoneHint}>JPG, PNG up to 10 photos</span>
+        </>
+      )}
+      <input type="file" accept="image/*,.heic" multiple className={ui.srOnly} disabled={processing} onChange={(e) => { if (e.target.files?.length) processFiles(e.target.files); e.target.value = ''; }} />
     </label>
   );
 }
@@ -431,20 +538,38 @@ function VoiceNoteUploader({ voiceFile, onRecord, onRemove }: { voiceFile: File 
 
   if (voiceFile && previewUrl) {
     return (
-      <div className="bg-[#FDFCFA] border border-[#E8E6E1] rounded-2xl p-4 flex items-center gap-3">
+      <div className={s.voiceRow}>
         <audio ref={audioRef} src={previewUrl} onEnded={() => setPlaying(false)} />
-        <button onClick={togglePlayback} className="flex h-11 w-11 items-center justify-center rounded-xl text-white flex-shrink-0 transition-transform hover:scale-105 active:scale-95" style={{ background: 'linear-gradient(135deg, #E5B000, #B8860B)' }}>{playing ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}</button>
-      <div className="flex-1 flex items-center gap-[1.5px] h-8">{bars.map((h, i) => (<div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, minHeight: 3, background: i < 24 ? '#D4A017' : '#DDD9D2' }} />))}</div>
-        <span className="text-[12px] text-[#7A7A72] font-extrabold tabular-nums flex-shrink-0" style={{ fontFamily: "'DM Sans', sans-serif" }}>{fmtTime(elapsed)}</span>
-        <button onClick={handleRemove} className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E8E6E1] hover:bg-[#FEF2F2] transition-colors flex-shrink-0"><Trash2 size={12} className="text-[#EF4444]" /></button>
+        <button type="button" onClick={togglePlayback} className={s.voicePlay} aria-label={playing ? 'Pause' : 'Play'}>
+          {playing ? <Pause size={16} strokeWidth={2.6} fill="currentColor" aria-hidden="true" /> : <Play size={16} strokeWidth={2.6} fill="currentColor" className={s.playGlyph} aria-hidden="true" />}
+        </button>
+        <div className={s.wave} aria-hidden="true">{bars.map((h, i) => (<span key={i} className={cx(s.waveBar, i < 24 && s.waveBarOn)} style={{ height: `${h}%` }} />))}</div>
+        <span className={s.time}>{fmtTime(elapsed)}</span>
+        <IconBtn label="Remove voice note" size="sm" danger onClick={handleRemove}>
+          <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+        </IconBtn>
       </div>
     );
   }
-  if (recording) { return (<button onClick={stopRecording} className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[#FEF2F2] border-2 border-[#FECACA] text-[13px] font-extrabold text-[#EF4444] transition-colors hover:bg-[#FEE2E2]" style={{ fontFamily: "'DM Sans', sans-serif" }}><Square size={12} />Stop Recording · {fmtTime(elapsed)}</button>); }
+  if (recording) {
+    return (
+      <button type="button" onClick={stopRecording} className={cx(ui.btn, s.stopRec)}>
+        <span className={s.pulseBox} aria-hidden="true"><span className={s.pulse} /></span>
+        <Square size={13} strokeWidth={2.6} fill="currentColor" aria-hidden="true" />
+        Stop Recording · {fmtTime(elapsed)}
+      </button>
+    );
+  }
   return (
-    <div className="flex gap-3">
-      <button onClick={startRecording} className="flex h-14 flex-1 items-center justify-center gap-2.5 rounded-2xl border-2 border-[#DDD9D2] bg-white text-[13px] font-extrabold text-[#7A7A72] transition-all hover:border-[#D4A017] hover:text-[#B8860B]" style={{ fontFamily: "'DM Sans', sans-serif" }}><Mic size={16} className="text-[#D4A017]" />Record</button>
-      <label className="flex h-14 flex-1 cursor-pointer items-center justify-center gap-2.5 rounded-2xl border-2 border-[#DDD9D2] bg-white text-[13px] font-extrabold text-[#7A7A72] transition-all hover:border-[#D4A017] hover:text-[#B8860B]" style={{ fontFamily: "'DM Sans', sans-serif" }}><Upload size={16} className="text-[#D4A017]" />Upload<input type="file" accept="audio/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }} /></label>
+    <div className={s.voiceActions}>
+      <Btn variant="soft" onClick={startRecording} icon={<Mic size={18} strokeWidth={2.4} aria-hidden="true" />}>
+        Record
+      </Btn>
+      <label className={btnClass({ variant: 'soft' })}>
+        <Upload size={18} strokeWidth={2.4} aria-hidden="true" />
+        <span>Upload</span>
+        <input type="file" accept="audio/*" className={ui.srOnly} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }} />
+      </label>
     </div>
   );
 }
@@ -455,21 +580,31 @@ function VideoUploader({ videoFile, onAdd, onRemove, isUploading }: { videoFile:
   const maxMinutes = Math.round(maxSeconds / 60);
   if (videoFile) {
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-[#E8E6E1] bg-white">
-        <div className="relative"><video src={videoFile.preview} controls={!isUploading} playsInline preload="metadata" className={`w-full max-h-[160px] bg-black transition-opacity ${isUploading ? 'opacity-50' : ''}`} />{isUploading && (<div className="absolute inset-0 flex items-center justify-center bg-white/30"><Loader2 size={28} className="animate-spin text-[#D4A017]" /></div>)}</div>
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <div className="min-w-0"><p className="truncate text-[12px] font-extrabold text-[#1A1A1A]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{videoFile.file.name}</p><p className="text-[10px] text-[#A09E96] font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>{(videoFile.file.size / (1024 * 1024)).toFixed(1)} MB{isUploading && ' · Uploading…'}</p></div>
-          {!isUploading && (<button onClick={onRemove} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-[#FEF2F2] flex-shrink-0 transition-colors"><Trash2 size={12} className="text-[#EF4444]" /></button>)}
+      <div className={s.videoCard}>
+        <div className={s.videoBox}>
+          <video src={videoFile.preview} controls={!isUploading} playsInline preload="metadata" className={cx(s.videoPreview, isUploading && s.busy)} />
+          {isUploading && (<div className={s.videoBusy}><Spinner size={28} label="Uploading" /></div>)}
+        </div>
+        <div className={s.videoMeta}>
+          <div className={s.videoText}>
+            <p className={s.videoName}>{videoFile.file.name}</p>
+            <p className={s.videoSize}>{(videoFile.file.size / (1024 * 1024)).toFixed(1)} MB{isUploading && ' · Uploading…'}</p>
+          </div>
+          {!isUploading && (
+            <IconBtn label="Remove video" ghost size="sm" onClick={onRemove}>
+              <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+            </IconBtn>
+          )}
         </div>
       </div>
     );
   }
   return (
-    <label className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#DDD9D2] bg-[#FDFCFA] px-5 py-8 cursor-pointer transition-all duration-200 hover:border-[#D4A017]">
-      <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FBF7EE]"><Play size={18} className="text-[#B8860B] ml-0.5" /></div>
-      <p className="text-[13px] font-extrabold text-[#1A1A1A]" style={{ fontFamily: "'DM Sans', sans-serif" }}>Add Video</p>
-      <p className="mt-0.5 text-[11px] text-[#A09E96] font-medium" style={{ fontFamily: "'DM Sans', sans-serif" }}>MP4, MOV, or WebM (max {maxMinutes} min)</p>
-      <input type="file" accept="video/mp4,video/quicktime,video/webm" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) { const video = document.createElement('video'); video.preload = 'metadata'; video.onloadedmetadata = () => { URL.revokeObjectURL(video.src); if (video.duration > maxSeconds) { alert(`Video must be ${maxMinutes} minutes or less.`); } else { onAdd(f); } }; video.src = URL.createObjectURL(f); } e.target.value = ''; }} />
+    <label className={cx(ui.dropzone, s.drop)}>
+      <IconTile Icon={Play} tone={ORANGE} />
+      <span className={ui.dropzoneTitle}>Add Video</span>
+      <span className={ui.dropzoneHint}>MP4, MOV, or WebM (max {maxMinutes} min)</span>
+      <input type="file" accept="video/mp4,video/quicktime,video/webm" className={ui.srOnly} onChange={(e) => { const f = e.target.files?.[0]; if (f) { const video = document.createElement('video'); video.preload = 'metadata'; video.onloadedmetadata = () => { URL.revokeObjectURL(video.src); if (video.duration > maxSeconds) { alert(`Video must be ${maxMinutes} minutes or less.`); } else { onAdd(f); } }; video.src = URL.createObjectURL(f); } e.target.value = ''; }} />
     </label>
   );
 }

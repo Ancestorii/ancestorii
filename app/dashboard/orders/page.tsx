@@ -1,7 +1,37 @@
 'use client';
+import { safeToast as toast } from '@/lib/safeToast';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+  ArrowUpRight,
+  Book,
+  CreditCard,
+  Frame,
+  Gem,
+  Gift,
+  MapPin,
+  PackageCheck,
+  ShoppingBag,
+  Trash2,
+  Truck,
+  type LucideIcon,
+} from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import {
+  ui,
+  Accent,
+  AppLoader,
+  Btn,
+  EmptyState,
+  IconTile,
+  PageHeader,
+  SectionHead,
+  toneByKey,
+  useDialog,
+} from '@/components/dashboard/ui/AppBits';
+import s from './orders.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type Order = {
   id: string;
@@ -72,17 +102,38 @@ type AcrylicOrder = {
   acrylic_title?: string;
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  created: { label: 'Awaiting Payment', color: '#7A6520', bg: '#FFF8E7' },
-  paid: { label: 'Payment Received', color: '#1A6B3C', bg: '#EDFFF4' },
-  generating_pdf: { label: 'Preparing Your Book', color: '#B8860B', bg: '#FFF8E7' },
-  generating_image: { label: 'Preparing Your Print', color: '#B8860B', bg: '#FFF8E7' },
-  submitting: { label: 'Sending to Printer', color: '#B8860B', bg: '#FFF8E7' },
-  printing: { label: 'Printing', color: '#B8860B', bg: '#FFF8E7' },
-  shipped: { label: 'Shipped', color: '#1A6B3C', bg: '#EDFFF4' },
-  delivered: { label: 'Delivered', color: '#1A6B3C', bg: '#EDFFF4' },
-  cancelled: { label: 'Cancelled', color: '#8B2020', bg: '#FFF0F0' },
-  error: { label: 'Issue: contact support', color: '#8B2020', bg: '#FFF0F0' },
+// The fields every card shows (book, canvas and acrylic orders all have them).
+type OrderFields = {
+  id: string;
+  tier_name: string;
+  price_amount: number;
+  price_currency: string;
+  status: string;
+  prodigi_tracking_url: string | null;
+  shipping_city: string | null;
+  shipping_country: string | null;
+  created_at: string;
+  paid_at: string | null;
+  shipped_at: string | null;
+  amount_charged?: number | null;
+  shipping_amount?: number | null;
+  shipping_method?: string | null;
+  reward_code?: string | null;
+};
+
+// Each status's words, and its dot coloured by meaning: ink placed, orange in production,
+// blue shipped, aqua delivered, pink a problem or cancelled.
+const STATUS_CONFIG: Record<string, { label: string; dot: string }> = {
+  created: { label: 'Awaiting Payment', dot: 'var(--ink)' },
+  paid: { label: 'Payment Received', dot: 'var(--ink)' },
+  generating_pdf: { label: 'Preparing Your Book', dot: 'var(--c2)' },
+  generating_image: { label: 'Preparing Your Print', dot: 'var(--c2)' },
+  submitting: { label: 'Sending to Printer', dot: 'var(--c2)' },
+  printing: { label: 'Printing', dot: 'var(--c2)' },
+  shipped: { label: 'Shipped', dot: 'var(--c1)' },
+  delivered: { label: 'Delivered', dot: 'var(--c3)' },
+  cancelled: { label: 'Cancelled', dot: 'var(--c0)' },
+  error: { label: 'Issue: contact support', dot: 'var(--c0)' },
 };
 
 const CURRENCY_SYMBOL: Record<string, string> = {
@@ -99,6 +150,11 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<'book' | 'canvas' | 'acrylic'>('book');
+
+  // Escape cancels the delete question, Tab stays inside it.
+  const confirmRef = useDialog<HTMLDivElement>(!!deleteTarget, () => setDeleteTarget(null));
+  const confirmTitleId = useId();
+  const confirmTextId = useId();
 
   useEffect(() => {
     (async () => {
@@ -213,519 +269,118 @@ export default function OrdersPage() {
   const totalOrders = orders.length + canvasOrders.length + acrylicOrders.length;
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(180deg, #FFFFFF 0%, #FEFAF3 40%, #FAF7ED 100%)',
-        fontFamily: "'DM Sans', sans-serif",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 900,
-          margin: '0 auto',
-          padding: '48px 24px 80px',
-        }}
-      >
-        {/* Header */}
-        <div style={{ marginBottom: 40 }}>
-          <h1
-            style={{
-              fontSize: 32,
-              fontWeight: 800,
-              color: '#1A1714',
-              letterSpacing: '-0.03em',
-              marginBottom: 8,
-            }}
-          >
-            My Orders
-          </h1>
-          <p style={{ fontSize: 14, color: '#6B6358' }}>
-            Track your orders from payment to your doorstep.
-          </p>
-          <div
-            style={{
-              width: 40,
-              height: 3,
-              background: '#d4af37',
-              borderRadius: 2,
-              marginTop: 16,
-            }}
-          />
-        </div>
+    <div className={ui.page}>
+      <div className={ui.wrap}>
+        <PageHeader
+          eyebrow="Orders"
+          eyebrowDot="var(--c2)"
+          title={
+            <>
+              My <Accent>Orders</Accent>
+            </>
+          }
+          lead="Track your orders from payment to your doorstep."
+        />
 
         {/* Loading */}
-        {loading && (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '60px 0',
-              fontSize: 14,
-              color: '#A39B8F',
-              fontStyle: 'italic',
-            }}
-          >
-            Loading your orders…
-          </div>
-        )}
+        {loading && <AppLoader label="Loading your orders" />}
 
         {/* Empty state */}
         {!loading && totalOrders === 0 && (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '80px 0',
-            }}
-          >
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 14,
-                background: '#FBF6EA',
-                border: '1.5px solid rgba(212, 175, 55, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 20px',
-              }}
-            >
-              <svg
-                width="24"
-                height="24"
-                fill="none"
-                stroke="#d4af37"
-                strokeWidth="1.8"
-                viewBox="0 0 24 24"
-              >
-                <rect x="4" y="3" width="16" height="18" rx="2" />
-                <path d="M12 3v18" />
-              </svg>
-            </div>
-            <p style={{ fontSize: 16, fontWeight: 600, color: '#1A1714', marginBottom: 6 }}>
-              No orders yet
-            </p>
-            <p style={{ fontSize: 13, color: '#A39B8F' }}>
-              When you order a product, it will appear here.
-            </p>
-          </div>
+          <section className={ui.section} aria-label="Your orders">
+            <EmptyState
+              Icon={ShoppingBag}
+              tone={toneByKey('orange')}
+              title="No orders yet"
+              text="When you order a product, it will appear here."
+            />
+          </section>
         )}
 
-        {/* ═══════════════════════════════════
-            BOOK ORDERS (EXISTING, UNTOUCHED)
-            ═══════════════════════════════════ */}
+        {/* Book orders */}
         {!loading && orders.length > 0 && (
-          <>
-            <SectionLabel label="Memory Books" count={orders.length} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40 }}>
-              {orders.map((order) => {
-                const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.error;
-
-                return (
-                  <div
-                    key={order.id}
-                    style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #E8E4DC',
-                      borderRadius: 16,
-                      padding: '24px 28px',
-                      boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
-                    }}
-                  >
-                    {/* Top row */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        justifyContent: 'space-between',
-                        marginBottom: 16,
-                        flexWrap: 'wrap',
-                        gap: 12,
-                      }}
-                    >
-                      <div>
-                        <h3
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 700,
-                            color: '#1A1714',
-                            letterSpacing: '-0.02em',
-                            marginBottom: 4,
-                          }}
-                        >
-                          {order.book_title}
-                        </h3>
-                        <p style={{ fontSize: 12, color: '#A39B8F' }}>
-                          {order.tier_name} · Ordered {formatDate(order.created_at)}
-                        </p>
-                      </div>
-
-                      <div
-                        style={{
-                          padding: '5px 14px',
-                          borderRadius: 99,
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: statusInfo.color,
-                          background: statusInfo.bg,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {statusInfo.label}
-                      </div>
-                    </div>
-
-                    {/* Progress bar */}
-                    <div style={{ marginBottom: 20 }}>
-                      <OrderProgress status={order.status} />
-                    </div>
-
-                    {/* Details row */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 24,
-                        fontSize: 13,
-                        color: '#6B6358',
-                      }}
-                    >
-                      <PaidLine order={order} />
-
-                      {order.shipping_city && (
-                        <div>
-                          Shipping to{' '}
-                          <span style={{ fontWeight: 600, color: '#1A1714' }}>
-                            {order.shipping_city}, {order.shipping_country}
-                          </span>
-                        </div>
-                      )}
-
-                      {order.paid_at && (
-                        <div>
-                          Paid {formatDate(order.paid_at)}
-                        </div>
-                      )}
-
-                      {order.shipped_at && (
-                        <div>
-                          Shipped {formatDate(order.shipped_at)}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Tracking link */}
-                    {order.prodigi_tracking_url && (
-                      <div style={{ marginTop: 16 }}>
-                        <a
-                          href={order.prodigi_tracking_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: '#B8860B',
-                            textDecoration: 'none',
-                          }}
-                        >
-                          Track Your Book
-                          <svg
-                            width="14"
-                            height="14"
-                            fill="none"
-                            stroke="#B8860B"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M7 17L17 7M17 7H7M17 7v10" />
-                          </svg>
-                        </a>
-                      </div>
-                    )}
-                    {(order.status === 'created' || order.status === 'error' || order.status === 'cancelled') && (
-                      <div style={{ marginTop: 16 }}>
-                        <button
-                          onClick={() => { setDeleteTarget(order.id); setDeleteType('book'); }}
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: '#8B2020',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: 0,
-                          }}
-                        >
-                          Delete order
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </>
+          <OrderSection id="orders-books-title" label="Memory Books" count={orders.length}>
+            {orders.map((order) => (
+              <li key={order.id} className="min-w-0">
+                <OrderCard
+                  order={order}
+                  title={order.book_title}
+                  Icon={Book}
+                  trackLabel="Track Your Book"
+                  formatDate={formatDate}
+                  onDelete={() => { setDeleteTarget(order.id); setDeleteType('book'); }}
+                />
+              </li>
+            ))}
+          </OrderSection>
         )}
 
-        {/* ═══════════════════════════════════
-            CANVAS ORDERS
-            ═══════════════════════════════════ */}
+        {/* Canvas orders */}
         {!loading && canvasOrders.length > 0 && (
-          <>
-            <SectionLabel label="Memory Canvases" count={canvasOrders.length} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40 }}>
-              {canvasOrders.map((order) => {
-                const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.error;
-
-                return (
-                  <div
-                    key={order.id}
-                    style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #E8E4DC',
-                      borderRadius: 16,
-                      padding: '24px 28px',
-                      boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        justifyContent: 'space-between',
-                        marginBottom: 16,
-                        flexWrap: 'wrap',
-                        gap: 12,
-                      }}
-                    >
-                      <div>
-                        <h3 style={{ fontSize: 18, fontWeight: 700, color: '#1A1714', letterSpacing: '-0.02em', marginBottom: 4 }}>
-                          {order.canvas_title}
-                        </h3>
-                        <p style={{ fontSize: 12, color: '#A39B8F' }}>
-                          {order.tier_name} · Ordered {formatDate(order.created_at)}
-                        </p>
-                      </div>
-                      <div style={{ padding: '5px 14px', borderRadius: 99, fontSize: 12, fontWeight: 700, color: statusInfo.color, background: statusInfo.bg, whiteSpace: 'nowrap' }}>
-                        {statusInfo.label}
-                      </div>
-                    </div>
-
-                    <div style={{ marginBottom: 20 }}>
-                      <OrderProgress status={order.status} />
-                    </div>
-
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, fontSize: 13, color: '#6B6358' }}>
-                      <PaidLine order={order} />
-                      {order.shipping_city && (
-                        <div>Shipping to <span style={{ fontWeight: 600, color: '#1A1714' }}>{order.shipping_city}, {order.shipping_country}</span></div>
-                      )}
-                      {order.paid_at && <div>Paid {formatDate(order.paid_at)}</div>}
-                      {order.shipped_at && <div>Shipped {formatDate(order.shipped_at)}</div>}
-                    </div>
-
-                    {order.prodigi_tracking_url && (
-                      <div style={{ marginTop: 16 }}>
-                        <a href={order.prodigi_tracking_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#B8860B', textDecoration: 'none' }}>
-                          Track Your Canvas
-                          <svg width="14" height="14" fill="none" stroke="#B8860B" strokeWidth="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10" /></svg>
-                        </a>
-                      </div>
-                    )}
-
-                    {(order.status === 'created' || order.status === 'error' || order.status === 'cancelled') && (
-                      <div style={{ marginTop: 16 }}>
-                        <button
-                          onClick={() => { setDeleteTarget(order.id); setDeleteType('canvas'); }}
-                          style={{ fontSize: 13, fontWeight: 600, color: '#8B2020', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                        >
-                          Delete order
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </>
+          <OrderSection id="orders-canvases-title" label="Memory Canvases" count={canvasOrders.length}>
+            {canvasOrders.map((order) => (
+              <li key={order.id} className="min-w-0">
+                <OrderCard
+                  order={order}
+                  title={order.canvas_title}
+                  Icon={Frame}
+                  trackLabel="Track Your Canvas"
+                  formatDate={formatDate}
+                  onDelete={() => { setDeleteTarget(order.id); setDeleteType('canvas'); }}
+                />
+              </li>
+            ))}
+          </OrderSection>
         )}
 
-        {/* ═══════════════════════════════════
-            ACRYLIC ORDERS
-            ═══════════════════════════════════ */}
+        {/* Acrylic orders */}
         {!loading && acrylicOrders.length > 0 && (
-          <>
-            <SectionLabel label="Acrylic Prints" count={acrylicOrders.length} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40 }}>
-              {acrylicOrders.map((order) => {
-                const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.error;
-
-                return (
-                  <div
-                    key={order.id}
-                    style={{
-                      background: '#FFFFFF',
-                      border: '1px solid #E8E4DC',
-                      borderRadius: 16,
-                      padding: '24px 28px',
-                      boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        justifyContent: 'space-between',
-                        marginBottom: 16,
-                        flexWrap: 'wrap',
-                        gap: 12,
-                      }}
-                    >
-                      <div>
-                        <h3 style={{ fontSize: 18, fontWeight: 700, color: '#1A1714', letterSpacing: '-0.02em', marginBottom: 4 }}>
-                          {order.acrylic_title}
-                        </h3>
-                        <p style={{ fontSize: 12, color: '#A39B8F' }}>
-                          {order.tier_name} · Ordered {formatDate(order.created_at)}
-                        </p>
-                      </div>
-                      <div style={{ padding: '5px 14px', borderRadius: 99, fontSize: 12, fontWeight: 700, color: statusInfo.color, background: statusInfo.bg, whiteSpace: 'nowrap' }}>
-                        {statusInfo.label}
-                      </div>
-                    </div>
-
-                    <div style={{ marginBottom: 20 }}>
-                      <OrderProgress status={order.status} />
-                    </div>
-
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, fontSize: 13, color: '#6B6358' }}>
-                      <PaidLine order={order} />
-                      {order.shipping_city && (
-                        <div>Shipping to <span style={{ fontWeight: 600, color: '#1A1714' }}>{order.shipping_city}, {order.shipping_country}</span></div>
-                      )}
-                      {order.paid_at && <div>Paid {formatDate(order.paid_at)}</div>}
-                      {order.shipped_at && <div>Shipped {formatDate(order.shipped_at)}</div>}
-                    </div>
-
-                    {order.prodigi_tracking_url && (
-                      <div style={{ marginTop: 16 }}>
-                        <a href={order.prodigi_tracking_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#B8860B', textDecoration: 'none' }}>
-                          Track Your Print
-                          <svg width="14" height="14" fill="none" stroke="#B8860B" strokeWidth="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10" /></svg>
-                        </a>
-                      </div>
-                    )}
-
-                    {(order.status === 'created' || order.status === 'error' || order.status === 'cancelled') && (
-                      <div style={{ marginTop: 16 }}>
-                        <button
-                          onClick={() => { setDeleteTarget(order.id); setDeleteType('acrylic'); }}
-                          style={{ fontSize: 13, fontWeight: 600, color: '#8B2020', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                        >
-                          Delete order
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </>
+          <OrderSection id="orders-acrylics-title" label="Acrylic Prints" count={acrylicOrders.length}>
+            {acrylicOrders.map((order) => (
+              <li key={order.id} className="min-w-0">
+                <OrderCard
+                  order={order}
+                  title={order.acrylic_title}
+                  Icon={Gem}
+                  trackLabel="Track Your Print"
+                  formatDate={formatDate}
+                  onDelete={() => { setDeleteTarget(order.id); setDeleteType('acrylic'); }}
+                />
+              </li>
+            ))}
+          </OrderSection>
         )}
       </div>
 
-      {/* Delete confirmation modal */}
+      {/* Delete confirmation */}
       {deleteTarget && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(26, 23, 20, 0.45)',
-            backdropFilter: 'blur(6px)',
-          }}
+          className={cx(ui.scrim, ui.fadeIn, 'scrim-blur z-[9999] flex items-center justify-center p-4')}
           onClick={() => setDeleteTarget(null)}
         >
           <div
+            ref={confirmRef}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={confirmTitleId}
+            aria-describedby={confirmTextId}
+            className={cx(ui.sheet, ui.confirm, ui.popIn)}
             onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '90%',
-              maxWidth: 380,
-              background: '#FFFFFF',
-              borderRadius: 20,
-              padding: '32px 28px 28px',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
-              border: '1px solid #E8E4DC',
-            }}
           >
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 14,
-                background: '#FFF0F0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 20px',
-              }}
-            >
-              <svg width="22" height="22" fill="none" stroke="#8B2020" strokeWidth="1.8" viewBox="0 0 24 24">
-                <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                <path d="M10 11v6M14 11v6" />
-              </svg>
-            </div>
-
-            <h3
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                color: '#1A1714',
-                textAlign: 'center',
-                marginBottom: 8,
-                letterSpacing: '-0.02em',
-              }}
-            >
+            <h2 id={confirmTitleId} className={ui.confirmTitle}>
               Delete this order?
-            </h3>
-
-            <p
-              style={{
-                fontSize: 13,
-                color: '#6B6358',
-                textAlign: 'center',
-                lineHeight: 1.5,
-                marginBottom: 28,
-              }}
-            >
+            </h2>
+            <p id={confirmTextId} className={ui.confirmText}>
               This order will be permanently deleted. This action cannot be undone.
             </p>
 
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => setDeleteTarget(null)}
-                style={{
-                  flex: 1,
-                  padding: '12px 0',
-                  borderRadius: 12,
-                  border: '1.5px solid #E8E4DC',
-                  background: '#FFFFFF',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: '#1A1714',
-                  cursor: 'pointer',
-                }}
-              >
+            <div className={ui.confirmActions}>
+              <Btn variant="soft" onClick={() => setDeleteTarget(null)}>
                 Cancel
-              </button>
+              </Btn>
 
-              <button
+              <Btn
+                variant="danger"
                 onClick={async () => {
                   try {
                     const table =
@@ -733,12 +388,19 @@ export default function OrdersPage() {
                         : deleteType === 'acrylic' ? 'acrylic_orders'
                         : 'orders';
 
-                    const { error } = await supabase
+                    // select('id') shows whether a row really went: these tables have no delete
+                    // policy yet, so the delete removed nothing and the card came back on reload.
+                    const { data: removed, error } = await supabase
                       .from(table)
                       .delete()
-                      .eq('id', deleteTarget);
+                      .eq('id', deleteTarget)
+                      .select('id');
 
                     if (error) throw error;
+                    if (!removed || removed.length === 0) {
+                      toast.error("This order couldn't be removed.");
+                      return;
+                    }
 
                     if (deleteType === 'canvas') {
                       setCanvasOrders((prev) => prev.filter((o) => o.id !== deleteTarget));
@@ -753,20 +415,9 @@ export default function OrdersPage() {
                     setDeleteTarget(null);
                   }
                 }}
-                style={{
-                  flex: 1,
-                  padding: '12px 0',
-                  borderRadius: 12,
-                  border: 'none',
-                  background: '#8B2020',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: '#FFFFFF',
-                  cursor: 'pointer',
-                }}
               >
                 Delete forever
-              </button>
+              </Btn>
             </div>
           </div>
         </div>
@@ -775,16 +426,164 @@ export default function OrdersPage() {
   );
 }
 
-// ── Amount paid + reward + shipping (shared across book/canvas/acrylic cards) ──
-function PaidLine({
+// ── One product's orders: a heading with the count, then the cards ──
+// (columns follow the space beside the sidebar: 1 on phones, 2 from tablets up)
+function OrderSection({
+  id,
+  label,
+  count,
+  children,
+}: {
+  id: string;
+  label: string;
+  count: number;
+  children: ReactNode;
+}) {
+  return (
+    <section className={ui.section} aria-labelledby={id}>
+      <SectionHead
+        id={id}
+        title={label}
+        action={
+          <span className={ui.chip}>
+            {count} {count === 1 ? 'order' : 'orders'}
+          </span>
+        }
+      />
+      <div className="@container">
+        <ul role="list" className="grid grid-cols-1 gap-5 @xl:grid-cols-2">
+          {children}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+// ── One order (book, canvas or acrylic): the same card for all three ──
+function OrderCard({
+  order,
+  title,
+  Icon,
+  trackLabel,
+  formatDate,
+  onDelete,
+}: {
+  order: OrderFields;
+  title?: string;
+  Icon: LucideIcon;
+  trackLabel: string;
+  formatDate: (iso: string | null) => string;
+  onDelete: () => void;
+}) {
+  const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.error;
+  const canDelete = order.status === 'created' || order.status === 'error' || order.status === 'cancelled';
+  const hasFacts = !!(order.shipping_method || order.shipping_city || order.paid_at || order.shipped_at);
+  const titleId = `order-${order.id}-title`;
+
+  return (
+    <article className={cx(ui.card, s.card)} aria-labelledby={titleId}>
+      <div className={s.body}>
+        {/* Top row: the product's tile, the status */}
+        <div className={s.top}>
+          <IconTile Icon={Icon} tone={toneByKey('orange')} />
+          <span
+            className={cx(ui.chip, ui.chipDot)}
+            style={{ '--dot': statusInfo.dot } as CSSProperties}
+          >
+            <span className={ui.srOnly}>Status: </span>
+            {statusInfo.label}
+          </span>
+        </div>
+
+        <h3 id={titleId} className={s.title}>
+          {title}
+        </h3>
+        <div className={s.meta}>
+          <span className={cx(ui.chip, ui.chipSm, s.wrapChip)}>{order.tier_name}</span>
+          <span>Ordered {formatDate(order.created_at)}</span>
+        </div>
+
+        {/* Progress bar */}
+        <OrderProgress status={order.status} />
+
+        {/* Shipping and dates */}
+        {hasFacts && (
+          <ul role="list" className={s.facts}>
+            <ShippingLine order={order} />
+
+            {order.shipping_city && (
+              <li className={s.fact}>
+                <MapPin size={16} strokeWidth={2.2} aria-hidden="true" />
+                <span>
+                  Shipping to{' '}
+                  <strong>
+                    {order.shipping_city}, {order.shipping_country}
+                  </strong>
+                </span>
+              </li>
+            )}
+
+            {order.paid_at && (
+              <li className={s.fact}>
+                <CreditCard size={16} strokeWidth={2.2} aria-hidden="true" />
+                <span>Paid {formatDate(order.paid_at)}</span>
+              </li>
+            )}
+
+            {order.shipped_at && (
+              <li className={s.fact}>
+                <PackageCheck size={16} strokeWidth={2.2} aria-hidden="true" />
+                <span>Shipped {formatDate(order.shipped_at)}</span>
+              </li>
+            )}
+          </ul>
+        )}
+      </div>
+
+      {/* Amount paid, then the tracking link and delete */}
+      <div className={s.footer}>
+        <PaidTotal order={order} />
+
+        {(order.prodigi_tracking_url || canDelete) && (
+          <div className={s.actions}>
+            {order.prodigi_tracking_url && (
+              <a
+                href={order.prodigi_tracking_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cx(ui.textLink, s.trackLink)}
+              >
+                {trackLabel}
+                <ArrowUpRight size={16} strokeWidth={2.6} aria-hidden="true" />
+                <span className={ui.srOnly}> (opens in a new tab)</span>
+              </a>
+            )}
+            {canDelete && (
+              <Btn
+                variant="dangerSoft"
+                size="sm"
+                onClick={onDelete}
+                aria-haspopup="dialog"
+                icon={<Trash2 size={16} strokeWidth={2.4} aria-hidden="true" />}
+              >
+                Delete order
+              </Btn>
+            )}
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+// ── Amount paid + reward (shared across book/canvas/acrylic cards) ──
+function PaidTotal({
   order,
 }: {
   order: {
     price_currency: string;
     price_amount: number;
     amount_charged?: number | null;
-    shipping_amount?: number | null;
-    shipping_method?: string | null;
     reward_code?: string | null;
   };
 }) {
@@ -794,80 +593,48 @@ function PaidLine({
   const paid = order.amount_charged ?? order.price_amount;
 
   return (
-    <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontWeight: 600, color: '#1A1714' }}>
-          {sym}{Number(paid).toFixed(2)}
+    <div className={s.total}>
+      <span className={s.totalValue}>
+        {sym}{Number(paid).toFixed(2)}
+      </span>
+      {order.reward_code && (
+        <span className={cx(ui.chip, ui.chipSm, s.wrapChip)}>
+          <Gift size={14} strokeWidth={2.4} aria-hidden="true" />
+          Reward {order.reward_code}
         </span>
-        {order.reward_code && (
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: '#A9842E',
-              background: '#FBF6EA',
-              border: '1px solid rgba(212, 175, 55, 0.35)',
-              borderRadius: 6,
-              padding: '2px 8px',
-            }}
-          >
-            Reward {order.reward_code}
-          </span>
-        )}
-      </div>
-
-      {order.shipping_method && (
-        <div>
-          {order.shipping_method} shipping
-          {order.shipping_amount != null
-            ? ` ${sym}${Number(order.shipping_amount).toFixed(2)}`
-            : ''}
-        </div>
       )}
-    </>
-  );
-}
-
-// ── Section label ──
-function SectionLabel({ label, count }: { label: string; count: number }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        marginBottom: 16,
-      }}
-    >
-      <span
-        style={{
-          fontFamily: "'DM Sans', sans-serif",
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '0.16em',
-          textTransform: 'uppercase',
-          color: '#A39B8F',
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          fontFamily: "'DM Sans', sans-serif",
-          fontSize: 11,
-          fontWeight: 800,
-          color: '#1A1714',
-          background: '#F7F5F0',
-          padding: '2px 8px',
-          borderRadius: 6,
-          border: '1px solid #E8E4DC',
-        }}
-      >
-        {count}
-      </span>
     </div>
   );
 }
+
+// ── Shipping method + its cost (shared across book/canvas/acrylic cards) ──
+function ShippingLine({
+  order,
+}: {
+  order: {
+    price_currency: string;
+    shipping_amount?: number | null;
+    shipping_method?: string | null;
+  };
+}) {
+  const sym = CURRENCY_SYMBOL[order.price_currency] || '£';
+  if (!order.shipping_method) return null;
+
+  return (
+    <li className={s.fact}>
+      <Truck size={16} strokeWidth={2.2} aria-hidden="true" />
+      <span>
+        {order.shipping_method} shipping
+        {order.shipping_amount != null
+          ? ` ${sym}${Number(order.shipping_amount).toFixed(2)}`
+          : ''}
+      </span>
+    </li>
+  );
+}
+
+// The colour of the dot for where an order is now: the same as its status chip's.
+const currentDot = (status: string) => (STATUS_CONFIG[status] || STATUS_CONFIG.error).dot;
 
 // ── Progress Steps ──
 function OrderProgress({ status }: { status: string }) {
@@ -882,61 +649,32 @@ function OrderProgress({ status }: { status: string }) {
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+    <ol
+      className={s.track}
+      aria-label="Order progress"
+      style={{ '--dot': currentDot(status) } as CSSProperties}
+    >
       {steps.map((step, i) => {
         const isComplete = i <= activeIndex;
         const isCurrent = i === activeIndex;
 
         return (
-          <div
+          <li
             key={step}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-            }}
+            className={s.step}
+            data-state={isCurrent ? 'current' : isComplete ? 'done' : 'todo'}
+            aria-current={isCurrent ? 'step' : undefined}
           >
             {/* Dot */}
-            <div
-              style={{
-                width: isCurrent ? 12 : 8,
-                height: isCurrent ? 12 : 8,
-                borderRadius: 99,
-                background: isComplete ? '#d4af37' : '#E8E4DC',
-                flexShrink: 0,
-                transition: 'all 0.2s ease',
-                boxShadow: isCurrent ? '0 0 0 4px rgba(212, 175, 55, 0.15)' : 'none',
-              }}
-            />
+            <span className={s.dotRow} aria-hidden="true">
+              <span className={s.dot} />
+            </span>
 
             {/* Label below dot */}
-            <div
-              style={{
-                position: 'absolute',
-                marginTop: 32,
-                fontSize: 10,
-                fontWeight: 600,
-                color: isComplete ? '#B8860B' : '#A39B8F',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {labels[i]}
-            </div>
-
-            {/* Line */}
-            {i < steps.length - 1 && (
-              <div
-                style={{
-                  flex: 1,
-                  height: 2,
-                  background: i < activeIndex ? '#d4af37' : '#E8E4DC',
-                  transition: 'background 0.3s ease',
-                }}
-              />
-            )}
-          </div>
+            <span className={s.stepLabel}>{labels[i]}</span>
+          </li>
         );
       })}
-    </div>
+    </ol>
   );
 }

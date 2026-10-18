@@ -1,0 +1,1008 @@
+/* ============================================================
+   One memory (/dashboard/memories/[id]), in the private My Family
+   feed: back and the memory's actions, its perspectives, the title
+   and its photos, the story, voice notes and comments, the options
+   menu and the report, delete and add-your-memory dialogs.
+   Only the looks the app kit (src/components/dashboard/ui/
+   app.module.css) doesn't have: the kit sits in the "components"
+   cascade layer, so a plain rule here wins over it.
+   ============================================================ */
+
+/* ── Entrance: the top of the page fades in as it first paints (no wait for scripts) ── */
+
+.reveal {
+  animation: memReveal 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@keyframes memReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Until the page is interactive: the first photo shows as soon as it arrives, and the photo
+   arrows and dots (which only work once it is) wait. */
+.page[data-mounted='false'] .stageImg {
+  opacity: 1;
+  transform: none;
+}
+
+.page[data-mounted='false'] .nav,
+.page[data-mounted='false'] .dots {
+  visibility: hidden;
+}
+
+/* ── Top row: back on the left, report or the options menu and share on the right ── */
+
+.topRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* "Reported", in place of the flag: as tall as the buttons beside it. */
+.reported {
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+/* Perspectives: one tab per family member's memory of the moment. */
+.tabs {
+  margin-top: clamp(24px, 3vw, 32px);
+}
+
+/* ── Hero: the words on the left, the photos on the right (stacked on phones) ── */
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 36px;
+  margin-top: clamp(28px, 3.4vw, 44px);
+}
+
+@media (min-width: 760px) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    align-items: center;
+    column-gap: clamp(32px, 5vw, 72px);
+  }
+}
+
+.heroCopy {
+  min-width: 0;
+}
+
+.title {
+  margin-top: 18px;
+}
+
+/* The question this memory answers. */
+.prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 34em;
+  margin-top: 22px;
+  padding: 16px 18px 18px;
+  border-radius: 20px;
+}
+
+.promptText {
+  margin: 0;
+  font-size: 16.5px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 26px;
+}
+
+.bylineText {
+  min-width: 0;
+}
+
+.authorName {
+  display: block;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.when {
+  display: block;
+  margin-top: 3px;
+  font-size: 13.5px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+/* Hearts, comments and perspectives: one row of pills. */
+.engage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+/* The heart: white with a hairline, solid pink (ink heart and count) once hearted. */
+.heart {
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.heartIcon {
+  color: var(--c0);
+  transition: transform 0.2s ease;
+}
+
+.heart[aria-pressed='true'] {
+  background: var(--c0);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.heart[aria-pressed='true'] .heartIcon {
+  color: var(--ink);
+}
+
+@media (hover: hover) {
+  .heart:not([aria-pressed='true']):hover .heartIcon {
+    transform: scale(1.12);
+  }
+
+  .heart[aria-pressed='true']:hover {
+    box-shadow: none;
+    transform: translateY(-2px);
+  }
+}
+
+/* Counts beside the heart: chips as tall as the pill. */
+.stat {
+  min-height: 40px;
+  padding: 0 14px;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (pointer: coarse) {
+  .stat {
+    min-height: 44px;
+  }
+}
+
+.commentIcon {
+  color: var(--c1);
+}
+
+/* ── Photos: the photo on show in a colour frame, the first five as small tiles ── */
+
+.media {
+  min-width: 0;
+}
+
+/* Small tablets: the 4:5 photo would be taller than the screen across the full width. */
+@media (min-width: 600px) and (max-width: 759px) {
+  .media {
+    max-width: 520px;
+  }
+}
+
+.frame {
+  position: relative;
+  padding: 8px;
+  border-radius: 28px;
+  background: var(--frame, var(--c0));
+}
+
+/* With a mouse the frame colour fades with the photo; touch screens switch it at once. */
+@media (hover: hover) and (pointer: fine) {
+  .frame {
+    transition: background-color 0.35s ease;
+  }
+}
+
+.stage {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--hover);
+}
+
+/* color: transparent keeps a failed photo's alt text off the frame. */
+.stageImg {
+  object-fit: cover;
+  color: transparent;
+  opacity: 0;
+  transform: scale(1.02);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.stageImgIn {
+  opacity: 1;
+  transform: none;
+}
+
+/* A soft shade at the foot of the photo, so the white dots stay visible. */
+.shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 10, 15, 0) 62%, rgba(10, 10, 15, 0.22) 100%);
+}
+
+/* "2 / 5": the kit's ink chip, on the top right. */
+.counter {
+  left: auto;
+  right: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Previous and next: round white buttons, shown on hover with a mouse and always on touch. */
+.nav {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  margin-top: -22px;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.navPrev {
+  left: 12px;
+  transform: translateX(-6px);
+}
+
+.navNext {
+  right: 12px;
+  transform: translateX(6px);
+}
+
+.stage[data-hover='true'] .nav,
+.nav:focus-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .nav {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Round dots: the photo on show is white and a little larger. */
+.dots {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  z-index: 1;
+  display: flex;
+  max-width: calc(100% - 24px);
+  transform: translateX(-50%);
+}
+
+.dot {
+  flex: none;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dot::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  transition:
+    background-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+.dotActive::before {
+  background: #fff;
+  transform: scale(1.35);
+}
+
+/* The first five photos as a static strip; the fifth shows how many more there are. */
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--frame, var(--c0));
+}
+
+.thumbInner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--hover);
+}
+
+.thumbImg {
+  object-fit: cover;
+  color: transparent;
+}
+
+.thumbMore {
+  position: absolute;
+  inset: 4px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 15, 0.6);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+@media (max-width: 599px) {
+  .frame {
+    padding: 7px;
+    border-radius: 26px;
+  }
+
+  .stage {
+    border-radius: 19px;
+  }
+
+  .thumbs {
+    gap: 8px;
+  }
+
+  .thumb {
+    padding: 3px;
+    border-radius: 14px;
+  }
+
+  .thumbInner,
+  .thumbMore {
+    border-radius: 11px;
+  }
+
+  .thumbMore {
+    inset: 3px;
+  }
+}
+
+/* No photos: a solid pink card in the photo's place, never a stock picture. */
+.quote {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  aspect-ratio: 4 / 5;
+  padding: clamp(26px, 3vw, 40px);
+  border-radius: 28px;
+  background: var(--c0);
+  color: var(--ink);
+}
+
+.quoteMark {
+  height: 60px;
+  font-size: 120px;
+  line-height: 0.75;
+  font-weight: 800;
+}
+
+.quoteText {
+  margin: 0;
+  max-width: 9ch;
+  font-size: clamp(34px, 3.8vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+@media (max-width: 759px) {
+  .quote {
+    aspect-ratio: auto;
+    min-height: 240px;
+  }
+}
+
+/* ── Body: the story and its comments, the voice notes beside them from 1024px ── */
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'story'
+    'aside'
+    'comments';
+  gap: clamp(40px, 5vw, 56px);
+  margin-top: clamp(48px, 6vw, 80px);
+}
+
+.story {
+  grid-area: story;
+  min-width: 0;
+  max-width: 720px;
+}
+
+.aside {
+  grid-area: aside;
+  min-width: 0;
+  max-width: 720px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.comments {
+  grid-area: comments;
+  min-width: 0;
+  max-width: 720px;
+  padding-top: clamp(32px, 4vw, 44px);
+  border-top: 1.5px solid var(--rule);
+}
+
+@media (min-width: 1024px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) clamp(320px, 30vw, 380px);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'story aside'
+      'comments aside';
+    column-gap: clamp(40px, 4.5vw, 64px);
+    row-gap: clamp(48px, 5vw, 64px);
+    align-items: start;
+  }
+
+  .aside {
+    max-width: none;
+  }
+}
+
+/* The story: the editor's rich text (paragraphs, bold, italic, underline, lists) or plain
+   paragraphs. */
+.richBody {
+  font-size: clamp(17px, 1.3vw, 19px);
+  line-height: 1.75;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.richBody > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.richBody > * + * {
+  margin-top: 1.1em;
+}
+
+.richBody p,
+.richBody li {
+  text-wrap: pretty;
+}
+
+.richBody strong,
+.richBody b {
+  font-weight: 800;
+}
+
+.richBody em,
+.richBody i {
+  font-style: italic;
+}
+
+.richBody u {
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+.richBody a {
+  font-weight: 700;
+  color: var(--c1);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* Pasted text can carry its own colours and fonts; keep the page's ink and Jakarta. */
+.richBody [style*='color'] {
+  color: inherit !important;
+}
+
+.richBody [style*='background'] {
+  background: none !important;
+}
+
+.richBody [style*='font-family'] {
+  font-family: inherit !important;
+}
+
+.richBody h1,
+.richBody h2,
+.richBody h3,
+.richBody h4 {
+  font-size: clamp(22px, 2vw, 26px);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.richBody blockquote {
+  padding-left: 18px;
+  box-shadow: inset 4px 0 0 var(--c0);
+  font-weight: 700;
+}
+
+.richBody img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 18px;
+}
+
+/* Lists. The editor writes every list as <ol> and marks each item as a bullet or a number. */
+.richBody ul,
+.richBody ol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 0;
+  list-style: none;
+  counter-reset: memory-list;
+}
+
+.richBody li {
+  position: relative;
+  padding-left: 1.5em;
+}
+
+.richBody ul > li::before,
+.richBody li[data-list='bullet']::before {
+  content: '';
+  position: absolute;
+  left: 0.2em;
+  top: 0.66em;
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: var(--c0);
+}
+
+.richBody ol > li:not([data-list='bullet']) {
+  counter-increment: memory-list;
+}
+
+.richBody ol > li:not([data-list='bullet'])::before {
+  content: counter(memory-list) '.';
+  position: absolute;
+  left: 0;
+  font-weight: 800;
+  color: var(--c1);
+}
+
+.richBody :global(.ql-ui) {
+  display: none;
+}
+
+.richBody :global(.ql-indent-1) {
+  margin-left: 1.5em;
+}
+
+.richBody :global(.ql-indent-2) {
+  margin-left: 3em;
+}
+
+.richBody :global(.ql-indent-3) {
+  margin-left: 4.5em;
+}
+
+.richBody :global(.ql-align-center) {
+  text-align: center;
+}
+
+.richBody :global(.ql-align-right) {
+  text-align: right;
+}
+
+/* The video under the story, in an orange frame that hugs it (portrait or landscape). */
+.block {
+  margin-top: clamp(36px, 4.5vw, 52px);
+}
+
+.videoFrame {
+  display: inline-flex;
+  max-width: 100%;
+  margin-top: 14px;
+  padding: 6px;
+  border-radius: 24px;
+  background: var(--c2);
+}
+
+.video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: min(560px, 72vh);
+  border-radius: 18px;
+  background: var(--ink);
+}
+
+/* ── Voice notes: a white card, one row per note ── */
+
+.voiceCard {
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .voiceCard {
+    padding: 22px;
+  }
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cardTitle {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.voiceList {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  border-top: 1.5px solid var(--rule);
+}
+
+.voiceTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+
+/* The avatar's ring sits outside its box. */
+.voiceAvatar {
+  display: inline-flex;
+  flex: none;
+  margin-left: 5px;
+}
+
+.voiceWho {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 4px;
+}
+
+.voiceName {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.voiceDate {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.voiceCtrl {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.voiceCtrlBtn {
+  padding: 0 12px;
+}
+
+.voicePlayer {
+  margin-top: 10px;
+}
+
+.voiceAdd {
+  margin-top: 16px;
+}
+
+/* "Add your memory of this moment": the label wraps in the narrow column. */
+.wrapBtn {
+  white-space: normal;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* ── Comments ── */
+
+.commentsTitle {
+  margin: 0;
+  font-size: clamp(24px, 2.2vw, 30px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.commentList {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+}
+
+.composer {
+  margin-top: 20px;
+}
+
+/* "Replying to …" above the box, with a round blue dot. */
+.replying {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.replyingText {
+  margin: 0;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.replyingText::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 9px;
+  border-radius: 50%;
+  background: var(--c1);
+  vertical-align: 1px;
+}
+
+.replyingName {
+  font-weight: 800;
+}
+
+.composerRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.composerInput {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* As tall as the comment field beside it. */
+.micBtn {
+  width: 52px;
+  height: 52px;
+}
+
+/* ── The options menu: under its button, over a catcher that closes it ── */
+
+.menuCatcher {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+}
+
+.menu {
+  position: fixed;
+  z-index: 200;
+}
+
+/* ── Dialogs: report, delete, add your memory ── */
+
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* The two buttons share a phone-width dialog: less side padding, so the labels fit. */
+.confirmBtn {
+  min-width: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.reportField {
+  display: block;
+  margin-top: 16px;
+  min-height: 104px;
+  resize: none;
+}
+
+/* Add your memory: a bottom sheet on phones, a centred dialog from 640px. */
+.addLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.addPanel {
+  width: 100%;
+  max-height: 92%;
+  animation: memUp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@media (min-width: 640px) {
+  .addLayer {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .addPanel {
+    max-width: 540px;
+    max-height: 88vh;
+    border-radius: 28px;
+    animation-name: memPop;
+    animation-duration: 0.26s;
+  }
+}
+
+@keyframes memUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+
+@keyframes memPop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+.addPrompt {
+  max-width: none;
+  margin: 0 0 20px;
+}
+
+.addField + .addField {
+  margin-top: 20px;
+}
+
+.addTextarea {
+  min-height: 140px;
+  resize: none;
+}
+
+.optional {
+  font-weight: 600;
+}
+
+.addPhotos {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.addPhoto {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--hover);
+}
+
+.addPhoto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(10, 10, 15, 0.08);
+  pointer-events: none;
+}
+
+.addPhotoImg {
+  object-fit: cover;
+}
+
+/* Remove: on the photo's corner; with a mouse it shows on hover or keyboard focus, on touch
+   screens it is always there. */
+.addPhotoRemove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.addPhoto:hover .addPhotoRemove,
+.addPhotoRemove:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .addPhotoRemove {
+    opacity: 1;
+  }
+}
+
+.addDrop {
+  min-height: 132px;
+}
+
+.addNotice {
+  margin-top: 12px;
+}

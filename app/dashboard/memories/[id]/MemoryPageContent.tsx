@@ -1,22 +1,20 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useId, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
 import {
+  ArrowLeft,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
-  Play,
   Mic,
   Heart,
   MessageCircle,
   Users,
   Plus,
   ImagePlus,
-  ImageIcon,
   X,
-  Loader2,
   Send,
   Trash2,
   PenLine,
@@ -30,7 +28,27 @@ import CommentItem from '@/components/stories/comments/CommentItem';
 import CommentInput from '@/components/stories/comments/CommentInput';
 import VoiceNotePlayer from '@/components/voice/VoiceNotePlayer';
 import VoiceRecorder from '@/components/voice/VoiceRecorder';
+import {
+  ui,
+  Accent,
+  Avatar,
+  Btn,
+  Eyebrow,
+  IconBtn,
+  IconTile,
+  Spinner,
+  Tag,
+  tone,
+  toneByKey,
+  useDialog,
+} from '@/components/dashboard/ui/AppBits';
 import type { MemoryTab, MemoryComment, MemoryVoiceNote } from './page';
+import s from './memory.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// The photo on show: the screen's width on phones, the photo column beside the words after.
+const STAGE_SIZES = '(max-width: 759px) 100vw, (max-width: 1279px) 46vw, 560px';
 
 type PendingPhoto = { id: string; file: File; preview: string };
 
@@ -79,6 +97,23 @@ export default function MemoryPageContent({
   const [addingVoiceNote, setAddingVoiceNote] = useState(false);
   const [recordingComment, setRecordingComment] = useState(false);
 
+  // The options menu and the two dialogs: Escape closes them (as Cancel and the backdrop do,
+  // never while they work), Tab stays inside a dialog, and focus returns to its button.
+  const menuId = useId();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const reportTitleId = useId();
+  const reportTextId = useId();
+  const deleteTitleId = useId();
+  const deleteTextId = useId();
+  const voiceTitleId = useId();
+  const commentsTitleId = useId();
+  const reportRef = useDialog<HTMLDivElement>(reportOpen, () => {
+    if (!reporting) setReportOpen(false);
+  });
+  const deleteRef = useDialog<HTMLDivElement>(!!deleteModalId, () => {
+    if (!deleting) setDeleteModalId(null);
+  });
+
   const activeTab = tabs[activeTabIndex] || tabs[0];
   const activeVoiceNotes = voiceNotesByTab[activeTab.id] || [];
   const initials = activeTab.authorName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -95,6 +130,12 @@ export default function MemoryPageContent({
     const close = () => setMenuOpen(false);
     window.addEventListener('scroll', close, { passive: true });
     return () => window.removeEventListener('scroll', close);
+  }, [menuOpen]);
+
+  // The menu is drawn at the end of the page (over everything), so a keyboard user is taken
+  // into it as it opens.
+  useEffect(() => {
+    if (menuOpen) menuRef.current?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
   }, [menuOpen]);
 
   const handleReaction = async () => {
@@ -251,228 +292,343 @@ export default function MemoryPageContent({
     id: c.id, story_id: memoryId, user_id: c.user_id, author_name: c.author_name, author_avatar_url: c.author_avatar_url, author_title: null, content: c.content || '', voice_note_path: c.voice_note_path, created_at: c.created_at, updated_at: c.created_at, parent_id: c.parent_id,
   });
 
+  // Long titles take the kit's smaller title size, so they stay a few lines long.
+  const longTitle = activeTab.title.length > 48;
+
   return (
-    <article className="w-full" style={{ background: '#FFFDF8' }}>
-      <style jsx global>{`
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .memory-body-rich p { margin-bottom: 1.5rem; }
-        .memory-body-rich strong { font-weight: 700; }
-        .memory-body-rich em { font-style: italic; }
-        .memory-body-rich u { text-decoration: underline; }
-        .memory-body-rich ul { padding-left: 1.25rem; margin-bottom: 1.5rem; list-style-type: disc; }
-        .memory-body-rich ol { padding-left: 1.25rem; margin-bottom: 1.5rem; list-style-type: decimal; }
-        .memory-body-rich li { margin-bottom: 0.4rem; }
-        .animate-fade-up { animation: fadeUp 0.7s ease-out forwards; }
-        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
-        .animate-slide-right { animation: slideInRight 0.7s ease-out forwards; }
-        .animate-scale-in { animation: scaleIn 0.5s ease-out forwards; }
-      `}</style>
+    <article className={cx(ui.page, s.page)} data-mounted={mounted}>
+      <div className={ui.wrap}>
+        {/* ═══ HEADER: back, the memory's actions, its perspectives, title and photos ═══ */}
+        <header className={cx(ui.header, s.reveal)}>
+          <div className={ui.headerGlow} aria-hidden="true" />
 
-      {/* ═══ BREADCRUMB ═══ */}
-      <div className="w-full px-6 md:px-10 lg:px-20 xl:px-28 pt-5 sm:pt-6">
-        <nav className={`flex items-center gap-1.5 text-[12px] sm:text-[13px] ${mounted ? 'animate-fade-in' : 'opacity-0'}`}>
-          <button onClick={() => router.back()} className="flex items-center gap-1.5 text-[#9C9488] transition-colors duration-200 hover:text-[#A9782F]">
-            <ChevronLeft size={14} />
-            Back to feed
-          </button>
-          <ChevronRight size={12} className="text-[#D4CBC0]" />
-          <span className="text-[#1A1612] font-medium truncate max-w-[260px]">{activeTab.title}</span>
-        </nav>
-      </div>
+          <div className={s.topRow}>
+            <Btn
+              variant="soft"
+              size="sm"
+              onClick={() => router.back()}
+              icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
+            >
+              Back to feed
+            </Btn>
 
-      {/* ═══ TABS ═══ */}
-      {tabs.length > 1 && (
-        <div className="w-full px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 pt-5">
-          <div className="flex items-center gap-1 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-            {tabs.map((tab, i) => {
-              const tabFirstName = tab.authorName.split(' ')[0];
-              return (
-                <button key={tab.id} onClick={() => setActiveTabIndex(i)} className={`flex-shrink-0 px-4 py-2.5 text-[13px] font-medium transition-all ${i === activeTabIndex ? 'bg-[#B8932A] text-white' : 'border border-[#EAD8B8] text-[#4A4030] hover:border-[#B8932A] hover:text-[#B8932A]'}`}>
-                  {tabFirstName}&apos;s Memory
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ═══ HERO ═══ */}
-      <div className={`w-full px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 pt-4 sm:pt-6 pb-6 sm:pb-8 ${mounted ? 'animate-fade-in' : 'opacity-0'}`}>
-        <div className="border border-[#EDE8DF] overflow-hidden">
-          <div className="flex flex-col lg:flex-row lg:min-h-[480px]">
-            {/* Content left */}
-            <div className="flex-1 flex flex-col justify-center px-6 sm:px-8 lg:px-12 xl:px-14 2xl:px-16 py-8 sm:py-10 lg:py-12 bg-white order-last lg:order-first">
-              {promptQuestion && activeTabIndex === 0 && (
-                <div className="mb-5 px-4 py-3 bg-[#FBF7EE] border border-[#EAD8B8]">
-                  <p className="text-[11px] font-medium text-[#B8932A] uppercase tracking-[0.08em] mb-1">In response to</p>
-                  <p className="text-[14px] text-[#4A4030] italic" style={{ fontFamily: "'DM Sans', sans-serif" }}>&ldquo;{promptQuestion}&rdquo;</p>
-                </div>
+            <div className={s.topActions}>
+              {!activeTab.isAuthor && !reportDone && (
+                <IconBtn label="Report memory" onClick={() => setReportOpen(true)} aria-haspopup="dialog">
+                  <Flag size={18} strokeWidth={2.2} aria-hidden="true" />
+                </IconBtn>
               )}
-              {dateLabel && (<div className="flex items-center gap-2.5 mb-5"><span className="text-[11px] sm:text-[12px] lg:text-[13px] xl:text-[14px] font-bold uppercase tracking-[0.14em] text-[#C8A557]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{dateLabel}</span></div>)}
-              <h1 className="text-[30px] sm:text-[38px] md:text-[46px] lg:text-[52px] xl:text-[58px] 2xl:text-[64px] leading-[1.0] tracking-[-0.04em] text-[#1A1612]" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>{activeTab.title}</h1>
-              <p className="mt-4 sm:mt-5 text-[15px] sm:text-[16px] lg:text-[17px] xl:text-[18px] 2xl:text-[19px] leading-[1.8] text-[#6F6255] max-w-[92%]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{preview}</p>
-              <div className="mt-6 lg:mt-8 flex items-center gap-3">
-                <AuthorAvatar avatarUrl={activeTab.authorAvatarUrl} name={activeTab.authorName} initials={initials} size={48} />
-                <div>
-                  <span className="text-[14px] sm:text-[15px] lg:text-[16px] xl:text-[17px] font-semibold text-[#1A1612] block" style={{ fontFamily: "'DM Sans', sans-serif" }}>{activeTab.authorName}</span>
-                  <span className="block text-[12px] sm:text-[13px] lg:text-[14px] text-[#9C9488]" style={{ fontFamily: "'DM Sans', sans-serif" }}>{timeAgo || 'Just shared'}</span>
-                </div>
-              </div>
-              {/* Engagement row */}
-              <div className="mt-6 lg:mt-8 pt-5 border-t border-[#F0EBE3] flex items-center">
-                <div className="flex items-center gap-5">
-                  <button onClick={handleReaction} className="flex items-center gap-2 group">
-                  <Heart size={18} strokeWidth={1.6} className={`transition-transform duration-200 group-hover:scale-110 ${hasReacted ? 'text-[#D94F4F]' : 'text-[#C0B9AE]'}`} fill={hasReacted ? '#D94F4F' : 'none'} />
-                    <span className="text-[14px] lg:text-[15px] xl:text-[16px] font-medium text-[#1A1612]">{reactionCount}</span>
+              {reportDone && (
+                <span
+                  className={cx(ui.chip, ui.chipDot, s.reported)}
+                  style={{ '--dot': 'var(--c3)' } as CSSProperties}
+                  role="status"
+                >
+                  Reported
+                </span>
+              )}
+              {activeTab.isAuthor && (
+                <IconBtn
+                  ref={menuBtnRef}
+                  label="Memory options"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  aria-expanded={menuOpen}
+                  aria-controls={menuOpen ? menuId : undefined}
+                >
+                  <MoreVertical size={19} strokeWidth={2.4} aria-hidden="true" />
+                </IconBtn>
+              )}
+              <IconBtn label="Share memory" onClick={handleShare}>
+                <Share2 size={18} strokeWidth={2.2} aria-hidden="true" />
+              </IconBtn>
+            </div>
+          </div>
+
+          {/* ═══ PERSPECTIVES ═══ */}
+          {tabs.length > 1 && (
+            <div className={cx(ui.tabs, s.tabs)} role="group" aria-label="Perspectives">
+              {tabs.map((tab, i) => {
+                const tabFirstName = tab.authorName.split(' ')[0];
+                return (
+                  <button
+                    type="button"
+                    key={tab.id}
+                    onClick={() => setActiveTabIndex(i)}
+                    aria-pressed={i === activeTabIndex}
+                    className={ui.tab}
+                  >
+                    {tabFirstName}&apos;s Memory
                   </button>
-                  <div className="flex items-center gap-2">
-                    <MessageCircle size={18} strokeWidth={1.6} className="text-[#5A87A8]" fill="#5A87A8" />
-                    <span className="text-[14px] lg:text-[15px] xl:text-[16px] font-medium text-[#1A1612]">{comments.length}</span>
-                  </div>
-                  {tabs.length > 1 && (<div className="flex items-center gap-2 text-[13px] font-medium text-[#A9782F]"><Users size={16} strokeWidth={1.6} />{tabs.length} perspectives</div>)}
+                );
+              })}
+            </div>
+          )}
+
+          {/* ═══ HERO ═══ */}
+          <div className={s.heroGrid}>
+            <div className={s.heroCopy}>
+              <Eyebrow dot="var(--c0)">Memory</Eyebrow>
+
+              <h1 className={cx(ui.title, longTitle && ui.titleMd, s.title)}>{activeTab.title}</h1>
+
+              {dateLabel && (
+                <div className={ui.meta}>
+                  <span className={ui.chip} suppressHydrationWarning>
+                    <CalendarDays size={15} strokeWidth={2.4} aria-hidden="true" />
+                    {dateLabel}
+                  </span>
                 </div>
-                <div className="ml-auto flex items-center gap-3">
-                  {!activeTab.isAuthor && !reportDone && (<button onClick={() => setReportOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#EDE8DF] text-[#9C9488] transition-colors hover:bg-[#FEF2F2] hover:text-[#EF4444] hover:border-[#FECACA]" aria-label="Report memory"><Flag size={16} strokeWidth={1.8} /></button>)}
-                  {reportDone && (<span className="text-[12px] font-medium text-[#10B981]">Reported</span>)}
-                  {activeTab.isAuthor && (<div className="relative"><button ref={menuBtnRef} onClick={() => setMenuOpen(!menuOpen)} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#EDE8DF] text-[#6F6255] transition-colors hover:bg-[#FAF4EA]" aria-label="Memory options"><MoreVertical size={18} strokeWidth={1.8} /></button></div>)}
-                  <button onClick={handleShare} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#EDE8DF] text-[#6F6255] transition-colors hover:bg-[#FAF4EA]" aria-label="Share memory"><Share2 size={16} strokeWidth={1.8} /></button>
+              )}
+
+              {promptQuestion && activeTabIndex === 0 && (
+                <div className={cx(ui.card, s.prompt)}>
+                  <Tag dot="var(--c1)">In response to</Tag>
+                  <p className={s.promptText}>&ldquo;{promptQuestion}&rdquo;</p>
                 </div>
+              )}
+
+              {preview && <p className={ui.lead}>{preview}</p>}
+
+              <div className={s.byline}>
+                <AuthorAvatar avatarUrl={activeTab.authorAvatarUrl} name={activeTab.authorName} initials={initials} size={48} />
+                <div className={s.bylineText}>
+                  <span className={s.authorName}>{activeTab.authorName}</span>
+                  <span className={s.when} suppressHydrationWarning>{timeAgo || 'Just shared'}</span>
+                </div>
+              </div>
+
+              {/* Engagement row */}
+              <div className={s.engage}>
+                <button
+                  type="button"
+                  onClick={handleReaction}
+                  aria-pressed={hasReacted}
+                  aria-label={`Heart this memory, ${reactionCount} ${reactionCount === 1 ? 'heart' : 'hearts'}`}
+                  className={cx(ui.btn, ui.btnSoft, ui.btnSm, s.heart)}
+                >
+                  <Heart size={18} strokeWidth={2.4} fill={hasReacted ? 'currentColor' : 'none'} aria-hidden="true" className={s.heartIcon} />
+                  <span>{reactionCount}</span>
+                </button>
+                <span className={cx(ui.chip, s.stat)}>
+                  <MessageCircle size={17} strokeWidth={2.2} fill="currentColor" aria-hidden="true" className={s.commentIcon} />
+                  {comments.length}
+                  <span className={ui.srOnly}> {comments.length === 1 ? 'comment' : 'comments'}</span>
+                </span>
+                {tabs.length > 1 && (
+                  <span className={cx(ui.chip, s.stat)}>
+                    <Users size={16} strokeWidth={2.4} aria-hidden="true" />
+                    {tabs.length} perspectives
+                  </span>
+                )}
               </div>
             </div>
-            {/* Image right */}
-            <div className="w-full lg:w-[45%] flex-shrink-0 order-first lg:order-last flex flex-col bg-[#F5F0E8]">
-              <div className="relative flex-1 min-h-[260px] sm:min-h-[360px] lg:min-h-0 overflow-hidden">
-                {activeTab.images.length > 0 ? <HeroImageCarousel images={activeTab.images} title={activeTab.title} /> : <EmptyImagePlaceholder />}
-              </div>
-              {activeTab.images.length > 1 && (
-                <div className="flex gap-[2px] bg-white/50">
-                  {activeTab.images.slice(0, 5).map((img, i) => (
-                    <div key={i} className="relative flex-1 h-[56px] sm:h-[68px] lg:h-[72px] overflow-hidden">
-                      <Image src={img.url} alt="" fill sizes="20vw" className="object-cover" />
-                      {i === 4 && activeTab.images.length > 5 && (<div className="absolute inset-0 bg-[#1A1612]/50 flex items-center justify-center"><span className="text-white text-[13px] font-semibold">+{activeTab.images.length - 5}</span></div>)}
-                    </div>
-                  ))}
-                </div>
+
+            {/* Photos (a fresh carousel for each perspective) */}
+            <div className={s.media}>
+              {activeTab.images.length > 0 ? (
+                <HeroImageCarousel key={activeTab.id} images={activeTab.images} title={activeTab.title} />
+              ) : (
+                <EmptyImagePlaceholder />
               )}
             </div>
           </div>
-        </div>
-      </div>
+        </header>
 
-      <SectionDivider />
+        {/* ═══ BODY: the story, the voice notes beside it, the comments under it ═══ */}
+        <div className={s.body}>
+          <div className={s.story}>
+            {activeTab.body.includes('<') ? (
+              <div className={s.richBody} dangerouslySetInnerHTML={{ __html: sanitiseHtml(activeTab.body) }} />
+            ) : (
+              <div className={s.richBody}>
+                {activeTab.body.split('\n').filter((p: string) => p.trim().length > 0).map((paragraph: string, i: number) => (
+                  <p key={i}>{paragraph}</p>
+                ))}
+              </div>
+            )}
 
-      {/* ═══ BODY ═══ */}
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-14 xl:px-20 pb-8 sm:pb-10 lg:pb-12">
-        <div className="min-w-0">
-          <div className="bg-white overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.03)' }}>
-            <div className="flex flex-col lg:flex-row">
-              <div className="h-[2px] lg:h-auto lg:w-[3px] w-full lg:flex-shrink-0" style={{ background: 'linear-gradient(180deg, #C8A557 0%, #E4D2AE 50%, #C8A557 100%)' }} />
-              <div className="flex-1 px-6 sm:px-8 lg:px-12 xl:px-14 py-10 sm:py-12 lg:py-14">
-                {activeTab.body.includes('<') ? (
-                  <div className="memory-body-rich text-[15px] sm:text-[16px] leading-[1.9] text-[#2E2820]" style={{ fontFamily: "'DM Sans', sans-serif" }} dangerouslySetInnerHTML={{ __html: sanitiseHtml(activeTab.body) }} />
-                ) : (
-                  <div className="story-body">
-                    {activeTab.body.split('\n').filter((p: string) => p.trim().length > 0).map((paragraph: string, i: number) => (
-                      <p key={i} className={`text-[15px] sm:text-[16px] leading-[1.9] text-[#2E2820] ${i > 0 ? 'mt-6' : ''}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                        {i === 0 && paragraph.length > 0 && !'IJijl|'.includes(paragraph[0]) ? (<><span className="float-left text-[#C8A557] leading-[0.8] mr-3 mt-1 text-center" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '3.5rem', minWidth: '2.5rem' }}>{paragraph[0]}</span>{paragraph.slice(1)}</>) : paragraph}
-                      </p>
-                    ))}
-                  </div>
-                )}
-                {activeTab.videoPath && (
-                  <div className="mt-10">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Play size={13} className="text-[#A9782F]" strokeWidth={1.8} />
-                      <span className="text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.14em] text-[#A9782F]">Video</span>
-                    </div>
-                    <div className="relative overflow-hidden border border-[#EDE8DF]">
-                      <video src={activeTab.videoPath} controls playsInline preload="metadata" className="w-full max-h-[500px] bg-[#1A1612]" />
-                    </div>
-                  </div>
-                )}
-                {/* ═══ VOICE NOTES ═══ */}
-                <div className="mt-12">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Mic size={13} className="text-[#A9782F]" strokeWidth={1.8} />
-                    <span className="text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.14em] text-[#A9782F]">
-                      {activeVoiceNotes.length > 0 ? `Voice Notes · ${activeVoiceNotes.length}` : 'Voice Notes'}
-                    </span>
-                  </div>
-                  {activeVoiceNotes.length > 0 && (
-                    <div className="space-y-3 mb-4">
-                      {activeVoiceNotes.map((note) => (
-                        <MemoryVoiceNoteItem key={note.id} note={note} onDelete={() => handleDeleteVoiceNote(note.id)} />
-                      ))}
-                    </div>
-                  )}
-                  {addingVoiceNote ? (
-                    <VoiceRecorder onSubmit={handleAddVoiceNote} onCancel={() => setAddingVoiceNote(false)} allowUpload />
-                  ) : (
-                    <button onClick={() => setAddingVoiceNote(true)} className="w-full flex items-center justify-center gap-2.5 py-3.5 border-2 border-dashed border-[#DCC7A4] bg-[#FFFDF9] text-[13px] font-semibold text-[#A9782F] transition-all hover:border-[#C8A557] hover:bg-[#FBF7EE]">
-                      <Mic size={16} strokeWidth={1.8} />
-                      Add a voice note
-                    </button>
-                  )}
+            {activeTab.videoPath && (
+              <div className={s.block}>
+                <div>
+                  <Tag dot="var(--c2)">Video</Tag>
                 </div>
-                {tabs[0]?.authorId !== currentUserId && (
-                  <div className="mt-10 pt-8 border-t border-[#F0EBE3]">
-                    <button onClick={() => setShowAddModal(true)} className="w-full flex items-center justify-center gap-3 py-4 border-2 border-dashed border-[#DCC7A4] bg-[#FFFDF9] text-[14px] font-semibold text-[#A9782F] transition-all hover:border-[#C8A557] hover:bg-[#FBF7EE]"><Plus size={18} strokeWidth={1.8} />Add your memory of this moment</button>
-                  </div>
-                )}
-                <div className="mt-12 pt-8 border-t border-[#F0EBE3]">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#B8924A] mb-5">{comments.length > 0 ? `${comments.length} ${comments.length === 1 ? 'Comment' : 'Comments'}` : 'Comments'}</p>
-                  {topLevelComments.length > 0 && (
-                    <div className="space-y-4">
-                      {topLevelComments.map((comment) => (
-                        <CommentItem key={comment.id} authorName={comment.author_name} authorAvatarUrl={comment.author_avatar_url} content={comment.content || ''} voiceNoteUrl={comment.voice_note_path} createdAt={comment.created_at} isOwn={currentUserId === comment.user_id} onDelete={() => handleCommentDelete(comment.id)} isTopLevel onReply={() => setReplyingTo({ id: comment.id, name: comment.author_name })} replies={(repliesByParent.get(comment.id) || []).map(mapToStoryComment)} currentUserId={currentUserId} onDeleteReply={(id) => handleCommentDelete(id)} />
-                      ))}
-                    </div>
-                  )}
-                  <div className={topLevelComments.length > 0 ? 'mt-5' : ''}>
-                    {replyingTo && (<div className="flex items-center justify-between mb-2 px-1"><p className="text-[12px] text-[#A9782F]">Replying to <span className="font-semibold">{replyingTo.name}</span></p><button onClick={() => setReplyingTo(null)} className="text-[11px] font-medium text-[#9B8E7D] hover:text-[#6F6255] transition">Cancel</button></div>)}
-                    {recordingComment ? (
-                      <VoiceRecorder onSubmit={handleVoiceComment} onCancel={() => setRecordingComment(false)} compact />
-                    ) : (
-                      <div className="flex gap-2 items-center">
-                        <div className="flex-1 min-w-0"><CommentInput onSubmit={handleCommentSubmit} isLoggedIn={true} /></div>
-                        <button onClick={() => setRecordingComment(true)} className="flex h-[48px] w-[48px] flex-shrink-0 items-center justify-center rounded-[12px] border text-[#A9782F] transition hover:bg-[#FBF7EE]" style={{ borderColor: '#DCC7A4' }} aria-label="Record a voice note" title="Record a voice note">
-                          <Mic size={18} strokeWidth={1.8} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                <div className={s.videoFrame}>
+                  <video src={activeTab.videoPath} controls playsInline preload="metadata" className={s.video} />
                 </div>
               </div>
-            </div>
+            )}
           </div>
+
+          <div className={s.aside}>
+            {/* ═══ VOICE NOTES ═══ */}
+            <section className={cx(ui.card, s.voiceCard)} aria-labelledby={voiceTitleId}>
+              <div className={s.cardHead}>
+                <IconTile Icon={Mic} tone={toneByKey('blue')} size="sm" />
+                <h2 id={voiceTitleId} className={s.cardTitle}>Voice Notes</h2>
+                {activeVoiceNotes.length > 0 && (
+                  <span className={cx(ui.chip, ui.chipSm)}>{activeVoiceNotes.length}</span>
+                )}
+              </div>
+
+              {activeVoiceNotes.length > 0 && (
+                <ul className={s.voiceList}>
+                  {activeVoiceNotes.map((note) => (
+                    <MemoryVoiceNoteItem key={note.id} note={note} onDelete={() => handleDeleteVoiceNote(note.id)} />
+                  ))}
+                </ul>
+              )}
+
+              <div className={s.voiceAdd}>
+                {addingVoiceNote ? (
+                  <VoiceRecorder onSubmit={handleAddVoiceNote} onCancel={() => setAddingVoiceNote(false)} allowUpload />
+                ) : (
+                  <Btn
+                    variant="soft"
+                    block
+                    onClick={() => setAddingVoiceNote(true)}
+                    icon={<Mic size={18} strokeWidth={2.4} aria-hidden="true" />}
+                  >
+                    Add a voice note
+                  </Btn>
+                )}
+              </div>
+            </section>
+
+            {tabs[0]?.authorId !== currentUserId && (
+              <Btn
+                variant="outline"
+                block
+                onClick={() => setShowAddModal(true)}
+                aria-haspopup="dialog"
+                icon={<Plus size={18} strokeWidth={2.4} aria-hidden="true" />}
+                className={s.wrapBtn}
+              >
+                Add your memory of this moment
+              </Btn>
+            )}
+          </div>
+
+          {/* ═══ COMMENTS ═══ */}
+          <section className={s.comments} aria-labelledby={commentsTitleId}>
+            <h2 id={commentsTitleId} className={s.commentsTitle}>
+              {comments.length > 0 ? `${comments.length} ${comments.length === 1 ? 'Comment' : 'Comments'}` : 'Comments'}
+            </h2>
+
+            {topLevelComments.length > 0 && (
+              <ul className={s.commentList}>
+                {topLevelComments.map((comment) => (
+                  <li key={comment.id} className={ui.listRow}>
+                    <CommentItem authorName={comment.author_name} authorAvatarUrl={comment.author_avatar_url} content={comment.content || ''} voiceNoteUrl={comment.voice_note_path} createdAt={comment.created_at} isOwn={currentUserId === comment.user_id} onDelete={() => handleCommentDelete(comment.id)} isTopLevel onReply={() => setReplyingTo({ id: comment.id, name: comment.author_name })} replies={(repliesByParent.get(comment.id) || []).map(mapToStoryComment)} currentUserId={currentUserId} onDeleteReply={(id) => handleCommentDelete(id)} />
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className={s.composer}>
+              {replyingTo && (
+                <div className={s.replying}>
+                  <p className={s.replyingText}>
+                    Replying to <span className={s.replyingName}>{replyingTo.name}</span>
+                  </p>
+                  <Btn variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>
+                    Cancel
+                  </Btn>
+                </div>
+              )}
+              {recordingComment ? (
+                <VoiceRecorder onSubmit={handleVoiceComment} onCancel={() => setRecordingComment(false)} compact />
+              ) : (
+                <div className={s.composerRow}>
+                  <div className={s.composerInput}>
+                    <CommentInput onSubmit={handleCommentSubmit} isLoggedIn={true} />
+                  </div>
+                  <IconBtn label="Record a voice note" onClick={() => setRecordingComment(true)} className={s.micBtn}>
+                    <Mic size={19} strokeWidth={2.2} aria-hidden="true" />
+                  </IconBtn>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
       </div>
 
-      {/* ═══ THREE-DOT MENU ═══ */}
+      {/* ═══ THREE-DOT MENU: a catcher under it closes it; Escape too ═══ */}
       {menuOpen && (
         <>
-          <div className="fixed inset-0 z-[199]" onClick={() => setMenuOpen(false)} />
-          <div className="fixed z-[200] w-[160px] overflow-hidden border border-[#EDE8DF] shadow-xl" style={{ fontFamily: "'DM Sans', sans-serif", backgroundColor: '#FFFFFF', top: menuBtnRef.current ? menuBtnRef.current.getBoundingClientRect().bottom + 8 : 0, right: menuBtnRef.current ? window.innerWidth - menuBtnRef.current.getBoundingClientRect().right : 0 }}>
-            <button onClick={() => { setMenuOpen(false); router.push(`/dashboard/memories/${activeTab.id}/edit`); }} className="flex w-full items-center gap-2.5 px-4 py-3 text-[14px] font-medium text-[#1A1612] transition-colors hover:bg-[#FAF5EB]"><PenLine size={15} strokeWidth={1.8} />Edit</button>
-            <button onClick={() => { setMenuOpen(false); setDeleteModalId(activeTab.id); }} className="flex w-full items-center gap-2.5 px-4 py-3 text-[14px] font-medium text-red-600 transition-colors hover:bg-red-50"><Trash2 size={15} strokeWidth={1.8} />Delete</button>
+          <div className={s.menuCatcher} onClick={() => setMenuOpen(false)} />
+          <div
+            id={menuId}
+            ref={menuRef}
+            className={cx(ui.menu, s.menu)}
+            style={{
+              top: menuBtnRef.current ? menuBtnRef.current.getBoundingClientRect().bottom + 8 : 0,
+              // clientWidth leaves out the scrollbar, which window.innerWidth counts
+              right: menuBtnRef.current ? document.documentElement.clientWidth - menuBtnRef.current.getBoundingClientRect().right : 0,
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.stopPropagation();
+                setMenuOpen(false);
+                menuBtnRef.current?.focus();
+              }
+            }}
+          >
+            <button type="button" onClick={() => { setMenuOpen(false); router.push(`/dashboard/memories/${activeTab.id}/edit`); }} className={ui.menuItem}>
+              <PenLine size={17} strokeWidth={2.2} aria-hidden="true" />
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                // The confirm hands focus back to the menu button when it closes.
+                menuBtnRef.current?.focus();
+                setDeleteModalId(activeTab.id);
+              }}
+              className={cx(ui.menuItem, ui.menuItemDanger)}
+            >
+              <Trash2 size={17} strokeWidth={2.2} aria-hidden="true" />
+              Delete
+            </button>
           </div>
         </>
       )}
 
       {/* ═══ REPORT MODAL ═══ */}
       {reportOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !reporting && setReportOpen(false)} />
-          <div className="relative w-[90%] max-w-[420px] bg-white px-6 py-7 sm:px-8 sm:py-8 border border-[#EDE8DF] shadow-xl" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            <h3 className="text-[18px] sm:text-[20px] font-semibold text-[#1A1612] leading-tight">Report this memory</h3>
-            <p className="mt-3 text-[14px] leading-[1.7] text-[#6F6255]">If this memory contains something inappropriate, let us know. We&apos;ll review it.</p>
-            <textarea value={reportReason} onChange={(e) => setReportReason(e.target.value)} placeholder="What's wrong with this memory? (optional)" rows={3} className="mt-4 w-full border border-[#EDE8DF] px-4 py-3 text-[14px] text-[#1A1612] placeholder:text-[#C4B8A7] outline-none focus:border-[#C8A557] resize-none" />
-            <div className="mt-6 flex items-center gap-3 justify-end">
-              <button onClick={() => setReportOpen(false)} disabled={reporting} className="px-4 py-2.5 text-[14px] font-medium text-[#6F6255] border border-[#EDE8DF] transition-colors hover:bg-[#FAF5EB] disabled:opacity-50">Cancel</button>
-              <button onClick={async () => { setReporting(true); try { const res = await fetch('/api/report-memory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memory_id: memoryId, reason: reportReason.trim() || null }) }); if (res.ok) { setReportDone(true); setReportOpen(false); } } finally { setReporting(false); } }} disabled={reporting} className="px-4 py-2.5 text-[14px] font-semibold text-white bg-[#EF4444] transition-colors hover:bg-[#DC2626] disabled:opacity-50">{reporting ? 'Submitting…' : 'Report'}</button>
+        <div className={s.layer}>
+          <div className={cx(ui.scrim, ui.fadeIn, 'scrim-blur')} onClick={() => !reporting && setReportOpen(false)} />
+          <div
+            ref={reportRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={reportTitleId}
+            aria-describedby={reportTextId}
+            className={cx(ui.sheet, ui.confirm, ui.popIn)}
+          >
+            <h2 id={reportTitleId} className={ui.confirmTitle}>Report this memory</h2>
+            <p id={reportTextId} className={ui.confirmText}>If this memory contains something inappropriate, let us know. We&apos;ll review it.</p>
+            <textarea
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              placeholder="What's wrong with this memory? (optional)"
+              aria-label="What's wrong with this memory? (optional)"
+              rows={3}
+              className={cx(ui.textarea, s.reportField)}
+            />
+            <div className={ui.confirmActions}>
+              <Btn variant="soft" onClick={() => setReportOpen(false)} disabled={reporting} className={s.confirmBtn}>
+                Cancel
+              </Btn>
+              <Btn
+                variant="danger"
+                onClick={async () => { setReporting(true); try { const res = await fetch('/api/report-memory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memory_id: memoryId, reason: reportReason.trim() || null }) }); if (res.ok) { setReportDone(true); setReportOpen(false); } } finally { setReporting(false); } }}
+                disabled={reporting}
+                icon={reporting ? <Spinner size={16} /> : undefined}
+                className={s.confirmBtn}
+              >
+                {reporting ? 'Submitting…' : 'Report'}
+              </Btn>
             </div>
           </div>
         </div>
@@ -480,14 +636,31 @@ export default function MemoryPageContent({
 
       {/* ═══ DELETE MODAL ═══ */}
       {deleteModalId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !deleting && setDeleteModalId(null)} />
-          <div className="relative w-[90%] max-w-[400px] bg-white px-6 py-7 sm:px-8 sm:py-8 border border-[#EDE8DF] shadow-xl" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            <h3 className="text-[18px] sm:text-[20px] font-semibold text-[#1A1612] leading-tight">Delete this memory?</h3>
-            <p className="mt-3 text-[14px] leading-[1.7] text-[#6F6255]">This is permanent and cannot be undone. All photos, comments, and reactions will be removed.</p>
-            <div className="mt-6 flex items-center gap-3 justify-end">
-              <button onClick={() => setDeleteModalId(null)} disabled={deleting} className="px-4 py-2.5 text-[14px] font-medium text-[#6F6255] border border-[#EDE8DF] transition-colors hover:bg-[#FAF5EB] disabled:opacity-50">Cancel</button>
-              <button onClick={handleDeleteTab} disabled={deleting} className="px-4 py-2.5 text-[14px] font-semibold text-white bg-red-600 transition-colors hover:bg-red-700 disabled:opacity-50">{deleting ? 'Deleting…' : 'Delete forever'}</button>
+        <div className={s.layer}>
+          <div className={cx(ui.scrim, ui.fadeIn, 'scrim-blur')} onClick={() => !deleting && setDeleteModalId(null)} />
+          <div
+            ref={deleteRef}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={deleteTitleId}
+            aria-describedby={deleteTextId}
+            className={cx(ui.sheet, ui.confirm, ui.popIn)}
+          >
+            <h2 id={deleteTitleId} className={ui.confirmTitle}>Delete this memory?</h2>
+            <p id={deleteTextId} className={ui.confirmText}>This is permanent and cannot be undone. All photos, comments, and reactions will be removed.</p>
+            <div className={ui.confirmActions}>
+              <Btn variant="soft" onClick={() => setDeleteModalId(null)} disabled={deleting} className={s.confirmBtn}>
+                Cancel
+              </Btn>
+              <Btn
+                variant="danger"
+                onClick={handleDeleteTab}
+                disabled={deleting}
+                icon={deleting ? <Spinner size={16} /> : undefined}
+                className={s.confirmBtn}
+              >
+                {deleting ? 'Deleting…' : 'Delete forever'}
+              </Btn>
             </div>
           </div>
         </div>
@@ -499,35 +672,56 @@ export default function MemoryPageContent({
   );
 }
 
+/* The photo on show in a colour frame (arrows, counter, dots, swipe), with the first five
+   photos as small colour tiles underneath. The frame takes the four colours in turn. */
 function HeroImageCarousel({ images, title }: { images: { url: string }[]; title: string }) {
   const [activeImage, setActiveImage] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const touchStart = useRef<number | null>(null);
-  const goTo = (i: number) => { setImageLoaded(false); setActiveImage(i); };
+  // Choosing the photo already on show used to blank it (no new load to fade it back in).
+  const goTo = (i: number) => { if (i === activeImage) return; setImageLoaded(false); setActiveImage(i); };
   const goNext = () => goTo((activeImage + 1) % images.length);
   const goPrev = () => goTo((activeImage - 1 + images.length) % images.length);
   return (
-    <div className="relative w-full aspect-[4/3] sm:aspect-[16/11] overflow-hidden bg-[#F5F0E8] group" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)} onTouchStart={(e) => { touchStart.current = e.touches[0].clientX; }} onTouchEnd={(e) => { if (touchStart.current === null) return; const diff = touchStart.current - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) { diff > 0 ? goNext() : goPrev(); } touchStart.current = null; }}>
-      <Image key={activeImage} src={images[activeImage].url} alt={title} fill priority sizes="(max-width: 1024px) 100vw, 52vw" className={`object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'}`} onLoadingComplete={() => setImageLoaded(true)} />
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.15) 100%)' }} />
-      {images.length > 1 && (<>
-        <div className="absolute top-4 right-4 bg-[#1A1612]/65 backdrop-blur-sm px-3 py-1.5 text-[11px] font-medium text-white tabular-nums tracking-wide">{activeImage + 1} / {images.length}</div>
-        <button onClick={goPrev} className={`absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center bg-white/80 backdrop-blur-sm text-[#1A1612] transition-all duration-300 hover:bg-white ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`} aria-label="Previous image"><ChevronRight size={16} className="rotate-180" /></button>
-        <button onClick={goNext} className={`absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center bg-white/80 backdrop-blur-sm text-[#1A1612] transition-all duration-300 hover:bg-white ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'}`} aria-label="Next image"><ChevronRight size={16} /></button>
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">{images.map((_, i) => (<button key={i} onClick={() => goTo(i)} className={`h-2 transition-all duration-300 ${i === activeImage ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/70'}`} aria-label={`Go to image ${i + 1}`} />))}</div>
-      </>)}
+    <div>
+      <div className={s.frame} style={{ '--frame': tone(activeImage).bg } as CSSProperties}>
+        <div className={s.stage} data-hover={isHovered} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)} onTouchStart={(e) => { touchStart.current = e.touches[0].clientX; }} onTouchEnd={(e) => { if (touchStart.current === null) return; const diff = touchStart.current - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) { diff > 0 ? goNext() : goPrev(); } touchStart.current = null; }}>
+          <Image key={activeImage} src={images[activeImage].url} alt={title} fill priority sizes={STAGE_SIZES} className={cx(s.stageImg, imageLoaded && s.stageImgIn)} onLoadingComplete={() => setImageLoaded(true)} />
+          {images.length > 1 && (<>
+            <div className={s.shade} />
+            <span className={cx(ui.photoChip, ui.photoChipInk, s.counter)}>{activeImage + 1} / {images.length}</span>
+            <IconBtn label="Previous image" onPhoto onClick={goPrev} className={cx(s.nav, s.navPrev)}>
+              <ChevronLeft size={20} strokeWidth={2.6} aria-hidden="true" />
+            </IconBtn>
+            <IconBtn label="Next image" onPhoto onClick={goNext} className={cx(s.nav, s.navNext)}>
+              <ChevronRight size={20} strokeWidth={2.6} aria-hidden="true" />
+            </IconBtn>
+            <div className={s.dots}>{images.map((_, i) => (<button type="button" key={i} onClick={() => goTo(i)} className={cx(s.dot, i === activeImage && s.dotActive)} aria-label={`Go to image ${i + 1}`} aria-current={i === activeImage ? 'true' : undefined} />))}</div>
+          </>)}
+        </div>
+      </div>
+      {images.length > 1 && (
+        <div className={s.thumbs} aria-hidden="true">
+          {images.slice(0, 5).map((img, i) => (
+            <div key={i} className={s.thumb} style={{ '--frame': tone(i).bg } as CSSProperties}>
+              <span className={s.thumbInner}>
+                <Image src={img.url} alt="" fill sizes="120px" className={s.thumbImg} />
+              </span>
+              {i === 4 && images.length > 5 && (<span className={s.thumbMore}>+{images.length - 5}</span>)}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function EmptyImagePlaceholder() {
   return (
-    <div className="relative w-full aspect-[4/3] sm:aspect-[16/11] overflow-hidden">
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(145deg, #FAF5EB 0%, #F0E8D8 40%, #E8DCC8 100%)' }} />
-      <div className="absolute inset-0 opacity-[0.04]"><svg width="100%" height="100%"><defs><pattern id="memPat" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="1.5" fill="#A9782F" /></pattern></defs><rect width="100%" height="100%" fill="url(#memPat)" /></svg></div>
-      <div className="absolute top-6 left-6 w-12 h-12 border-t border-l border-[#D8BE8B]/30" /><div className="absolute top-6 right-6 w-12 h-12 border-t border-r border-[#D8BE8B]/30" /><div className="absolute bottom-6 left-6 w-12 h-12 border-b border-l border-[#D8BE8B]/30" /><div className="absolute bottom-6 right-6 w-12 h-12 border-b border-r border-[#D8BE8B]/30" />
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3"><div className="h-12 w-12 flex items-center justify-center border border-[#D8BE8B]/40"><ImageIcon size={20} strokeWidth={1.2} className="text-[#B8924A]/60" /></div><p className="text-[15px] italic text-[#B8924A]/70" style={{ fontFamily: "'Playfair Display', serif" }}>A memory worth reading</p></div>
+    <div className={s.quote}>
+      <span className={s.quoteMark} aria-hidden="true">&ldquo;</span>
+      <p className={s.quoteText}>A memory worth reading</p>
     </div>
   );
 }
@@ -537,39 +731,48 @@ function MemoryVoiceNoteItem({ note, onDelete }: { note: MemoryVoiceNote; onDele
   const initials = note.recorderName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const dateLabel = new Date(note.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   return (
-    <div className="border border-[#EDE8DF] bg-[#FEFDFB] transition-shadow duration-300 hover:shadow-[0_2px_12px_rgba(169,120,47,0.08)]">
-      <div className="px-4 py-3.5 sm:px-5 sm:py-4">
-        <div className="flex items-center gap-3 mb-3">
+    <li className={ui.listRow}>
+      <div className={s.voiceTop}>
+        <span className={s.voiceAvatar}>
           <AuthorAvatar avatarUrl={note.recorderAvatarUrl} name={note.recorderName} initials={initials} size={32} />
-          <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-[#1A1612] truncate">{note.recorderName}</p>
-            <p className="text-[11px] text-[#9C9488]">{dateLabel}</p>
-          </div>
-          {note.isRecorder && (
-            <div className="ml-auto flex-shrink-0">
-              {confirming ? (
-                <div className="flex items-center gap-2">
-                  <button onClick={onDelete} className="text-[11px] font-semibold text-[#DC2626] hover:text-[#B91C1C] transition">Delete</button>
-                  <button onClick={() => setConfirming(false)} className="text-[11px] font-medium text-[#9B8E7D] hover:text-[#6F6255] transition">Cancel</button>
-                </div>
-              ) : (
-                <button onClick={() => setConfirming(true)} className="flex h-8 w-8 items-center justify-center text-[#9C9488] hover:text-[#DC2626] transition" aria-label="Delete voice note"><Trash2 size={14} strokeWidth={1.8} /></button>
-              )}
-            </div>
-          )}
+        </span>
+        <div className={s.voiceWho}>
+          <p className={s.voiceName}>{note.recorderName}</p>
+          <p className={s.voiceDate}>{dateLabel}</p>
         </div>
+        {note.isRecorder && (
+          <div className={s.voiceCtrl}>
+            {confirming ? (
+              <>
+                <Btn variant="danger" size="sm" onClick={onDelete} className={s.voiceCtrlBtn}>Delete</Btn>
+                <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)} className={s.voiceCtrlBtn}>Cancel</Btn>
+              </>
+            ) : (
+              <IconBtn label="Delete voice note" ghost size="sm" onClick={() => setConfirming(true)}>
+                <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+              </IconBtn>
+            )}
+          </div>
+        )}
+      </div>
+      <div className={s.voicePlayer}>
         <VoiceNotePlayer src={note.url} />
       </div>
-    </div>
+    </li>
   );
 }
 
-function SectionDivider() {
-  return (<div className="w-full px-6 md:px-10 lg:px-20 xl:px-28"><div className="relative border-t border-[#EDE8DF]"><div className="absolute left-1/2 -translate-x-1/2 -top-[5px] bg-[#FFFDF8] px-4"><div className="flex items-center gap-1.5"><div className="h-[3px] w-[3px] bg-[#D8BE8B]/60 rotate-45" /><div className="h-[4px] w-[4px] bg-[#D8BE8B] rotate-45" /><div className="h-[3px] w-[3px] bg-[#D8BE8B]/60 rotate-45" /></div></div></div></div>);
-}
-
+/** The kit's round avatar with a ring in the person's colour: their photo, or their initials. */
 function AuthorAvatar({ avatarUrl, name, initials, size }: { avatarUrl: string | null; name: string; initials: string; size: number }) {
-  return (<div className="flex-shrink-0 rounded-full overflow-hidden border-[1.5px] border-[#E4D2AE] bg-[#FAF5EB] flex items-center justify-center" style={{ height: size, width: size }}>{avatarUrl ? (<Image src={avatarUrl} alt={name} width={size} height={size} className="h-full w-full object-cover" />) : (<span className="font-bold text-[#A9782F]" style={{ fontSize: Math.max(10, size * 0.28) }}>{initials}</span>)}</div>);
+  return (
+    <Avatar name={name} size={size}>
+      {avatarUrl ? (
+        <Image src={avatarUrl} alt="" fill sizes={`${size}px`} />
+      ) : (
+        <span aria-hidden="true">{initials}</span>
+      )}
+    </Avatar>
+  );
 }
 
 function AddMemoryModal({ memoryId, familyId, promptQuestion, parentAuthorId, onClose, onSuccess }: { memoryId: string; familyId: string; promptQuestion: string | null; parentAuthorId: string; onClose: () => void; onSuccess: () => void }) {
@@ -581,6 +784,13 @@ function AddMemoryModal({ memoryId, familyId, promptQuestion, parentAuthorId, on
   const [submitStep, setSubmitStep] = useState('');
   const [error, setError] = useState('');
   const [photoLimitNotice, setPhotoLimitNotice] = useState('');
+  const titleId = useId();
+  const bodyId = useId();
+  const photosId = useId();
+  // Escape closes it (as the close button and the backdrop do), never while it saves.
+  const panelRef = useDialog<HTMLDivElement>(true, () => {
+    if (!submitting) onClose();
+  });
   const addPhotos = useCallback(async (files: FileList | File[]) => { const arr = Array.from(files).filter((f) => f.type.startsWith('image/') || f.name.toLowerCase().endsWith('.heic')); if (!arr.length) return; const remaining = 10 - photos.length; setPhotoLimitNotice(arr.length > remaining ? "You can add up to 10 photos. The rest weren't added." : ''); setProcessing(true); try { const converted = await Promise.all(arr.slice(0, remaining).map((f) => ensureDisplayableImage(f))); setPhotos((prev) => [...prev, ...converted.map((file) => ({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, file, preview: URL.createObjectURL(file) }))]); } finally { setProcessing(false); } }, [photos.length]);
   const removePhoto = useCallback((id: string) => { setPhotos((prev) => { const item = prev.find((p) => p.id === id); if (item) URL.revokeObjectURL(item.preview); return prev.filter((p) => p.id !== id); }); }, []);
   const handleSubmit = async () => {
@@ -596,21 +806,67 @@ function AddMemoryModal({ memoryId, familyId, promptQuestion, parentAuthorId, on
     } catch (err: any) { setError(err?.message || 'Something went wrong.'); setSubmitting(false); }
   };
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !submitting && onClose()} />
-      <div className="relative w-full max-w-[520px] max-h-[90vh] overflow-y-auto bg-white border border-[#EAD8B8] shadow-xl" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-        <div className="px-6 py-6 sm:px-8 sm:py-8 space-y-5">
-          <div className="flex items-center justify-between"><h3 className="text-[20px] font-semibold text-[#1A1612]" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>Add your <span className="italic text-[#A9782F]">memory</span></h3><button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#F5F0E8] transition"><X size={16} className="text-[#7D6F5F]" /></button></div>
-          {promptQuestion && (<div className="px-4 py-3 bg-[#FBF7EE] border border-[#EAD8B8]"><p className="text-[11px] font-medium text-[#B8932A] uppercase tracking-[0.08em] mb-1">The question</p><p className="text-[14px] text-[#4A4030] italic">&ldquo;{promptQuestion}&rdquo;</p></div>)}
-          <div><label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">Your memory</label><textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="What do you remember about this moment?" rows={5} className="w-full border border-[#E0D6C8] px-3.5 py-2.5 text-[14px] text-[#181512] placeholder-[#C0B9AE] focus:outline-none focus:border-[#B8932A] focus:ring-1 focus:ring-[#B8932A] resize-none leading-relaxed" style={{ background: '#FDFCFA' }} /></div>
-          <div>
-            <label className="block text-[12px] font-medium text-[#4A4030] mb-1.5 tracking-[0.02em]">Photos <span className="text-[#B5AFA6] font-normal">(optional)</span></label>
-            {photos.length > 0 && (<div className="grid grid-cols-3 gap-2 mb-3">{photos.map((p) => (<div key={p.id} className="group relative aspect-square overflow-hidden bg-[#F0EDE8] border border-[#ECE5D8]"><Image src={p.preview} alt="" fill className="object-cover" />{!submitting && <button onClick={() => removePhoto(p.id)} className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center bg-white/90 text-[#8B3A32] opacity-0 group-hover:opacity-100 transition-opacity"><X size={12} /></button>}</div>))}</div>)}
-            {photos.length < 10 && (<label className={`flex flex-col items-center justify-center border-2 border-dashed px-5 py-4 cursor-pointer transition-all ${processing ? 'border-[#B8932A] bg-[#FBF7EE]' : 'border-[#E0D6C8] bg-[#FDFCFA] hover:border-[#B8932A]'}`}>{processing ? <Loader2 size={20} className="animate-spin text-[#B8932A] mb-1" /> : <ImagePlus size={20} className="text-[#B8932A] mb-1" />}<p className="text-[12px] font-medium text-[#4A4030]">{processing ? 'Processing…' : photos.length > 0 ? 'Add more' : 'Add a photo'}</p><input type="file" accept="image/*,.heic" multiple hidden disabled={processing} onChange={(e) => { if (e.target.files?.length) addPhotos(e.target.files); e.target.value = ''; }} /></label>)}
-            {photoLimitNotice && <p className="mt-2 text-[12px] text-[#A9782F]">{photoLimitNotice}</p>}
+    <div className={s.addLayer}>
+      <div className={cx(ui.scrim, ui.fadeIn, 'scrim-blur')} onClick={() => !submitting && onClose()} />
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className={cx(ui.sheet, ui.sheetBottom, s.addPanel)}>
+        <div className={ui.sheetHeader}>
+          <h2 id={titleId} className={ui.sheetTitle}>Add your <Accent>memory</Accent></h2>
+          <IconBtn label="Close" ghost onClick={onClose}>
+            <X size={20} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
+        </div>
+
+        <div className={ui.sheetBody}>
+          {promptQuestion && (
+            <div className={cx(ui.card, s.prompt, s.addPrompt)}>
+              <Tag dot="var(--c1)">The question</Tag>
+              <p className={s.promptText}>&ldquo;{promptQuestion}&rdquo;</p>
+            </div>
+          )}
+
+          <div className={s.addField}>
+            <label htmlFor={bodyId} className={ui.label}>Your memory</label>
+            <textarea id={bodyId} value={body} onChange={(e) => setBody(e.target.value)} placeholder="What do you remember about this moment?" rows={5} className={cx(ui.textarea, s.addTextarea)} />
           </div>
-          {error && <div className="border border-[#E8C4C0] bg-[#FDF6F5] px-4 py-3"><p className="text-[13px] text-[#8B3A32]">{error}</p></div>}
-          <button onClick={handleSubmit} disabled={!body.trim() || submitting} className="w-full py-3 text-[13px] font-semibold tracking-[0.04em] text-[#FFFDF8] transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg, #B8932A 0%, #C8A557 100%)' }}>{submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}{submitting ? submitStep || 'Saving…' : 'Share your memory'}</button>
+
+          <div className={s.addField}>
+            <p id={photosId} className={ui.label}>Photos <span className={s.optional}>(optional)</span></p>
+            {photos.length > 0 && (
+              <ul className={s.addPhotos} aria-labelledby={photosId}>
+                {photos.map((p) => (
+                  <li key={p.id} className={s.addPhoto}>
+                    <Image src={p.preview} alt="" fill sizes="160px" className={s.addPhotoImg} />
+                    {!submitting && (
+                      <IconBtn label="Remove photo" size="sm" onPhoto onClick={() => removePhoto(p.id)} className={s.addPhotoRemove}>
+                        <X size={15} strokeWidth={2.6} aria-hidden="true" />
+                      </IconBtn>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {photos.length < 10 && (
+              <label className={cx(ui.dropzone, processing && ui.dropzoneActive, s.addDrop)}>
+                {processing ? <Spinner size={24} /> : <IconTile Icon={ImagePlus} tone={toneByKey('orange')} size="sm" />}
+                <span className={ui.dropzoneTitle}>{processing ? 'Processing…' : photos.length > 0 ? 'Add more' : 'Add a photo'}</span>
+                <input type="file" accept="image/*,.heic" multiple className={ui.srOnly} disabled={processing} onChange={(e) => { if (e.target.files?.length) addPhotos(e.target.files); e.target.value = ''; }} />
+              </label>
+            )}
+            {photoLimitNotice && <p className={cx(ui.noticeWarn, s.addNotice)}>{photoLimitNotice}</p>}
+          </div>
+
+          {error && <p className={cx(ui.noticeError, s.addNotice)} role="alert">{error}</p>}
+        </div>
+
+        <div className={ui.sheetFooter}>
+          <Btn
+            block
+            onClick={handleSubmit}
+            disabled={!body.trim() || submitting}
+            tile={submitting ? <Spinner size={16} /> : <Send size={16} strokeWidth={2.4} />}
+          >
+            {submitting ? submitStep || 'Saving…' : 'Share your memory'}
+          </Btn>
         </div>
       </div>
     </div>
