@@ -15,9 +15,11 @@
   gap: 12px;
 }
 
-/* The avatar's coloured ring sits outside its box: a little room above it. */
+/* The avatar's coloured ring sits outside its box: a little room above it, and on its left so
+   the ring lines up with the column's edge (as the voice notes' avatars do). */
 .avatar {
   margin-top: 5px;
+  margin-left: 5px;
 }
 
 .main {
@@ -147,7 +149,7 @@
 .replies {
   display: grid;
   gap: 14px;
-  margin: 12px 0 0 52px;
+  margin: 12px 0 0 57px;
 }
 
 .replies .row {

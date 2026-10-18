@@ -282,8 +282,12 @@ export default function OrdersPage() {
           lead="Track your orders from payment to your doorstep."
         />
 
-        {/* Loading */}
-        {loading && <AppLoader label="Loading your orders" />}
+        {/* Loading: in the section's place, as on the other list pages */}
+        {loading && (
+          <section className={ui.section} aria-label="Your orders">
+            <AppLoader label="Loading your orders" />
+          </section>
+        )}
 
         {/* Empty state */}
         {!loading && totalOrders === 0 && (

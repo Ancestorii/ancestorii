@@ -679,6 +679,21 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
             height: calc(100vh - 72px) !important;
           }
         }
+        /* Keyboard focus (and in-page jumps) stop clear of the sticky top bar (72px, 64px on
+           phones) and, below 1024px, of the floating bottom navigation, instead of under them. */
+        html:has(.dashboard-sidebar) {
+          scroll-padding-top: 88px;
+        }
+        @media (max-width: 599px) {
+          html:has(.dashboard-sidebar) {
+            scroll-padding-top: 80px;
+          }
+        }
+        @media (max-width: 1023px) {
+          html {
+            scroll-padding-bottom: 104px;
+          }
+        }
         /* A sidebar section's links fade in as it opens (opacity and transform only). */
         .sidebar-reveal {
           animation: sidebarReveal 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);

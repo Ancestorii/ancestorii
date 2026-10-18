@@ -149,7 +149,25 @@ export default function TimelineEventCard({
         height={cardHeight}
         style={{ overflow: 'hidden' }}
       >
-        <div className={s.card}>
+        {/* A click anywhere on the memory opens it (the drawing's <g> handles that). The keyboard
+            could not reach it: Tab now stops on the card, and Enter or Space clicks it. */}
+        <div
+          className={s.card}
+          role={isPdf ? undefined : 'button'}
+          tabIndex={isPdf ? undefined : 0}
+          aria-haspopup={isPdf ? undefined : 'dialog'}
+          aria-label={isPdf ? undefined : `${event.title}, ${date.toUTCString().slice(5, 16)}`}
+          onKeyDown={
+            isPdf
+              ? undefined
+              : (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.currentTarget.click();
+                  }
+                }
+          }
+        >
           {up ? (
             <>
               {thumb}

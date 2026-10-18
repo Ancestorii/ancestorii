@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Images } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
-import { ui, AppLoader, Btn, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, AppLoader, Btn, EmptyState, toneByKey, useDialog } from '@/components/dashboard/ui/AppBits';
 
 import AlbumHeader from '../_components/AlbumHeader';
 import MediaGrid from '../_components/MediaGrid';
@@ -327,16 +327,22 @@ export default function Page() {
     );
   }
 
+  /* ── not found: the empty card the capsule and loved one pages show (a lone button on a blank
+        page read as broken) ── */
   if (!album) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white px-4">
-        <Btn
-          variant="soft"
-          onClick={() => router.push('/dashboard/albums')}
-          icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
-        >
-          Back to Albums
-        </Btn>
+      <div className={ui.page}>
+        <div className={ui.wrapNarrow}>
+          <EmptyState Icon={Images} tone={toneByKey('orange')} title="Album not found">
+            <Btn
+              variant="soft"
+              onClick={() => router.push('/dashboard/albums')}
+              icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
+            >
+              Back to Albums
+            </Btn>
+          </EmptyState>
+        </div>
       </div>
     );
   }

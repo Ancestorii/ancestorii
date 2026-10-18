@@ -80,14 +80,15 @@ export default function AcrylicBuilder({
 
   return (
     <div style={{ height: '100%' }}>
-      {/* Phones and small tablets: the editor needs a bigger screen. A kit card on white, over
-          everything (as before), with the way back to the list. */}
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center overflow-y-auto bg-white px-4 py-8 lg:hidden">
+      {/* Phones and small tablets: the editor needs a bigger screen. A kit card on white, with
+          the way back to the list, under the floating phone navigation (z 200) and with room for
+          it at the bottom, as on the Timeline page. */}
+      <div className="fixed inset-0 z-[190] flex flex-col items-center overflow-y-auto bg-white px-4 pt-8 pb-[calc(112px+env(safe-area-inset-bottom,0px))] lg:hidden">
         <EmptyState
           Icon={Monitor}
           tone={toneByKey('orange')}
           title="Bigger screen needed"
-          text="The acrylic editor works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to design your acrylic print."
+          text="The acrylic editor needs a wider screen: a laptop, a desktop, or a tablet turned sideways. Open Ancestorii on one to design your acrylic print."
           className="my-auto w-full max-w-[440px]"
         >
           <Btn href="/dashboard/acrylic" icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}>

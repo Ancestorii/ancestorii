@@ -22,6 +22,18 @@ const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boo
 // Library's colour on the landing's feature index.
 const ORANGE = toneByKey('orange');
 
+// Dates as the Library page writes them: British English, the month as a word (02/06/2026 reads
+// either way round). A folder date is a calendar day with no time, so it is read in UTC: in the
+// local zone it slipped back a day anywhere west of London.
+function formatDay(value: string, month: 'long' | 'short' = 'long', calendarDay = false) {
+  return new Date(value).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month,
+    year: 'numeric',
+    ...(calendarDay ? { timeZone: 'UTC' } : {}),
+  });
+}
+
 export type LibraryPickerItem = {
   id: string;
   file_path: string;
@@ -447,9 +459,9 @@ export default function LibraryPickerModal({
                     <span className={s.folderName}>{f.name}</span>
                     <span className={s.folderDate}>
                       {f.folder_date
-                        ? new Date(f.folder_date).toLocaleDateString()
+                        ? formatDay(f.folder_date, 'long', true)
                         : f.created_at
-                        ? new Date(f.created_at).toLocaleDateString()
+                        ? formatDay(f.created_at)
                         : 'No date'}
                     </span>
                   </button>
@@ -508,7 +520,7 @@ export default function LibraryPickerModal({
                     {/* Meta */}
                     <span className={s.meta}>
                       {item.created_at
-                        ? `Added on ${new Date(item.created_at).toLocaleDateString()}`
+                        ? `Added on ${formatDay(item.created_at, 'short')}`
                         : 'No date'}
                     </span>
                   </button>
@@ -576,8 +588,9 @@ function PickerImage({ src, alt }: { src: string; alt: string }) {
     setLoaded(false);
   }, [src]);
 
+  // A span, not a div: it sits inside the folder and photo buttons (a button holds inline content).
   return (
-    <div className="relative w-full h-full">
+    <span className="relative block w-full h-full">
       <Image
         src={src}
         alt={alt}
@@ -590,6 +603,6 @@ function PickerImage({ src, alt }: { src: string; alt: string }) {
         ].join(' ')}
         onLoadingComplete={() => setLoaded(true)}
       />
-    </div>
+    </span>
   );
 }

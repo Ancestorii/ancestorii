@@ -54,7 +54,10 @@ function getNotificationMeta(
   const name = actorName || 'Someone';
   const isMemoryType = ['memory_reaction', 'memory_comment', 'memory_addition'].includes(type);
   const fallback = isMemoryType ? 'your memory' : 'your story';
-  const title = storyTitle ? `"${storyTitle.slice(0, 30)}${storyTitle.length > 30 ? '…' : ''}"` : fallback;
+  const quoted = storyTitle ? `"${storyTitle.slice(0, 30)}${storyTitle.length > 30 ? '…' : ''}"` : null;
+  const title = quoted ?? fallback;
+  // "your memory" already names it when the memory has no title (or is gone): no "your memory your memory".
+  const yourMemory = quoted ? `your memory ${quoted}` : 'your memory';
 
   switch (type) {
     // ── Existing public story types ──
@@ -79,9 +82,9 @@ function getNotificationMeta(
 
     // ── NEW: Private memory types ──
     case 'memory_reaction':
-      return { Icon: Heart, tone: 'pink', message: `${name} loved your memory ${title}` };
+      return { Icon: Heart, tone: 'pink', message: `${name} loved ${yourMemory}` };
     case 'memory_comment':
-      return { Icon: MessageCircle, tone: 'blue', message: `${name} commented on your memory ${title}` };
+      return { Icon: MessageCircle, tone: 'blue', message: `${name} commented on ${yourMemory}` };
     case 'memory_addition':
       return { Icon: PenLine, tone: 'orange', message: `${name} added their memory to ${title}` };
     case 'prompt_answered':

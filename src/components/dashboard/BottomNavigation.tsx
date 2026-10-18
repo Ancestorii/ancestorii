@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { memoriesLinks, heirloomsLinks, accountLinks } from "@/lib/dashboardNavigation";
-import { btnClass, useDialog } from "@/components/dashboard/ui/AppBits";
+import { btnClass, ui, useDialog } from "@/components/dashboard/ui/AppBits";
 
 // One round 44px button in the floating bar: ink with a white icon for the section you're in.
 const tab = (on: boolean) =>
@@ -37,7 +37,8 @@ const isHeirlooms = heirloomsLinks.some(link =>
   pathname === link.href || pathname.startsWith(link.href + "/")
 );
 
-const isAccount = accountLinks.some(link =>
+// My Profile is an account page too (the avatar's menu leads there), so the tab shows it.
+const isAccount = pathname.startsWith("/dashboard/profile") || accountLinks.some(link =>
   pathname === link.href || pathname.startsWith(link.href + "/")
 );
 
@@ -131,23 +132,23 @@ const goHome = () => {};
         </div>
       </nav>
 
-      {/* LOGOUT CONFIRM MODAL */}
+      {/* LOGOUT CONFIRM MODAL: the kit's confirm (as every other confirm in the app) */}
       {confirmLogout && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[rgba(10,10,15,0.45)] px-6">
+        <div className={`${ui.scrim} ${ui.fadeIn} z-[300] flex items-center justify-center px-6`}>
 
           <div
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="logout-confirm-title"
             ref={confirmRef}
-            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 text-[var(--ink)] shadow-[0_30px_70px_-30px_rgba(10,10,15,0.45)]"
+            className={`${ui.sheet} ${ui.confirm} ${ui.popIn}`}
           >
 
-            <p id="logout-confirm-title" className="text-[20px] font-extrabold leading-tight tracking-[-0.035em]">
+            <h2 id="logout-confirm-title" className={ui.confirmTitle}>
               Log out of your account?
-            </p>
+            </h2>
 
-            <div className="mt-6 grid grid-cols-2 gap-2.5">
+            <div className={ui.confirmActions}>
 
               <button
                 type="button"

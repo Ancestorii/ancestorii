@@ -8,6 +8,7 @@ import { getRecentNotifications } from '@/lib/stories/queries';
 import { markNotificationRead, markAllNotificationsRead } from '@/lib/stories/mutations';
 import type { Notification } from '@/lib/stories/types';
 import NotificationItem from './NotificationItem';
+import { AppLoader } from '@/components/dashboard/ui/AppBits';
 import styles from './notifications.module.css';
 
 const MEMORY_TYPES = ['memory_reaction', 'memory_comment', 'memory_addition', 'prompt_answered'];
@@ -108,9 +109,7 @@ export default function NotificationDropdown({
         {/* List */}
         <div className={styles.body} aria-busy={loading}>
           {loading ? (
-            <div className={styles.loading}>
-              <span className={styles.spinner} aria-hidden="true" />
-            </div>
+            <AppLoader compact label="Loading notifications" />
           ) : notifications.length === 0 ? (
             <div className={styles.empty}>
               <span className={styles.emptyIcon} aria-hidden="true">

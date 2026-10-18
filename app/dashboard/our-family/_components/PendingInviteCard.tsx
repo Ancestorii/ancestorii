@@ -58,8 +58,8 @@ export default function PendingInviteCard({
         </Btn>
       </div>
 
-      {/* Info */}
-      <p className="mt-4 truncate text-[17px] font-extrabold leading-[1.25] tracking-[-0.03em]">
+      {/* Info: the address wraps (nothing else on the page shows it in full) */}
+      <p className="mt-4 text-[17px] font-extrabold leading-[1.25] tracking-[-0.03em] [overflow-wrap:anywhere]">
         {invite.email}
       </p>
 

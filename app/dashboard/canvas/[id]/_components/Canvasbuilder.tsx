@@ -81,13 +81,14 @@ export default function CanvasBuilder({
   return (
     <div style={{ height: '100%' }}>
       {/* Phones and small tablets: the editor needs a laptop-sized screen. The card centres when
-          it fits and scrolls when it doesn't (a phone on its side). */}
-      <div className="fixed inset-0 z-[9999] flex flex-col overflow-y-auto bg-white px-4 py-8 lg:hidden">
+          it fits and scrolls when it doesn't (a phone on its side). Under the floating phone
+          navigation (z 200), with room for it at the bottom, as on the Timeline page. */}
+      <div className="fixed inset-0 z-[190] flex flex-col overflow-y-auto bg-white px-4 pt-8 pb-[calc(112px+env(safe-area-inset-bottom,0px))] lg:hidden">
         <EmptyState
           Icon={Monitor}
           tone={toneByKey('orange')}
           title="Bigger screen needed"
-          text="The canvas editor works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to design your memory canvas."
+          text="The canvas editor needs a wider screen: a laptop, a desktop, or a tablet turned sideways. Open Ancestorii on one to design your memory canvas."
           className="m-auto w-full max-w-[440px]"
         >
           <a href="/dashboard/canvas" className={btnClass({ variant: 'primary' })}>

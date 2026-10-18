@@ -198,8 +198,15 @@ export default function BookPreviewOverlay({
         <X size={20} strokeWidth={2.4} aria-hidden="true" />
       </IconBtn>
 
-      {/* Keyboard hint */}
-      <p className={chrome.previewHint}>← → to navigate · ESC to close</p>
+      {/* Keyboard hint: white key caps, as in the Canvas and Acrylic Print previews */}
+      <p className={chrome.previewHint}>
+        <kbd className={chrome.kbd}>←</kbd>
+        <kbd className={chrome.kbd}>→</kbd>
+        <span>to navigate</span>
+        <span className={chrome.chipSep} aria-hidden="true" />
+        <kbd className={chrome.kbd}>ESC</kbd>
+        <span>to close</span>
+      </p>
 
       {/* Book container (what the book inherits stays as it was: it is drawn as it will be printed) */}
       <div

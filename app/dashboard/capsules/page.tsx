@@ -174,11 +174,7 @@ const [unlockNotificationId, setUnlockNotificationId] = useState<string | null>(
               My <Accent>Capsules</Accent>
             </>
           }
-          lead={
-            <>
-              <span className="font-bold">{line1}</span> {line2}
-            </>
-          }
+          lead={`${line1} ${line2}`}
           actions={createButton}
         />
 

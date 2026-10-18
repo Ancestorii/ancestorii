@@ -167,27 +167,6 @@
   padding-top: 6px;
 }
 
-.loading {
-  display: flex;
-  justify-content: center;
-  padding: 44px 0;
-}
-
-.spinner {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 3px solid rgba(10, 10, 15, 0.1);
-  border-top-color: var(--c0);
-  animation: notesSpin 0.8s linear infinite;
-}
-
-@keyframes notesSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .empty {
   display: flex;
   flex-direction: column;
@@ -361,9 +340,5 @@
 @media (prefers-reduced-motion: reduce) {
   .panel {
     animation: none;
-  }
-
-  .spinner {
-    animation-duration: 2.4s;
   }
 }

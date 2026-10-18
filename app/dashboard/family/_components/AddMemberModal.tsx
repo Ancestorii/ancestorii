@@ -397,7 +397,9 @@ return;
                 {/* AGE */}
                 {ageDisplay && (
                   <p className={ui.hint}>
-                    {death ? ageDisplay : `${ageDisplay} to present`}
+                    {/* "19 yrs old, living", as it read before the dashes went (an age is not the
+                        start of a range, so not "to present"). */}
+                    {death ? ageDisplay : `${ageDisplay}, living`}
                   </p>
                 )}
               </div>

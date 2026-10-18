@@ -811,7 +811,7 @@ function AddMemoryModal({ memoryId, familyId, promptQuestion, parentAuthorId, on
       <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className={cx(ui.sheet, ui.sheetBottom, s.addPanel)}>
         <div className={ui.sheetHeader}>
           <h2 id={titleId} className={ui.sheetTitle}>Add your <Accent>memory</Accent></h2>
-          <IconBtn label="Close" ghost onClick={onClose}>
+          <IconBtn label="Close" onClick={onClose}>
             <X size={20} strokeWidth={2.4} aria-hidden="true" />
           </IconBtn>
         </div>

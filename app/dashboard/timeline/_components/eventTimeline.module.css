@@ -100,6 +100,21 @@
   }
 }
 
+/* From the keyboard: the kit's blue ring, drawn inside the card (the foreignObject clips
+   anything outside it), and the dot and its connector turn ink as under a mouse. */
+.card:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: -3px;
+}
+
+.event:has(.card:focus-visible) .connector {
+  stroke: var(--ink);
+}
+
+.event:has(.card:focus-visible) .nodeDot {
+  fill: var(--ink);
+}
+
 .thumb {
   position: relative;
   height: 140px;

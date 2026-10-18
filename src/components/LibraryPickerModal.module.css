@@ -252,6 +252,18 @@
     transform 0.2s ease;
 }
 
+/* A faint inset hairline over a photo's edge (folder covers too), so a mostly white picture keeps
+   its shape on the white sheet, as on the Library's and the album's own tiles. */
+.thumb::after,
+.cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(10, 10, 15, 0.08);
+  pointer-events: none;
+}
+
 /* Selected: an ink ring outside a white gap (like the avatars), and the ink check. */
 .tile[aria-pressed='true'] .thumb {
   box-shadow:

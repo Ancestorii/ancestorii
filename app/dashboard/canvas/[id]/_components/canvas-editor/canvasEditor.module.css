@@ -486,6 +486,13 @@
   letter-spacing: 0.06em;
 }
 
+/* Touch screens have no Escape key: the hint hides, as in the Acrylic Print preview. */
+@media (hover: none) {
+  .previewHint {
+    visibility: hidden;
+  }
+}
+
 /* The caption under the previewed canvas: the same 41.5px block as before (the canvas is
    centred together with it). */
 .previewCaption {

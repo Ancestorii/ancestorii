@@ -15,12 +15,19 @@ import css from './publicNav.module.css';
 // Round dots for menu rows, in the landing's order: pink, blue, orange, aqua.
 const DOTS = ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)'];
 
-// Each kind of search result keeps its own dot colour.
+// Each kind of search result takes its feature's colour, as on its page's eyebrow: Loved Ones
+// and Timelines aqua, Albums orange, Capsules pink.
 const RESULT_DOT: Record<string, string> = {
-  'Loved One': 'var(--c0)',
-  Timeline: 'var(--c1)',
+  'Loved One': 'var(--c3)',
+  Timeline: 'var(--c3)',
   Album: 'var(--c2)',
-  Capsule: 'var(--c3)',
+  Capsule: 'var(--c0)',
+};
+
+// The menu panel's links in their feature colours (Our Stories aqua, My Family pink).
+const LINK_DOT: Record<string, string> = {
+  'Our Stories': 'var(--c3)',
+  'My Family': 'var(--c0)',
 };
 
 const dot = (color: string) => ({ '--dot': color }) as CSSProperties;
@@ -43,6 +50,12 @@ export default function PublicNav() {
 
   const searchRef = useRef<HTMLInputElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const profileBtnRef = useRef<HTMLButtonElement>(null);
+  const keepClosedRef = useRef(false);
+  // Below 1024px: when the unfolded field folds again (Escape, the close button), focus goes back
+  // to the search icon instead of dropping to the page.
+  const searchTriggerRef = useRef<HTMLButtonElement>(null);
+  const refocusTriggerRef = useRef(false);
   const searchWrapperRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [searchResults, setSearchResults] = useState<{ id: string; title: string; subtitle: string; href: string }[]>([]);
@@ -150,6 +163,11 @@ export default function PublicNav() {
   // ── Search autofocus ──
   useEffect(() => {
     if (searchOpen && searchRef.current) searchRef.current.focus();
+    if (!searchOpen && refocusTriggerRef.current) {
+      refocusTriggerRef.current = false;
+      const trigger = searchTriggerRef.current;
+      if (trigger && trigger.offsetParent !== null) trigger.focus();
+    }
   }, [searchOpen]);
 
   // ── Click-outside for profile dropdown ──
@@ -162,6 +180,21 @@ export default function PublicNav() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  // ── Escape closes the profile menu and hands focus back to the avatar (while focus is in the
+  //    menu, or after it dropped to the page; a dialog opened over it keeps its own Escape) ──
+  useEffect(() => {
+    if (!profileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      const focused = document.activeElement;
+      if (focused && focused !== document.body && !profileRef.current?.contains(focused)) return;
+      setProfileOpen(false);
+      profileBtnRef.current?.focus();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [profileOpen]);
 
   // ── Lock body scroll on mobile menu ──
   useEffect(() => {
@@ -242,9 +275,12 @@ export default function PublicNav() {
                     placeholder={isDashboard ? "Search memories, people..." : "Search stories..."}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => { if (searchResults.length > 0) setSearchDropdownOpen(true); }}
+                    onFocus={() => {
+                      if (keepClosedRef.current) { keepClosedRef.current = false; return; }
+                      if (searchResults.length > 0) setSearchDropdownOpen(true);
+                    }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Escape') { setSearchQuery(''); setSearchOpen(false); setSearchDropdownOpen(false); }
+                      if (e.key === 'Escape') { refocusTriggerRef.current = searchOpen; setSearchQuery(''); setSearchOpen(false); setSearchDropdownOpen(false); }
                       if (e.key === 'Enter' && searchQuery.trim() && !isDashboard) {
                         if (searchResults.length > 0) {
                           router.push(searchResults[0].href);
@@ -261,12 +297,13 @@ export default function PublicNav() {
                   type="button"
                   className={`${css.iconBtn} ${css.searchClose}`}
                   aria-label="Close search"
-                  onClick={() => { setSearchQuery(''); setSearchOpen(false); setSearchDropdownOpen(false); }}
+                  onClick={() => { refocusTriggerRef.current = true; setSearchQuery(''); setSearchOpen(false); setSearchDropdownOpen(false); }}
                 >
                   <X size={20} strokeWidth={2.4} aria-hidden="true" />
                 </button>
                 {!searchOpen && (
                   <button
+                    ref={searchTriggerRef}
                     type="button"
                     className={`${css.iconBtn} ${css.searchTrigger}`}
                     // flushSync shows the field inside the tap itself, so focusing it there raises
@@ -281,7 +318,17 @@ export default function PublicNav() {
                   </button>
                 )}
                 {searchDropdownOpen && (
-                  <div className={`${ui.menu} ${css.results}`}>
+                  <div
+                    className={`${ui.menu} ${css.results}`}
+                    // Escape on a result closes the list and goes back to the field (which keeps the
+                    // words, and doesn't reopen the list for that one focus).
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Escape') return;
+                      keepClosedRef.current = true;
+                      setSearchDropdownOpen(false);
+                      searchRef.current?.focus();
+                    }}
+                  >
                     {searchResults.map((result, i) => (
                       <button
                         key={result.id}
@@ -317,6 +364,7 @@ export default function PublicNav() {
               {/* Profile */}
               <div className={css.profile} ref={profileRef}>
                 <button
+                  ref={profileBtnRef}
                   type="button"
                   className={css.profileBtn}
                   onClick={() => setProfileOpen(!profileOpen)}
@@ -331,7 +379,7 @@ export default function PublicNav() {
                     My Profile
                   </Link>
                   <Link href="/dashboard/plans" className={ui.menuItem} onClick={() => setProfileOpen(false)}>
-                    <span className={css.menuDot} style={dot('var(--c2)')} aria-hidden="true" />
+                    <span className={css.menuDot} style={dot('var(--c1)')} aria-hidden="true" />
                     Plans
                   </Link>
                   <div className={ui.menuRule} />
@@ -393,7 +441,7 @@ export default function PublicNav() {
                 aria-current={isActive(link.href) ? 'page' : undefined}
                 onClick={() => setIsOpen(false)}
               >
-                <span className={css.panelDot} style={dot(DOTS[i % DOTS.length])} aria-hidden="true" />
+                <span className={css.panelDot} style={dot(LINK_DOT[link.label] ?? DOTS[i % DOTS.length])} aria-hidden="true" />
                 {link.label}
               </Link>
             ))}

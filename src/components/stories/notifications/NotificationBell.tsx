@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { getUnreadNotificationCount } from '@/lib/stories/queries';
@@ -10,6 +10,8 @@ import styles from './notifications.module.css';
 export default function NotificationBell() {
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -25,9 +27,25 @@ export default function NotificationBell() {
     return () => clearInterval(interval);
   }, []);
 
+  // Escape closes the panel and hands focus back to the bell (while focus is in the panel, or
+  // after it dropped to the page; a dialog opened over it keeps its own Escape).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      const focused = document.activeElement;
+      if (focused && focused !== document.body && !rootRef.current?.contains(focused)) return;
+      setOpen(false);
+      bellRef.current?.focus();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
   return (
-    <div className={styles.root}>
+    <div className={styles.root} ref={rootRef}>
       <button
+        ref={bellRef}
         type="button"
         onClick={() => setOpen(!open)}
         className={styles.bell}

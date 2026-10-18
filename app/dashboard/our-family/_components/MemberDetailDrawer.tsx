@@ -135,7 +135,7 @@ export default function MemberDetailDrawer({
                     {displayName}
                   </h2>
                   {current.email && (
-                    <p className="mt-1 truncate text-[14px] font-medium leading-snug">
+                    <p className="mt-1 text-[14px] font-medium leading-snug [overflow-wrap:anywhere]">
                       {current.email}
                     </p>
                   )}

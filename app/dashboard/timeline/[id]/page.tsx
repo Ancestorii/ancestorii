@@ -271,7 +271,7 @@ export default function TimelineDetailPage() {
         <IconTile Icon={Monitor} tone={toneByKey('aqua')} size="lg" />
         <h2 className={ui.emptyTitle}>Bigger screen needed</h2>
         <p className={ui.emptyText}>
-          The timeline builder works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to view your timeline.
+          The timeline builder needs a wider screen: a laptop, a desktop, or a tablet turned sideways. Open Ancestorii on one to view your timeline.
         </p>
         <div className={ui.emptyActions}>
           <a href="/dashboard/timeline" className={btnClass()}>

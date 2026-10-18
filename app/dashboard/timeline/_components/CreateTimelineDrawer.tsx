@@ -334,8 +334,8 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* Buttons */}
-            <div className={ui.sheetFooter}>
+            {/* Buttons: on phones the main action sits on top, as in the Capsule and heirloom drawers */}
+            <div className={cx(ui.sheetFooter, 'max-[599px]:flex-col-reverse')}>
               <Btn variant="soft" onClick={onClose} disabled={uploading}>
                 Cancel
               </Btn>

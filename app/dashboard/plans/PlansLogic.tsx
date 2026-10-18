@@ -138,8 +138,9 @@ export default function PlansLogic() {
     const mb = bytes / 1024 ** 2;
     if (mb < 1024) return `${mb.toFixed(1)} MB`;
 
+    // One decimal, as the sidebar's Library card shows the same figures ("100.0 GB").
     const gb = mb / 1024;
-    return `${gb.toFixed(2)} GB`;
+    return `${gb.toFixed(1)} GB`;
   }
 
   const formatDate = (iso: string | null | undefined) =>

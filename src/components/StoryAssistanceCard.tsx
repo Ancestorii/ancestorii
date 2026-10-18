@@ -74,6 +74,13 @@ export default function StoryAssistanceCard({
 
   const { suggestion, isLoading, error, assist, clear } = useAssistance();
 
+  // On a short screen the card scrolls inside itself: each step starts at its top (the next step
+  // used to come in part-way down, its Back button and heading out of sight above).
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollToTop = useCallback(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, []);
+
   // Responsive check
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -268,7 +275,7 @@ export default function StoryAssistanceCard({
             role="complementary"
             aria-label="Story Assistance"
           >
-            <div className={s.surface}>
+            <div ref={scrollRef} className={s.surface}>
               {step === 'welcome' ? (
                 <div className={s.mWelcomeInner}>
                   <div className={s.head}>
@@ -317,6 +324,7 @@ export default function StoryAssistanceCard({
                     onBack={handleBack}
                     onDismiss={handleMinimize}
                     onRetry={handleRetry}
+                    onStepShown={scrollToTop}
                   />
                 </div>
               )}
@@ -346,7 +354,7 @@ export default function StoryAssistanceCard({
           role="complementary"
           aria-label="Story Assistance"
         >
-          <div className={s.deskCard}>
+          <div ref={scrollRef} className={s.deskCard}>
             {/* Header: the tag, then the minimise and close buttons */}
             <div className={cx(s.head, s.deskHead)}>
               <Tag dot={BLUE}>Story Assistance</Tag>
@@ -375,6 +383,7 @@ export default function StoryAssistanceCard({
               onBack={handleBack}
               onDismiss={handleMinimize}
               onRetry={handleRetry}
+              onStepShown={scrollToTop}
             />
           </div>
         </motion.div>
@@ -400,6 +409,7 @@ function CardContent({
   onBack,
   onDismiss,
   onRetry,
+  onStepShown,
 }: {
   step: Step;
   entityName: string;
@@ -415,6 +425,8 @@ function CardContent({
   onBack: () => void;
   onDismiss: () => void;
   onRetry: () => void;
+  /** The last step has faded out: the card's scroller goes back to its top for the next one. */
+  onStepShown?: () => void;
 }) {
   // The chosen option keeps the colour it had in the list.
   const selectedIndex = selectedOption
@@ -423,7 +435,7 @@ function CardContent({
 
   return (
     <div className={s.content}>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" onExitComplete={onStepShown}>
         {/* ── STEP 1: Welcome ── */}
         {step === 'welcome' && (
           <motion.div

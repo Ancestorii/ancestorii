@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Check, ImagePlus } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ui, appRoot, Spinner } from '@/components/dashboard/ui/AppBits';
+import { ui, appRoot, IconTile, Spinner, toneByKey } from '@/components/dashboard/ui/AppBits';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
@@ -241,7 +241,8 @@ export default function CreateEventDrawer({
   ) : null
 ) : (
                 <>
-                  <ImagePlus size={24} strokeWidth={2.2} aria-hidden="true" />
+                  {/* The aqua Timelines tile, as in the timeline's own cover picker */}
+                  <IconTile Icon={ImagePlus} tone={toneByKey('aqua')} />
                   <span className={ui.dropzoneTitle}>Drag & drop or click to upload</span>
                 </>
               )}

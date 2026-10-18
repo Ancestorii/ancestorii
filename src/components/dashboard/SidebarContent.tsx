@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, useCallback, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -88,6 +88,32 @@ export default function SidebarContent({
     setOpenSection(getActiveSection());
   }, [getActiveSection]);
 
+  // Short screens (a 1366x768 laptop): the links scroll above the Library card, and the page you
+  // are on could sit in the fade at the foot or below it. Bring its link into view, clear of the
+  // fade. Its place in the nav is the sum of offsetTops up to the nav (while a section's reveal
+  // animation runs, Chrome makes the sliding wrapper the offsetParent; offsets ignore the slide).
+  // Once per page: opening another section by hand never scrolls the nav back.
+  const navRef = useRef<HTMLElement>(null);
+  const shownFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (shownFor.current === pathname) return;
+    const nav = navRef.current;
+    const link = nav?.querySelector<HTMLElement>('a[aria-current="page"]');
+    if (!nav || !link || !link.offsetHeight) return; // its section opens on the next render
+    shownFor.current = pathname;
+    let top = 0;
+    let el: HTMLElement | null = link;
+    while (el && el !== nav) {
+      top += el.offsetTop;
+      el = el.offsetParent as HTMLElement | null;
+    }
+    if (el !== nav) return;
+    const FADE = 24;
+    const bottom = top + link.offsetHeight;
+    if (bottom > nav.scrollTop + nav.clientHeight - FADE) nav.scrollTop = bottom - nav.clientHeight + FADE;
+    else if (top < nav.scrollTop) nav.scrollTop = Math.max(0, top - 24); // the nav's own top padding
+  }, [pathname, openSection]);
+
   const toggleSection = (key: string) => {
     setOpenSection(key);
   };
@@ -103,8 +129,9 @@ export default function SidebarContent({
         {/* ─── NAVIGATION ─── */}
         {/* On short screens the links scroll above the Library card; the last 24px fade out. */}
         <nav
+          ref={navRef}
           aria-label="Dashboard"
-          className="sidebar-scroll flex-1 overflow-y-auto px-[12px] pb-6 pt-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-24px),transparent)]"
+          className="sidebar-scroll relative flex-1 overflow-y-auto px-[12px] pb-6 pt-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-24px),transparent)]"
         >
           <div className="flex flex-col gap-1">
             <NavItem href="/dashboard/our-family" label="My Family" Icon={Users} onClick={closeDrawer} />

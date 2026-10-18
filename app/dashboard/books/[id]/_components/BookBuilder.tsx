@@ -96,13 +96,15 @@ export default function BookBuilder({
  return (
     <div style={{ height: '100%' }}>
       {/* Below the editor's breakpoint: a message instead of the editor (as before). The card
-          centres with auto margins, so on a short landscape phone it scrolls instead of losing its top. */}
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center overflow-y-auto bg-white px-4 py-8 lg:hidden">
+          centres with auto margins, so on a short landscape phone it scrolls instead of losing its top.
+          Under the floating phone navigation (z 200) and over the Story Assistance pill (z 150),
+          with room for the navigation at the bottom, as on the Timeline page. */}
+      <div className="fixed inset-0 z-[190] flex flex-col items-center overflow-y-auto bg-white px-4 pt-8 pb-[calc(112px+env(safe-area-inset-bottom,0px))] lg:hidden">
         <EmptyState
           Icon={Monitor}
           tone={toneByKey('orange')}
           title="Bigger screen needed"
-          text="The book builder works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to build your memory book."
+          text="The book builder needs a wider screen: a laptop, a desktop, or a tablet turned sideways. Open Ancestorii on one to build your memory book."
           className="my-auto w-full max-w-[440px]"
         >
           <Btn href="/dashboard/books" icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}>

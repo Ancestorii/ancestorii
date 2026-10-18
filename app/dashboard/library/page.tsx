@@ -394,8 +394,10 @@ export default function LibraryPage() {
           // ─────────── FOLDER DETAIL VIEW ───────────
           <>
             <div className="mb-6 sm:mb-8">
+              {/* The small soft size every "Back to" button in the app has. */}
               <Btn
                 variant="soft"
+                size="sm"
                 onClick={handleBackToFolders}
                 icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
               >
