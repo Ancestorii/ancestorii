@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
-import { Trash2 } from 'lucide-react';
+import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './library.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type Props = {
   open: boolean;
@@ -22,6 +26,13 @@ export default function DeleteLibraryMediaModal({
 }: Props) {
   const supabase = getBrowserClient();
   const [isDeleting, setIsDeleting] = useState(false);
+  const titleId = useId();
+  const textId = useId();
+
+  // Escape cancels (never mid-delete, like Cancel), Tab stays inside, focus returns to the tile.
+  const panelRef = useDialog<HTMLDivElement>(open, () => {
+    if (!isDeleting) onClose();
+  });
 
   // Lock body scroll while modal open
   useEffect(() => {
@@ -68,56 +79,58 @@ export default function DeleteLibraryMediaModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center">
-      {/* Backdrop */}
+    // Above the floating phone nav (z-[200], later in the DOM), like the My Family drawers.
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Backdrop: scrim-blur (globals.css) blurs only with a mouse */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className={cx(ui.scrim, 'scrim-blur', s.fadeIn)}
         onClick={() => !isDeleting && onClose()}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md mx-4 bg-white rounded-3xl shadow-2xl p-8">
-        {/* Icon */}
-        <div className="flex justify-center mb-4">
-          <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
-            <Trash2 className="w-7 h-7 text-red-600" />
-          </div>
-        </div>
-
+      <div
+        ref={panelRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={textId}
+        className={cx(ui.sheet, s.popIn, 'w-full max-w-[460px]')}
+      >
         {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold text-[#1F2837] mb-3">
+        <div className={ui.sheetHeader}>
+          <h2 id={titleId} className={cx(ui.sheetTitle, 'pt-[9px] text-[22px] tracking-[-0.035em]')}>
             Delete this memory?
           </h2>
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <IconBtn label="Close" onClick={() => !isDeleting && onClose()}>
+            <X size={20} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
+        </div>
+
+        <div className={ui.sheetBody}>
+          <p id={textId} className={ui.body}>
             This will permanently remove this file from your entire library,
             including all albums, timelines and capsules.
-            <br />
-            <span className="font-medium text-red-600">
-              This action cannot be undone.
-            </span>
+          </p>
+          <p className={cx(ui.noticeError, 'mt-4')}>
+            <AlertTriangle size={18} strokeWidth={2.4} className="mt-px flex-none" aria-hidden="true" />
+            This action cannot be undone.
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between items-center mt-8">
-          <button
-            onClick={() => !isDeleting && onClose()}
-            className="text-sm text-gray-500 hover:text-gray-700 transition"
-          >
+        <div className={cx(ui.sheetFooter, 'max-[599px]:flex-col-reverse')}>
+          <Btn variant="soft" onClick={() => !isDeleting && onClose()}>
             Cancel
-          </button>
+          </Btn>
 
-          <button
+          <Btn
+            variant="danger"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="px-6 py-2 rounded-full text-sm font-semibold
-                       bg-red-600 text-white shadow
-                       hover:bg-red-700 hover:shadow-lg
-                       disabled:opacity-60 transition"
+            icon={isDeleting ? <Spinner /> : <Trash2 size={17} strokeWidth={2.4} aria-hidden="true" />}
           >
             {isDeleting ? 'Deleting…' : 'Delete Permanently'}
-          </button>
+          </Btn>
         </div>
       </div>
     </div>

@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { X, Folder } from 'lucide-react';
+import { ui, Btn, IconBtn, IconTile, Spinner, toneByKey, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './library.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 export type LibraryFolderRow = {
   id: string;
@@ -46,6 +50,24 @@ export default function CreateFolderModal({
   const [description, setDescription] = useState('');
   const [folderDate, setFolderDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const titleId = useId();
+  const subId = useId();
+  const nameId = useId();
+  const descriptionId = useId();
+  const dateId = useId();
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  // Escape closes it (never mid-save, like the buttons), Tab stays inside, and focus returns
+  // to the button that opened it.
+  const panelRef = useDialog<HTMLDivElement>(open, () => {
+    if (!submitting) onClose();
+  });
+
+  // Then the name field takes focus, as autoFocus did (after useDialog has noted the opener,
+  // so focus can go back to it).
+  useEffect(() => {
+    if (open) nameRef.current?.focus();
+  }, [open]);
 
   // Lock body scroll
   useEffect(() => {
@@ -148,115 +170,108 @@ export default function CreateFolderModal({
   const isEdit = mode === 'edit';
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center">
-      {/* Backdrop */}
+    // Above the floating phone nav (z-[200], later in the DOM), like the My Family drawers.
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Backdrop: scrim-blur (globals.css) blurs only with a mouse */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className={cx(ui.scrim, 'scrim-blur', s.fadeIn)}
         onClick={() => !submitting && onClose()}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md mx-4 bg-white rounded-3xl shadow-2xl p-8">
-        {/* Close X */}
-        <button
-          onClick={() => !submitting && onClose()}
-          className="absolute top-4 right-4 rounded-full p-2 hover:bg-gray-100 transition"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5 text-[#1F2837]" />
-        </button>
-
-        {/* Icon */}
-        <div className="flex justify-center mb-4">
-          <div className="w-14 h-14 rounded-full bg-[#E6C26E]/20 flex items-center justify-center">
-            <Folder className="w-7 h-7 text-[#C8A557]" />
-          </div>
-        </div>
-
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={subId}
+        className={cx(ui.sheet, s.popIn, 'w-full max-w-[480px]')}
+      >
         {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold text-[#1F2837] mb-2">
-            {isEdit ? 'Edit folder' : 'Create a folder'}
-          </h2>
-          <p className="text-sm text-gray-500 leading-relaxed">
-            {isEdit
-              ? "Update this folder's name, description, or date."
-              : 'Group photos and videos together, like "Holiday 2026" or "Family Portraits".'}
-          </p>
+        <div className={ui.sheetHeader}>
+          <div className="min-w-0">
+            <IconTile Icon={Folder} tone={toneByKey('orange')} size="sm" className="mb-4" />
+            <h2 id={titleId} className={ui.sheetTitle}>
+              {isEdit ? 'Edit folder' : 'Create a folder'}
+            </h2>
+            <p id={subId} className={ui.sheetSub}>
+              {isEdit
+                ? "Update this folder's name, description, or date."
+                : 'Group photos and videos together, like “Holiday 2026” or “Family Portraits”.'}
+            </p>
+          </div>
+
+          {/* Close X */}
+          <IconBtn label="Close" onClick={() => !submitting && onClose()}>
+            <X size={20} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
         </div>
 
         {/* Form */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-[#1F2837] mb-1.5 uppercase tracking-wide">
+        <div className={ui.sheetBody}>
+          <div className={ui.field}>
+            <label htmlFor={nameId} className={ui.label}>
               Folder Name
             </label>
             <input
+              ref={nameRef}
+              id={nameId}
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={80}
               placeholder="e.g. Holiday 2026"
               disabled={submitting}
-              autoFocus
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#1F2837] placeholder:text-gray-400 focus:outline-none focus:border-[#C8A557] transition disabled:opacity-50"
+              className={ui.input}
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-[#1F2837] mb-1.5 uppercase tracking-wide">
-              Description{' '}
-              <span className="text-gray-400 normal-case font-normal">(optional)</span>
+          <div className={ui.field}>
+            <label htmlFor={descriptionId} className={ui.label}>
+              Description <span className="font-medium">(optional)</span>
             </label>
             <textarea
+              id={descriptionId}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={300}
               placeholder="A short note about what's in this folder."
               disabled={submitting}
               rows={2}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#1F2837] placeholder:text-gray-400 focus:outline-none focus:border-[#C8A557] transition disabled:opacity-50 resize-none"
+              className={cx(ui.textarea, 'min-h-[96px] resize-none')}
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-[#1F2837] mb-1.5 uppercase tracking-wide">
-              Folder Date{' '}
-              <span className="text-gray-400 normal-case font-normal">(optional)</span>
+          <div className={ui.field}>
+            <label htmlFor={dateId} className={ui.label}>
+              Folder Date <span className="font-medium">(optional)</span>
             </label>
             <input
+              id={dateId}
               type="date"
               value={folderDate}
               onChange={(e) => setFolderDate(e.target.value)}
               disabled={submitting}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#1F2837] focus:outline-none focus:border-[#C8A557] transition disabled:opacity-50 [&::-webkit-datetime-edit]:uppercase"
+              className={cx(ui.input, '[&::-webkit-datetime-edit]:uppercase')}
             />
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between items-center mt-8">
-          <button
-            onClick={() => !submitting && onClose()}
-            className="text-sm text-gray-500 hover:text-gray-700 transition"
-          >
+        <div className={cx(ui.sheetFooter, 'max-[599px]:flex-col-reverse')}>
+          <Btn variant="soft" onClick={() => !submitting && onClose()}>
             Cancel
-          </button>
+          </Btn>
 
-          <button
+          <Btn
             onClick={handleSubmit}
             disabled={submitting || !name.trim()}
-            className="px-6 py-2 rounded-full text-sm font-semibold
-                       bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
-                       text-[#1F2837] shadow
-                       hover:shadow-lg hover:scale-[1.01]
-                       disabled:opacity-60 disabled:hover:shadow disabled:hover:scale-100
-                       transition"
+            icon={submitting ? <Spinner /> : undefined}
           >
             {submitting
               ? (isEdit ? 'Saving…' : 'Creating…')
               : (isEdit ? 'Save Changes' : 'Create Folder')}
-          </button>
+          </Btn>
         </div>
       </div>
     </div>

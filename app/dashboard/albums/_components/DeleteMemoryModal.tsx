@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
-import { Trash2 } from 'lucide-react';
+import { ui, Btn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './albums.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type Props = {
   open: boolean;
@@ -22,6 +25,13 @@ export default function DeleteMemoryModal({
 }: Props) {
   const supabase = getBrowserClient();
   const [isDeleting, setIsDeleting] = useState(false);
+  const titleId = useId();
+  const textId = useId();
+
+  // Escape cancels (as Cancel does, not while deleting), Tab stays inside, focus returns.
+  const panelRef = useDialog<HTMLDivElement>(open, () => {
+    if (!isDeleting) onClose();
+  });
 
   // Lock body scroll
   useEffect(() => {
@@ -67,62 +77,39 @@ export default function DeleteMemoryModal({
 
   return (
     <div
-      className={`fixed inset-0 z-[200] flex items-center justify-center transition-all duration-300 ${
-        open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-      }`}
+      // Above the story sheet (z 9990) and the floating phone nav
+      className={cx(ui.scrim, s.fadeIn, 'scrim-blur z-[9999] flex items-center justify-center p-4')}
+      onClick={() => !isDeleting && onClose()}
     >
-      {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
-          open ? 'opacity-100' : 'opacity-0'
-        }`}
-        onClick={() => !isDeleting && onClose()}
-      />
-
-      {/* Modal */}
-      <div
-        className={`relative w-full max-w-md mx-4 bg-white rounded-3xl shadow-2xl p-8
-          transition-all duration-300 transform ${
-            open
-              ? 'opacity-100 scale-100 translate-y-0'
-              : 'opacity-0 scale-95 translate-y-2'
-          }`}
+        ref={panelRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={textId}
+        className={cx(ui.sheet, s.confirm, s.popIn, s.dialog)}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Icon */}
-        <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
-            <Trash2 className="w-6 h-6 text-red-600" />
-          </div>
-        </div>
+        <h2 id={titleId} className={s.confirmTitle}>
+          Delete this memory?
+        </h2>
+        <p id={textId} className={s.confirmText}>
+          This action cannot be undone. This photo or video will be permanently removed.
+        </p>
 
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold text-[#1F2837] mb-2">
-            Delete this memory?
-          </h2>
-          <p className="text-sm text-gray-500">
-            This action cannot be undone. This photo or video will be permanently removed.
-          </p>
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-between items-center mt-8">
-          <button
-            onClick={() => !isDeleting && onClose()}
-            className="text-sm text-gray-500 hover:text-gray-700 transition"
-          >
+        <div className={s.confirmActions}>
+          <Btn variant="soft" onClick={() => !isDeleting && onClose()}>
             Cancel
-          </button>
+          </Btn>
 
-          <button
+          <Btn
+            variant="danger"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="px-6 py-2 rounded-full text-sm font-semibold
-                       bg-red-600 text-white shadow hover:shadow-lg
-                       hover:bg-red-700 disabled:opacity-60 transition"
+            icon={isDeleting ? <Spinner size={16} /> : null}
           >
             {isDeleting ? 'Deleting…' : 'Delete Memory'}
-          </button>
+          </Btn>
         </div>
       </div>
     </div>

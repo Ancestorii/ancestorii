@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { IconBtn, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './albums.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type Media = {
   id: string;
@@ -25,6 +29,9 @@ export default function Lightbox({ media, allMedia, open, onClose, onNavigate }:
   const goPrev = useCallback(() => { if (hasPrev) onNavigate(allMedia[currentIndex - 1]); }, [hasPrev, currentIndex, allMedia, onNavigate]);
   const goNext = useCallback(() => { if (hasNext) onNavigate(allMedia[currentIndex + 1]); }, [hasNext, currentIndex, allMedia, onNavigate]);
 
+  // Focus moves into the viewer and stays there (Tab), and returns to the button that opened it.
+  const viewerRef = useDialog<HTMLDivElement>(open && !!media, onClose);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); if (e.key === 'ArrowLeft') goPrev(); if (e.key === 'ArrowRight') goNext(); };
@@ -42,23 +49,40 @@ export default function Lightbox({ media, allMedia, open, onClose, onNavigate }:
   if (!open || !media) return null;
 
   const realType = (media.file_type ?? media.library_media?.file_type) || '';
-  const navBtn: React.CSSProperties = { width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' };
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-      <button onClick={onClose} style={{ ...navBtn, position: 'absolute', top: 16, right: 16, zIndex: 10 }}><X size={20} /></button>
-      <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>{currentIndex + 1} / {allMedia.length}</div>
-      {hasPrev && (<button onClick={(e) => { e.stopPropagation(); goPrev(); }} style={{ ...navBtn, position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}><ChevronLeft size={20} /></button>)}
-      {hasNext && (<button onClick={(e) => { e.stopPropagation(); goNext(); }} style={{ ...navBtn, position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}><ChevronRight size={20} /></button>)}
-      <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', maxWidth: '90vw', maxHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div
+      ref={viewerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={media.caption || 'Full screen view'}
+      onClick={onClose}
+      className={s.viewer}
+    >
+      <IconBtn label="Close" onPhoto onClick={onClose} className={s.viewerClose}>
+        <X size={20} strokeWidth={2.4} aria-hidden="true" />
+      </IconBtn>
+      <div className={s.viewerCount}>{currentIndex + 1} / {allMedia.length}</div>
+      {hasPrev && (
+        <IconBtn label="Previous" onPhoto onClick={(e) => { e.stopPropagation(); goPrev(); }} className={cx(s.viewerNav, s.viewerPrev)}>
+          <ChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
+        </IconBtn>
+      )}
+      {hasNext && (
+        <IconBtn label="Next" onPhoto onClick={(e) => { e.stopPropagation(); goNext(); }} className={cx(s.viewerNav, s.viewerNext)}>
+          <ChevronRight size={22} strokeWidth={2.4} aria-hidden="true" />
+        </IconBtn>
+      )}
+      <div onClick={(e) => e.stopPropagation()} className={s.viewerStage}>
         {realType === 'video'
-          ? <video src={media.signed_url || ''} controls autoPlay playsInline style={{ maxWidth: '100%', maxHeight: '75vh', borderRadius: 2 }} />
-          : <img src={media.signed_url || ''} alt={media.caption || ''} style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain', borderRadius: 2 }} />}
+          ? <video src={media.signed_url || ''} controls autoPlay playsInline />
+          // eslint-disable-next-line @next/next/no-img-element
+          : <img src={media.signed_url || ''} alt={media.caption || ''} />}
       </div>
       {(media.caption || media.memory_date) && (
-        <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 16, maxWidth: 512, textAlign: 'center', padding: '0 24px' }}>
-          {media.caption && <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 16, lineHeight: 1.6, fontFamily: "'Playfair Display', Georgia, serif" }}>{media.caption}</p>}
-          {media.memory_date && <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginTop: 4, fontFamily: "'DM Sans', sans-serif" }}>{media.memory_date}</p>}
+        <div onClick={(e) => e.stopPropagation()} className={s.viewerCaption}>
+          {media.caption && <p className={s.viewerCaptionText}>{media.caption}</p>}
+          {media.memory_date && <p className={s.viewerDate}>{media.memory_date}</p>}
         </div>
       )}
     </div>

@@ -1,10 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { LovedOneMenu } from "./LovedOneMenu";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { ui, toneFor } from "@/components/dashboard/ui/AppBits";
+import s from "./lovedOnes.module.css";
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
 export default function LovedOneCard({
   member,
@@ -23,7 +26,6 @@ export default function LovedOneCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const router = useRouter();
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -39,69 +41,67 @@ export default function LovedOneCard({
         ).getFullYear()}`
       : "A life remembered";
 
+  // A stable frame colour for this person.
+  const frame = toneFor(member.full_name);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      onClick={() => router.push(`/dashboard/family/${member.id}`)}
-      className="group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-[28px] border border-[#d7bf91] bg-[linear-gradient(180deg,#fffdf9_0%,#f8f1e5_100%)] shadow-[0_18px_42px_rgba(22,18,12,0.10)] transition-all hover:border-[#cfae67] hover:shadow-[0_24px_52px_rgba(22,18,12,0.14)]"
-    >
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute right-[-30px] top-[-30px] h-[110px] w-[110px] rounded-full bg-[#d4af37]/8 blur-3xl" />
-        <div className="absolute left-[-20px] bottom-[-30px] h-[100px] w-[100px] rounded-full bg-white/70 blur-3xl" />
-        <div className="absolute inset-x-0 top-0 h-[1px] bg-[linear-gradient(90deg,rgba(212,175,55,0),rgba(212,175,55,0.55),rgba(212,175,55,0))]" />
-      </div>
-
-      <div
-        className="absolute right-4 top-4 z-20"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      >
-        <LovedOneMenu onEdit={onEdit} onDeleteClick={onDelete} />
-      </div>
-
-      <div className="relative p-5 sm:p-6">
-        <div className="mb-4 pr-10">
-
-          <h2 className="mt-2 max-w-full break-words font-serif text-[1.45rem] leading-[1.02] text-[#16120C] sm:text-[1.55rem]">
-            <span className="line-clamp-2 block">
-              {member.full_name}
-            </span>
-          </h2>
-        </div>
-
-        <div className="relative mb-4 h-[220px] overflow-hidden rounded-[20px] bg-[linear-gradient(135deg,#f2e3b8_0%,#e8d093_45%,#d8b45e_100%)] lg:h-[240px]">
+    <div className={cx(ui.card, ui.cardLink, s.card, "group")}>
+      {/* Portrait in a solid colour frame */}
+      <div className={ui.frame} style={{ "--frame": frame.bg } as CSSProperties}>
+        <div className={cx(ui.frameInner, "aspect-[4/3] @md:aspect-[4/5]")}>
           {member.avatar_signed ? (
             <Image
               src={member.avatar_signed}
-              alt={member.full_name}
+              alt=""
               fill
-              className={`object-cover transition duration-500 group-hover:scale-[1.03] ${
+              sizes="(min-width: 1280px) 300px, (min-width: 768px) 33vw, (min-width: 480px) 50vw, 100vw"
+              className={cx(
+                "object-cover transition duration-500 group-hover:scale-[1.03]",
+                s.portrait,
                 loaded ? "opacity-100" : "opacity-0"
-              }`}
+              )}
               onLoadingComplete={() => setLoaded(true)}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center font-serif text-[2.5rem] italic text-[#8c6a20]">
+            <span className={s.initial} aria-hidden="true">
               {member.full_name.charAt(0).toUpperCase()}
-            </div>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Name, dates and the menu */}
+      <div className="flex items-start gap-2 pb-2.5 pl-3 pr-1 pt-4">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[18px] font-extrabold leading-[1.2] tracking-[-0.03em] [overflow-wrap:anywhere]">
+            <Link href={`/dashboard/family/${member.id}`} prefetch={false} className={s.nameLink}>
+              {member.full_name}
+            </Link>
+          </h3>
+
+          <p className="mt-1 text-[13px] font-semibold leading-snug">{lifespan}</p>
+
+          {member.notes && (
+            <p className="mt-2 line-clamp-2 text-[13px] font-medium leading-relaxed">
+              {member.notes}
+            </p>
           )}
         </div>
 
-        <p className="text-[14px] font-semibold leading-[1.75] text-[#2b2116]">
-          {lifespan}
-        </p>
-
-        {member.notes && (
-          <p className="mt-3 line-clamp-2 text-[13px] leading-[1.7] italic text-[#5d5140]">
-            {member.notes}
-          </p>
-        )}
+        <div
+          className={cx(s.menuSlot, "-mt-1.5")}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <LovedOneMenu
+            onEdit={onEdit}
+            onDeleteClick={onDelete}
+            label={`Options for ${member.full_name}`}
+          />
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

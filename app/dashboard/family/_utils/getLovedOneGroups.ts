@@ -8,11 +8,13 @@ export function getLovedOneGroups(members: any[]) {
     Friends: [],
     AuntiesUncles: [],
     ExtendedFamily: [],
+    // No relationship chosen (the form allows that) or one this list doesn't know:
+    // they used to be skipped, so these loved ones never showed up anywhere.
+    Other: [],
   };
 
   members.forEach((member) => {
     const role = member.relationship_to_user;
-    if (!role) return;
 
     switch (role) {
       case "parent":
@@ -48,6 +50,7 @@ export function getLovedOneGroups(members: any[]) {
         break;
 
       default:
+        groups.Other.push(member);
         break;
     }
   });

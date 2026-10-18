@@ -1,0 +1,165 @@
+/* ============================================================
+   Loved Ones (/dashboard/family): the few looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have.
+   Kit classes sit in the "components" cascade layer, so a plain
+   rule here wins over them.
+   ============================================================ */
+
+/* ── Loved one card: a white card holding a framed portrait ── */
+
+/* Tighter than a text card: the colour frame (radius 22) sits 6px inside the white card,
+   so the corners stay concentric. */
+.card {
+  height: 100%;
+  padding: 6px;
+  border-radius: 28px;
+}
+
+/* No photo yet: their initial, big, on white inside the colour frame. */
+.initial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  font-size: clamp(64px, 8vw, 96px);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+/* Keep faces in frame: portraits put heads in the upper part of the photo. */
+.portrait {
+  object-position: 50% 28%;
+}
+
+/* The name is the card's link; its ::after covers the whole card, so a tap anywhere on it
+   opens the loved one (the menu button sits above it). */
+.nameLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nameLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 28px;
+}
+
+/* The keyboard focus ring goes round the whole card, not just the name. */
+.nameLink:focus-visible {
+  outline: none;
+}
+
+.nameLink:focus-visible::after {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .card:hover .nameLink {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+}
+
+/* The menu button and its menu sit above the card's link. */
+.menuSlot {
+  position: relative;
+  z-index: 2;
+}
+
+/* Open, the menu button stays ink under the pointer too (the kit's ghost hover would paint it
+   grey under its white icon). */
+.menuBtn[aria-expanded='true'] {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* ── Add or edit form ─────────────────────────────────────── */
+
+/* "Select a role" shows in the placeholder colour, like an empty field; the options stay ink. */
+.selectEmpty {
+  color: var(--placeholder);
+}
+
+.selectEmpty option {
+  color: var(--ink);
+}
+
+/* The photo picker: a dashed drop zone with a portrait thumbnail and the hint. */
+.drop {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 128px;
+  padding: 14px;
+  border: 2px dashed rgba(10, 10, 15, 0.2);
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+/* Children never take the drag events, so the zone doesn't flicker while a file moves over it. */
+.drop > * {
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .drop:hover {
+    border-color: var(--ink);
+  }
+}
+
+.drop[data-drag='true'] {
+  border-color: var(--ink);
+  background: var(--hover);
+}
+
+/* On the grey drag fill the empty thumbnail turns white, so it doesn't vanish into it. */
+.drop[data-drag='true'] .dropThumb {
+  background: #fff;
+}
+
+.dropThumb {
+  position: relative;
+  width: 76px;
+  aspect-ratio: 4 / 5;
+  flex: none;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--hover);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropThumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 28%;
+}
+
+.dropText {
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 700;
+}

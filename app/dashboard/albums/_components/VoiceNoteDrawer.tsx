@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
-import { Mic, UploadCloud } from 'lucide-react';
+import { Check, Mic, RotateCcw, UploadCloud, X } from 'lucide-react';
+import { ui, Btn, IconBtn, IconTile, Spinner, toneByKey, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './albums.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type UploadedVoice = {
   id: string;
@@ -42,11 +46,40 @@ export default function VoiceNoteDrawer({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
 
+  const titleId = useId();
+  const fileId = useId();
+
+  // Escape closes it (as the close button does), Tab stays inside, focus returns to Record.
+  const panelRef = useDialog<HTMLDivElement>(open, onClose);
+
   const disabled = useMemo(() => {
     if (mode === 'upload') return submitting || !file;
     if (mode === 'record') return submitting || !audioBlob;
     return true;
   }, [mode, submitting, file, audioBlob]);
+
+  // Closing the drawer (Close, Escape, the backdrop) or leaving the page mid-recording used to
+  // leave the recorder running and the microphone on. Drop the take and let go of the mic.
+  useEffect(() => {
+    if (open) return;
+    const r = mediaRecorderRef.current;
+    if (r && r.state !== 'inactive') {
+      r.onstop = () => r.stream.getTracks().forEach((t) => t.stop());
+      r.stop();
+    }
+    mediaRecorderRef.current = null;
+  }, [open]);
+
+  useEffect(() => {
+    const recorderRef = mediaRecorderRef;
+    return () => {
+      const r = recorderRef.current;
+      if (r && r.state !== 'inactive') {
+        r.onstop = () => r.stream.getTracks().forEach((t) => t.stop());
+        r.stop();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -71,6 +104,8 @@ export default function VoiceNoteDrawer({
         const blob = new Blob(chunks.current, { type: 'audio/webm' });
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
+        // Release the microphone (the browser's recording light stayed on before).
+        stream.getTracks().forEach((t) => t.stop());
       };
       recorder.start();
       setRecording(true);
@@ -160,158 +195,150 @@ export default function VoiceNoteDrawer({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+    <div className={s.voiceLayer}>
+      <div className={cx(ui.scrim, s.fadeIn, 'scrim-blur')} onClick={onClose} aria-hidden="true" />
 
-      <div className="absolute right-0 top-0 h-full w-full sm:w-[480px] bg-white shadow-2xl p-8 overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-[#1F2837]">
-            Leave a Voice Memory
-          </h2>
-          <button
-            onClick={onClose}
-            className="px-3 py-1 rounded-full text-sm border hover:bg-gray-50"
-          >
-            Close
-          </button>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className={cx(ui.sheet, ui.sheetRight, s.voicePanel, s.dialog)}
+      >
+        <div className={ui.sheetHeader}>
+          <div className="min-w-0">
+            <h2 id={titleId} className={ui.sheetTitle}>
+              Leave a Voice Memory
+            </h2>
+            <p className={ui.sheetSub}>
+              Your voice will be sealed inside this memory, preserved exactly as it was.
+            </p>
+          </div>
+          <IconBtn label="Close" onClick={onClose}>
+            <X size={20} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
         </div>
 
-        <p className="text-sm text-gray-500 mb-8">
-          Your voice will be sealed inside this memory, preserved exactly as it was.
-        </p>
+        <div className={ui.sheetBody}>
+          {/* MODE TOGGLE */}
+          <div className={cx(ui.tabs, 'flex w-full')} role="group" aria-label="Add a voice note by">
+            <button
+              type="button"
+              onClick={() => setMode('upload')}
+              aria-pressed={mode === 'upload'}
+              className={cx(ui.tab, 'flex-1 justify-center')}
+            >
+              Upload
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('record')}
+              aria-pressed={mode === 'record'}
+              className={cx(ui.tab, 'flex-1 justify-center')}
+            >
+              Record
+            </button>
+          </div>
 
-        {/* MODE TOGGLE */}
-        <div className="flex mb-8 border rounded-full overflow-hidden">
-          <button
-            onClick={() => setMode('upload')}
-            className={`flex-1 py-2 text-sm font-semibold transition ${
-              mode === 'upload'
-                ? 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837]'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-            }`}
-          >
-            Upload
-          </button>
-          <button
-            onClick={() => setMode('record')}
-            className={`flex-1 py-2 text-sm font-semibold transition ${
-              mode === 'record'
-                ? 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837]'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-            }`}
-          >
-            Record
-          </button>
-        </div>
-
-        {/* UPLOAD DROP ZONE */}
-        {mode === 'upload' && (
-          <>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="audio/*"
-              hidden
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-
+          {/* UPLOAD DROP ZONE */}
+          {mode === 'upload' && (
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="
-                cursor-pointer
-                border-2 border-dashed border-[#E6C26E]/50
-                rounded-2xl
-                py-16 px-6
-                text-center
-                bg-[#FFFDF7]
-                hover:border-[#E6C26E]
-                hover:shadow-[0_0_18px_rgba(230,194,110,0.35)]
-                transition
-              "
+              className={cx(s.drop, s.dropLarge, 'mt-5')}
             >
-              <UploadCloud className="mx-auto w-10 h-10 text-[#C8A557] mb-4" />
-              <p className="text-sm font-medium text-[#1F2837]">
+              <IconTile Icon={UploadCloud} tone={toneByKey('blue')} size="lg" />
+              <p className={cx(s.dropTitle, 'mt-3')}>
                 Click to upload a voice note
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className={s.dropHint}>
                 Your voice becomes part of this memory
               </p>
 
               {file && (
-                <p className="mt-3 text-xs text-[#1F2837] font-semibold">
+                <p className={s.dropFile}>
                   {file.name}
                 </p>
               )}
+
+              {/* Visually hidden, not display:none, so the keyboard can reach it */}
+              <input
+                ref={fileInputRef}
+                id={fileId}
+                type="file"
+                accept="audio/*"
+                className={ui.srOnly}
+                aria-label="Choose a voice note to upload"
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
             </div>
-          </>
-        )}
+          )}
 
-        {/* RECORD MODE */}
-        {mode === 'record' && (
-          <div className="flex flex-col items-center justify-center py-16">
-            {!recording && !audioUrl && (
-              <button
-                onClick={handleStartRecording}
-                className="
-                  w-24 h-24 rounded-full
-                  bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
-                  flex items-center justify-center
-                  shadow-lg transition duration-300
-                  hover:-translate-y-1
-                  hover:shadow-[0_12px_28px_rgba(230,194,110,0.45)]
-                  animate-pulse-slow
-                "
-              >
-                <Mic className="w-10 h-10 text-[#1F2837]" />
-              </button>
-            )}
-
-            {recording && (
-              <button
-                onClick={handleStopRecording}
-                className="w-24 h-24 rounded-full bg-red-500 flex items-center justify-center shadow-lg animate-pulse-fast"
-              >
-                <Mic className="w-10 h-10 text-white" />
-              </button>
-            )}
-
-            {audioUrl && !recording && (
-              <div className="w-full mt-6">
-                <audio controls src={audioUrl} className="w-full mb-4" />
+          {/* RECORD MODE */}
+          {mode === 'record' && (
+            <div className={s.recorder}>
+              {!recording && !audioUrl && (
                 <button
-                  onClick={() => {
-                    setAudioUrl(null);
-                    setAudioBlob(null);
-                  }}
-                  className="text-sm font-semibold text-gray-600 hover:text-gray-800"
+                  type="button"
+                  onClick={handleStartRecording}
+                  aria-label="Start recording"
+                  className={s.recBtn}
                 >
-                  Re-record
+                  <Mic size={38} strokeWidth={2.2} aria-hidden="true" />
                 </button>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+
+              {recording && (
+                <button
+                  type="button"
+                  onClick={handleStopRecording}
+                  aria-label="Stop recording"
+                  className={cx(s.recBtn, s.recBtnOn)}
+                >
+                  <Mic size={38} strokeWidth={2.2} aria-hidden="true" />
+                </button>
+              )}
+
+              {audioUrl && !recording && (
+                <div className={cx(ui.card, s.take)}>
+                  <audio controls src={audioUrl} />
+                  <Btn
+                    variant="soft"
+                    size="sm"
+                    onClick={() => {
+                      setAudioUrl(null);
+                      setAudioBlob(null);
+                    }}
+                    icon={<RotateCcw size={16} strokeWidth={2.4} aria-hidden="true" />}
+                    className="mt-4"
+                  >
+                    Re-record
+                  </Btn>
+                </div>
+              )}
+            </div>
+          )}
+
+          {error && (
+            <p className={cx(ui.noticeError, 'mt-5')} role="alert">{error}</p>
+          )}
+        </div>
 
         {/* SUBMIT */}
-        <button
-          disabled={disabled}
-          onClick={handleUpload}
-          className={`w-full mt-10 rounded-full py-3 font-semibold transition ${
-            disabled
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] hover:shadow-lg hover:scale-[1.01]'
-          }`}
-        >
-          {submitting
-            ? 'Saving...'
-            : mode === 'upload'
-            ? 'Save Voice Note'
-            : 'Save Recording'}
-        </button>
-
-        {error && (
-          <p className="mt-4 text-sm text-red-600 text-center">{error}</p>
-        )}
+        <div className={ui.sheetFooter}>
+          <Btn
+            block
+            disabled={disabled}
+            onClick={handleUpload}
+            tile={submitting ? <Spinner size={16} /> : <Check size={18} strokeWidth={2.6} />}
+          >
+            {submitting
+              ? 'Saving...'
+              : mode === 'upload'
+              ? 'Save Voice Note'
+              : 'Save Recording'}
+          </Btn>
+        </div>
       </div>
     </div>
   );

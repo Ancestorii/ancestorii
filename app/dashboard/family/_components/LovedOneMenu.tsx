@@ -1,19 +1,27 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { ui, IconBtn } from "@/components/dashboard/ui/AppBits";
+import s from "./lovedOnes.module.css";
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
 export function LovedOneMenu({
   onEdit,
   onDeleteClick,  // ← renamed: triggers modal
+  label = "Loved one options",
 }: {
   onEdit: () => void;
   onDeleteClick: () => void;
+  /** The menu button's accessible name (e.g. "Options for <name>"). */
+  label?: string;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
+  const menuId = useId();
 
   // CLICK OUTSIDE closes after 0.2s
   useEffect(() => {
@@ -35,54 +43,76 @@ export function LovedOneMenu({
     };
   }, [open]);
 
+  // Focus goes back to the menu button as the menu closes (its rows unmount), so the dialog a
+  // row opens hands focus back to it when it closes.
+  const focusButton = () => menuRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+
   return (
-    <div className="relative" ref={menuRef}>
-      <button
+    <div
+      className="relative"
+      ref={menuRef}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && open) {
+          e.stopPropagation();
+          setOpen(false);
+          focusButton();
+        }
+      }}
+    >
+      <IconBtn
+        label={label}
+        ghost
+        size="sm"
+        className={s.menuBtn}
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
         onClick={(e) => {
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="p-1 rounded-full hover:bg-black/10 transition"
       >
-        <MoreVertical size={18} className="text-[#1F2837]" />
-      </button>
+        <MoreVertical size={18} strokeWidth={2.4} aria-hidden="true" />
+      </IconBtn>
 
+      {/* Opens upwards, over the card's own portrait, so it never ends up under the phone nav.
+          Closed, it is unmounted: nothing in it can take focus. */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
+            id={menuId}
+            initial={{ opacity: 0, transform: "translateY(6px)" }}
+            animate={{ opacity: 1, transform: "translateY(0px)" }}
+            exit={{ opacity: 0, transform: "translateY(6px)" }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute right-0 mt-2 w-40 bg-white
-                       rounded-xl shadow-[0_8px_25px_rgba(0,0,0,0.15)]
-                       overflow-hidden z-50 border border-gray-200"
+            className={cx(ui.menu, "absolute bottom-[calc(100%+8px)] right-0 z-50")}
           >
             <button
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setOpen(false);
+                focusButton();
                 onEdit();
               }}
-              className="w-full text-left px-4 py-2.5
-                         text-[#1F2837] font-medium
-                         hover:bg-[#E6C26E]/20 transition"
+              className={ui.menuItem}
             >
+              <Pencil size={17} strokeWidth={2.2} aria-hidden="true" />
               Edit Loved One
             </button>
 
             <button
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setOpen(false);
+                focusButton();
                 onDeleteClick();
               }}
-              className="w-full text-left px-4 py-2.5
-                         text-red-600 font-medium
-                         hover:bg-red-100 hover:text-red-700 transition"
+              className={cx(ui.menuItem, ui.menuItemDanger)}
             >
+              <Trash2 size={17} strokeWidth={2.2} aria-hidden="true" />
               Delete
             </button>
           </motion.div>

@@ -1,6 +1,7 @@
 'use client';
 
 import StoryAssistanceCard, { AssistOption } from '@/components/StoryAssistanceCard';
+import { Accent } from '@/components/dashboard/ui/AppBits';
 
 type LovedOneAIProps = {
   memberName: string;
@@ -57,7 +58,9 @@ export default function LovedOneAI({
       welcomeHeading={
         <>
           Need help remembering the small details about{' '}
-          <span className="text-[#A9782F]">{firstName}</span>?
+          <span className="[overflow-wrap:anywhere]">
+            <Accent>{firstName}</Accent>?
+          </span>
         </>
       }
       welcomeBody="We can help you get started with gentle prompts and suggestions. You always stay in control of the words."

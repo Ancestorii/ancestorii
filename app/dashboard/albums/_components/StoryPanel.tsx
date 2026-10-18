@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import VoiceNoteDrawer from './VoiceNoteDrawer';
-import { X, Trash2, Mic, Send, Maximize2, Pencil, Calendar, ArrowRight, Play } from 'lucide-react';
+import { X, Trash2, Mic, Send, Maximize2, Pencil, Calendar, Images } from 'lucide-react';
+import { ui, Btn, IconBtn, IconTile, Tag, toneByKey } from '@/components/dashboard/ui/AppBits';
+import s from './albums.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type ProfileShape = { full_name: string | null } | { full_name: string | null }[];
 type Comment = { id: string; media_id: string; user_id: string; text: string; created_at: string; Profiles?: ProfileShape };
@@ -13,16 +17,11 @@ type Media = { id: string; album_id: string; user_id?: string | null; file_path:
 
 /* ───────────────────── section ───────────────────── */
 
-function Section({ title, children, right }: { title: string; children: React.ReactNode; right?: React.ReactNode }) {
+function Section({ title, dot, children, right }: { title: string; dot: string; children: React.ReactNode; right?: React.ReactNode }) {
   return (
-    <section style={{ padding: '32px 0', borderTop: '1px solid #d4af37' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 3, height: 14, borderRadius: 2, background: '#c4993d', flexShrink: 0 }} />
-          <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3d2e1c', fontFamily: "'DM Sans', sans-serif" }}>
-            {title}
-          </span>
-        </div>
+    <section className={s.storySection}>
+      <div className={s.storySectionHead}>
+        <Tag dot={dot}>{title}</Tag>
         {right}
       </div>
       {children}
@@ -37,23 +36,19 @@ function AudioWaveform({ count = 40 }: { count?: number }) {
   const bars = Array.from({ length: count }, (_, i) => pattern[i % pattern.length]);
   const w = count * 6;
   return (
-    <svg viewBox={`0 0 ${w} 18`} style={{ width: '100%', height: 18 }} preserveAspectRatio="none">
-      {bars.map((h, i) => (<rect key={i} x={i * 6} y={9 - h / 2} width={3} height={h} rx={1.5} fill="#b8922e" opacity={0.8} />))}
+    <svg viewBox={`0 0 ${w} 18`} style={{ width: '100%', height: 18, color: 'var(--c1)' }} preserveAspectRatio="none" aria-hidden="true">
+      {bars.map((h, i) => (<rect key={i} x={i * 6} y={9 - h / 2} width={3} height={h} rx={1.5} fill="currentColor" opacity={0.8} />))}
     </svg>
   );
 }
 
 /* ───────────────────── edit button ───────────────────── */
 
-function EditBtn({ onClick }: { onClick: () => void }) {
+function EditBtn({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button onClick={onClick} style={{
-      width: 30, height: 30, borderRadius: '50%', border: '1px solid #d8cdb8',
-      background: '#f5efe4', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#6b5d4d', cursor: 'pointer',
-    }}>
-      <Pencil size={13} />
-    </button>
+    <IconBtn label={label} ghost size="sm" onClick={onClick} className="-my-1">
+      <Pencil size={17} strokeWidth={2.2} aria-hidden="true" />
+    </IconBtn>
   );
 }
 
@@ -185,9 +180,10 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
   /* ── empty state ── */
   if (!selectedMedia) {
     return (
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 40px', textAlign: 'center' }}>
-        <p style={{ fontSize: 28, fontStyle: 'italic', color: '#a09788', fontFamily: "'Playfair Display', Georgia, serif", margin: 0 }}>Select a memory</p>
-        <p style={{ marginTop: 8, fontSize: 14, color: '#b0a89c', fontFamily: "'DM Sans', sans-serif" }}>to see its story</p>
+      <div className={s.storyIdle}>
+        <IconTile Icon={Images} tone={toneByKey('orange')} size="lg" />
+        <p className={s.storyIdleTitle}>Select a memory</p>
+        <p className={s.storyIdleText}>to see its story</p>
       </div>
     );
   }
@@ -195,128 +191,99 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
   const realType = (selectedMedia.file_type ?? selectedMedia.library_media?.file_type) || '';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#ffffff' }}>
+    <div className={s.story}>
 
       {/* ══════════ HEADER: date chip + heading + edit ══════════ */}
-      <div style={{ flexShrink: 0, padding: '24px 28px 18px', background: '#ffffff'}}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {selectedMedia.memory_date && (
-              <span style={{
-                display: 'inline-block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.12em', color: '#926d1e', background: '#f0e6ce', padding: '4px 10px',
-                borderRadius: 6, marginBottom: 10, fontFamily: "'DM Sans', sans-serif",
-              }}>
-                {selectedMedia.memory_date}
-              </span>
-            )}
+      <div className={s.storyHead}>
+        <div className="min-w-0 flex-1">
+          {selectedMedia.memory_date && (
+            <span
+              className={cx(ui.chip, ui.chipSm, ui.chipDot, s.storyDate)}
+              style={{ '--dot': 'var(--c3)' } as CSSProperties}
+            >
+              {selectedMedia.memory_date}
+            </span>
+          )}
 
-            {headingEditing ? (
-              <div>
-                <input
-                  ref={headingRef} type="text" value={headingDraft}
-                  onChange={(e) => setHeadingDraft(e.target.value)}
-                  onBlur={saveHeading}
-                  onKeyDown={(e) => { if (e.key === 'Enter') saveHeading(); if (e.key === 'Escape') { setHeadingDraft(selectedMedia.caption || ''); setHeadingEditing(false); } }}
-                  autoFocus placeholder="Give this memory a name…"
-                  style={{
-                    width: '100%', border: 'none', borderBottom: '2px solid #d4af37',
-                    background: 'transparent', padding: '4px 0', fontSize: 24, fontWeight: 700,
-                    color: '#1a1612', outline: 'none', fontFamily: "'Playfair Display', Georgia, serif",
-                  }}
-                />
-                <p style={{ fontSize: 11, color: '#9a9084', marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>Enter to save · Esc to cancel</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <h2 style={{ fontSize: 26, lineHeight: 1.15, color: '#1a1612', fontWeight: 700, margin: 0, fontFamily: "'Playfair Display', Georgia, serif" }}>
-                  {selectedMedia.caption || <span style={{ color: '#b0a89c', fontStyle: 'italic', fontWeight: 400 }}>Untitled Memory</span>}
-                </h2>
-                <EditBtn onClick={() => { setHeadingEditing(true); setTimeout(() => headingRef.current?.focus(), 50); }} />
-              </div>
-            )}
-          </div>
-
-          <button onClick={onClose} style={{
-            width: 36, height: 36, borderRadius: '50%', border: '1px solid #d8cdb8',
-            background: '#f5efe4', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#6b5d4d', cursor: 'pointer', flexShrink: 0,
-          }}>
-            <X size={15} />
-          </button>
+          {headingEditing ? (
+            <div>
+              {/* Escape cancels the edit and stops there, so the phone sheet around it stays open */}
+              <input
+                ref={headingRef} type="text" value={headingDraft}
+                onChange={(e) => setHeadingDraft(e.target.value)}
+                onBlur={saveHeading}
+                onKeyDown={(e) => { if (e.key === 'Enter') saveHeading(); if (e.key === 'Escape') { e.nativeEvent.stopImmediatePropagation(); setHeadingDraft(selectedMedia.caption || ''); setHeadingEditing(false); } }}
+                autoFocus placeholder="Give this memory a name…"
+                aria-label="Memory title"
+                className={cx(ui.input, s.titleInput)}
+              />
+              <p className={ui.hint}>Enter to save · Esc to cancel</p>
+            </div>
+          ) : (
+            <div className="flex items-start gap-1.5">
+              <h2 className={s.storyTitle}>
+                {selectedMedia.caption || 'Untitled Memory'}
+              </h2>
+              <EditBtn label="Edit the title" onClick={() => { setHeadingEditing(true); setTimeout(() => headingRef.current?.focus(), 50); }} />
+            </div>
+          )}
         </div>
+
+        <IconBtn label="Close" onClick={onClose}>
+          <X size={20} strokeWidth={2.4} aria-hidden="true" />
+        </IconBtn>
       </div>
 
       {/* ══════════ SCROLLABLE BODY ══════════ */}
-      <div className="album-scroll" style={{ flex: 1, overflowY: 'auto', padding: '0 28px 32px' }}>
+      <div className={cx(s.storyBody, s.scroll)}>
 
         {/* ── Image / Video ── */}
-        <div style={{ paddingTop: 24 }}>
-          <div style={{
-            width: '75%', margin: '0 auto', borderRadius: 16, overflow: 'hidden',
-            border: '1px solid #ccc1ab', background: '#eee8db',
-            boxShadow: '0 8px 28px rgba(30,22,10,0.1), 0 2px 6px rgba(30,22,10,0.06)',
-            position: 'relative',
-          }}>
+        <div className={cx(ui.frame, s.storyFrame)} style={{ '--frame': 'var(--c2)' } as CSSProperties}>
+          <div className={cx(ui.frameInner, s.storyMedia)}>
             {realType === 'video'
-              ? <video src={selectedMedia.signed_url || ''} controls playsInline preload="metadata" style={{ width: '100%' }} />
-              : <img src={selectedMedia.signed_url || ''} alt="" style={{ width: '100%', height: 'auto', display: 'block' }} />
+              ? <video src={selectedMedia.signed_url || ''} controls playsInline preload="metadata" />
+              // eslint-disable-next-line @next/next/no-img-element
+              : <img src={selectedMedia.signed_url || ''} alt={selectedMedia.caption || ''} />
             }
-            {realType !== 'video' && (
-              <button onClick={() => onLightbox(selectedMedia)} className="frost-button" style={{
-                position: 'absolute', top: 10, right: 10, width: 36, height: 36, borderRadius: '50%',
-                // frost-button: frosted with a mouse; solid on touch, where the blur re-rendered over the photo while scrolling
-                border: 'none',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-              }}>
-                <Maximize2 size={14} color="white" />
-              </button>
-            )}
           </div>
+          {realType !== 'video' && (
+            <IconBtn label="View full screen" onPhoto size="sm" onClick={() => onLightbox(selectedMedia)} className={s.fullBtn}>
+              <Maximize2 size={17} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
+          )}
         </div>
 
         {/* ── The Story (powered by comments table) ── */}
-        <div style={{ padding: '24px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ width: 3, height: 14, borderRadius: 2, background: '#c4993d', flexShrink: 0 }} />
-              <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3d2e1c', fontFamily: "'DM Sans', sans-serif" }}>The Story</span>
-            </div>
-          </div>
+        <Section title="The Story" dot="var(--c2)">
           {/* existing story entries */}
           {storyEntries.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+            <ul className={s.entries}>
               {storyEntries.map((entry) => (
-                <div key={entry.id} style={{
-                  padding: '14px 16px', borderRadius: 14,
-                  background: '#f5f0e6', border: '1px solid #e2d9c8',
-                }}>
-                  <p style={{ fontSize: 15, lineHeight: 1.8, color: '#2e271f', margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
-                    {entry.text}
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                    <span style={{ fontSize: 11, color: '#8a8078', fontFamily: "'DM Sans', sans-serif" }}>
-                      {profileName(entry.Profiles)} · {new Date(entry.created_at).toLocaleDateString()}
+                <li key={entry.id} className={s.entry}>
+                  <p className={s.entryText}>{entry.text}</p>
+                  <div className={s.entryMeta}>
+                    <span>
+                      {profileName(entry.Profiles)} · {new Date(entry.created_at).toLocaleDateString('en-GB')}
                     </span>
                     {entry.user_id === user?.id && (
-                      <button onClick={() => deleteStoryEntry(entry.id)} style={{ background: 'none', border: 'none', color: '#b5aa9a', cursor: 'pointer' }}>
-                        <Trash2 size={13} />
-                      </button>
+                      <IconBtn label="Delete this entry" ghost size="sm" onClick={() => deleteStoryEntry(entry.id)}>
+                        <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                      </IconBtn>
                     )}
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
 
           {storyEntries.length === 0 && (
-            <p style={{ fontSize: 14, color: '#a8a096', fontStyle: 'italic', marginBottom: 14, fontFamily: "'DM Sans', sans-serif" }}>
+            <p className={s.storyNote}>
               No story yet. What do you remember about this moment?
             </p>
           )}
 
           {/* add new story entry */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+          <div className={s.composer}>
             <textarea
               value={newStory}
               onChange={(e) => {
@@ -326,58 +293,44 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
               }}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addStoryEntry(); } }}
               placeholder="Add to the story…"
+              aria-label="Add to the story"
               rows={1}
-              style={{
-                flex: 1, minHeight: 44, maxHeight: 180, borderRadius: 16, border: '1px solid #c4b896',
-                background: 'white', padding: '12px 16px', fontSize: 14, color: '#1e1a15',
-                outline: 'none', fontFamily: "'DM Sans', sans-serif",
-                boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-                resize: 'none', lineHeight: 1.6, overflow: 'hidden',
-              }}
+              className={cx(ui.textarea, s.composerInput)}
             />
-            <button
+            <IconBtn
+              label="Add to the story"
+              active
               onClick={addStoryEntry} disabled={!newStory.trim()}
-              style={{
-                width: 44, height: 44, borderRadius: '50%', background: '#2c2418',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: 'none', cursor: 'pointer', flexShrink: 0,
-                opacity: newStory.trim() ? 1 : 0.3,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-              }}
+              className={s.composerSend}
             >
-              <Send size={15} color="#d4af37" />
-            </button>
+              <Send size={18} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
           </div>
-        </div>
+        </Section>
 
         {/* ── When Was This? ── */}
         <Section
           title="When Was This?"
-          right={!dateEditing ? <EditBtn onClick={() => { setDateEditing(true); setTimeout(() => dateRef.current?.focus(), 50); }} /> : null}
+          dot="var(--c3)"
+          right={!dateEditing ? <EditBtn label="Edit the date" onClick={() => { setDateEditing(true); setTimeout(() => dateRef.current?.focus(), 50); }} /> : null}
         >
           {dateEditing ? (
             <div>
+              {/* Escape cancels the edit and stops there, so the phone sheet around it stays open */}
               <input
                 ref={dateRef} type="text" value={dateDraft} onChange={(e) => setDateDraft(e.target.value)}
                 onBlur={saveDate}
-                onKeyDown={(e) => { if (e.key === 'Enter') saveDate(); if (e.key === 'Escape') { setDateDraft(selectedMedia.memory_date || ''); setDateEditing(false); } }}
+                onKeyDown={(e) => { if (e.key === 'Enter') saveDate(); if (e.key === 'Escape') { e.nativeEvent.stopImmediatePropagation(); setDateDraft(selectedMedia.memory_date || ''); setDateEditing(false); } }}
                 autoFocus placeholder='e.g. "Summer 1994"'
-                style={{
-                  width: '100%', borderRadius: 14, border: '1px solid #c4b896', background: 'white',
-                  padding: '12px 16px', fontSize: 14, color: '#1e1a15', outline: 'none',
-                  fontFamily: "'DM Sans', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                }}
+                aria-label="When was this?"
+                className={ui.input}
               />
-              <p style={{ fontSize: 11, color: '#9a9084', marginTop: 8, fontFamily: "'DM Sans', sans-serif" }}>Enter to save · Esc to cancel</p>
+              <p className={ui.hint}>Enter to save · Esc to cancel</p>
             </div>
           ) : (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, color: '#2e271f' }}>
-              <span style={{ width: 34, height: 34, borderRadius: '50%', background: '#2c2418', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Calendar size={15} color="#d4af37" />
-              </span>
-              <span style={{ fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
-                {selectedMedia.memory_date || <span style={{ color: '#a8a096', fontStyle: 'italic', fontWeight: 400 }}>Not set</span>}
-              </span>
+            <div className={s.dateRow}>
+              <IconTile Icon={Calendar} tone={toneByKey('aqua')} size="sm" />
+              <span className="min-w-0">{selectedMedia.memory_date || 'Not set'}</span>
             </div>
           )}
         </Section>
@@ -385,61 +338,49 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
         {/* ── Voice Note ── */}
         <Section
           title="Voice Note"
+          dot="var(--c1)"
           right={
-            <button onClick={() => setVoiceOpen(true)} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px',
-              height: 34, borderRadius: 999, fontSize: 12, fontWeight: 600,
-              background: '#2c2418', color: '#d4af37', border: 'none', cursor: 'pointer',
-              fontFamily: "'DM Sans', sans-serif", boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-            }}>
-              <Mic size={13} />Record
-            </button>
+            <Btn size="sm" onClick={() => setVoiceOpen(true)} aria-haspopup="dialog" icon={<Mic size={16} strokeWidth={2.4} aria-hidden="true" />}>
+              Record
+            </Btn>
           }
         >
           {voiceNotes.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <ul className={s.voices}>
               {voiceNotes.map((v) => (
-                <div key={v.id} style={{
-                  borderRadius: 16, border: '1px solid #ccc1ab', background: '#f5f0e6',
-                  padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{
-                      width: 42, height: 42, borderRadius: '50%', background: '#2c2418',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
-                    }}>
-                      <Play size={15} fill="#d4af37" stroke="none" />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}><audio controls src={v.file_path} style={{ width: '100%', height: 32 }} /></div>
+                <li key={v.id} className={cx(ui.card, s.voiceCard)}>
+                  <div className={s.voiceRow}>
+                    <IconTile Icon={Mic} tone={toneByKey('blue')} size="sm" />
+                    <audio controls src={v.file_path || undefined} className={s.audio} />
                     {v.user_id === user?.id && (
-                      <button onClick={() => deleteVoiceNote(v.id)} style={{ background: 'none', border: 'none', color: '#a89e90', cursor: 'pointer' }}><Trash2 size={15} /></button>
+                      <IconBtn label="Delete this voice note" ghost size="sm" onClick={() => deleteVoiceNote(v.id)}>
+                        <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
+                      </IconBtn>
                     )}
                   </div>
-                  <p style={{ fontSize: 12, color: '#7a7168', marginTop: 8, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>
-                    {profileName(v.Profiles)} · {new Date(v.created_at).toLocaleDateString()}
+                  <p className={s.voiceMeta}>
+                    {profileName(v.Profiles)} · {new Date(v.created_at).toLocaleDateString('en-GB')}
                   </p>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           ) : (
-            <p style={{ fontSize: 14, color: '#a8a096', fontStyle: 'italic', fontFamily: "'DM Sans', sans-serif" }}>
+            <p className={s.storyNote}>
               No voice notes yet. Tap Record to preserve a voice with this memory.
             </p>
           )}
         </Section>
 
         {/* ── Delete ── */}
-        <div style={{ paddingTop: 12 }}>
-          <button onClick={() => onDelete(selectedMedia)} style={{
-            width: '100%', height: 44, borderRadius: 12,
-            border: '1px solid #e8b4b4', background: '#fdf5f5',
-            color: '#c0392b', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            fontFamily: "'DM Sans', sans-serif",
-          }}>
-            <Trash2 size={15} />Remove From Album
-          </button>
+        <div className={s.storyEnd}>
+          <Btn
+            variant="dangerSoft"
+            block
+            onClick={() => onDelete(selectedMedia)}
+            icon={<Trash2 size={17} strokeWidth={2.2} aria-hidden="true" />}
+          >
+            Remove From Album
+          </Btn>
         </div>
       </div>
 

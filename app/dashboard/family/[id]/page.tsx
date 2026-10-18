@@ -2,15 +2,22 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { motion } from "framer-motion";
-import { ArrowLeft, Heart } from "lucide-react";
-import Image from "next/image";
+import { ArrowLeft, HandHeart } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/browser";
+import {
+  ui,
+  AppLoader,
+  Btn,
+  IconTile,
+  Tag,
+  toneByKey,
+} from "@/components/dashboard/ui/AppBits";
 
 import ProfileSection from "./_components/ProfileSection";
 import StorySection from "./_components/StorySection";
 import LinkedContentSection from "./_components/LinkedContentSection";
 import LovedOneAI from "./_components/LovedOneAI";
+import s from "./_components/lovedOne.module.css";
 
 type FamilyMember = {
   id: string;
@@ -229,52 +236,38 @@ export default function LovedOneProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fffdf6] px-6">
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.04em] text-[#1b2230] text-center"
-        >
-          <span className="bg-gradient-to-r from-[#bfa046] via-[#d4af37] to-[#8d77ff] bg-clip-text text-transparent">
-            Loading their space...
-          </span>
-        </motion.h1>
+      <div className={ui.page}>
+        <AppLoader label="Loading their space" />
       </div>
     );
   }
 
   if (!member) {
     return (
-      <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-white via-[#fbf7ef] to-[#f5eddc] font-[Inter] text-[#1b2230]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(212,175,55,0.18),transparent_26%),radial-gradient(circle_at_top_right,rgba(141,119,255,0.14),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(50,213,178,0.10),transparent_28%)]" />
+      <div className={ui.page}>
+        <div className={ui.wrapNarrow}>
+          <div className={`${ui.empty} ${s.missing}`}>
+            <IconTile Icon={HandHeart} tone={toneByKey("aqua")} size="lg" />
 
-        <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
-          <div className="max-w-xl rounded-[34px] border border-white/70 bg-white/65 p-9 text-center shadow-[0_30px_90px_rgba(0,0,0,0.10)] backdrop-blur-2xl">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[28px] border border-[#ecd791]/80 bg-[#fff6d8] shadow-[0_15px_45px_rgba(0,0,0,0.06)]">
-              <Heart className="h-8 w-8 text-[#c39a2f]" />
+            <div className="mt-5">
+              <Tag dot="var(--c3)">Legacy profile</Tag>
             </div>
 
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.34em] text-[#ad8d34]">
-              Legacy profile
-            </p>
+            <h1 className={`${ui.emptyTitle} mt-3`}>Loved one not found</h1>
 
-            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-[#1b2230]">
-              Loved one not found
-            </h2>
-
-            <p className="mt-4 text-base leading-8 text-[#616b7e]">
+            <p className={ui.emptyText}>
               We could not find this page. It may have been moved, removed, or
               the link is no longer valid.
             </p>
 
-            <button
-              onClick={() => router.push("/dashboard/family")}
-              className="mt-7 inline-flex items-center gap-2 rounded-full border border-[#e7d48f] bg-[#fff8df] px-6 py-3.5 text-sm font-semibold text-[#a07b22] transition hover:bg-[#fff2c6]"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to your loved ones
-            </button>
+            <div className={ui.emptyActions}>
+              <Btn
+                onClick={() => router.push("/dashboard/family")}
+                icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
+              >
+                Back to your loved ones
+              </Btn>
+            </div>
           </div>
         </div>
       </div>
@@ -282,19 +275,8 @@ export default function LovedOneProfilePage() {
   }
 
   return (
-    <div className="relative isolate min-h-screen bg-[#fffdf6] font-[Inter] text-[#1b2230]">
-      <Image
-        src="/parchment.png"
-        alt=""
-        fill
-        sizes="100vw"
-        className="object-cover opacity-[0.10] -z-10 pointer-events-none"
-        priority
-      />
-
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.65),transparent_10%)] pointer-events-none" />
-
-      <div className="relative z-10 w-full px-4 sm:px-6 lg:px-10 xl:px-16 pb-20 pt-5 lg:pb-28">
+    <div className={ui.page}>
+      <div className={ui.wrap}>
         <TopActions router={router} />
 
         <LovedOneAI
@@ -338,22 +320,18 @@ export default function LovedOneProfilePage() {
           capsules={capsules}
         />
 
-        <footer className="mt-16 mb-6 flex justify-center px-6 pt-12">
-          <div className="text-center max-w-[520px]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#ab8a31]">
-              Ancestorii permanent record
-            </p>
+        <footer className={s.footer}>
+          <Tag dot="var(--c3)">Ancestorii permanent record</Tag>
 
-            <p className="mt-3 text-sm leading-6 text-[#5e687b]">
-              This page gathers every visible piece of {member.full_name}
-              &apos;s legacy across Ancestorii into one clean, living memory
-              space.
-            </p>
+          <p className={s.footerText}>
+            This page gathers every visible piece of {member.full_name}
+            &apos;s legacy across Ancestorii into one clean, living memory
+            space.
+          </p>
 
-            <p className="mt-4 text-[11px] italic tracking-[0.12em] text-[#8d95a4]">
-              Preserving stories, albums, milestones and messages with care.
-            </p>
-          </div>
+          <p className={s.footerFine}>
+            Preserving stories, albums, milestones and messages with care.
+          </p>
         </footer>
       </div>
     </div>
@@ -362,14 +340,15 @@ export default function LovedOneProfilePage() {
 
 function TopActions({ router }: { router: ReturnType<typeof useRouter> }) {
   return (
-    <div className="mb-7 lg:mb-8 xl:mb-10 flex items-center justify-between gap-4">
-      <button
+    <div className={s.topRow}>
+      <Btn
+        variant="soft"
+        size="sm"
         onClick={() => router.push("/dashboard/family")}
-        className="group inline-flex items-center gap-2 text-sm font-semibold text-[#2c3443] hover:text-[#000] transition"
+        icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
       >
-        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
-        Back to your loved ones
-      </button>
+        Back to Loved Ones
+      </Btn>
     </div>
   );
 }

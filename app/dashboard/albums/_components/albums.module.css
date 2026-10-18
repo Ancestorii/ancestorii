@@ -1,0 +1,1348 @@
+/* ============================================================
+   Albums (/dashboard/albums and /dashboard/albums/[id]): the few
+   looks the app kit (src/components/dashboard/ui/app.module.css)
+   doesn't have. The kit sits in the "components" cascade layer,
+   so a plain rule here wins over it.
+   ============================================================ */
+
+/* ── Motion: transform and opacity only, played once ──────── */
+
+/* "backwards" applies the first frame during the delay and nothing after the end, so no
+   transform is left on a panel (a fixed drawer inside it would otherwise be trapped). */
+.fadeIn {
+  animation: albumsFade 0.2s ease backwards;
+}
+
+.popIn {
+  animation: albumsPop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@keyframes albumsFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes albumsPop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+@keyframes albumsUp {
+  from {
+    opacity: 0;
+    transform: translateY(48px);
+  }
+}
+
+@keyframes albumsFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+}
+
+/* useDialog focuses the panel itself (so a phone keyboard doesn't pop up): no ring around the
+   whole panel; the controls inside keep theirs. */
+.dialog:focus {
+  outline: none;
+}
+
+/* ── List: one album ──────────────────────────────────────── */
+
+.album {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+/* The cover in a solid colour frame (ui.frame), like the landing's photo cards. */
+.albumFrame {
+  padding: 8px;
+  border-radius: 26px;
+}
+
+.albumCover {
+  aspect-ratio: 4 / 3;
+  border-radius: 19px;
+  background: #fff;
+}
+
+.coverImg {
+  object-fit: cover;
+  object-position: 50% 30%;
+  transition:
+    opacity 0.3s ease,
+    transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .album:hover .coverImg {
+    transform: scale(1.03);
+  }
+}
+
+/* No cover yet: white, the icon in the frame's colour. */
+.noCover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.noCover svg {
+  color: var(--frame);
+}
+
+/* The album's menu sits on the photo's top right corner. */
+.albumMenu {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+}
+
+.albumBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  padding: 18px 4px 0;
+}
+
+.albumTitle {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.albumText {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.albumMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.albumOpen {
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+/* ── Destructive confirms ─────────────────────────────────── */
+
+.confirm {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+}
+
+.confirmTitle {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.confirmText {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.confirmActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* ── Album page: two panes on desktops (the photos scroll, the story panel stays put),
+      one scrolling page below 1024px ─────────────────────── */
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+  background: #fff;
+}
+
+.main {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Bottom room for the floating phone navigation, as ui.page gives a list page. */
+.mainInner {
+  padding: clamp(16px, 2.6vw, 32px) clamp(16px, 3.2vw, 44px) clamp(112px, 12vw, 120px);
+}
+
+.panel {
+  display: none;
+}
+
+.scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(10, 10, 15, 0.18) transparent;
+}
+
+@media (min-width: 1024px) {
+  .shell {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .main {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .mainInner {
+    padding-bottom: 72px;
+  }
+
+  .panel {
+    display: block;
+    flex: none;
+    width: clamp(360px, 34vw, 500px);
+    height: 100vh;
+    border-left: 1.5px solid var(--rule);
+    background: #fff;
+  }
+}
+
+/* The story as a bottom sheet on phones and tablets (the panel takes over from 1024px). */
+.sheetLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .sheetLayer {
+    display: none;
+  }
+}
+
+.sheetScrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 15, 0.45);
+  animation: albumsFade 0.2s ease backwards;
+}
+
+.storySheet {
+  width: 100%;
+  max-width: 640px;
+  height: 92%;
+  animation: albumsUp 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.storySheetBody {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ── Album page header ────────────────────────────────────── */
+
+/* The header answers its own width (the column beside the story panel), not the screen's. */
+.header {
+  container-type: inline-size;
+}
+
+.topRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.actions,
+.actionsSoft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* "Saved" is wider than "Save": the row doesn't shift when it flips. */
+.saveBtn {
+  min-width: 104px;
+}
+
+/* Narrow columns (phones, and the column beside the story panel at 1024px): Back and Upload
+   share the first row, Save, Library and Tag split the second. */
+@container (max-width: 639px) {
+  .actions {
+    display: contents;
+  }
+
+  .uploadBtn {
+    order: 1;
+    margin-left: auto;
+  }
+
+  .actionsSoft {
+    order: 2;
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+  }
+
+  .actionsSoft > * {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+.titleBlock {
+  margin-top: clamp(26px, 3.4vw, 44px);
+}
+
+.people {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.person {
+  max-width: 100%;
+  padding-left: 3px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.person > span:first-child {
+  display: inline-flex;
+  flex: none;
+}
+
+.filters {
+  margin-top: clamp(26px, 3vw, 36px);
+}
+
+.filterIcon {
+  display: inline-flex;
+}
+
+/* Narrow columns: the three filters share the width, without their icons. */
+@container (max-width: 439px) {
+  .filters {
+    display: flex;
+    width: 100%;
+  }
+
+  .filters > * {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 0 10px;
+  }
+
+  .filterIcon {
+    display: none;
+  }
+}
+
+/* ── Media grid (masonry columns follow the column's width) ── */
+
+.gridWrap {
+  container-type: inline-size;
+  margin-top: 24px;
+}
+
+.masonry {
+  column-count: 1;
+  column-gap: 20px;
+}
+
+@container (min-width: 520px) {
+  .masonry {
+    column-count: 2;
+  }
+}
+
+@container (min-width: 1040px) {
+  .masonry {
+    column-count: 3;
+  }
+}
+
+/* One memory: a button, so it can be reached and chosen with a keyboard too. */
+.tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--hover);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  break-inside: avoid;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* The hairline ring drawn over a photo's or video's edge, so a pale picture keeps its shape
+   on the white page (a card tile has it outside already). */
+.tile:not(.tileCard)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.08);
+  pointer-events: none;
+}
+
+/* The chosen one: an ink ring with a white gap. */
+.tile[aria-pressed='true'] {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 6px var(--ink);
+}
+
+@media (hover: hover) {
+  .tile:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--lift);
+  }
+
+  .tileCard:hover {
+    box-shadow: var(--hairline-ring), var(--lift);
+  }
+
+  .tile[aria-pressed='true']:hover {
+    box-shadow:
+      0 0 0 3px #fff,
+      0 0 0 6px var(--ink),
+      var(--lift);
+  }
+}
+
+.tile:active {
+  transform: scale(0.99);
+  transition-duration: 80ms;
+}
+
+.tile > video {
+  display: block;
+  width: 100%;
+}
+
+/* A memory told as a card (a dated photo, a recording): white with the hairline ring. */
+.tileCard {
+  padding: 20px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.playBadge {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.playBadge > span {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 24px -10px rgba(10, 10, 15, 0.6);
+}
+
+/* Dated photo: the photo in an orange frame, its date and title, then where it sits in the year. */
+.tlPolaroid {
+  width: 160px;
+  max-width: 100%;
+  margin: 0 auto 22px;
+  text-align: center;
+}
+
+.tlFrame {
+  padding: 5px;
+  border-radius: 16px;
+  background: var(--c2);
+}
+
+.tlPhoto {
+  aspect-ratio: 4 / 3;
+  border-radius: 11px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.tlPhoto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tlDate {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c1);
+}
+
+.tlCaption {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.tlYears {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tlAxis {
+  position: relative;
+  height: 22px;
+  margin-bottom: 8px;
+}
+
+.tlLine {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+  transform: translateY(-50%);
+}
+
+.tlTick {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 10px;
+  border-radius: 1px;
+  background: rgba(10, 10, 15, 0.28);
+  transform: translate(-50%, -50%);
+}
+
+.tlDot {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--c2);
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 4.5px var(--ink);
+  transform: translate(-50%, -50%);
+}
+
+.tlMonths {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10.5px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+/* Recording. */
+.audioRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.wave {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--c1);
+}
+
+.audioTitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.audioSub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* ── Story panel (desktop aside and the phone sheet) ──────── */
+
+.story {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #fff;
+}
+
+.storyHead {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 18px 16px 24px;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+.storyDate {
+  max-width: 100%;
+  margin-bottom: 10px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.storyTitle {
+  margin: 0;
+  font-size: clamp(22px, 1.9vw, 26px);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.titleInput {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.storyBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 24px 32px;
+}
+
+/* Desktops: room under the last button for the floating Story Assistance pill. */
+@media (min-width: 1024px) {
+  .storyBody {
+    padding-bottom: 104px;
+  }
+}
+
+@media (max-width: 599px) {
+  .storyHead {
+    padding: 18px 14px 14px 20px;
+  }
+
+  .storyBody {
+    padding: 18px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.storyFrame {
+  padding: 6px;
+  border-radius: 22px;
+}
+
+.storyMedia {
+  border-radius: 16px;
+}
+
+/* The whole photo, never cropped: a tall one is capped and sits on the grey of the frame. */
+.storyMedia > img,
+.storyMedia > video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 58vh;
+  object-fit: contain;
+}
+
+.storyMedia > video {
+  background: var(--ink);
+}
+
+.fullBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+}
+
+.storySection {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1.5px solid var(--rule);
+}
+
+.storySectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  margin-bottom: 12px;
+}
+
+.entries {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.entry {
+  padding: 14px 10px 10px 16px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.entryText {
+  margin: 0 6px 0 0;
+  font-size: 15.5px;
+  line-height: 1.65;
+  font-weight: 500;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.entryMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 36px;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.storyNote {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* The kit's textarea, one line high to start, growing with what's typed. */
+.composerInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 52px;
+  max-height: 180px;
+  padding: 13px 16px;
+  resize: none;
+  overflow-y: auto;
+}
+
+.composerSend {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+}
+
+.dateRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.voices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.voiceCard {
+  padding: 12px 10px 12px 12px;
+  border-radius: 20px;
+}
+
+.voiceRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.audio {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  height: 40px;
+}
+
+.voiceMeta {
+  margin: 8px 0 0 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.storyEnd {
+  margin-top: 28px;
+}
+
+/* Nothing chosen yet (desktop panel). */
+.storyIdle {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;
+  text-align: center;
+}
+
+.storyIdleTitle {
+  margin: 18px 0 0;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.storyIdleText {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* ── File drop zones ──────────────────────────────────────── */
+
+.drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 28px 20px;
+  border: 2px dashed rgba(10, 10, 15, 0.2);
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .drop:hover {
+    border-color: var(--ink);
+  }
+}
+
+/* Files dragged over it (set from the drag handlers). */
+.dropActive {
+  border-color: var(--ink);
+  background: var(--hover);
+}
+
+/* The real file field sits inside, hidden from sight but not from the keyboard. */
+.drop:has(input:focus-visible) {
+  border-color: var(--ink);
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+.dropLarge {
+  min-height: 220px;
+}
+
+.dropSlim {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 16px;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.dropIcons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.dropTitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.dropHint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.dropFile {
+  margin: 10px 0 0;
+  max-width: 100%;
+  font-size: 13.5px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+/* The chosen cover, filling the zone. */
+.coverZone {
+  height: 168px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.coverZone > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Upload queue ─────────────────────────────────────────── */
+
+.queue {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+@media (max-width: 399px) {
+  .queue {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.queueItem {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--hover);
+}
+
+.queueItem > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The hairline ring over the thumbnail's edge, so a pale photo keeps its shape on the white
+   sheet (as on the album's tiles). */
+.queueItem::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.08);
+  pointer-events: none;
+}
+
+.queueVideo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.queueState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.queueBusy {
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+}
+
+.queueDone {
+  background: rgba(10, 10, 15, 0.42);
+  color: #fff;
+}
+
+.queueFail {
+  background: rgba(224, 0, 77, 0.5);
+  color: #fff;
+}
+
+/* Remove: shown on hover or focus with a mouse, always on touch screens. */
+.queueRemove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px -4px rgba(10, 10, 15, 0.55);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* A bigger tap area than the dot itself. */
+.queueRemove::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+.queueItem:hover .queueRemove,
+.queueRemove:focus-visible {
+  opacity: 1;
+}
+
+/* Unlayered, so this beats the kit's 3px offset (which the tile's clipping would cut). */
+.queueRemove:focus-visible {
+  outline-offset: 1px;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .queueRemove {
+    opacity: 1;
+  }
+}
+
+.queueName {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 4px 6px;
+  background: rgba(10, 10, 15, 0.62);
+  color: #fff;
+  font-size: 10.5px;
+  line-height: 1.3;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 8px;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.progressFail {
+  color: var(--danger);
+}
+
+/* ── Drawers that aren't kept mounted by Framer Motion ────── */
+
+/* The upload drawer stays mounted: closed, it fades out and is then hidden from taps, Tab
+   and screen readers (visibility flips after the fade). */
+.layer {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+
+.layer[data-open='true'] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s;
+}
+
+.layer > .layerPanel {
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.layer[data-open='true'] > .layerPanel {
+  transform: none;
+}
+
+/* Voice note drawer: from the right on tablets and desktops, a bottom sheet on phones. */
+.voiceLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 9995;
+}
+
+.voicePanel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(480px, 100%);
+  animation: albumsFromRight 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@media (max-width: 599px) {
+  .voicePanel {
+    top: auto;
+    left: 0;
+    width: 100%;
+    max-height: 92%;
+    border-radius: 28px 28px 0 0;
+    animation-name: albumsUp;
+  }
+}
+
+.recorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 24px 0;
+}
+
+/* Record: ink at rest, pink while it records. */
+.recBtn {
+  width: 96px;
+  height: 96px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+@media (hover: hover) {
+  .recBtn:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.recBtn:active {
+  transform: scale(0.96);
+  transition-duration: 80ms;
+}
+
+.recBtnOn {
+  background: var(--c0);
+  color: var(--ink);
+  box-shadow: 0 0 0 10px var(--pink-tint);
+}
+
+.take {
+  width: 100%;
+  padding: 16px;
+}
+
+.take > audio {
+  display: block;
+  width: 100%;
+}
+
+/* ── Full screen viewer (ink backdrop, round white buttons) ── */
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 76px 16px 28px;
+  background: rgba(10, 10, 15, 0.94);
+  color: #fff;
+  outline: none;
+  animation: albumsFade 0.2s ease backwards;
+}
+
+.viewerClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+}
+
+.viewerCount {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.viewerNav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  margin-top: -22px;
+}
+
+.viewerPrev {
+  left: 12px;
+}
+
+.viewerNext {
+  right: 12px;
+}
+
+.viewerStage {
+  position: relative;
+  max-width: min(92vw, 1400px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewerStage > img,
+.viewerStage > video {
+  display: block;
+  max-width: 100%;
+  max-height: 74vh;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+.viewerCaption {
+  margin-top: 18px;
+  max-width: 34em;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.viewerCaptionText {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.viewerDate {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}

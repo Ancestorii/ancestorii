@@ -32,12 +32,18 @@ export function useDialog<T extends HTMLElement = HTMLDivElement>(open: boolean,
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     stack.push(panel);
     if (!panel.hasAttribute('tabindex')) panel.setAttribute('tabindex', '-1');
+    // The kit drops the browser's ring around the panel itself (its controls keep theirs).
+    panel.setAttribute('data-app-dialog', '');
     if (!panel.contains(document.activeElement)) panel.focus({ preventScroll: true });
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (stack[stack.length - 1] !== panel) return;
 
       if (e.key === 'Escape') {
+        // A field inside that uses Escape for its own job (a menu, a combobox) calls
+        // preventDefault, and the dialog stays open. React listens on the document too, before
+        // this listener, so stopPropagation there would not reach us.
+        if (e.defaultPrevented) return;
         e.stopPropagation();
         closeRef.current();
         return;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import AddMemberModal from "./_components/AddMemberModal";
 import LovedOneSection from "./_components/LovedOneSection";
@@ -12,6 +12,7 @@ import { getBrowserClient } from "@/lib/supabase/browser";
 import { safeToast as toast } from "@/lib/safeToast";
 import { useSearchParams } from "next/navigation";
 import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
+import { ui, Accent, AppLoader, Btn, PageHeader } from "@/components/dashboard/ui/AppBits";
 
 
 type FamilyMember = {
@@ -58,7 +59,7 @@ export default function FamilyPage() {
 
 
   // ✅ PUT THIS INSIDE FamilyPage() (same place Albums has it)
-const line1 = '“The people who shaped your life, remembered and celebrated forever.”';
+const line1 = 'The people who shaped your life, remembered and celebrated forever.';
 const line2 = 'Add your loved ones and preserve their stories, memories, and legacy.';
 const [hasSubscription, setHasSubscription] = useState<boolean | null>(null);
 
@@ -234,8 +235,12 @@ useEffect(() => {
   /* ===========================================================
       UI
   ============================================================*/
+  // The loader shows until there is something to draw; a refresh after an edit or a delete
+  // keeps the cards on screen instead of blanking the page.
+  const showLoader = loading || (membersLoading && members.length === 0);
+
   return (
-    <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fdf7ea] to-[#faf6e3]">
+    <div className={ui.page}>
 
       <DeleteLovedOneModal
   open={!!deleteTarget}
@@ -265,50 +270,30 @@ useEffect(() => {
       />
 
       {/* ---------- LOADING ---------- */}
-      {loading && (
-        <div className="flex justify-center pt-20 text-lg text-[#C8A557]">
-          Loading your loved ones…
-        </div>
-      )}
-
-      {/* ---------- EMPTY STATE ---------- */}
-      {!loading && !membersLoading && members.length === 0 && (
-         <LovedOneEmptyState onAdd={() => setAddOpen(true)} />
-      )}
-
-      {/* ---------- MAIN UI ---------- */}
-      {!loading && !membersLoading && members.length > 0 && (
-        <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 md:pl-16 md:pr-16 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
-         {/* ✅ REPLACE YOUR HEADER WITH THIS (1:1 Albums header, just “Loved Ones”) */}
-<div className="flex flex-col md:flex-row md:items-end md:justify-start gap-6 mb-14">
-  <div className="text-center md:text-left flex-1">
-    <h1 className="text-[clamp(2.25rem,4vw,3rem)] font-bold text-[#222B3A] mb-4 relative inline-block">
-      <span className="relative">
-        My
-        <motion.span
-          className="absolute left-0 -bottom-2 h-[3px] bg-[#C8A557] rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: 70 }}
-          transition={{ delay: 0.2, duration: 0.8, ease: 'easeOut' }}
-        />
-      </span>{' '}
-      <span className="text-[#C8A557]">Loved Ones</span>
-    </h1>
-
-    <p className="text-[#000000] mt-3 text-lg italic min-h-[30px]">{line1}</p>
-    <p
-      className={`text-[#000000] text-sm mt-2 transition-opacity duration-500 ${
-        'opacity-100'
-      }`}
-    >
-      {line2}
-    </p>
-  </div>
-
-  <div className="flex justify-center md:justify-end flex-1">
-    <button
-      className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
-      onClick={() => {
+      {showLoader ? (
+        <AppLoader label="Loading your loved ones" />
+      ) : (
+        <div className={ui.wrap}>
+          {/* ---------- HEADER ---------- */}
+          <PageHeader
+            eyebrow="Loved Ones"
+            eyebrowDot="var(--c3)"
+            title={
+              <>
+                My <Accent>Loved Ones</Accent>
+              </>
+            }
+            lead={
+              <>
+                {line1} {line2}
+              </>
+            }
+            actions={
+              members.length > 0 ? (
+                <Btn
+                  aria-haspopup="dialog"
+                  tile={<Plus size={18} strokeWidth={2.4} />}
+                  onClick={() => {
   if (loading || hasSubscription === null) return;
 
   if (!hasSubscription && memberCount >= 1) {
@@ -320,16 +305,23 @@ useEffect(() => {
 
   setAddOpen(true);
 }}
+                >
+                  Add A Loved One
+                </Btn>
+              ) : undefined
+            }
+          />
 
-    >
-      <span className="relative z-10">+ Add A Loved One</span>
-      <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
-    </button>
-  </div>
-</div>
+          {/* ---------- EMPTY STATE ---------- */}
+          {members.length === 0 && (
+            <div className={ui.section}>
+              <LovedOneEmptyState onAdd={() => setAddOpen(true)} />
+            </div>
+          )}
+
           {/* ---------- GROUPED CARDS ---------- */}
-          {groups && (
-            <div className="space-y-10">
+          {members.length > 0 && groups && (
+            <>
              <LovedOneSection title="Parents" members={groups.Parents} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
              <LovedOneSection title="Siblings" members={groups.Siblings} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
              <LovedOneSection title="Children" members={groups.Children} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
@@ -338,23 +330,12 @@ useEffect(() => {
              <LovedOneSection title="Grandparents" members={groups.Grandparents} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
              <LovedOneSection title="Extended Family" members={groups.ExtendedFamily} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
              <LovedOneSection title="Friends" members={groups.Friends} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
-            </div>
+             <LovedOneSection title="Other Loved Ones" members={groups.Other ?? []} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
+            </>
           )}
         </div>
       )}
     </div>
   );
 }
-// ✅ ALSO ADD THIS (copy from Albums) somewhere in your FamilyPage return (global style block)
-// If you already have it globally, skip this.
-<style jsx global>{`
-  @keyframes shine {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
-  }
-`}</style>
 

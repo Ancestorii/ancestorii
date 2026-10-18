@@ -1,6 +1,10 @@
 "use client";
 
+import { useId, type CSSProperties } from "react";
 import LovedOneCard from "./LovedOneCard";
+import { ui } from "@/components/dashboard/ui/AppBits";
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
 export default function LovedOneSection({
   title,
@@ -13,31 +17,43 @@ export default function LovedOneSection({
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const headingId = useId();
+
   if (!members || members.length === 0) return null;
 
-  return (
-    <section className="mb-16 sm:mb-20">
-      <div className="mb-7 sm:mb-8">
-        <div className="flex items-center gap-3">
-        </div>
+  const count = members.length;
 
-        <h3 className="mt-3 font-serif text-[clamp(1.9rem,4vw,2.5rem)] leading-[0.98] text-[#102347]">
-          {title.split(" ").slice(0, -1).join(" ")}{" "}
-          <span className="italic text-[#c99732]">
-            {title.split(" ").slice(-1).join(" ")}
-          </span>
-        </h3>
+  return (
+    <section className={ui.section} aria-labelledby={headingId}>
+      {/* The group's name with its count beside it */}
+      <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h2 id={headingId} className={ui.h2}>
+          {title}
+        </h2>
+        <span
+          className={cx(ui.chip, ui.chipDot)}
+          style={{ "--dot": "var(--c3)" } as CSSProperties}
+        >
+          {count} {count === 1 ? "loved one" : "loved ones"}
+        </span>
       </div>
 
-      <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(min(100%,240px),1fr))]">
-        {members.map((m) => (
-          <LovedOneCard
-            key={m.id}
-            member={m}
-            onEdit={() => onEdit(m.id)}
-            onDelete={() => onDelete(m.id)}
-          />
-        ))}
+      {/* Columns follow the space beside the sidebar: 1 on phones, then 2, 3 and 4 */}
+      <div className="@container">
+        <ul
+          role="list"
+          className="grid grid-cols-1 gap-4 @md:grid-cols-2 @2xl:grid-cols-3 @4xl:grid-cols-4"
+        >
+          {members.map((m) => (
+            <li key={m.id} className="min-w-0">
+              <LovedOneCard
+                member={m}
+                onEdit={() => onEdit(m.id)}
+                onDelete={() => onDelete(m.id)}
+              />
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

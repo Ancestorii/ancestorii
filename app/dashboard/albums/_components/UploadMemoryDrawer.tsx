@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useId, useRef, useState, useCallback } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
-import { X, Upload, ImagePlus, Video, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Upload, ImagePlus, Video, CheckCircle2, AlertCircle, Check } from 'lucide-react';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './albums.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 const MAX_FILES = 20;
 
@@ -42,6 +46,12 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
   const [failedCount, setFailedCount] = useState(0);
   const dropRef = useRef<HTMLDivElement>(null);
   const isUploadingRef = useRef(false);
+  const titleId = useId();
+
+  // The close button's rule (not while uploading), for Escape too. Tab stays inside while open.
+  const panelRef = useDialog<HTMLDivElement>(open, () => {
+    if (!uploading) onClose();
+  });
 
   // Reset state when drawer closes
   useEffect(() => {
@@ -111,22 +121,26 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
     });
   }, []);
 
-  // Drag & Drop
+  const hasFiles = queue.length > 0;
+
+  // Drag & Drop. The big zone and the slim "add more" zone are different elements, so attach
+  // again when one replaces the other (attached once, the slim zone and every later big zone
+  // had no listeners and a dropped file opened in the browser instead).
   useEffect(() => {
     const area = dropRef.current;
     if (!area) return;
 
     const over = (e: GlobalDragEvent) => {
       e.preventDefault();
-      area.classList.add('ring-2', 'ring-[#E6C26E]');
+      area.classList.add(s.dropActive);
     };
     const leave = (e: GlobalDragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.classList.remove(s.dropActive);
     };
     const drop = (e: GlobalDragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.classList.remove(s.dropActive);
       if (e.dataTransfer?.files?.length) {
         addFiles(e.dataTransfer.files);
       }
@@ -141,7 +155,7 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
       area.removeEventListener('dragleave', leave);
       area.removeEventListener('drop', drop);
     };
-  }, [addFiles]);
+  }, [addFiles, hasFiles]);
 
   // Upload all
   const handleUploadAll = async () => {
@@ -242,118 +256,115 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
 
   const pendingCount = queue.filter((f) => f.status === 'pending').length;
   const totalInQueue = queue.length;
-  const hasFiles = totalInQueue > 0;
   const allDone = hasFiles && queue.every((f) => f.status === 'done' || f.status === 'error');
+
+  const fileInput = (
+    // Visually hidden, not display:none, so the keyboard can reach it
+    <input
+      id="albumFileInput"
+      type="file"
+      accept="image/*,video/*"
+      multiple
+      className={ui.srOnly}
+      aria-label="Choose photos or videos to upload"
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        if (e.target.files?.length) addFiles(e.target.files);
+        e.target.value = '';
+      }}
+    />
+  );
 
   return (
     <div
-      className={`fixed inset-0 z-[200] flex items-center justify-center transition-opacity duration-300 ${
-        open ? 'bg-black/40 opacity-100' : 'opacity-0 pointer-events-none'
-      }`}
+      className={cx(ui.scrim, s.layer, 'scrim-blur z-[9999] flex items-center justify-center p-4')}
+      data-open={open ? 'true' : 'false'}
       onClick={onClose}
     >
       <div
-        className="relative bg-white w-full sm:w-[540px] max-h-[85vh] flex flex-col rounded-2xl shadow-[0_0_25px_rgba(230,194,110,0.3)] border border-[#E6C26E]/40"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className={cx(ui.sheet, s.layerPanel, s.dialog, 'w-full max-w-[560px] max-h-[88vh]')}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 shrink-0">
-          <button
+        <div className={ui.sheetHeader}>
+          <div className="min-w-0">
+            <h2 id={titleId} className={ui.sheetTitle}>
+              Preserve Your Memories
+            </h2>
+            <p className={ui.sheetSub}>
+              Add photos or videos to this album.
+            </p>
+          </div>
+          <IconBtn
+            label="Close"
             onClick={(e) => {
               e.stopPropagation();
               if (!uploading) onClose();
             }}
-            className="absolute top-4 right-4 text-gray-500 hover:text-[#1F2837] transition"
           >
-            <X className="w-5 h-5" />
-          </button>
-
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-[#1F2837] mb-1">
-              Preserve Your Memories
-            </h2>
-            <p className="text-sm text-[#5B6473]">
-              Add photos or videos to this album.
-            </p>
-          </div>
+            <X size={20} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
         </div>
 
         {/* Drop zone / Preview area */}
-        <div className="px-6 flex-1 overflow-y-auto min-h-0">
+        <div className={ui.sheetBody}>
           {!hasFiles ? (
             <div
               ref={dropRef}
               onClick={() => document.getElementById('albumFileInput')?.click()}
-              className="w-full aspect-[16/9] border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:text-[#C8A557] hover:border-[#E6C26E] transition cursor-pointer mb-4"
+              className={cx(s.drop, s.dropLarge)}
             >
-              <div className="flex gap-3 mb-3 text-[#C8A557]">
-                <ImagePlus className="w-6 h-6" />
-                <Video className="w-6 h-6" />
+              <div className={s.dropIcons} aria-hidden="true">
+                <ImagePlus size={26} strokeWidth={2} />
+                <Video size={26} strokeWidth={2} />
               </div>
-              <p className="text-sm font-medium">Drag & drop or click to upload</p>
-              <p className="text-xs text-gray-400 mt-1">Up to {MAX_FILES} files at once</p>
+              <p className={s.dropTitle}>Drag & drop or click to upload</p>
+              <p className={s.dropHint}>Up to {MAX_FILES} files at once</p>
 
-              <input
-                id="albumFileInput"
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files?.length) addFiles(e.target.files);
-                  e.target.value = '';
-                }}
-              />
+              {fileInput}
             </div>
           ) : (
-            <div className="mb-4">
+            <div>
               {/* Mini drop zone / add more */}
               <div
                 ref={dropRef}
                 onClick={() => document.getElementById('albumFileInput')?.click()}
-                className="w-full rounded-xl border-2 border-dashed border-gray-200 hover:border-[#E6C26E] transition cursor-pointer flex items-center justify-center gap-2 py-3 mb-4 text-sm text-gray-500 hover:text-[#C8A557]"
+                className={cx(s.drop, s.dropSlim)}
               >
-                <ImagePlus className="w-4 h-4" />
+                <ImagePlus size={18} strokeWidth={2.2} aria-hidden="true" />
                 Add more files
-                <span className="text-xs text-gray-400">
+                <span className="font-semibold">
                   ({totalInQueue}/{MAX_FILES})
                 </span>
 
-                <input
-                  id="albumFileInput"
-                  type="file"
-                  accept="image/*,video/*"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files?.length) addFiles(e.target.files);
-                    e.target.value = '';
-                  }}
-                />
+                {fileInput}
               </div>
 
               {/* Progress bar */}
               {uploading && (
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-[#1F2837]">
+                <div>
+                  <div className={s.progressRow}>
+                    <span>
                       Uploading {uploadedCount + failedCount} of{' '}
                       {pendingCount + uploadedCount + failedCount}
                     </span>
                     {failedCount > 0 && (
-                      <span className="text-xs text-red-500">{failedCount} failed</span>
+                      <span className={s.progressFail}>{failedCount} failed</span>
                     )}
                   </div>
-                  <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                  <div className={ui.progress}>
                     <div
-                      className="h-full rounded-full transition-all duration-300 ease-out"
+                      className={ui.progressFill}
                       style={{
                         width: `${Math.round(
                           ((uploadedCount + failedCount) /
                             (pendingCount + uploadedCount + failedCount)) *
                             100
                         )}%`,
-                        background: 'linear-gradient(90deg, #C8A557, #E6C26E, #F3D99B)',
                       }}
                     />
                   </div>
@@ -361,39 +372,35 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
               )}
 
               {/* Thumbnail grid */}
-              <div className="grid grid-cols-4 gap-2">
+              <ul className={cx(s.queue, 'list-none p-0')}>
                 {queue.map((item) => (
-                  <div
-                    key={item.id}
-                    className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group"
-                  >
+                  <li key={item.id} className={s.queueItem}>
                     {item.previewUrl ? (
-                      <img
-                        src={item.previewUrl}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.previewUrl} alt="" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Video className="w-5 h-5 text-gray-400" />
+                      <div className={s.queueVideo}>
+                        <Video size={22} strokeWidth={2} aria-hidden="true" />
                       </div>
                     )}
 
                     {item.status === 'uploading' && (
-                      <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-[#C8A557] border-t-transparent rounded-full animate-spin" />
+                      <div className={cx(s.queueState, s.queueBusy)}>
+                        <Spinner size={24} label="Uploading" />
                       </div>
                     )}
 
                     {item.status === 'done' && (
-                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                        <CheckCircle2 className="w-6 h-6 text-white drop-shadow-md" />
+                      <div className={cx(s.queueState, s.queueDone)}>
+                        <CheckCircle2 size={26} strokeWidth={2.4} aria-hidden="true" />
+                        <span className={ui.srOnly}>Uploaded</span>
                       </div>
                     )}
 
                     {item.status === 'error' && (
-                      <div className="absolute inset-0 bg-red-900/30 flex items-center justify-center">
-                        <AlertCircle className="w-6 h-6 text-white drop-shadow-md" />
+                      <div className={cx(s.queueState, s.queueFail)}>
+                        <AlertCircle size={26} strokeWidth={2.4} aria-hidden="true" />
+                        <span className={ui.srOnly}>Failed</span>
                       </div>
                     )}
 
@@ -404,41 +411,44 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
                           e.stopPropagation();
                           removeFile(item.id);
                         }}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                        aria-label={`Remove ${item.file.name}`}
+                        className={s.queueRemove}
                       >
-                        ×
+                        <X size={15} strokeWidth={2.6} aria-hidden="true" />
                       </button>
                     )}
 
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 pb-1 pt-4">
-                      <p className="text-[10px] text-white truncate leading-tight">
-                        {item.file.name}
-                      </p>
-                    </div>
-                  </div>
+                    <p className={cx(s.queueName, 'm-0')}>
+                      {item.file.name}
+                    </p>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-6 pt-3 shrink-0 border-t border-gray-100">
-          <button
+        <div className={ui.sheetFooter}>
+          <Btn
+            block
             onClick={allDone ? onClose : handleUploadAll}
             disabled={uploading || (!allDone && pendingCount === 0)}
-            className={`w-full py-3 rounded-xl font-semibold text-[#1F2837] transition-all ${
-              uploading || (!allDone && pendingCount === 0)
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] hover:shadow-md hover:scale-[1.01]'
-            }`}
+            tile={
+              uploading ? (
+                <Spinner size={16} />
+              ) : allDone ? (
+                <Check size={18} strokeWidth={2.6} />
+              ) : (
+                <Upload size={18} strokeWidth={2.4} />
+              )
+            }
           >
             {uploading ? (
-              <div className="flex items-center justify-center gap-2">
-                <Upload className="w-5 h-5 animate-pulse" />
+              <>
                 Preserving {uploadedCount + failedCount} of{' '}
                 {pendingCount + uploadedCount + failedCount}…
-              </div>
+              </>
             ) : allDone ? (
               'Done'
             ) : pendingCount === 0 ? (
@@ -448,7 +458,7 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
             ) : (
               `Preserve ${pendingCount} Memories`
             )}
-          </button>
+          </Btn>
         </div>
       </div>
     </div>

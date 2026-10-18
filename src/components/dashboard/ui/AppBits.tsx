@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { jakarta } from '@/components/landing/fonts';
 import ui from './app.module.css';
@@ -122,6 +122,8 @@ export function SectionHead({
   action,
   id,
   as: As = 'h2',
+  className,
+  titleClassName,
 }: {
   title: ReactNode;
   tag?: ReactNode;
@@ -130,16 +132,19 @@ export function SectionHead({
   action?: ReactNode;
   id?: string;
   as?: 'h2' | 'h3';
+  className?: string;
+  /** Extra classes for the heading itself (a Tailwind utility here wins over the kit). */
+  titleClassName?: string;
 }) {
   return (
-    <div className={ui.sectionHead}>
+    <div className={cx(ui.sectionHead, className)}>
       <div className={ui.sectionHeadText}>
         {tag && (
           <div className="mb-3">
             <Tag dot={tagDot}>{tag}</Tag>
           </div>
         )}
-        <As id={id} className={ui.h2}>
+        <As id={id} className={cx(ui.h2, titleClassName)}>
           {title}
         </As>
         {lead && <p className={ui.sectionLead}>{lead}</p>}
@@ -242,18 +247,7 @@ export function Btn({
   );
 }
 
-/** Square icon button with an accessible name. */
-export function IconBtn({
-  label,
-  children,
-  size = 'md',
-  ghost = false,
-  active = false,
-  onPhoto = false,
-  className,
-  type = 'button',
-  ...rest
-}: {
+type IconBtnProps = {
   label: string;
   children: ReactNode;
   size?: 'sm' | 'md';
@@ -261,9 +255,16 @@ export function IconBtn({
   active?: boolean;
   onPhoto?: boolean;
   className?: string;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className'>) {
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className'>;
+
+/** Square icon button with an accessible name. Forwards its ref (a menu can hand focus back). */
+export const IconBtn = forwardRef<HTMLButtonElement, IconBtnProps>(function IconBtn(
+  { label, children, size = 'md', ghost = false, active = false, onPhoto = false, className, type = 'button', ...rest },
+  ref
+) {
   return (
     <button
+      ref={ref}
       type={type}
       aria-label={label}
       title={label}
@@ -280,7 +281,7 @@ export function IconBtn({
       {children}
     </button>
   );
-}
+});
 
 /** Solid colour icon tile. */
 export function IconTile({
@@ -332,10 +333,19 @@ export function EmptyState({
   );
 }
 
-/** Whole-page loading state: three pulsing brand dots and a label. */
-export function AppLoader({ label = 'Loading', className }: { label?: string; className?: string }) {
+/** Loading state: three pulsing brand dots and a label. `compact` drops the half-screen
+ *  height, for use inside a dialog or a card. */
+export function AppLoader({
+  label = 'Loading',
+  compact = false,
+  className,
+}: {
+  label?: string;
+  compact?: boolean;
+  className?: string;
+}) {
   return (
-    <div className={cx(ui.loader, className)} role="status" aria-live="polite">
+    <div className={cx(ui.loader, compact && ui.loaderCompact, className)} role="status" aria-live="polite">
       <div className={ui.loaderDots} aria-hidden="true">
         <span />
         <span />

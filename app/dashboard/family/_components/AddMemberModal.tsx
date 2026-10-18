@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { safeToast as toast } from "@/lib/safeToast";
 import { getBrowserClient } from "@/lib/supabase/browser";
-import { X, ImagePlus } from "lucide-react";
+import { X, ImagePlus, Plus, Check } from "lucide-react";
 import LegacyCelebration from "@/components/LegacyCelebration";
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { ui, Btn, IconBtn, Spinner, useDialog } from "@/components/dashboard/ui/AppBits";
+import s from "./lovedOnes.module.css";
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
 
 type Person = {
@@ -17,7 +21,7 @@ type Person = {
   death_date?: string | null;
   avatar_url?: string | null;
   avatar_signed?: string | null;
-  relationship_to_user?: string | null; 
+  relationship_to_user?: string | null;
 };
 
 function convertDDMMYYYYtoISO(date: string): string | null {
@@ -86,10 +90,22 @@ const [celebrationMessage, setCelebrationMessage] = useState("");
   const [uploading, setUploading] = useState(false);
   const isSubmitting = useRef(false);
 
-  const dropRef = useRef<HTMLDivElement>(null);
+  const dropRef = useRef<HTMLButtonElement>(null);
   const [mounted, setMounted] = useState(false);
 
   const [relationship, setRelationship] = useState("");
+
+  // Field ids (labels point at their fields) and the dialog's title.
+  const titleId = useId();
+  const nameId = useId();
+  const relationshipId = useId();
+  const birthId = useId();
+  const deathId = useId();
+  const photoLabelId = useId();
+  const photoHintId = useId();
+
+  // Escape closes it (as the close button does), Tab stays inside, focus returns to the button.
+  const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
   useEffect(() => setMounted(true), []);
 
@@ -126,21 +142,24 @@ const [celebrationMessage, setCelebrationMessage] = useState("");
     if (file) setAvatarFile(file);
   };
 
+  // The drop zone only exists while the modal is open, so the listeners are attached each
+  // time it opens (with [] they ran once, before the zone existed, and a dropped file made the
+  // browser open it in the tab instead).
   useEffect(() => {
     const el = dropRef.current;
     if (!el) return;
 
     const over = (e: DragEvent) => {
       e.preventDefault();
-      el.classList.add("ring-2", "ring-[#E6C26E]");
+      el.dataset.drag = "true";
     };
     const leave = (e: DragEvent) => {
       e.preventDefault();
-      el.classList.remove("ring-2", "ring-[#E6C26E]");
+      delete el.dataset.drag;
     };
     const drop = (e: DragEvent) => {
       e.preventDefault();
-      el.classList.remove("ring-2", "ring-[#E6C26E]");
+      delete el.dataset.drag;
       const f = e.dataTransfer?.files?.[0];
       if (f) selectFile(f);
     };
@@ -153,7 +172,7 @@ const [celebrationMessage, setCelebrationMessage] = useState("");
       el.removeEventListener("dragleave", leave);
       el.removeEventListener("drop", drop);
     };
-  }, []);
+  }, [open, mounted]);
 
   /** SUBMIT */
   const handleSubmit = async () => {
@@ -253,167 +272,198 @@ return;
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 bg-[#0B0C10]/70 backdrop-blur-sm flex items-center justify-center z-[200] pointer-events-auto"
+          // A bottom sheet on phones, a centred card from 640px. scrim-blur (globals.css) blurs
+          // only with a mouse. Above the floating phone nav (z-[200]).
+          className={cx(
+            ui.scrim,
+            "scrim-blur pointer-events-auto z-[9999] flex items-end justify-center sm:items-center sm:p-4"
+          )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 0.94, y: 25 }}
+          exit={{ opacity: 0 }}
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
         >
 
+          {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
             onClick={(e) => e.stopPropagation()}
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.95 }}
+            initial={{ opacity: 0, transform: "translateY(40px) scale(0.95)" }}
+            animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
+            exit={{ opacity: 0, transform: "translateY(40px) scale(0.95)" }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="relative bg-white w-[88%] sm:w-[360px] md:w-[450px] max-h-[85vh] overflow-y-auto overflow-x-hidden rounded-2xl p-8 border-[2px] border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.5)] font-[Inter]"
+            className={cx(
+              ui.sheet,
+              ui.sheetBottom,
+              "max-h-[calc(100dvh-16px)] w-full outline-none sm:max-h-[calc(100dvh-32px)] sm:max-w-[520px] sm:rounded-[28px]"
+            )}
           >
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-[#1F2837]/70 hover:text-[#1F2837] transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <h2 className="text-3xl font-bold text-[#1F2837] mb-2 text-center">
-              {mode === "edit" ? "Edit Family Member" : "Add Family Member"}
-            </h2>
-            <p className="text-sm text-[#7A8596] text-center mb-6 italic">
-              Preserve their legacy.
-            </p>
-            <span className="block w-16 h-1 bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] rounded-full mx-auto mb-6" />
-
-            {/* FULL NAME */}
-            <label className="block text-sm font-semibold mb-1 text-[#1F2837]">Full Name</label>
-            <input
-              className="w-full border border-[#E6C26E]/50 rounded-lg px-3 py-2 mb-6 text-[#1F2837] focus:ring-2 focus:ring-[#E6C26E]"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="John Doe"
-            />
-
-            {/* RELATIONSHIP TO USER */}
-            <label className="block text-sm font-semibold mb-1 text-[#1F2837]">
-            Who is this person to you?
-            </label>
-
-            <select
-            value={relationship}
-            onChange={(e) => setRelationship(e.target.value)}
-            className={`w-full border border-[#E6C26E]/50 rounded-lg px-3 py-2 mb-6 text-[#1F2837] bg-white focus:ring-2 focus:ring-[#E6C26E] ${!relationship ? "text-[#7A8596]" : "text-[#1F2837]"}`} 
-            
-            > 
-            <option value="" disabled hidden>
-              Select a role
-            </option>
-            <option value="parent">Parent</option>
-            <option value="sibling">Sibling</option>
-            <option value="child">Children</option>
-            <option value="partner">Spouse / Partner</option>
-            <option value="grandparent">Grandparents</option>
-            <option value="aunt_uncle">Aunties / Uncles</option>
-            <option value="extended">Extended Family</option>
-            <option value="friend">Friends</option>
-            </select>
-
-
-            {/* DATES */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              {/* BIRTH */}
-              <div>
-                <label className="block text-sm font-semibold text-[#1F2837] mb-1">
-                  Birth
-                </label>
-                <input
-                  className="w-full border border-[#E6C26E]/50 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#E6C26E]"
-                  placeholder="DD/MM/YYYY"
-                  value={birth}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/[^0-9/]/g, "");
-                    if (v.length <= 10) setBirth(v);
-                  }}
-                />
+            {/* ── Header ── */}
+            <div className={ui.sheetHeader}>
+              <div className="min-w-0">
+                <h2 id={titleId} className={ui.sheetTitle}>
+                  {mode === "edit" ? "Edit Family Member" : "Add Family Member"}
+                </h2>
+                <p className={ui.sheetSub}>Preserve their legacy.</p>
               </div>
-
-              {/* DEATH */}
-              <div>
-                <label className="block text-sm font-semibold text-[#1F2837] mb-1">
-                  Death <span className="text-[#7A8596] text-xs font-normal">(If applicable)</span>
-                </label>
-                <input
-                  className="w-full border border-[#E6C26E]/50 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#E6C26E]"
-                  placeholder="DD/MM/YYYY"
-                  value={death}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/[^0-9/]/g, "");
-                    if (v.length <= 10) setDeath(v);
-                  }}
-                />
-              </div>
+              <IconBtn label="Close" onClick={onClose}>
+                <X size={20} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
             </div>
 
-            {/* AGE */}
-            {ageDisplay && (
-              <p className="text-sm text-[#7A8596] italic mb-6">
-                {death ? ageDisplay : `${ageDisplay} to present`}
-              </p>
-            )}
+            <div className={ui.sheetBody}>
+              {/* FULL NAME */}
+              <div className={ui.field}>
+                <label htmlFor={nameId} className={ui.label}>
+                  Full Name
+                </label>
+                <input
+                  id={nameId}
+                  className={ui.input}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="John Doe"
+                />
+              </div>
 
-            {/* AVATAR */}
-            <label className="block text-sm font-semibold flex items-center gap-1 text-[#1F2837]">
-              <ImagePlus className="w-4 h-4 text-[#E6C26E]" /> Profile Image
-            </label>
-            <div
-              ref={dropRef}
-              onClick={() => document.getElementById("memberAvatarInput")?.click()}
-              className="mt-2 h-[140px] border-2 border-dashed border-[#E6C26E]/60 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden hover:shadow-[0_0_10px_rgba(230,194,110,0.4)] transition"
-            >
-              {previewUrl ? (
-                <img src={previewUrl} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[#7A8596]">Drag & drop or click to upload</span>
-              )}
-              <input
-                type="file"
-                id="memberAvatarInput"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) selectFile(f);
-                }}
-              />
+              {/* RELATIONSHIP TO USER */}
+              <div className={ui.field}>
+                <label htmlFor={relationshipId} className={ui.label}>
+                  Who is this person to you?
+                </label>
+                <select
+                  id={relationshipId}
+                  value={relationship}
+                  onChange={(e) => setRelationship(e.target.value)}
+                  className={cx(ui.select, !relationship && s.selectEmpty)}
+                >
+                  <option value="" disabled hidden>
+                    Select a role
+                  </option>
+                  <option value="parent">Parent</option>
+                  <option value="sibling">Sibling</option>
+                  <option value="child">Children</option>
+                  <option value="partner">Spouse / Partner</option>
+                  <option value="grandparent">Grandparents</option>
+                  <option value="aunt_uncle">Aunties / Uncles</option>
+                  <option value="extended">Extended Family</option>
+                  <option value="friend">Friends</option>
+                </select>
+              </div>
+
+              {/* DATES */}
+              <div className={ui.field}>
+                <div className="grid grid-cols-2 items-end gap-3">
+                  {/* BIRTH */}
+                  <div className="min-w-0">
+                    <label htmlFor={birthId} className={ui.label}>
+                      Birth
+                    </label>
+                    <input
+                      id={birthId}
+                      className={ui.input}
+                      placeholder="DD/MM/YYYY"
+                      value={birth}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/[^0-9/]/g, "");
+                        if (v.length <= 10) setBirth(v);
+                      }}
+                    />
+                  </div>
+
+                  {/* DEATH */}
+                  <div className="min-w-0">
+                    <label htmlFor={deathId} className={ui.label}>
+                      Death <span className="text-[13px] font-semibold">(If applicable)</span>
+                    </label>
+                    <input
+                      id={deathId}
+                      className={ui.input}
+                      placeholder="DD/MM/YYYY"
+                      value={death}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/[^0-9/]/g, "");
+                        if (v.length <= 10) setDeath(v);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* AGE */}
+                {ageDisplay && (
+                  <p className={ui.hint}>
+                    {death ? ageDisplay : `${ageDisplay} to present`}
+                  </p>
+                )}
+              </div>
+
+              {/* AVATAR */}
+              <div className={ui.field}>
+                <p id={photoLabelId} className={ui.label}>
+                  Profile Image
+                </p>
+                <button
+                  type="button"
+                  ref={dropRef}
+                  onClick={() => document.getElementById("memberAvatarInput")?.click()}
+                  aria-labelledby={`${photoLabelId} ${photoHintId}`}
+                  className={s.drop}
+                >
+                  <span className={s.dropThumb}>
+                    {previewUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={previewUrl} alt="" />
+                    ) : (
+                      <ImagePlus size={24} strokeWidth={2.2} aria-hidden="true" />
+                    )}
+                  </span>
+                  <span id={photoHintId} className={s.dropText}>
+                    Drag &amp; drop or click to upload
+                  </span>
+                </button>
+                <input
+                  type="file"
+                  id="memberAvatarInput"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) selectFile(f);
+                  }}
+                />
+              </div>
             </div>
 
             {/* FOOTER */}
-            <div className="flex flex-col gap-4 mt-10 pt-6 border-t border-gray-200">
+            <div className={ui.sheetFooter}>
+              <Btn variant="soft" onClick={onClose}>
+                Cancel
+              </Btn>
 
-              <div className="flex justify-between gap-3">
-                <button
-                  onClick={onClose}
-                  className="px-5 py-2 rounded-full border border-[#E6C26E]/40 text-[#1F2837] hover:bg-[#F9F7F2]"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  disabled={!fullName.trim() || uploading}
-                  onClick={handleSubmit}
-                  className={`px-6 py-2 rounded-full font-semibold text-[#1F2837] shadow-md ${
-                    !fullName.trim()
-                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] hover:shadow-[0_0_15px_rgba(230,194,110,0.6)] hover:scale-[1.02]"
-                  }`}
-                >
-                  {uploading
-                    ? "Saving…"
-                    : mode === "edit"
-                    ? "Save Changes"
-                    : "Add My Loved One ✨"}
-                </button>
-              </div>
+              <Btn
+                disabled={!fullName.trim() || uploading}
+                onClick={handleSubmit}
+                tile={
+                  uploading ? (
+                    <Spinner size={16} />
+                  ) : mode === "edit" ? (
+                    <Check size={18} strokeWidth={2.6} />
+                  ) : (
+                    <Plus size={18} strokeWidth={2.4} />
+                  )
+                }
+              >
+                {uploading
+                  ? "Saving…"
+                  : mode === "edit"
+                  ? "Save Changes"
+                  : "Add My Loved One"}
+              </Btn>
             </div>
           </motion.div>
         </motion.div>
@@ -429,4 +479,3 @@ return;
     </>
   );
 }
-

@@ -65,6 +65,9 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const router = useRouter();
   const pathname = usePathname();
   const hideSidebar = /\/dashboard\/\w+\/[^/]+/.test(pathname);
+  // The print editors keep the old desktop overflow (their stage may need to scroll sideways on
+  // small laptops); every other page's main is a plain clipping box at every width.
+  const isEditor = /^\/dashboard\/(books|canvas|acrylic)\/[^/]+/.test(pathname);
   useEffect(() => {
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
 }, [pathname]);
@@ -407,13 +410,13 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 />
 </aside>
 )}
-{/* Below lg main is not a scroll container (globals.css gives every main overflow-y:auto): the document scrolls, with no nested scroller */}
+{/* main is not a scroll container (globals.css gives every main overflow-y:auto): the document scrolls, with no nested scroller, so position:sticky works inside pages. The editors keep it from lg up. */}
 <main
   className={`
     ${hideSidebar ? '' : collapsed ? 'lg:ml-[80px]' : 'lg:ml-[272px]'}
     min-h-screen
     bg-white
-    max-lg:overflow-x-clip max-lg:overflow-y-visible
+    ${isEditor ? 'max-lg:overflow-x-clip max-lg:overflow-y-visible' : 'overflow-x-clip overflow-y-visible'}
   `}
 >
   {children}

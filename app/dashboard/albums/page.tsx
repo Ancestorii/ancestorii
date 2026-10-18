@@ -1,17 +1,31 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
+import { ArrowRight, Images, Plus } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import CreateAlbumDrawer from './_components/CreateAlbumDrawer';
 import { safeToast as toast } from '@/lib/safeToast';
-import { motion } from 'framer-motion';
 import LegacyCelebration from "@/components/LegacyCelebration";
 import { ContextMenuDots } from "@/components/ContextMenuDots";
 import { usePlanLimits } from '@/lib/usePlanLimits';
 import Image from "next/image";
 import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
+import {
+  ui,
+  Accent,
+  AppLoader,
+  Btn,
+  EmptyState,
+  PageHeader,
+  btnClass,
+  tone,
+  toneByKey,
+  useDialog,
+} from '@/components/dashboard/ui/AppBits';
+import s from './_components/albums.module.css';
 
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type Album = {
   id: string;
@@ -39,10 +53,17 @@ export default function AlbumsPage() {
 
   const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
-  // Typed quote animation (same as Timeline/Capsules)
-  const line1 = '“Keep the moments you love together, in one place.”';
+  // Escape cancels the delete question, Tab stays inside it.
+  const confirmRef = useDialog<HTMLDivElement>(!!confirmDelete, () => setConfirmDelete(null));
+  const confirmTitleId = useId();
+  const confirmTextId = useId();
+
+  // The header's lead (same words as Timeline/Capsules)
+  const line1 = 'Keep the moments you love together, in one place.';
   const line2 = 'Create albums to group photos, videos, and voice notes.';
 
+  // The plan-limit message (the create button also shows it as a toast).
+  const limitMessage = `You’ve reached your current plan limit for albums (${counts?.albums} / ${limits?.max_albums}). Upgrade your plan to create more.`;
 
   // Signed URL helper
   const getSignedCoverUrl = async (url: string | null): Promise<string | null> => {
@@ -120,154 +141,167 @@ export default function AlbumsPage() {
     }
   };
 
+  // The create button (in the header and in the empty state).
+  const openCreate = () => {
+    if (limitsLoading) return;
+    if (!canCreate.album) {
+      toast.error(limitMessage);
+      return;
+    }
+    setDrawerMode('create');
+    setSelectedAlbum(null);
+    setDrawerOpen(true);
+  };
+
+  const createButton = (
+    <Btn onClick={openCreate} aria-haspopup="dialog" tile={<Plus size={18} strokeWidth={2.6} />}>
+      Create New Album
+    </Btn>
+  );
+
+  const list = albums ?? [];
+
   return (
-    <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
+    <div className={ui.page}>
+      <div className={ui.wrap}>
+        <PageHeader
+          eyebrow="Albums"
+          eyebrowDot="var(--c2)"
+          title={
+            <>
+              My <Accent>Albums</Accent>
+            </>
+          }
+          lead={`${line1} ${line2}`}
+          actions={createButton}
+        />
 
-       <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 md:pl-16 md:pr-16 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
-        {/* header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
-          <div className="text-center md:text-left flex-1">
-            <h1 className="text-[clamp(2.25rem,4vw,3rem)] font-bold text-[#222B3A] mb-4 relative inline-block">
-              <span className="relative">
-                My
-                <motion.span
-                  className="absolute left-0 -bottom-2 h-[3px] bg-[#C8A557] rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: 70 }}
-                  transition={{ delay: 0.2, duration: 0.8, ease: 'easeOut' }}
-                />
-              </span>{' '}
-              <span className="text-[#C8A557]">Albums</span>
-            </h1>
+        {!limitsLoading && !canCreate.album && (
+          <p className={cx(ui.noticeWarn, 'mt-8')} role="status">
+            {limitMessage}
+          </p>
+        )}
 
-            <p className="text-[#000000] mt-3 text-lg italic min-h-[30px]">{line1}</p>
-            <p
-              className={`text-[#000000] text-sm mt-2 transition-opacity duration-500 ${
-                'opacity-100'
-              }`}
-            >
-              {line2}
+        <section className={ui.section} aria-label="Your albums">
+          {loading && <AppLoader label="Loading your albums" />}
+
+          {!loading && error && (
+            <p className={ui.noticeError} role="alert">
+              {error}
             </p>
-          </div>
+          )}
 
-          <div className="flex justify-center md:justify-end flex-1">
-            <button
-              className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
-              onClick={() => {
-               if (limitsLoading) return;
-               if (!canCreate.album) {
-               toast.error(
-                 `You’ve reached your current plan limit for albums (${counts?.albums} / ${limits?.max_albums}). Upgrade your plan to create more.`);
-                return;
-                }
-  setDrawerMode('create');
-  setSelectedAlbum(null);
-  setDrawerOpen(true);
-}}
-
+          {!loading && !error && list.length === 0 && (
+            <EmptyState
+              Icon={Images}
+              tone={toneByKey('orange')}
+              title="No albums yet"
+              text="Start organising your memories."
             >
-              <span className="relative z-10">+ Create New Album</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
-            </button>
-          </div>
-        </div>
+              {createButton}
+            </EmptyState>
+          )}
 
-        {/* states */}
-        {loading && <p className="text-[#778199] italic text-center mb-4">Loading your albums...</p>}
-        {!loading && error && <p className="text-[#C33838] text-center mb-4">{error}</p>}
-        {!loading && !error && (albums ?? []).length === 0 && (
-          <div className="text-center text-[#0f2040] italic mt-12">
-            No albums yet. Start organizing your memories ✨
-          </div>
-        )}
+          {/* Columns follow the space beside the sidebar: 1 on phones, 2 on tablets, 3 on desktops */}
+          {!loading && !error && list.length > 0 && (
+            <div className="@container">
+              <ul role="list" className="grid grid-cols-1 gap-x-6 gap-y-10 @xl:grid-cols-2 @4xl:grid-cols-3">
+                {list.map((a, i) => (
+                  <li key={a.id} className={s.album}>
+                    <div
+                      className={cx(ui.frame, s.albumFrame)}
+                      style={{ '--frame': tone(i).bg } as CSSProperties}
+                    >
+                      <div className={cx(ui.frameInner, s.albumCover)}>
+                        {a.cover_image ? (
+                          <AlbumCover src={a.cover_image} alt={a.title || 'Album cover'} />
+                        ) : (
+                          <div className={s.noCover}>
+                            <Images size={34} strokeWidth={2} aria-hidden="true" />
+                            No cover image
+                          </div>
+                        )}
+                      </div>
 
-        {/* cards */}
-        {!loading && !error && (albums ?? []).length > 0 && (
-          <div
-            className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,240px),1fr))] gap-6 transition-opacity duration-500"
-            key="albums"
-          >
-            {(albums ?? []).map((a) => (
-              <div
-                key={a.id}
-                className="rounded-3xl border border-[#B7932F]/60 shadow-md hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 relative flex flex-col h-full"
-              >
-                <div className="aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden group">
-  {a.cover_image ? (
-    <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 bg-[#E6C26E]/10">
-      <AlbumCover src={a.cover_image} alt={a.title || "Album cover"} />
-    </div>
-  ) : (
-    <div className="flex items-center justify-center h-full text-[#9AA3AF] text-sm">
-      No cover image
-    </div>
-  )}
-</div>
+                      <div className={s.albumMenu}>
+                        <ContextMenuDots
+                          editLabel="Edit Album"
+                          onEdit={() => {
+                            setDrawerMode('edit');
+                            setSelectedAlbum(a);
+                            setDrawerOpen(true);
+                          }}
+                          onDelete={() =>
+                            setConfirmDelete({ id: a.id, title: a.title || 'Untitled Album' })
+                          }
+                        />
+                      </div>
+                    </div>
 
-                <div className="absolute top-3 right-3 z-20">
-                  <ContextMenuDots
-                  editLabel="Edit Album"
-                  onEdit={() => {
-                    setDrawerMode("edit");
-                    setSelectedAlbum(a);
-                     setDrawerOpen(true);
-                     }}
-                  onDelete={() =>
-                    setConfirmDelete({ id: a.id, title: a.title || "Untitled Album" })
-                    }
-                    />
-                  </div>
-                  
-                <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-xl font-semibold text-[#222B3A] mb-2 line-clamp-1">
-                    {a.title || 'Untitled Album'}
-                  </h3>
-                  <p className="text-[#5B6473] text-sm mb-4 line-clamp-2 min-h-[40px]">
-                    {a.description || 'A collection of your memories.'}
-                  </p>
-                  <p className="text-xs text-[#7A8596] mb-4">
-                    Created {new Date(a.created_at).toLocaleDateString()}
-                  </p>
+                    <div className={s.albumBody}>
+                      <h2 className={s.albumTitle}>{a.title || 'Untitled Album'}</h2>
+                      <p className={s.albumText}>
+                        {a.description || 'A collection of your memories.'}
+                      </p>
+                      <div className={s.albumMeta}>
+                        <span className={cx(ui.chip, ui.chipSm)}>
+                          Created{' '}
+                          {new Date(a.created_at).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
 
-                  <Link
-                    href={`/dashboard/albums/${a.id}`}
-                    className="mt-auto block text-center font-semibold px-4 py-3 rounded-full text-[#1F2837] bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] shadow hover:shadow-md transition-transform duration-200 hover:scale-[1.02]"
-                  >
-                    View Album →
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                      <div className={s.albumOpen}>
+                        <Link
+                          href={`/dashboard/albums/${a.id}`}
+                          className={btnClass({ variant: 'soft', block: true })}
+                        >
+                          View Album
+                          <ArrowRight size={18} strokeWidth={2.4} aria-hidden="true" />
+                        </Link>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
       </div>
 
       {/* delete confirmation */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-[90%] max-w-sm text-center">
-            <h3 className="text-lg font-semibold text-[#1F2837] mb-3">
+        <div className={cx(ui.scrim, s.fadeIn, 'scrim-blur z-[9999] flex items-center justify-center p-4')}>
+          <div
+            ref={confirmRef}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={confirmTitleId}
+            aria-describedby={confirmTextId}
+            className={cx(ui.sheet, s.confirm, s.popIn, s.dialog)}
+          >
+            <h2 id={confirmTitleId} className={s.confirmTitle}>
               Delete “{confirmDelete.title}”?
-            </h3>
-            <p className="text-sm text-[#5B6473] mb-6">
+            </h2>
+            <p id={confirmTextId} className={s.confirmText}>
               This action cannot be undone. All media inside this album will be lost.
             </p>
-            <div className="flex justify-center gap-3">
-              <button
-                className="px-5 py-2 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
-                onClick={() => setConfirmDelete(null)}
-              >
+            <div className={s.confirmActions}>
+              <Btn variant="soft" onClick={() => setConfirmDelete(null)}>
                 Cancel
-              </button>
-              <button
-                className="px-5 py-2 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-medium shadow hover:shadow-md transition"
+              </Btn>
+              <Btn
+                variant="danger"
                 onClick={() => {
                   handleDeleteAlbum(confirmDelete.id);
                   setConfirmDelete(null);
                 }}
               >
                 Delete
-              </button>
+              </Btn>
             </div>
           </div>
         </div>
@@ -280,22 +314,22 @@ export default function AlbumsPage() {
         album={selectedAlbum}
         onClose={() => setDrawerOpen(false)}
         onCreated={async (album) => {
-  const signed = await getSignedCoverUrl(album.cover_image);
+          const signed = await getSignedCoverUrl(album.cover_image);
 
-  setDrawerOpen(false);
+          setDrawerOpen(false);
 
-  // 🔑 Tell dashboard layout a story now exists
-  window.dispatchEvent(new Event('dashboard-data-changed'));
+          // 🔑 Tell dashboard layout a story now exists
+          window.dispatchEvent(new Event('dashboard-data-changed'));
 
-  setTimeout(() => {
-    setAlbums((prev) => [{ ...album, cover_image: signed }, ...(prev ?? [])]);
-  }, 120);
+          setTimeout(() => {
+            setAlbums((prev) => [{ ...album, cover_image: signed }, ...(prev ?? [])]);
+          }, 120);
 
-  // 🎉 Celebration stays as-is
-  setTimeout(() => {
-    setCelebrate(true);
-  }, 220);
-}}
+          // 🎉 Celebration stays as-is
+          setTimeout(() => {
+            setCelebrate(true);
+          }, 220);
+        }}
         onUpdated={async (album) => {
           const signed = await getSignedCoverUrl(album.cover_image);
           setAlbums((prev) =>
@@ -307,21 +341,11 @@ export default function AlbumsPage() {
       />
 
       <LegacyCelebration
-  open={celebrate}
-  onClose={() => setCelebrate(false)}
-  emoji="🎉"
-  message="A new chapter of memories begins."
-/>
-      <style jsx global>{`
-        @keyframes shine {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-      `}</style>
+        open={celebrate}
+        onClose={() => setCelebrate(false)}
+        emoji="🎉"
+        message="A new chapter of memories begins."
+      />
     </div>
   );
 }
@@ -334,21 +358,17 @@ function AlbumCover({ src, alt }: { src: string; alt: string }) {
   }, [src]);
 
   return (
-    <div className="relative w-full h-full">
-      <Image
-  src={src}
-  alt={alt}
-  fill
-  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 20vw"
-  quality={75}
-  priority={false}
-  loading="lazy"
-  placeholder="empty"
-  className={`object-cover transition-opacity duration-300 ${
-    loaded ? "opacity-100" : "opacity-0"
-  }`}
-  onLoadingComplete={() => setLoaded(true)}
-/>
-    </div>
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 400px"
+      quality={75}
+      priority={false}
+      loading="lazy"
+      placeholder="empty"
+      className={cx(s.coverImg, loaded ? 'opacity-100' : 'opacity-0')}
+      onLoadingComplete={() => setLoaded(true)}
+    />
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import StoryAssistanceCard, { AssistOption } from '@/components/StoryAssistanceCard';
+import { Accent } from '@/components/dashboard/ui/AppBits';
 
 type AlbumAIProps = {
   albumTitle: string;
@@ -52,7 +53,7 @@ export default function AlbumAI({
       welcomeHeading={
         <>
           Need help writing about{' '}
-          <span className="text-[#A9782F]">{albumTitle}</span>?
+          <Accent>{albumTitle.trim()}</Accent>?
         </>
       }
       welcomeBody="We can help you describe this album and write captions that bring your photos to life."

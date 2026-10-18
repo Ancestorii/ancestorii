@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useId, useRef, useState, useCallback, type KeyboardEvent } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
-import { X, Upload, ImagePlus, Video, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Upload, ImagePlus, Video, Check, AlertCircle } from 'lucide-react';
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './library.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 const MAX_FILES = 20;
 
@@ -43,6 +47,20 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
   const [failedCount, setFailedCount] = useState(0);
   const dropRef = useRef<HTMLDivElement>(null);
   const isUploadingRef = useRef(false);
+  const titleId = useId();
+  const subId = useId();
+  const limitId = useId();
+
+  // Escape closes it, as the close button does (never mid-upload); Tab stays inside, and focus
+  // returns to Add Media.
+  const panelRef = useDialog<HTMLDivElement>(open, () => {
+    if (!uploading) onClose();
+  });
+
+  const pendingCount = queue.filter((f) => f.status === 'pending').length;
+  const totalInQueue = queue.length;
+  const hasFiles = totalInQueue > 0;
+  const allDone = hasFiles && queue.every((f) => f.status === 'done' || f.status === 'error');
 
   // ── Reset state when drawer closes ──
   useEffect(() => {
@@ -111,23 +129,26 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
   }, []);
 
   // ── Drag & Drop ──
+  // The zone is a different element before and after the first files are added (the big drop
+  // zone, then the "Add more files" row), so the listeners move with it: bound once, they stayed
+  // on the first zone after it unmounted, and a file dropped on the new one opened in the tab.
   useEffect(() => {
     const area = dropRef.current;
     if (!area) return;
 
     const over = (e: GlobalDragEvent) => {
       e.preventDefault();
-      area.classList.add('ring-2', 'ring-[#E6C26E]');
+      area.classList.add(s.dropActive);
     };
 
     const leave = (e: GlobalDragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.classList.remove(s.dropActive);
     };
 
     const drop = (e: GlobalDragEvent) => {
       e.preventDefault();
-      area.classList.remove('ring-2', 'ring-[#E6C26E]');
+      area.classList.remove(s.dropActive);
       if (e.dataTransfer?.files?.length) {
         addFiles(e.dataTransfer.files);
       }
@@ -142,7 +163,16 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
       area.removeEventListener('dragleave', leave);
       area.removeEventListener('drop', drop);
     };
-  }, [addFiles]);
+  }, [addFiles, hasFiles]);
+
+  // The drop zone opens the file picker on a click, and now on Enter or Space too.
+  const openPicker = () => document.getElementById('libraryFileInput')?.click();
+  const onPickerKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openPicker();
+    }
+  };
 
   // ── Upload all ──
   const handleUploadAll = async () => {
@@ -240,56 +270,83 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
     isUploadingRef.current = false;
   };
 
-  const pendingCount = queue.filter((f) => f.status === 'pending').length;
-  const totalInQueue = queue.length;
-  const hasFiles = totalInQueue > 0;
-  const allDone = hasFiles && queue.every((f) => f.status === 'done' || f.status === 'error');
+  // This run's progress. The file being sent is neither pending nor counted yet, so it is added
+  // here: without it, three files read "Uploading 0 of 2" and the bar filled before the last
+  // one had finished.
+  const inFlight = queue.filter((f) => f.status === 'uploading').length;
+  const progressDone = uploadedCount + failedCount;
+  const progressTotal = pendingCount + inFlight + progressDone;
+  const progressCurrent = Math.min(progressDone + 1, progressTotal);
+  const progress = progressTotal > 0 ? progressDone / progressTotal : 0;
 
   return (
+    // Above the floating phone nav (z-[200], later in the DOM). It stays mounted: closed, it is
+    // faded out and hidden from Tab and screen readers.
     <div
-      className={`fixed inset-0 z-[200] flex items-center justify-center transition-opacity duration-300 ${
-        open ? 'bg-black/40 opacity-100' : 'opacity-0 pointer-events-none'
-      }`}
+      className={cx(
+        ui.scrim,
+        'scrim-blur z-[9999] flex items-end justify-center sm:items-center sm:p-4',
+        s.upOverlay,
+        open && s.upOverlayOpen
+      )}
       onClick={onClose}
     >
       <div
-        className="relative bg-white w-full sm:w-[540px] max-h-[85vh] flex flex-col rounded-2xl shadow-[0_0_25px_rgba(230,194,110,0.3)] border border-[#E6C26E]/40"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={subId}
+        className={cx(
+          ui.sheet,
+          s.upPanel,
+          'w-full max-h-[92dvh] max-sm:rounded-b-none sm:max-h-[85vh] sm:max-w-[540px]'
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header ── */}
-        <div className="px-6 pt-6 pb-4 shrink-0">
-          <button
+        <div className={ui.sheetHeader}>
+          <div className="min-w-0">
+            <h2 id={titleId} className={ui.sheetTitle}>
+              Upload To My Library
+            </h2>
+            <p id={subId} className={ui.sheetSub}>
+              Store photos and videos to use anywhere inside Ancestorii.
+            </p>
+          </div>
+
+          <IconBtn
+            label="Close"
             onClick={(e) => {
               e.stopPropagation();
               if (!uploading) onClose();
             }}
-            className="absolute top-4 right-4 text-gray-500 hover:text-[#1F2837] transition"
           >
-            <X className="w-5 h-5" />
-          </button>
-
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-[#1F2837] mb-1">Upload To My Library</h2>
-            <p className="text-sm text-[#5B6473]">
-              Store photos and videos to use anywhere inside Ancestorii.
-            </p>
-          </div>
+            <X size={20} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
         </div>
 
         {/* ── Drop zone / Preview area ── */}
-        <div className="px-6 flex-1 overflow-y-auto min-h-0">
+        <div className={ui.sheetBody}>
           {!hasFiles ? (
             <div
               ref={dropRef}
-              onClick={() => document.getElementById('libraryFileInput')?.click()}
-              className="w-full aspect-[16/9] border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:text-[#C8A557] hover:border-[#E6C26E] transition cursor-pointer mb-4"
+              role="button"
+              tabIndex={0}
+              aria-describedby={limitId}
+              onClick={openPicker}
+              onKeyDown={onPickerKey}
+              // focusInset: the sheet body scrolls, which clipped the top of a ring drawn outside.
+              className={cx(s.drop, ui.focusInset)}
             >
-              <div className="flex gap-3 mb-3 text-[#C8A557]">
-                <ImagePlus className="w-6 h-6" />
-                <Video className="w-6 h-6" />
-              </div>
-              <p className="text-sm font-medium">Drag & drop or click to upload</p>
-              <p className="text-xs text-gray-400 mt-1">Up to {MAX_FILES} files at once</p>
+              <span className={s.dropTile} aria-hidden="true">
+                <ImagePlus size={22} strokeWidth={2.4} />
+                <Video size={22} strokeWidth={2.4} />
+              </span>
+              <span className={s.dropTitle}>Drag &amp; drop or click to upload</span>
+              <span id={limitId} className={s.dropHint}>
+                Up to {MAX_FILES} files at once
+              </span>
 
               <input
                 id="libraryFileInput"
@@ -304,15 +361,18 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
               />
             </div>
           ) : (
-            <div className="mb-4">
+            <div>
               <div
                 ref={dropRef}
-                onClick={() => document.getElementById('libraryFileInput')?.click()}
-                className="w-full rounded-xl border-2 border-dashed border-gray-200 hover:border-[#E6C26E] transition cursor-pointer flex items-center justify-center gap-2 py-3 mb-4 text-sm text-gray-500 hover:text-[#C8A557]"
+                role="button"
+                tabIndex={0}
+                onClick={openPicker}
+                onKeyDown={onPickerKey}
+                className={cx(s.drop, s.dropRow, ui.focusInset)}
               >
-                <ImagePlus className="w-4 h-4" />
+                <ImagePlus size={18} strokeWidth={2.4} aria-hidden="true" />
                 Add more files
-                <span className="text-xs text-gray-400">
+                <span className={s.dropCount}>
                   ({totalInQueue}/{MAX_FILES})
                 </span>
 
@@ -330,108 +390,116 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
               </div>
 
               {uploading && (
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-[#1F2837]">
-                      Uploading {uploadedCount + failedCount} of {pendingCount + uploadedCount + failedCount}
+                <div className="mt-4">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <span className="text-[14px] font-bold leading-snug">
+                      Uploading {progressCurrent} of {progressTotal}
                     </span>
-                    <span className="text-xs text-[#5B6473]">
-                      {failedCount > 0 && (
-                        <span className="text-red-500">{failedCount} failed</span>
-                      )}
-                    </span>
+                    {failedCount > 0 && (
+                      <span className="text-[13px] font-bold leading-snug text-brand-danger">
+                        {failedCount} failed
+                      </span>
+                    )}
                   </div>
-                  <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className={ui.progress}
+                    role="progressbar"
+                    aria-label="Upload progress"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(progress * 100)}
+                  >
                     <div
-                      className="h-full rounded-full transition-all duration-300 ease-out"
-                      style={{
-                        width: `${Math.round(
-                          ((uploadedCount + failedCount) / (pendingCount + uploadedCount + failedCount)) * 100
-                        )}%`,
-                        background: 'linear-gradient(90deg, #C8A557, #E6C26E, #F3D99B)',
-                      }}
+                      className={cx(ui.progressFill, s.progressFill)}
+                      style={{ transform: `scaleX(${progress})` }}
                     />
                   </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-4 gap-2">
+              <ul role="list" className="mt-4 grid grid-cols-4 gap-2.5">
                 {queue.map((item) => (
-                  <div
-                    key={item.id}
-                    className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group"
-                  >
-                    {item.previewUrl ? (
-                      <img
-                        src={item.previewUrl}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Video className="w-5 h-5 text-gray-400" />
+                  <li key={item.id} className="min-w-0">
+                    <div className="relative">
+                      <div className={s.qThumb}>
+                        {item.previewUrl ? (
+                          // A local preview (blob: URL), which next/image can't optimise.
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.previewUrl} alt="" className={s.qImg} />
+                        ) : (
+                          <span className={s.qVideo}>
+                            <Video size={22} strokeWidth={2.2} aria-hidden="true" />
+                          </span>
+                        )}
+
+                        {item.status === 'uploading' && (
+                          <span className={cx(s.qState, s.qBusy)}>
+                            <Spinner size={22} label={`Uploading ${item.file.name}`} />
+                          </span>
+                        )}
+
+                        {item.status === 'done' && (
+                          <span className={cx(s.qState, s.qDone)}>
+                            <span className={s.qBadge}>
+                              <Check size={16} strokeWidth={3} aria-hidden="true" />
+                            </span>
+                            <span className={ui.srOnly}>Uploaded</span>
+                          </span>
+                        )}
+
+                        {item.status === 'error' && (
+                          <span className={cx(s.qState, s.qError)}>
+                            <span className={cx(s.qBadge, s.qBadgeError)}>
+                              <AlertCircle size={17} strokeWidth={2.6} aria-hidden="true" />
+                            </span>
+                            <span className={ui.srOnly}>Failed</span>
+                          </span>
+                        )}
                       </div>
-                    )}
 
-                    {item.status === 'uploading' && (
-                      <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-[#C8A557] border-t-transparent rounded-full animate-spin" />
-                      </div>
-                    )}
-
-                    {item.status === 'done' && (
-                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                        <CheckCircle2 className="w-6 h-6 text-white drop-shadow-md" />
-                      </div>
-                    )}
-
-                    {item.status === 'error' && (
-                      <div className="absolute inset-0 bg-red-900/30 flex items-center justify-center">
-                        <AlertCircle className="w-6 h-6 text-white drop-shadow-md" />
-                      </div>
-                    )}
-
-                    {item.status === 'pending' && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeFile(item.id);
-                        }}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                      >
-                        ×
-                      </button>
-                    )}
-
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 pb-1 pt-4">
-                      <p className="text-[10px] text-white truncate leading-tight">
-                        {item.file.name}
-                      </p>
+                      {item.status === 'pending' && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFile(item.id);
+                          }}
+                          aria-label={`Remove ${item.file.name}`}
+                          className={s.qRemove}
+                        >
+                          <X size={14} strokeWidth={2.8} aria-hidden="true" />
+                        </button>
+                      )}
                     </div>
-                  </div>
+
+                    <p className={s.qName} title={item.file.name}>
+                      {item.file.name}
+                    </p>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
         </div>
 
         {/* ── Footer ── */}
-        <div className="px-6 pb-6 pt-3 shrink-0 border-t border-gray-100">
-          <button
+        <div className={ui.sheetFooter}>
+          <Btn
+            block
             onClick={allDone ? onClose : handleUploadAll}
             disabled={uploading || (!allDone && pendingCount === 0)}
-            className={`w-full py-3 rounded-xl font-semibold text-[#1F2837] transition-all ${
-              uploading || (!allDone && pendingCount === 0)
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] hover:shadow-md hover:scale-[1.01]'
-            }`}
+            tile={
+              uploading ? (
+                <Spinner />
+              ) : allDone ? (
+                <Check size={18} strokeWidth={2.6} />
+              ) : (
+                <Upload size={18} strokeWidth={2.4} />
+              )
+            }
           >
             {uploading ? (
-              <div className="flex items-center justify-center gap-2">
-                <Upload className="w-5 h-5 animate-pulse" />
-                Uploading {uploadedCount + failedCount} of {pendingCount + uploadedCount + failedCount}…
-              </div>
+              `Uploading ${progressCurrent} of ${progressTotal}…`
             ) : allDone ? (
               'Done'
             ) : pendingCount === 0 ? (
@@ -441,7 +509,7 @@ export default function UploadLibraryDrawer({ open, onClose, folderId, onUploade
             ) : (
               `Upload ${pendingCount} Files`
             )}
-          </button>
+          </Btn>
         </div>
       </div>
     </div>

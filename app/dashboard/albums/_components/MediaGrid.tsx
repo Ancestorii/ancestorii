@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Play } from 'lucide-react';
+import { Images, Mic, Play } from 'lucide-react';
+import { EmptyState, IconTile, toneByKey } from '@/components/dashboard/ui/AppBits';
+import s from './albums.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 /* ───────────────────── types ───────────────────── */
 
@@ -65,13 +69,14 @@ function formatDateLabel(raw: string): string {
 
 /* ───────────────────── AudioWaveform ───────────────────── */
 
+// Decorative: bars in the current colour (blue, the voice notes colour).
 function AudioWaveform({ count = 34 }: { count?: number }) {
   const pattern = [3,5,8,4,7,11,6,9,4,7,12,5,8,3,6,10,4,8,5,9,11,6,3,7,10,4,8,5,7,3,6,9,5,8];
   const bars = Array.from({ length: count }, (_, i) => pattern[i % pattern.length]);
   const w = count * 4;
   return (
-    <svg viewBox={`0 0 ${w} 18`} style={{ width: '100%', height: 18 }} preserveAspectRatio="none">
-      {bars.map((h, i) => (<rect key={i} x={i * 4} y={9 - h / 2} width={2} height={h} rx={1} fill="#d4af37" opacity={0.65} />))}
+    <svg viewBox={`0 0 ${w} 18`} style={{ width: '100%', height: 18 }} preserveAspectRatio="none" aria-hidden="true">
+      {bars.map((h, i) => (<rect key={i} x={i * 4} y={9 - h / 2} width={2} height={h} rx={1} fill="currentColor" opacity={0.8} />))}
     </svg>
   );
 }
@@ -89,14 +94,17 @@ function GridImage({ src }: { src: string }) {
   );
 }
 
+/* A memory's name for screen readers: its title, or what it is. */
+const nameOf = (media: Media, kind: string) => media.caption || kind;
+
 /* ───────────────────── PHOTO CARD ───────────────────── */
 
 function PhotoCard({ media, isSelected, onClick, onDoubleClick }: { media: Media; isSelected: boolean; onClick: () => void; onDoubleClick: () => void }) {
   return (
-    <div onClick={onClick} onDoubleClick={onDoubleClick}
-      style={{ breakInside: 'avoid', marginBottom: 24, cursor: 'pointer', borderRadius: 20, overflow: 'hidden', transition: 'all 0.3s ease', boxShadow: isSelected ? '0 16px 40px rgba(182,152,79,0.18)' : 'none', outline: isSelected ? '2px solid #caa64b' : 'none', background: '#ece5d8' }}>
+    <button type="button" onClick={onClick} onDoubleClick={onDoubleClick} aria-pressed={isSelected} aria-label={nameOf(media, 'Photo')}
+      className={s.tile}>
       <GridImage src={media.signed_url || ''} />
-    </div>
+    </button>
   );
 }
 
@@ -104,17 +112,15 @@ function PhotoCard({ media, isSelected, onClick, onDoubleClick }: { media: Media
 
 function VideoCard({ media, isSelected, onClick, onDoubleClick }: { media: Media; isSelected: boolean; onClick: () => void; onDoubleClick: () => void }) {
   return (
-    <div onClick={onClick} onDoubleClick={onDoubleClick}
-      style={{ breakInside: 'avoid', marginBottom: 24, cursor: 'pointer', borderRadius: 20, overflow: 'hidden', position: 'relative', border: isSelected ? '2px solid #caa64b' : '1px solid #e5ddd0', background: '#f8f5ef', boxShadow: isSelected ? '0 16px 40px rgba(182,152,79,0.18)' : 'none', transition: 'all 0.3s ease' }}>
-      <video key={media.signed_url || media.id} src={media.signed_url || ''} playsInline preload="metadata" muted style={{ width: '100%', display: 'block' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.18), transparent)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-        {/* frost-badge: frosted with a mouse; solid on touch, where the blur re-rendered over the video while scrolling */}
-        <div className="frost-badge" style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Play size={20} fill="white" stroke="none" />
-        </div>
-      </div>
-    </div>
+    <button type="button" onClick={onClick} onDoubleClick={onDoubleClick} aria-pressed={isSelected} aria-label={nameOf(media, 'Video')}
+      className={s.tile}>
+      <video key={media.signed_url || media.id} src={media.signed_url || ''} playsInline preload="metadata" muted />
+      <span className={s.playBadge} aria-hidden="true">
+        <span>
+          <Play size={22} fill="currentColor" stroke="none" />
+        </span>
+      </span>
+    </button>
   );
 }
 
@@ -140,35 +146,36 @@ function TimelineCard({ media, isSelected, onClick }: { media: Media; isSelected
   }
 
   return (
-    <div onClick={onClick} style={{ breakInside: 'avoid', marginBottom: 24, cursor: 'pointer', borderRadius: 20, overflow: 'hidden', border: isSelected ? '2px solid #caa64b' : '1px solid #dcc797', background: '#fcfbf8', boxShadow: isSelected ? '0 16px 40px rgba(182,152,79,0.18)' : '0 10px 28px rgba(196,171,111,0.14)', transition: 'all 0.3s ease' }}>
-      <div style={{ padding: 24 }}>
-        {media.signed_url && (
-          <div style={{ margin: '0 auto', width: 132, borderRadius: 16, border: '1px solid #e8deca', background: 'white', padding: 8, boxShadow: '0 10px 20px rgba(34,28,16,0.06)', marginBottom: 24 }}>
-            <div style={{ overflow: 'hidden', borderRadius: 10, background: '#ece7dc', aspectRatio: '4/3' }}>
-              <img src={media.signed_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            </div>
-            <div style={{ paddingTop: 8 }}>
-              {dateLabel && <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#4b57a5', margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{dateLabel}</p>}
-              <p style={{ fontSize: 12, lineHeight: 1.3, color: '#2b2925', fontWeight: 600, marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{media.caption || 'Untitled'}</p>
-            </div>
-          </div>
-        )}
-        <div style={{ paddingTop: 4 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 10, color: '#9f998f', fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{yearStart}</span>
-            <span style={{ fontSize: 10, color: '#9f998f', fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{yearEnd}</span>
-          </div>
-          <div style={{ position: 'relative', height: 20, marginBottom: 8 }}>
-            <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 2, transform: 'translateY(-50%)', background: '#d9bf6b' }} />
-            {[0,25,50,75,100].map((pos) => (<div key={pos} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', left: `${pos}%`, width: 1, height: 12, background: '#d8ccae' }} />))}
-            <div style={{ position: 'absolute', top: '50%', left: `${dotPosition}%`, transform: 'translate(-50%, -50%)', width: 18, height: 18, borderRadius: '50%', background: '#d4af37', border: '3px solid #fcfbf8', boxShadow: '0 3px 10px rgba(122,98,32,0.18)' }} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
-            {timelineMonths.map((m, i) => (<span key={i} style={{ fontSize: 9, color: '#9b958a', lineHeight: 1, fontFamily: "'DM Sans', sans-serif" }}>{m}</span>))}
-          </div>
-        </div>
-      </div>
-    </div>
+    <button type="button" onClick={onClick} aria-pressed={isSelected}
+      aria-label={[media.caption, media.memory_date].filter(Boolean).join(', ') || 'Photo'}
+      className={cx(s.tile, s.tileCard)}>
+      {media.signed_url && (
+        <span className={cx(s.tlPolaroid, 'block')}>
+          <span className={cx(s.tlFrame, 'block')}>
+            <span className={cx(s.tlPhoto, 'block')}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={media.signed_url} alt="" />
+            </span>
+          </span>
+          {dateLabel && <span className={cx(s.tlDate, 'block')}>{dateLabel}</span>}
+          <span className={cx(s.tlCaption, 'block')}>{media.caption || 'Untitled'}</span>
+        </span>
+      )}
+      <span className="block" aria-hidden="true">
+        <span className={s.tlYears}>
+          <span>{yearStart}</span>
+          <span>{yearEnd}</span>
+        </span>
+        <span className={cx(s.tlAxis, 'block')}>
+          <span className={s.tlLine} />
+          {[0,25,50,75,100].map((pos) => (<span key={pos} className={s.tlTick} style={{ left: `${pos}%` }} />))}
+          <span className={s.tlDot} style={{ left: `${dotPosition}%` }} />
+        </span>
+        <span className={s.tlMonths}>
+          {timelineMonths.map((m, i) => (<span key={i}>{m}</span>))}
+        </span>
+      </span>
+    </button>
   );
 }
 
@@ -176,18 +183,15 @@ function TimelineCard({ media, isSelected, onClick }: { media: Media; isSelected
 
 function AudioCard({ media, isSelected, onClick }: { media: Media; isSelected: boolean; onClick: () => void }) {
   return (
-    <div onClick={onClick} style={{ breakInside: 'avoid', marginBottom: 24, cursor: 'pointer', borderRadius: 20, overflow: 'hidden', border: isSelected ? '2px solid #caa64b' : '1px solid #e8dfd0', background: '#faf7f0', boxShadow: isSelected ? '0 16px 40px rgba(182,152,79,0.18)' : 'none', transition: 'all 0.3s ease' }}>
-      <div style={{ padding: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-          <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#d4af37', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 8px 18px rgba(212,175,55,0.18)' }}>
-            <Play size={16} fill="white" stroke="none" />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}><AudioWaveform /></div>
-        </div>
-        <p style={{ fontSize: 14, fontWeight: 600, color: '#26231f', margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{media.caption || 'Audio recording'}</p>
-        <p style={{ fontSize: 12, color: '#9a9488', marginTop: 4, fontFamily: "'DM Sans', sans-serif" }}>{media.memory_date || 'Voice memory'}</p>
-      </div>
-    </div>
+    <button type="button" onClick={onClick} aria-pressed={isSelected} aria-label={nameOf(media, 'Audio recording')}
+      className={cx(s.tile, s.tileCard)}>
+      <span className={s.audioRow}>
+        <IconTile Icon={Mic} tone={toneByKey('blue')} />
+        <span className={s.wave}><AudioWaveform /></span>
+      </span>
+      <span className={cx(s.audioTitle, 'block')}>{media.caption || 'Audio recording'}</span>
+      <span className={cx(s.audioSub, 'block')}>{media.memory_date || 'Voice memory'}</span>
+    </button>
   );
 }
 
@@ -198,15 +202,17 @@ export default function MediaGrid({ media, selectedMedia, enrichment, onSelect, 
 
   if (media.length === 0) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '128px 0', textAlign: 'center' }}>
-        <p style={{ fontSize: 28, fontStyle: 'italic', color: '#9d978d', marginBottom: 8, fontFamily: "'Playfair Display', Georgia, serif" }}>No memories yet</p>
-        <p style={{ fontSize: 14, color: '#8f887d', fontFamily: "'DM Sans', sans-serif" }}>Upload your first photo or video to begin.</p>
-      </div>
+      <EmptyState
+        Icon={Images}
+        tone={toneByKey('orange')}
+        title="No memories yet"
+        text="Upload your first photo or video to begin."
+      />
     );
   }
 
   return (
-    <div className="masonry-grid">
+    <div className={s.masonry}>
       {media.map((m) => {
         const realType = getMediaType(m);
         const isSelected = selectedMedia?.id === m.id;

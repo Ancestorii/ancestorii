@@ -1,10 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check } from "lucide-react";
+import { X, Check, ArrowRight, Users } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { safeToast as toast } from "@/lib/safeToast";
+import {
+  ui,
+  Accent,
+  AppLoader,
+  Avatar,
+  Btn,
+  EmptyState,
+  IconBtn,
+  Spinner,
+  toneByKey,
+  useDialog,
+} from "@/components/dashboard/ui/AppBits";
+import s from "./UniversalPeopleTagger.module.css";
 
 type FamilyMember = {
   id: string;
@@ -12,6 +25,8 @@ type FamilyMember = {
   avatar_url?: string | null;
   avatar_signed?: string | null;
 };
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
 export default function UniversalPeopleTagger({
   parentId,
@@ -31,6 +46,12 @@ export default function UniversalPeopleTagger({
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  // True while the family loads, so "No family members yet" doesn't flash before the list.
+  const [loading, setLoading] = useState(false);
+
+  const titleId = useId();
+  // Escape closes it (as the close button does), Tab stays inside, focus returns to the button.
+  const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
   const TAG_TABLE =
     parentType === "album"
@@ -51,6 +72,7 @@ export default function UniversalPeopleTagger({
     if (!open) return;
 
     (async () => {
+      setLoading(true);
       try {
         const {
        data: { user },
@@ -98,6 +120,8 @@ const { data: fam } = await supabase
       } catch (e) {
         console.error(e);
         toast.error("Failed to load people.");
+      } finally {
+        setLoading(false);
       }
     })();
   }, [open, parentId, parentType, supabase]);
@@ -142,136 +166,110 @@ const { data: fam } = await supabase
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/40 z-[999] flex items-center justify-center backdrop-blur-sm"
+          // scrim-blur (globals.css) blurs only with a mouse; above the floating phone nav (z-[200])
+          className={cx(ui.scrim, "scrim-blur z-[999] flex items-end justify-center sm:items-center sm:p-4")}
         >
+          {/* transform string (not y) so Motion runs the slide on the compositor */}
           <motion.div
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 20, opacity: 0 }}
+            initial={{ opacity: 0, transform: "translateY(40px)" }}
+            animate={{ opacity: 1, transform: "translateY(0px)" }}
+            exit={{ opacity: 0, transform: "translateY(20px)" }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="bg-white rounded-[36px] shadow-[0_30px_80px_rgba(0,0,0,0.18)]
-                       w-[94%] max-w-2xl px-12 py-10 relative"
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            className={cx(ui.sheet, ui.sheetBottom, s.panel)}
           >
-            {/* Close */}
-            <button
-              onClick={onClose}
-              className="absolute top-6 right-6 text-gray-400 hover:text-black transition"
-            >
-              <X size={22} />
-            </button>
-
-            {/* Title */}
-            <h2
-              className="text-4xl font-bold text-center mb-3"
-              style={{
-                color: "#D4AF37",
-                textShadow: "0 4px 22px rgba(212,175,55,0.45)",
-              }}
-            >
-              Who lives in this memory?
-            </h2>
-
-            <p className="text-sm text-center mb-12 text-gray-500">
-              Select the people who belong inside this moment.
-            </p>
-
-           {/* People Grid / Empty State */}
-{members.length === 0 ? (
-  <div className="text-center py-16">
-    <p className="text-lg font-semibold text-[#1F2837] mb-2">
-      No family members yet
-    </p>
-
-    <p className="text-sm text-gray-500 mb-8">
-      Add your first family member in <b>My Loved Ones</b> to start tagging memories.
-    </p>
-
-    <button
-      onClick={() => {
-        onClose();
-        window.location.href = "/dashboard/family";
-      }}
-      className="
-        px-8 py-3 rounded-full
-        bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
-        text-[#1F2837] font-semibold
-        shadow-md hover:scale-105 hover:shadow-lg
-        transition
-      "
-    >
-      Go to My Loved Ones
-    </button>
-  </div>
-) : (
-  <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 mb-14">
-    {members.map((m) => {
-      const active = selected.includes(m.id);
-
-      return (
-        <motion.button
-          key={m.id}
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.96 }}
-          onClick={() => toggle(m.id)}
-          className={`relative flex flex-col items-center rounded-3xl p-5 border transition duration-300 ${
-            active
-              ? "border-[#D4AF37] bg-[#FFF7DB] shadow-[0_0_0_6px_rgba(212,175,55,0.22)]"
-              : "border-[#d4af37] hover:border-[#C4B5FD] hover:shadow-lg"
-          }`}
-        >
-          {active && (
-            <div className="absolute -top-2 -right-2 bg-[#D4AF37] text-white rounded-full p-1 shadow">
-              <Check size={14} />
-            </div>
-          )}
-
-          <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 mb-4">
-            {m.avatar_signed ? (
-              <img
-                src={m.avatar_signed}
-                alt={m.full_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-500 font-semibold">
-                {m.full_name.charAt(0)}
+            {/* Header */}
+            <div className={ui.sheetHeader}>
+              <div className="min-w-0">
+                <h2 id={titleId} className={ui.sheetTitle}>
+                  Who lives in this <Accent>memory</Accent>?
+                </h2>
+                <p className={ui.sheetSub}>
+                  Select the people who belong inside this moment.
+                </p>
               </div>
-            )}
-          </div>
 
-          <p className="text-sm font-semibold text-center text-[#1F2837]">
-            {m.full_name}
-          </p>
-        </motion.button>
-      );
-    })}
-  </div>
-)}
+              <IconBtn label="Close" onClick={onClose}>
+                <X size={20} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
+            </div>
+
+            {/* People / Empty State */}
+            <div className={ui.sheetBody}>
+              {loading && members.length === 0 ? (
+                <AppLoader label="Loading" className="min-h-0" />
+              ) : members.length === 0 ? (
+                <EmptyState
+                  Icon={Users}
+                  tone={toneByKey("aqua")}
+                  title="No family members yet"
+                  text={
+                    <>
+                      Add your first family member in{" "}
+                      <span className="font-extrabold">My Loved Ones</span> to start tagging
+                      memories.
+                    </>
+                  }
+                  className="px-0 shadow-none"
+                >
+                  <Btn
+                    onClick={() => {
+                      onClose();
+                      window.location.href = "/dashboard/family";
+                    }}
+                    tile={<ArrowRight size={18} strokeWidth={2.4} />}
+                  >
+                    Go to My Loved Ones
+                  </Btn>
+                </EmptyState>
+              ) : (
+                <ul className={s.people}>
+                  {members.map((m) => {
+                    const active = selected.includes(m.id);
+
+                    return (
+                      <li key={m.id}>
+                        <button
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => toggle(m.id)}
+                          className={s.person}
+                        >
+                          {/* The name is the button's text; the photo is decoration here. */}
+                          <span className={s.avatar} aria-hidden="true">
+                            <Avatar src={m.avatar_signed} name={m.full_name} size={38} plain />
+                          </span>
+                          <span className={s.name}>{m.full_name}</span>
+                          <span className={s.tick} aria-hidden="true">
+                            {active && <Check size={14} strokeWidth={3.2} />}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
 
             {/* Actions */}
-{members.length > 0 && (
-  <div className="flex justify-center gap-6">
-    <button
-      onClick={onClose}
-      className="px-8 py-3 rounded-full border border-gray-300
-                 text-gray-600 hover:bg-gray-100 transition"
-    >
-      Cancel
-    </button>
+            {members.length > 0 && (
+              <div className={ui.sheetFooter}>
+                <Btn variant="soft" onClick={onClose}>
+                  Cancel
+                </Btn>
 
-    <button
-      onClick={handleSave}
-      disabled={saving}
-      className="px-10 py-3 rounded-full font-semibold shadow-lg
-                 bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
-                 text-[#1F2837] hover:scale-105 hover:shadow-xl transition"
-    >
-      {saving ? "Tagging…" : "Tag People"}
-    </button>
-  </div>
-)}
-
-
+                <Btn
+                  onClick={handleSave}
+                  disabled={saving}
+                  tile={saving ? <Spinner size={16} /> : <Check size={18} strokeWidth={2.6} />}
+                >
+                  {saving ? "Tagging…" : "Tag People"}
+                </Btn>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}

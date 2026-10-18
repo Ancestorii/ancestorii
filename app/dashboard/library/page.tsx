@@ -1,15 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import UploadLibraryDrawer from './_components/UploadLibraryDrawer';
-import { motion } from 'framer-motion';
-import { Trash2, ArrowLeft, Folder } from 'lucide-react';
+import { Trash2, ArrowLeft, Folder, CalendarDays, ImagePlus, Images, Play, Plus, X } from 'lucide-react';
 import { ContextMenuDots } from '@/components/ContextMenuDots';
 import DeleteLibraryMediaModal from './_components/DeleteLibraryMediaModal';
 import CreateFolderModal from './_components/CreateFolderModal';
 import DeleteFolderModal from './_components/DeleteFolderModal';
+import {
+  ui,
+  Accent,
+  AppLoader,
+  Btn,
+  EmptyState,
+  IconBtn,
+  IconTile,
+  PageHeader,
+  SectionHead,
+  toneByKey,
+  useDialog,
+} from '@/components/dashboard/ui/AppBits';
+import s from './_components/library.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// Library is orange in the landing's feature index.
+const ORANGE = toneByKey('orange');
+
+// Dates in British English with the month as a word (02/06/2026 reads either way round).
+// A folder date is a calendar day with no time, so it is read in UTC: in the local zone it
+// slipped back a day anywhere west of London.
+function formatDay(value: string, month: 'long' | 'short' = 'long', calendarDay = false) {
+  return new Date(value).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month,
+    year: 'numeric',
+    ...(calendarDay ? { timeZone: 'UTC' } : {}),
+  });
+}
 
 type LibraryFolder = {
   id: string;
@@ -58,6 +88,13 @@ export default function LibraryPage() {
     fetchFolders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Opening a folder (or going back) swaps the page in place, not the route, so the scroll
+  // position carried over: a folder low in a long list opened part-way down its photos, with
+  // its title out of view. Start each view at the top, as a page change does.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [view]);
 
   async function fetchFolders() {
     setFoldersLoading(true);
@@ -199,221 +236,302 @@ export default function LibraryPage() {
     setFolderModalOpen(true);
   };
 
+  // The full-screen viewer: Escape closes it, focus goes back to the tile that opened it.
+  const viewerRef = useDialog<HTMLDivElement>(!!viewer, () => setViewer(null));
+  // The item on show, for its caption (the viewer keeps only the URL and the type).
+  const viewerItem = viewer ? media.find((m) => signedMap[m.id] === viewer.url) : undefined;
+  // Until the folder's own rows arrive, its count from the folder list (not "0 items").
+  const itemCount = mediaLoading && selectedFolder ? selectedFolder.media_count : media.length;
+
   return (
-    <div className="relative min-h-screen overflow-hidden font-[Inter] bg-gradient-to-b from-white via-[#fefaf3] to-[#faf7ed]">
-      <div className="relative z-10 pl-8 pr-6 sm:pl-14 sm:pr-12 md:pl-16 md:pr-16 lg:pl-20 lg:pr-32 pt-20 pb-16 max-w-[1700px] mx-auto">
+    <div className={ui.page}>
+      <div className={ui.wrap}>
 
         {view === 'folders' ? (
           // ─────────── FOLDERS VIEW ───────────
           <>
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
-              <div className="text-center md:text-left flex-1">
-                <h1 className="text-[clamp(2.25rem,4vw,3rem)] font-bold text-[#222B3A] mb-4 relative inline-block">
-                  <span className="relative">
-                    My
-                    <motion.span
-                      className="absolute left-0 -bottom-2 h-[3px] bg-[#C8A557] rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: 70 }}
-                      transition={{ delay: 0.2, duration: 0.8 }}
-                    />
-                  </span>{' '}
-                  <span className="text-[#C8A557]">Library</span>
-                </h1>
-
-                <p className="text-[#000000] text-lg mt-2">
-                  Upload your photos and videos here once. When you&apos;re adding memories to timelines, albums, or capsules, look for the &quot;My Library&quot; button to pull from this collection.
-                </p>
-              </div>
-
-              <div className="flex justify-center md:justify-end flex-1">
-                <button
+            <PageHeader
+              eyebrow="Library"
+              eyebrowDot="var(--c2)"
+              title={
+                <>
+                  My <Accent>Library</Accent>
+                </>
+              }
+              lead={
+                <>
+                  Upload your photos and videos here once. When you&apos;re adding memories to
+                  timelines, albums, or capsules, look for the &ldquo;My Library&rdquo; button to
+                  pull from this collection.
+                </>
+              }
+              actions={
+                <Btn
                   onClick={openCreateFolder}
-                  className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
+                  aria-haspopup="dialog"
+                  tile={<Plus size={18} strokeWidth={2.4} />}
                 >
-                  <span className="relative z-10">+ Create Folder</span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
-                </button>
-              </div>
-            </div>
+                  Create Folder
+                </Btn>
+              }
+            />
 
-            {foldersLoading ? (
-              <p className="text-[#778199] italic text-center">Loading your library...</p>
-            ) : folders.length === 0 ? (
-              <div className="text-center text-[#0f2040] italic mt-12">
-                Your library is empty. Create your first folder ✨
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-                {folders.map((folder) => (
-                  <div
-                    key={folder.id}
-                    onClick={() => handleEnterFolder(folder)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleEnterFolder(folder);
-                    }}
-                    className="relative text-left rounded-3xl border border-[#B7932F]/60 shadow-md md:hover:shadow-2xl md:transform md:hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95 cursor-pointer"
+            <section className={ui.section}>
+              {foldersLoading ? (
+                <AppLoader label="Loading your library" className="min-h-[40vh]" />
+              ) : folders.length === 0 ? (
+                <EmptyState
+                  Icon={Folder}
+                  tone={ORANGE}
+                  title="Your library is empty"
+                  text="Create your first folder."
+                >
+                  <Btn
+                    onClick={openCreateFolder}
+                    aria-haspopup="dialog"
+                    tile={<Plus size={18} strokeWidth={2.4} />}
                   >
-                    <div className="aspect-[16/9] relative bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden">
-                      {folder.cover_url ? (
-                        folder.cover_file_type === 'video' ? (
-                          <video
-                            src={folder.cover_url}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            muted
-                            playsInline
-                            preload="metadata"
-                          />
-                        ) : (
-                          <FolderCoverImage src={folder.cover_url} alt="" />
-                        )
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                          <Folder className="w-10 h-10 opacity-50" />
-                        </div>
-                      )}
+                    Create Folder
+                  </Btn>
+                </EmptyState>
+              ) : (
+                <>
+                  <SectionHead
+                    title="Folders"
+                    action={
+                      <span className={ui.chip}>
+                        {folders.length} {folders.length === 1 ? 'folder' : 'folders'}
+                      </span>
+                    }
+                  />
 
-                      <div className="absolute bottom-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-black/55 text-white">
-                        {folder.media_count} {folder.media_count === 1 ? 'item' : 'items'}
-                      </div>
-                    </div>
-
-                    {/* 3-dot context menu */}
-                    <div
-                      className="absolute top-3 right-3 z-20"
-                      onClick={(e) => e.stopPropagation()}
+                  {/* Columns follow the space beside the sidebar: 1 on phones, 2 on tablets, 3 to 4 on desktops */}
+                  <div className="@container">
+                    <ul
+                      role="list"
+                      className="grid grid-cols-1 gap-4 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4"
                     >
-                      <ContextMenuDots
-                        editLabel="Edit Folder"
-                        deleteLabel="Delete Folder"
-                        onEdit={() => openEditFolder(folder)}
-                        onDelete={() => setDeleteFolderTarget(folder)}
-                      />
-                    </div>
+                      {folders.map((folder) => {
+                        const nameId = `library-folder-${folder.id}-name`;
+                        const infoId = `library-folder-${folder.id}-info`;
+                        return (
+                          <li key={folder.id} className="min-w-0">
+                            <div className={s.folderCard}>
+                              <button
+                                type="button"
+                                onClick={() => handleEnterFolder(folder)}
+                                aria-labelledby={nameId}
+                                aria-describedby={infoId}
+                                className={s.folderOpen}
+                              >
+                                <span className={s.cover}>
+                                  {folder.cover_url ? (
+                                    folder.cover_file_type === 'video' ? (
+                                      <video
+                                        src={folder.cover_url}
+                                        className="absolute inset-0 h-full w-full object-cover"
+                                        muted
+                                        playsInline
+                                        preload="metadata"
+                                      />
+                                    ) : (
+                                      <FolderCoverImage src={folder.cover_url} alt="" />
+                                    )
+                                  ) : (
+                                    <span className={s.coverEmpty} aria-hidden="true">
+                                      <span className={s.coverEmptyDisc}>
+                                        <Images size={26} strokeWidth={2.2} />
+                                      </span>
+                                    </span>
+                                  )}
 
-                    <div className="p-4">
-                      <p className="text-sm font-semibold text-[#1F2837] truncate">{folder.name}</p>
-                      <p className="text-xs text-[#7A8596] mt-1">
-                        {folder.folder_date
-                          ? new Date(folder.folder_date).toLocaleDateString()
-                          : `Created ${new Date(folder.created_at).toLocaleDateString()}`}
-                      </p>
-                    </div>
+                                  <span
+                                    className={cx(ui.photoChip, s.countChip)}
+                                    style={{ '--frame': 'var(--c2)' } as CSSProperties}
+                                  >
+                                    {folder.media_count} {folder.media_count === 1 ? 'item' : 'items'}
+                                  </span>
+                                </span>
+
+                                <span className={s.folderInfo}>
+                                  <IconTile Icon={Folder} tone={ORANGE} size="sm" />
+                                  <span className="min-w-0">
+                                    <span id={nameId} className={s.folderName}>
+                                      {folder.name}
+                                    </span>
+                                    <span id={infoId} className={s.folderDate}>
+                                      {folder.folder_date
+                                        ? formatDay(folder.folder_date, 'long', true)
+                                        : `Created ${formatDay(folder.created_at)}`}
+                                      <span className={ui.srOnly}>
+                                        , {folder.media_count} {folder.media_count === 1 ? 'item' : 'items'}
+                                      </span>
+                                    </span>
+                                  </span>
+                                </span>
+                              </button>
+
+                              {/* 3-dot context menu */}
+                              <div className={s.folderMenu}>
+                                <ContextMenuDots
+                                  editLabel="Edit Folder"
+                                  deleteLabel="Delete Folder"
+                                  onEdit={() => openEditFolder(folder)}
+                                  onDelete={() => setDeleteFolderTarget(folder)}
+                                />
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </div>
-                ))}
-              </div>
-            )}
+                </>
+              )}
+            </section>
           </>
         ) : (
           // ─────────── FOLDER DETAIL VIEW ───────────
           <>
-            <button
-              onClick={handleBackToFolders}
-              className="flex items-center gap-2 text-sm text-[#5B6473] hover:text-[#1F2837] mb-6 transition"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Library
-            </button>
-
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 mb-12">
-              <div className="text-center md:text-left flex-1 min-w-0">
-                <h1 className="text-[clamp(2.25rem,4vw,3rem)] font-bold text-[#222B3A] mb-4 relative inline-block">
-                  <span className="relative">
-                    {selectedFolder?.name}
-                    <motion.span
-                      className="absolute left-0 -bottom-2 h-[3px] bg-[#C8A557] rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: 70 }}
-                      transition={{ delay: 0.2, duration: 0.8 }}
-                    />
-                  </span>
-                </h1>
-                {selectedFolder?.description && (
-                  <p className="text-[#000000] text-lg mt-2">
-                    {selectedFolder.description}
-                  </p>
-                )}
-                <p className="text-sm text-[#7A8596] mt-2">
-                  {selectedFolder?.folder_date
-                    ? new Date(selectedFolder.folder_date).toLocaleDateString()
-                    : selectedFolder
-                    ? `Created ${new Date(selectedFolder.created_at).toLocaleDateString()}`
-                    : ''}
-                  {' · '}
-                  {media.length} {media.length === 1 ? 'item' : 'items'}
-                </p>
-              </div>
-
-              <div className="flex justify-center md:justify-end flex-1 items-center">
-                <button
-                  onClick={() => setDrawerOpen(true)}
-                  className="px-8 py-4 rounded-full bg-gradient-to-r from-[#E6C26E] to-[#F3D99B] text-[#1F2837] font-semibold text-lg shadow-md hover:shadow-lg transition-transform hover:scale-[1.03] relative overflow-hidden"
-                >
-                  <span className="relative z-10">+ Add Media</span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shine_3s_linear_infinite]" />
-                </button>
-              </div>
+            <div className="mb-6 sm:mb-8">
+              <Btn
+                variant="soft"
+                onClick={handleBackToFolders}
+                icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
+              >
+                Back to Library
+              </Btn>
             </div>
 
-            {mediaLoading ? (
-              <p className="text-[#778199] italic text-center">Loading folder...</p>
-            ) : media.length === 0 ? (
-              <div className="text-center text-[#0f2040] italic mt-12">
-                This folder is empty. Add your first memory ✨
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-                {media.map((item) => {
-                  const url = signedMap[item.id];
-                  if (!url) return null;
+            <PageHeader
+              size="md"
+              eyebrow="Library"
+              eyebrowDot="var(--c2)"
+              title={selectedFolder?.name}
+              meta={
+                selectedFolder && (
+                  <>
+                    <span className={ui.chip}>
+                      <CalendarDays size={15} strokeWidth={2.4} aria-hidden="true" />
+                      {selectedFolder.folder_date
+                        ? formatDay(selectedFolder.folder_date, 'long', true)
+                        : `Created ${formatDay(selectedFolder.created_at)}`}
+                    </span>
+                    <span className={ui.chip}>
+                      <Images size={15} strokeWidth={2.4} aria-hidden="true" />
+                      {itemCount} {itemCount === 1 ? 'item' : 'items'}
+                    </span>
+                  </>
+                )
+              }
+              lead={
+                selectedFolder?.description ? (
+                  // Typed by hand: a long link or word wraps instead of running off the edge.
+                  <span className="block [overflow-wrap:anywhere]">{selectedFolder.description}</span>
+                ) : undefined
+              }
+              actions={
+                <Btn
+                  onClick={() => setDrawerOpen(true)}
+                  aria-haspopup="dialog"
+                  tile={<Plus size={18} strokeWidth={2.4} />}
+                >
+                  Add Media
+                </Btn>
+              }
+            />
 
-                  return (
-                    <div
-                      key={item.id}
-                      className="rounded-3xl border border-[#B7932F]/60 shadow-md md:hover:shadow-2xl md:transform md:hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white/95"
-                    >
-                      <div
-                        onClick={() => setViewer({ url, type: item.file_type })}
-                        className="aspect-[16/9] relative bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden cursor-zoom-in"
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteMediaTarget({ id: item.id, filePath: item.file_path });
-                          }}
-                          className="absolute top-3 right-3 z-50 w-6 h-6 md:w-7 md:h-7 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-700 transition"
-                        >
-                          <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                        </button>
+            <section className={ui.section} aria-label="Photos and videos">
+              {mediaLoading ? (
+                <AppLoader label="Loading folder" className="min-h-[40vh]" />
+              ) : media.length === 0 ? (
+                <EmptyState
+                  Icon={ImagePlus}
+                  tone={ORANGE}
+                  title="This folder is empty"
+                  text="Add your first memory."
+                >
+                  <Btn
+                    onClick={() => setDrawerOpen(true)}
+                    aria-haspopup="dialog"
+                    tile={<Plus size={18} strokeWidth={2.4} />}
+                  >
+                    Add Media
+                  </Btn>
+                </EmptyState>
+              ) : (
+                // Columns follow the space beside the sidebar: 2 on phones up to 6 on wide screens
+                <div className="@container">
+                  <ul
+                    role="list"
+                    className="grid grid-cols-2 gap-3 sm:gap-4 @lg:grid-cols-3 @2xl:grid-cols-4 @4xl:grid-cols-5 @6xl:grid-cols-6"
+                  >
+                    {media.map((item) => {
+                      const url = signedMap[item.id];
+                      if (!url) return null;
 
-                        {item.file_type === 'video' ? (
-                          <div className="relative w-full h-full">
-                            <video
-                              key={url || item.file_path}
-                              src={url}
-                              className="absolute inset-0 w-full h-full object-cover"
-                              controls
-                              playsInline
-                              preload="metadata"
-                            />
+                      const isVideo = item.file_type === 'video';
+                      const dateId = `library-media-${item.id}-date`;
+
+                      return (
+                        <li key={item.id} className="min-w-0">
+                          <div className={s.tile}>
+                            {/* The tile opens the viewer; a video plays there, with its controls */}
+                            <button
+                              type="button"
+                              onClick={() => setViewer({ url, type: item.file_type })}
+                              aria-label={isVideo ? 'Play video' : 'Open photo'}
+                              aria-describedby={dateId}
+                              aria-haspopup="dialog"
+                              className={s.tileOpen}
+                            >
+                              {isVideo ? (
+                                <video
+                                  key={url || item.file_path}
+                                  src={url}
+                                  className={s.tileVideo}
+                                  muted
+                                  playsInline
+                                  preload="metadata"
+                                />
+                              ) : (
+                                <LibraryImage src={url} alt="" />
+                              )}
+
+                              {isVideo && (
+                                <span className={cx(ui.chip, ui.chipInk, ui.chipSm, s.playChip)} aria-hidden="true">
+                                  <Play size={11} strokeWidth={0} fill="currentColor" />
+                                  Video
+                                </span>
+                              )}
+                            </button>
+
+                            <IconBtn
+                              label={isVideo ? 'Delete this video' : 'Delete this photo'}
+                              size="sm"
+                              onPhoto
+                              aria-describedby={dateId}
+                              aria-haspopup="dialog"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteMediaTarget({ id: item.id, filePath: item.file_path });
+                              }}
+                              className={s.tileDelete}
+                            >
+                              <Trash2 size={16} strokeWidth={2.4} aria-hidden="true" />
+                            </IconBtn>
                           </div>
-                        ) : (
-                          <LibraryImage src={url} alt="" />
-                        )}
-                      </div>
 
-                      <div className="p-4">
-                        <p className="text-xs text-[#7A8596]">
-                          Added on {new Date(item.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                          <p id={dateId} className={s.tileDate}>
+                            Added on {formatDay(item.created_at, 'short')}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </section>
           </>
         )}
       </div>
@@ -493,43 +611,61 @@ export default function LibraryPage() {
         }}
       />
 
+      {/* ─── VIEWER: a click anywhere but on a video closes it, as before ─── */}
       {viewer && (
         <div
-          className="fixed inset-0 z-[2000] bg-black/95 flex items-center justify-center"
+          ref={viewerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="library-viewer-title"
+          className={s.viewer}
           onClick={() => setViewer(null)}
         >
-          <div className="max-w-[95vw] max-h-[95vh]">
+          <h2 id="library-viewer-title" className={ui.srOnly}>
+            {viewer.type === 'video' ? 'Video' : 'Photo'}
+          </h2>
+
+          <div className={s.viewerBar}>
+            {viewerItem && (
+              <span className={ui.chip}>Added on {formatDay(viewerItem.created_at)}</span>
+            )}
+            <IconBtn
+              label="Close"
+              onPhoto
+              onClick={(e) => {
+                e.stopPropagation();
+                setViewer(null);
+              }}
+              className={s.viewerClose}
+            >
+              <X size={20} strokeWidth={2.4} aria-hidden="true" />
+            </IconBtn>
+          </div>
+
+          <div className={s.viewerStage}>
             {viewer.type === 'video' ? (
+              // A click or tap on the video is for the video (pause, show its controls), so it
+              // stops here instead of reaching the backdrop's close.
               <video
                 src={viewer.url}
                 controls
                 autoPlay
-                className="max-w-full max-h-[95vh] rounded-lg"
+                onClick={(e) => e.stopPropagation()}
+                className={s.viewerMedia}
               />
             ) : (
-              <img
-                src={viewer.url}
-                className="max-w-full max-h-[95vh] rounded-lg"
-              />
+              // Full size at its own shape, so a plain img (next/image needs a sized box).
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={viewer.url} alt="" className={s.viewerMedia} />
             )}
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        @keyframes shine {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-      `}</style>
     </div>
   );
 }
 
+// Inside a tile button, so a span (a button holds only inline content).
 function LibraryImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false);
 
@@ -538,20 +674,21 @@ function LibraryImage({ src, alt }: { src: string; alt: string }) {
   }, [src]);
 
   return (
-    <div className="relative w-full h-full">
+    <span className="relative block h-full w-full">
       <Image
         src={src}
         alt={alt}
         fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 20vw"
+        sizes="(max-width: 639px) 50vw, (max-width: 1023px) 34vw, 20vw"
         quality={90}
         className={`object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
         onLoadingComplete={() => setLoaded(true)}
       />
-    </div>
+    </span>
   );
 }
 
+// Inside the folder card's button, so a span too.
 function FolderCoverImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false);
 
@@ -560,16 +697,16 @@ function FolderCoverImage({ src, alt }: { src: string; alt: string }) {
   }, [src]);
 
   return (
-    <div className="relative w-full h-full">
+    <span className="relative block h-full w-full">
       <Image
         src={src}
         alt={alt}
         fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 20vw"
+        sizes="(max-width: 479px) 100vw, (max-width: 1279px) 50vw, 30vw"
         quality={90}
         className={`object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
         onLoadingComplete={() => setLoaded(true)}
       />
-    </div>
+    </span>
   );
 }

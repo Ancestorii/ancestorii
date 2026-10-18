@@ -1,10 +1,26 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
-import { X, ImagePlus, Video, Loader2, ArrowLeft, Folder } from 'lucide-react';
+import { X, ImagePlus, Video, ArrowLeft, Folder, Check, ImageOff } from 'lucide-react';
+import {
+  ui,
+  AppLoader,
+  Btn,
+  EmptyState,
+  IconBtn,
+  IconTile,
+  toneByKey,
+  useDialog,
+} from '@/components/dashboard/ui/AppBits';
+import s from './LibraryPickerModal.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// Library's colour on the landing's feature index.
+const ORANGE = toneByKey('orange');
 
 export type LibraryPickerItem = {
   id: string;
@@ -99,6 +115,10 @@ export default function LibraryPickerModal({
     const t = setTimeout(() => setMounted(false), 200);
     return () => clearTimeout(t);
   }, [open]);
+
+  // Escape closes it (as the close button does), Tab stays inside, focus returns to the button.
+  const titleId = useId();
+  const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
   // ── Data fetching ──────────────────────────────────────────
   const fetchFolders = async () => {
@@ -304,119 +324,106 @@ export default function LibraryPickerModal({
 
   return (
     <div
-      className={`fixed inset-0 z-[1200] flex items-center justify-center transition-opacity duration-200 ${
-        open ? 'opacity-100' : 'opacity-0'
-      }`}
+      className={cx(
+        s.overlay,
+        'fixed inset-0 z-[1200] flex items-end justify-center sm:items-center sm:p-6'
+      )}
+      data-open={open}
     >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      {/* Backdrop (scrim-blur blurs only with a mouse, see globals.css) */}
+      <div className={cx(ui.scrim, 'scrim-blur')} onClick={onClose} aria-hidden="true" />
 
       {/* Modal */}
       <div
-        className={`relative w-full max-w-5xl mx-4 bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-200 flex flex-col max-h-[80vh] ${
-          open ? 'scale-100 translate-y-0' : 'scale-[0.98] translate-y-2'
-        }`}
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        data-open={open}
+        className={cx(ui.sheet, ui.sheetBottom, s.panel)}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 sm:px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-white via-[#fefaf3] to-white flex-shrink-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-2 min-w-0">
-              {view === 'media' && (
-                <button
-                  onClick={handleBackToFolders}
-                  className="shrink-0 rounded-full p-2 hover:bg-gray-100 transition mt-0.5"
-                  aria-label="Back to folders"
-                >
-                  <ArrowLeft className="w-5 h-5 text-[#1F2837]" />
-                </button>
-              )}
-              <div className="min-w-0">
-                <h2 className="text-2xl sm:text-3xl font-bold text-[#1F2837]">
-                  {title}
-                </h2>
-                <p className="text-sm sm:text-base text-[#5B6473] mt-2">
-                  {subtitle}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="shrink-0 rounded-full p-2 hover:bg-gray-100 transition"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5 text-[#1F2837]" />
-            </button>
+        <div className={ui.sheetHeader}>
+          <div className="min-w-0">
+            <h2 id={titleId} className={ui.sheetTitle}>
+              {title}
+            </h2>
+            <p className={ui.sheetSub}>{subtitle}</p>
           </div>
 
-          {/* Type filter: only inside a folder */}
-          {view === 'media' && (
-            <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:items-center">
-              <div className="flex flex-wrap gap-2 sm:ml-auto">
-                <FilterPill
-                  active={activeType === 'all'}
-                  onClick={() => setActiveType('all')}
-                  label="All"
-                />
-                <FilterPill
-                  active={activeType === 'image'}
-                  onClick={() => setActiveType('image')}
-                  label="Images"
-                  icon={<ImagePlus className="w-4 h-4" />}
-                />
-                <FilterPill
-                  active={activeType === 'video'}
-                  onClick={() => setActiveType('video')}
-                  label="Videos"
-                  icon={<Video className="w-4 h-4" />}
-                />
-              </div>
-            </div>
-          )}
+          <IconBtn label="Close" onClick={onClose}>
+            <X size={20} strokeWidth={2.4} aria-hidden="true" />
+          </IconBtn>
         </div>
 
-        {/* Body */}
-        <div className="px-6 sm:px-8 py-6 flex-1 min-h-0 overflow-y-auto">
-          {loading ? (
-            <div className="flex items-center justify-center py-16 text-[#5B6473]">
-              <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              Loading your library…
+        {/* Inside a folder: back to the folders, and the type filter */}
+        {view === 'media' && (
+          <div className={s.toolbar}>
+            <Btn
+              variant="soft"
+              size="sm"
+              onClick={handleBackToFolders}
+              icon={<ArrowLeft size={16} strokeWidth={2.4} aria-hidden="true" />}
+            >
+              Back to folders
+            </Btn>
+
+            <div className={ui.tabs} role="group" aria-label="Filter by type">
+              <FilterPill
+                active={activeType === 'all'}
+                onClick={() => setActiveType('all')}
+                label="All"
+              />
+              <FilterPill
+                active={activeType === 'image'}
+                onClick={() => setActiveType('image')}
+                label="Images"
+                icon={<ImagePlus size={16} strokeWidth={2.2} className={s.tabIcon} aria-hidden="true" />}
+              />
+              <FilterPill
+                active={activeType === 'video'}
+                onClick={() => setActiveType('video')}
+                label="Videos"
+                icon={<Video size={16} strokeWidth={2.2} className={s.tabIcon} aria-hidden="true" />}
+              />
             </div>
+          </div>
+        )}
+
+        {/* Body */}
+        <div className={ui.sheetBody} aria-busy={loading || undefined}>
+          {loading ? (
+            <AppLoader label="Loading your library" className="min-h-full" />
           ) : view === 'folders' ? (
             folders.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-[#1F2837] font-semibold">
-                  No folders yet.
-                </p>
-                <p className="text-sm text-[#5B6473] mt-2">
-                  Create a folder in <span className="font-medium">My Library</span> first.
-                </p>
-              </div>
+              <EmptyState
+                Icon={Folder}
+                tone={ORANGE}
+                title="No folders yet."
+                text={
+                  <>
+                    Create a folder in <span className="font-extrabold">My Library</span> first.
+                  </>
+                }
+                className="min-h-full justify-center shadow-none"
+              />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className={s.grid}>
                 {folders.map((f) => (
                   <button
                     type="button"
                     key={f.id}
                     onClick={() => handleEnterFolder(f.id)}
-                    className={[
-                      'text-left rounded-3xl border overflow-hidden bg-white',
-                      'transition-all duration-200',
-                      'border-[#B7932F]/40 hover:shadow-lg hover:border-[#B7932F]/70',
-                      'cursor-pointer',
-                    ].join(' ')}
+                    className={s.folder}
                   >
                     {/* Cover */}
-                    <div className="relative aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden">
+                    <span className={s.cover}>
                       {f.cover_url ? (
                         f.cover_file_type === 'video' ? (
                           <video
                             src={f.cover_url}
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className={s.media}
                             muted
                             playsInline
                             preload="metadata"
@@ -425,48 +432,42 @@ export default function LibraryPickerModal({
                           <PickerImage src={f.cover_url} alt="" />
                         )
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                          <Folder className="w-8 h-8 opacity-50" />
-                        </div>
+                        <span className={s.coverEmpty}>
+                          <IconTile Icon={Folder} tone={ORANGE} />
+                        </span>
                       )}
 
-                      {/* Count badge (same style as type badge in media view) */}
-                      <div className="absolute bottom-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-black/55 text-white">
+                      {/* Count chip */}
+                      <span className={s.countChip}>
                         {f.media_count} {f.media_count === 1 ? 'item' : 'items'}
-                      </div>
-                    </div>
+                      </span>
+                    </span>
 
                     {/* Folder meta */}
-                    <div className="p-4">
-                      <p className="text-sm font-semibold text-[#1F2837] truncate">
-                        {f.name}
-                      </p>
-                      <p className="text-xs text-[#7A8596] mt-1">
-                        {f.folder_date
-                          ? new Date(f.folder_date).toLocaleDateString()
-                          : f.created_at
-                          ? new Date(f.created_at).toLocaleDateString()
-                          : 'No date'}
-                      </p>
-                    </div>
+                    <span className={s.folderName}>{f.name}</span>
+                    <span className={s.folderDate}>
+                      {f.folder_date
+                        ? new Date(f.folder_date).toLocaleDateString()
+                        : f.created_at
+                        ? new Date(f.created_at).toLocaleDateString()
+                        : 'No date'}
+                    </span>
                   </button>
                 ))}
               </div>
             )
           ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-[#1F2837] font-semibold">
-                No media found.
-              </p>
-              <p className="text-sm text-[#5B6473] mt-2">
-                This folder is empty for the selected filter.
-              </p>
-            </div>
+            <EmptyState
+              Icon={ImageOff}
+              tone={ORANGE}
+              title="No media found."
+              text="This folder is empty for the selected filter."
+              className="min-h-full justify-center shadow-none"
+            />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className={s.grid}>
               {filtered.map((item) => {
                 const url = signedMap[item.id];
-                const ready = !!url;
                 const selected = pickedIds.has(item.id);
                 const disabled = !canPick(item);
 
@@ -476,27 +477,17 @@ export default function LibraryPickerModal({
                     key={item.id}
                     onClick={() => handlePick(item)}
                     disabled={disabled}
-                    className={[
-                      'text-left rounded-3xl border overflow-hidden bg-white',
-                      'transition-all duration-200',
-                      'transition-opacity duration-300',
-                      ready ? 'opacity-100' : 'opacity-0',
-                      selected
-                        ? 'border-[#C8A557] shadow-[0_0_0_3px_rgba(230,194,110,0.35)]'
-                        : 'border-[#B7932F]/40 hover:shadow-lg hover:border-[#B7932F]/70',
-                      disabled ? 'cursor-not-allowed' : 'cursor-pointer',
-                    ].join(' ')}
+                    aria-pressed={selected}
+                    className={s.tile}
                   >
                     {/* Preview */}
-                    <div className="relative aspect-[16/9] bg-gradient-to-b from-[#F3F4F6] to-[#EAECEF] overflow-hidden">
+                    <span className={s.thumb}>
                       {!url ? (
-                        <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">
-                          Preview unavailable
-                        </div>
+                        <span className={s.noPreview}>Preview unavailable</span>
                       ) : item.file_type === 'video' ? (
                         <video
                           src={url}
-                          className="absolute inset-0 w-full h-full object-cover"
+                          className={s.media}
                           muted
                           playsInline
                           preload="metadata"
@@ -505,27 +496,21 @@ export default function LibraryPickerModal({
                         <PickerImage src={url} alt="" />
                       )}
 
-                      {/* Selected badge */}
-                      {selected && (
-                        <div className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-[#C8A557] text-[#1F2837] shadow">
-                          Selected
-                        </div>
-                      )}
+                      {/* Selected: the ink check */}
+                      <span className={s.check} aria-hidden="true">
+                        {selected && <Check size={16} strokeWidth={3} />}
+                      </span>
 
-                      {/* Type badge */}
-                      <div className="absolute bottom-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-black/55 text-white">
-                        {prettyType(item.file_type)}
-                      </div>
-                    </div>
+                      {/* Type chip */}
+                      <span className={s.typeChip}>{prettyType(item.file_type)}</span>
+                    </span>
 
                     {/* Meta */}
-                    <div className="p-4">
-                      <p className="text-xs text-[#7A8596]">
-                        {item.created_at
-                          ? `Added on ${new Date(item.created_at).toLocaleDateString()}`
-                          : 'No date'}
-                      </p>
-                    </div>
+                    <span className={s.meta}>
+                      {item.created_at
+                        ? `Added on ${new Date(item.created_at).toLocaleDateString()}`
+                        : 'No date'}
+                    </span>
                   </button>
                 );
               })}
@@ -534,27 +519,19 @@ export default function LibraryPickerModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 sm:px-8 py-5 border-t border-gray-100 bg-white flex-shrink-0">
-          <div className="flex items-center justify-between gap-4">
-            <button
-              onClick={onClose}
-              className="text-sm text-gray-500 hover:text-gray-700 transition"
-            >
-              Cancel
-            </button>
+        <div className={cx(ui.sheetFooter, s.footer)}>
+          <p className={s.count} aria-live="polite">
+            {pickedIds.size} selected
+          </p>
 
-            <button
-              onClick={confirmPick}
-              disabled={pickedIds.size === 0}
-              className="px-6 py-2 rounded-full text-sm font-semibold
-                         bg-gradient-to-r from-[#E6C26E] to-[#F3D99B]
-                         text-[#1F2837] shadow
-                         hover:shadow-lg hover:scale-[1.01]
-                         disabled:opacity-60 disabled:hover:shadow disabled:hover:scale-100
-                         transition"
-            >
+          <div className={s.footerActions}>
+            <Btn variant="soft" onClick={onClose}>
+              Cancel
+            </Btn>
+
+            <Btn onClick={confirmPick} disabled={pickedIds.size === 0}>
               {pickedIds.size <= 1 ? 'Use Selected Media' : `Add ${pickedIds.size} Items`}
-            </button>
+            </Btn>
           </div>
         </div>
       </div>
@@ -574,16 +551,8 @@ function FilterPill({
   icon?: React.ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        'px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-2 transition',
-        active
-          ? 'bg-[#1F2837] text-white shadow'
-          : 'bg-gray-100 text-[#1F2837] hover:bg-gray-200',
-      ].join(' ')}
-    >
+    // focusInset: the tab strip scrolls sideways, which would clip a ring drawn outside the tab.
+    <button type="button" onClick={onClick} aria-pressed={active} className={cx(ui.tab, ui.focusInset, s.tab)}>
       {icon}
       {label}
     </button>
@@ -613,7 +582,7 @@ function PickerImage({ src, alt }: { src: string; alt: string }) {
         src={src}
         alt={alt}
         fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        sizes="(max-width: 640px) 50vw, (max-width: 900px) 33vw, 220px"
         quality={90}
         className={[
           'object-cover transition-opacity duration-300',

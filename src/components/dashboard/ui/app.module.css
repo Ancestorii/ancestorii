@@ -161,6 +161,7 @@
   line-height: 1.55;
   font-weight: 500;
   text-wrap: pretty;
+  overflow-wrap: break-word;
 }
 
 .meta {
@@ -216,6 +217,7 @@
   letter-spacing: -0.04em;
   font-weight: 800;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .h3 {
@@ -225,6 +227,7 @@
   letter-spacing: -0.03em;
   font-weight: 800;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .sectionLead {
@@ -234,6 +237,7 @@
   line-height: 1.55;
   font-weight: 500;
   text-wrap: pretty;
+  overflow-wrap: break-word;
 }
 
 .body {
@@ -625,7 +629,7 @@
     box-shadow: inset 0 0 0 1.5px var(--ink);
   }
 
-  .iconBtnGhost:not(:disabled):hover {
+  .iconBtnGhost:not(:disabled):not([aria-expanded='true']):not([aria-pressed='true']):not(.iconBtnActive):hover {
     background: var(--hover);
   }
 }
@@ -1119,6 +1123,28 @@
   color: #fff;
 }
 
+/* The tab row scrolls sideways, which would clip an outside ring: draw it inside. */
+.app .tab:focus-visible {
+  outline-offset: -3px;
+}
+
+/* Full-width two- or three-way switch: the tabs share the row equally. */
+.tabsBlock {
+  display: flex;
+  width: 100%;
+}
+
+.tabsBlock > .tab {
+  flex: 1 1 0;
+  justify-content: center;
+}
+
+@media (pointer: coarse) {
+  .tab {
+    min-height: 44px;
+  }
+}
+
 @media (hover: hover) {
   .tab:not([aria-selected='true']):not([aria-pressed='true']):not(.tabActive):hover {
     background: var(--hover);
@@ -1157,6 +1183,13 @@
   border-radius: 28px 28px 0 0;
 }
 
+/* useDialog focuses the panel itself (tabindex -1) so a phone keyboard doesn't jump up; the
+   panel needs no ring of its own (its controls keep theirs). */
+.sheet:focus,
+.app [data-app-dialog]:focus {
+  outline: none;
+}
+
 .sheetHandle {
   width: 40px;
   height: 4px;
@@ -1182,6 +1215,7 @@
   letter-spacing: -0.04em;
   font-weight: 800;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .sheetSub {
@@ -1210,6 +1244,26 @@
   flex: none;
 }
 
+/* Footer with a status on the left ("3 selected") and the actions on the right; on phones
+   the status takes its own line above the buttons. */
+.sheetFooterSplit {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sheetFooterStatus {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  margin-right: auto;
+}
+
+.sheetFooterActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 @media (max-width: 599px) {
   .sheetHeader {
     padding: 18px 16px 12px 20px;
@@ -1226,6 +1280,160 @@
   .sheetFooter > * {
     flex: 1 1 auto;
   }
+
+  .sheetFooterSplit > .sheetFooterStatus {
+    flex-basis: 100%;
+  }
+
+  .sheetFooterActions > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* ── Uploads, photo tiles, the full-screen viewer ─────────── */
+
+/* File drop zone: a dashed box with the file input inside (make the input visually hidden
+   but focusable, or put the zone on a <button>/<label>). Add .dropzoneActive (or
+   data-drag="true") while a file is dragged over it. */
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 150px;
+  padding: 24px 20px;
+  border: 2px dashed rgba(10, 10, 15, 0.2);
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.dropzoneActive,
+.dropzone[data-drag='true'] {
+  border-color: var(--ink);
+  background: var(--hover);
+}
+
+.dropzone:has(input:focus-visible) {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .dropzone:hover {
+    border-color: var(--ink);
+  }
+}
+
+.dropzoneTitle {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.dropzoneHint {
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* A square photo or video tile in a grid. The faint inset hairline keeps a white photo's
+   edge on a white page. Put the img/video inside with object-fit: cover. */
+.photoTile {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--hover);
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.photoTile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(10, 10, 15, 0.08);
+  pointer-events: none;
+}
+
+.photoTile img,
+.photoTile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Selected in a picker: an ink ring outside a white gap. */
+.photoTile[aria-pressed='true'],
+.photoTileSelected {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 6px var(--ink);
+}
+
+@media (hover: hover) {
+  .photoTile:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.photoTile:active {
+  transform: scale(0.98);
+  transition-duration: 80ms;
+}
+
+/* Full-screen photo or video viewer: ink backdrop, a top bar (caption chip left, round
+   white close right), the media centred in the stage. */
+.viewer {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 10, 15, 0.94);
+  color: #fff;
+}
+
+.viewerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(12px, env(safe-area-inset-top, 0px)) 16px 12px;
+  flex: none;
+}
+
+.viewerStage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px max(16px, env(safe-area-inset-bottom, 0px));
+}
+
+.viewerStage img,
+.viewerStage video {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 16px;
+  object-fit: contain;
 }
 
 /* ── Menus (dropdowns, popovers) ──────────────────────────── */
@@ -1300,6 +1508,7 @@
   letter-spacing: -0.04em;
   font-weight: 800;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .emptyText {
@@ -1370,6 +1579,12 @@
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* Inside a dialog or card: no half-screen height. */
+.loaderCompact {
+  min-height: 0;
+  padding: 32px 16px;
 }
 
 /* Placeholder block while something loads. */

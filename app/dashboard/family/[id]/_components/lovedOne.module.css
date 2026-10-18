@@ -1,0 +1,1038 @@
+/* ============================================================
+   A loved one's page (/dashboard/family/[id]): the looks the app
+   kit (src/components/dashboard/ui/app.module.css) doesn't have.
+   Kit classes sit in the "components" cascade layer; this file is
+   unlayered, so a rule here wins over a kit class or a Tailwind
+   utility on the same element.
+   Phones first, then 600px, 768px, 1024px and 1280px.
+   ============================================================ */
+
+/* ── Top row: the way back ────────────────────────────────── */
+
+.topRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: clamp(24px, 3.4vw, 40px);
+}
+
+/* ── Profile: name, portrait, facts and the short description ── */
+
+/* Phones: the name first (like every page's header), then the portrait, the facts and the
+   description. From 600px the portrait sits beside the name; from 1024px it holds the left
+   column and everything else stacks on the right. */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'head'
+    'photo'
+    'facts'
+    'about';
+  gap: 24px;
+}
+
+.heroHead {
+  grid-area: head;
+  min-width: 0;
+}
+
+.heroPhoto {
+  grid-area: photo;
+  min-width: 0;
+}
+
+.heroFacts {
+  grid-area: facts;
+  min-width: 0;
+}
+
+.heroAbout {
+  grid-area: about;
+  min-width: 0;
+}
+
+@media (min-width: 600px) {
+  .hero {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-areas:
+      'photo head'
+      'facts facts'
+      'about about';
+    column-gap: 32px;
+    row-gap: 28px;
+    align-items: start;
+  }
+
+  .heroHead {
+    align-self: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'photo head'
+      'photo facts'
+      'photo about';
+    column-gap: clamp(40px, 4.4vw, 64px);
+    row-gap: 24px;
+  }
+
+  .heroHead {
+    align-self: start;
+    padding-top: 8px;
+  }
+
+  .heroAbout {
+    align-self: start;
+  }
+}
+
+/* The chips over the name wrap; the birthday one wraps inside itself if a long first name
+   needs it. */
+.heroChips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-bottom: 18px;
+}
+
+.chipWrap {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* ── Portrait: a button that opens the loved one's details ── */
+
+/* One column (below 600px): the portrait and its facts stop at a comfortable size. */
+@media (max-width: 599px) {
+  .heroPhoto {
+    max-width: 520px;
+  }
+}
+
+.portrait {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.portraitImg {
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
+}
+
+.portraitImgLoaded {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: hover) {
+  .portrait:hover .portraitImgLoaded {
+    transform: scale(1.02);
+  }
+}
+
+/* "Change photo" in a white pill on the photo: always shown, so phones see it too. */
+.photoAction {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 14px 0 12px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.55);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .portrait:hover .photoAction {
+    transform: translateY(-2px);
+  }
+}
+
+/* No portrait yet: an add button in the middle of the frame. */
+.portraitEmpty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.addCircle {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  box-shadow:
+    var(--hairline-ring),
+    0 10px 24px -14px rgba(10, 10, 15, 0.5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .portrait:hover .addCircle {
+    transform: scale(1.06);
+  }
+}
+
+.addTitle {
+  display: block;
+  margin-top: 16px;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+.addText {
+  display: block;
+  max-width: 240px;
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* ── Two short facts under the portrait ───────────────────── */
+
+.stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 14px;
+  min-height: 52px;
+  padding: 12px 16px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.statValue {
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+/* ── Born, life status, relationship ──────────────────────── */
+
+/* Phones: a row each, the icon tile beside the words. From 600px: three cards side by side,
+   the tile over the words (they stay readable in a narrow column). */
+.facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.fact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.factText {
+  min-width: 0;
+}
+
+.factLabel {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.factValue {
+  display: block;
+  margin-top: 3px;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 600px) {
+  .facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .fact {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px 18px;
+  }
+}
+
+/* ── About them: a few words, edited in place ─────────────── */
+
+/* The heading's row is as tall as the pencil, which sits at its right end. */
+.aboutHead {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding-right: 48px;
+}
+
+/* The words are a button: a tap or click starts editing them. Its pencil is drawn up in the
+   heading's row (36px row + 10px gap above the button), so the words get the full width. */
+.aboutView {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: text;
+}
+
+.quoteMark {
+  flex: none;
+  height: 0.62em;
+  margin-top: 0.02em;
+  font-size: 64px;
+  line-height: 0.9;
+  font-weight: 800;
+  color: var(--c0);
+}
+
+.aboutText {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 2px;
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.aboutEmpty {
+  font-weight: 500;
+}
+
+.aboutPencil {
+  position: absolute;
+  top: -46px;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s ease;
+}
+
+@media (hover: hover) {
+  .aboutView:hover .aboutPencil {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+}
+
+.aboutEdit {
+  margin-top: 10px;
+}
+
+.aboutInput.aboutInput {
+  min-height: 96px;
+  resize: none;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.aboutBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 12px;
+}
+
+.aboutCount {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.aboutButtons {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Story: four chapters, each a card ────────────────────── */
+
+.chapters {
+  display: grid;
+  gap: clamp(16px, 2vw, 24px);
+}
+
+/* Phones: the chapter's name, its photo, then the writing. From 600px the photo holds the
+   left column and the name and the writing stack on the right. */
+.chapter.chapter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'head'
+    'photo'
+    'write';
+  gap: 20px;
+  border-radius: 28px;
+}
+
+@media (min-width: 600px) {
+  .chapter.chapter {
+    grid-template-columns: minmax(200px, 34%) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'photo head'
+      'photo write';
+    column-gap: clamp(24px, 3vw, 40px);
+    row-gap: 22px;
+    padding: clamp(20px, 2.4vw, 32px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .chapter.chapter {
+    grid-template-columns: 380px minmax(0, 1fr);
+  }
+}
+
+.chapterHead {
+  grid-area: head;
+  min-width: 0;
+}
+
+.chapterTitle {
+  margin: 12px 0 0;
+  font-size: clamp(24px, 2.2vw, 30px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.chapterHint {
+  margin: 6px 0 0;
+  font-size: 15.5px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.chapterPhoto {
+  grid-area: photo;
+  min-width: 0;
+  align-self: start;
+}
+
+.chapterWrite {
+  grid-area: write;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ── A chapter's photo ────────────────────────────────────── */
+
+/* The same box with or without a photo, so nothing moves when one loads. */
+.photoBox {
+  position: relative;
+  aspect-ratio: 4 / 3;
+}
+
+@media (min-width: 600px) {
+  .photoBox {
+    aspect-ratio: 4 / 5;
+  }
+}
+
+/* The label opens the file picker (its input is visually hidden but reachable with Tab). */
+.photoPick {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: 24px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.photoPick:has(input:focus-visible) {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+.photoFrame {
+  position: absolute;
+  inset: 0;
+  padding: 6px;
+  border-radius: 24px;
+  background: var(--frame, var(--c0));
+}
+
+.photoInner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--hover);
+}
+
+/* No photo yet: the kit's file drop zone look. */
+.dropZone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px;
+  border: 2px dashed rgba(10, 10, 15, 0.2);
+  border-radius: 22px;
+  background: #fff;
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .photoPick:hover .dropZone {
+    border-color: var(--ink);
+  }
+}
+
+.dropTitle {
+  font-size: 17px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+/* The "Upload image" pill is part of the label, not a button of its own. */
+.dropBtn.dropBtn {
+  pointer-events: none;
+}
+
+.photoRemove.photoRemove {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+}
+
+/* 2px larger than the photo box on every side (and its radius 2px rounder), so the frame's
+   colour and the drop zone's dashed corners never show through its anti-aliased edge. */
+.uploading {
+  position: absolute;
+  inset: -2px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+/* ── Writing prompts ──────────────────────────────────────── */
+
+.promptsLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.promptList {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 1280px) {
+  .promptList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The kit's chip with a dot, opened up for a whole question: it wraps, top-aligned. */
+.prompt.prompt {
+  display: flex;
+  align-items: flex-start;
+  height: 100%;
+  min-height: 0;
+  padding: 11px 15px 11px 13px;
+  border-radius: 16px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  font-weight: 600;
+  white-space: normal;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.prompt.prompt::before {
+  margin-top: calc((1.45em - 8px) / 2);
+}
+
+/* ── The editor (Quill, in the kit's field look) ─────────── */
+
+.writeHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.writeIcon {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.writeLabel {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+.writeHint {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+/* The min-height is the toolbar plus the empty editor, so the box keeps its size while
+   Quill starts (it adds both a moment after the page appears). */
+.quill {
+  min-height: 305px;
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+  overflow: hidden;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+@media (min-width: 600px) {
+  .quill {
+    min-height: 307px;
+  }
+}
+
+@media (min-width: 768px) {
+  .quill {
+    min-height: 347px;
+  }
+}
+
+.quill:focus-within {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+.quill :global(.ql-toolbar.ql-snow) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1.5px solid rgba(10, 10, 15, 0.08);
+  font-family: inherit;
+}
+
+.quill :global(.ql-toolbar.ql-snow .ql-formats) {
+  display: inline-flex;
+  gap: 4px;
+  margin-right: 0;
+}
+
+.quill :global(.ql-toolbar.ql-snow .ql-formats + .ql-formats) {
+  margin-left: 4px;
+  padding-left: 10px;
+  box-shadow: inset 1.5px 0 0 rgba(10, 10, 15, 0.1);
+}
+
+.quill.quill :global(.ql-snow.ql-toolbar button) {
+  float: none;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 12px;
+  transition: background-color 0.15s ease;
+}
+
+.quill.quill :global(.ql-snow.ql-toolbar button svg) {
+  float: none;
+  width: 22px;
+  height: 22px;
+}
+
+.quill.quill :global(.ql-snow .ql-stroke),
+.quill.quill :global(.ql-snow.ql-toolbar button:hover .ql-stroke),
+.quill.quill :global(.ql-snow.ql-toolbar button:focus .ql-stroke),
+.quill.quill :global(.ql-snow.ql-toolbar button:hover:not(.ql-active) .ql-stroke) {
+  stroke: var(--ink);
+}
+
+.quill.quill :global(.ql-snow .ql-fill),
+.quill.quill :global(.ql-snow.ql-toolbar button:hover .ql-fill),
+.quill.quill :global(.ql-snow.ql-toolbar button:focus .ql-fill),
+.quill.quill :global(.ql-snow.ql-toolbar button:hover:not(.ql-active) .ql-fill) {
+  fill: var(--ink);
+}
+
+.quill.quill :global(.ql-snow.ql-toolbar button.ql-active) {
+  background: var(--ink);
+}
+
+.quill.quill :global(.ql-snow.ql-toolbar button.ql-active .ql-stroke) {
+  stroke: #fff;
+}
+
+.quill.quill :global(.ql-snow.ql-toolbar button.ql-active .ql-fill) {
+  fill: #fff;
+}
+
+.quill :global(.ql-container.ql-snow) {
+  border: 0;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.quill :global(.ql-editor) {
+  min-height: 240px;
+  padding: 20px 22px 24px;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.75;
+  font-weight: 500;
+}
+
+.quill :global(.ql-editor p) {
+  margin-bottom: 0.6rem;
+}
+
+.quill :global(.ql-editor strong) {
+  font-weight: 800;
+}
+
+.quill :global(.ql-editor.ql-blank::before) {
+  left: 22px;
+  right: 22px;
+  color: var(--placeholder);
+  font-style: normal;
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .quill :global(.ql-editor) {
+    min-height: 280px;
+    font-size: 17px;
+  }
+}
+
+@media (hover: hover) {
+  .quill.quill :global(.ql-snow.ql-toolbar button:not(.ql-active):hover) {
+    background: var(--hover);
+  }
+}
+
+/* Touch screens (tablets too): a 44px tap target for each toolbar button. */
+@media (pointer: coarse) {
+  .quill.quill :global(.ql-snow.ql-toolbar button) {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 599px) {
+  .quill :global(.ql-toolbar.ql-snow) {
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .quill :global(.ql-toolbar.ql-snow .ql-formats) {
+    gap: 0;
+  }
+
+  .quill :global(.ql-toolbar.ql-snow .ql-formats + .ql-formats) {
+    margin-left: 2px;
+    padding-left: 6px;
+  }
+
+  .quill.quill :global(.ql-snow.ql-toolbar button) {
+    width: 44px;
+    height: 44px;
+  }
+
+  .quill :global(.ql-editor) {
+    padding: 18px 18px 22px;
+  }
+
+  .quill :global(.ql-editor.ql-blank::before) {
+    left: 18px;
+    right: 18px;
+  }
+}
+
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── Everything linked: timelines, albums, capsules ───────── */
+
+/* When the buttons wrap under the lead, they keep a little more air above them. */
+.linkActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 599px) {
+  .linkActions {
+    width: 100%;
+  }
+
+  .linkActions > * {
+    flex: 1 1 auto;
+  }
+}
+
+.linkGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+/* Three side by side from 768px (any narrower and their titles and words break into very short
+   lines); one under the other below that. */
+@media (min-width: 768px) {
+  .linkGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* The card is a <button>, which centres its content: as a column, it starts at the top and
+   its "Open" line sits at the bottom whatever the text above it. */
+.linkCard.linkCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  font: inherit;
+  text-align: left;
+}
+
+.linkTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.linkLabel {
+  margin-top: 18px;
+}
+
+.linkTitle {
+  display: block;
+  margin-top: 10px;
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.linkText {
+  display: -webkit-box;
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+
+/* The "Open" line under a rule, pushed to the bottom of the card. */
+.linkFoot {
+  display: block;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.linkFoot::before {
+  content: '';
+  display: block;
+  height: 1.5px;
+  margin-bottom: 16px;
+  background: var(--rule);
+}
+
+.linkOpen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.linkArrow {
+  transition: transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .linkCard:hover .linkArrow {
+    transform: translateX(3px);
+  }
+}
+
+/* ── Closing note ─────────────────────────────────────────── */
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: clamp(56px, 7vw, 88px);
+  padding-top: 32px;
+  border-top: 1.5px solid var(--rule);
+  text-align: center;
+}
+
+.footerText {
+  margin: 14px 0 0;
+  max-width: 34em;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.footerFine {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+/* ── Not found ────────────────────────────────────────────── */
+
+.missing {
+  margin-top: clamp(16px, 6vh, 64px);
+}

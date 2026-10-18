@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
+import { ui, AppLoader, Btn, useDialog } from '@/components/dashboard/ui/AppBits';
 
 import AlbumHeader from '../_components/AlbumHeader';
 import MediaGrid from '../_components/MediaGrid';
@@ -16,6 +18,9 @@ import LibraryPickerModal, {
   LibraryPickerItem,
 } from '@/components/LibraryPickerModal';
 import AlbumAI from '../_components/AlbumAI';
+import s from '../_components/albums.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 /* ───────────────────── types ───────────────────── */
 
@@ -91,6 +96,19 @@ export default function Page() {
     comments: {},
     voiceNotes: {},
   });
+
+  // Below 1024px the story opens as a bottom sheet (a dialog); from 1024px it's the side panel.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const sync = () => setNarrow(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  // The phone sheet: Escape closes it, Tab stays inside, focus returns to the memory.
+  const sheetRef = useDialog<HTMLDivElement>(narrow && !!selectedMedia, () => setSelectedMedia(null));
 
   /* ── load on mount ── */
   useEffect(() => {
@@ -224,6 +242,10 @@ export default function Page() {
     return media.filter((m) => mediaCategory(m) === activeFilter);
   }, [media, activeFilter]);
 
+  /* ── the header's photo and video counts (the same split as the filters) ── */
+  const photoCount = useMemo(() => media.filter((m) => mediaCategory(m) === 'photo').length, [media]);
+  const videoCount = media.length - photoCount;
+
   /* ── delete: library-linked vs direct upload ── */
   function handleDelete(mediaItem: Media) {
     if (mediaItem.library_media_id) {
@@ -295,57 +317,32 @@ export default function Page() {
     }
   }
 
-  /* ── loading ── */
-  if (loading) {
+  /* ── loading (the first load only: a reload after an upload or a tag keeps the page in place
+        instead of swapping it for the loader, which lost the scroll and the focus) ── */
+  if (loading && !album) {
     return (
-      <div style={{ height: '100vh', background: '#f6f1e8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ fontSize: 14, color: '#7c7469', fontFamily: "'DM Sans', sans-serif" }}>Loading album…</p>
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <AppLoader label="Loading album" />
       </div>
     );
   }
 
   if (!album) {
     return (
-      <div style={{ height: '100vh', background: '#f6f1e8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <button
+      <div className="flex min-h-screen items-center justify-center bg-white px-4">
+        <Btn
+          variant="soft"
           onClick={() => router.push('/dashboard/albums')}
-          style={{ padding: '12px 20px', borderRadius: 999, background: '#111', color: 'white', fontSize: 14, border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+          icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
         >
-          Back to albums
-        </button>
+          Back to Albums
+        </Btn>
       </div>
     );
   }
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Inter:wght@400;500;600;700&display=swap');
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .album-scroll { scrollbar-width: thin; scrollbar-color: #d4af37 transparent; }
-        .album-scroll::-webkit-scrollbar { width: 6px; }
-        .album-scroll::-webkit-scrollbar-track { background: transparent; }
-        .album-scroll::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 999px; }
-        .album-scroll::-webkit-scrollbar-thumb:hover { background: #b8922e; }
-        .masonry-grid { column-count: 2; column-gap: 24px; column-fill: balance; }
-        @media (min-width: 1600px) { .masonry-grid { column-count: 3; } }
-        @media (max-width: 768px) { .masonry-grid { column-count: 1; } }
-        .filter-btn { transition: all 0.2s ease; }
-        .filter-btn:hover { background: #f1ece4; }
-        @media (max-width: 1023px) { .desktop-panel { display: none !important; } }
-        @media (min-width: 1024px) { .mobile-panel-backdrop { display: none !important; } .mobile-panel-sheet { display: none !important; } }
-        /* phones/tablets: the document scrolls instead of a 100vh box with its own nested scroller; desktop keeps both panes */
-        @media (max-width: 1023px) {
-          .album-shell { height: auto !important; min-height: 100vh; overflow: visible !important; }
-          .album-left > .album-scroll { flex: none !important; overflow: visible !important; }
-        }
-        /* the story sheet keeps scrolling inside itself instead of dragging the page behind it */
-        .mobile-panel-sheet .album-scroll { overscroll-behavior: contain; }
-      `}</style>
-
       <AlbumAI
         albumTitle={album.title}
         albumDescription={album.description}
@@ -353,14 +350,16 @@ export default function Page() {
         taggedPeopleNames={taggedPeople.map((p) => p.full_name)}
       />
 
-      <div className="album-shell" style={{ height: '100vh', overflow: 'hidden', background: '#f6f1e8', display: 'flex', fontFamily: "'DM Sans', sans-serif" }}>
-        {/* LEFT COLUMN */}
-        <div className="album-left" style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-          <div className="album-scroll" style={{ flex: 1, overflowY: 'auto' }}>
+      <div className={s.shell}>
+        {/* LEFT COLUMN: the album; it scrolls on its own beside the panel from 1024px */}
+        <div className={cx(s.main, s.scroll)}>
+          <div className={s.mainInner}>
             <AlbumHeader
               album={album}
               taggedPeople={taggedPeople}
               mediaCount={media.length}
+              photoCount={photoCount}
+              videoCount={videoCount}
               voiceNoteCount={Object.values(enrichment.voiceNotes).reduce((a, b) => a + b, 0) || 0}
               activeFilter={activeFilter}
               onFilterChange={setActiveFilter}
@@ -369,7 +368,7 @@ export default function Page() {
               onTag={() => setTaggerOpen(true)}
               onRemoveTag={() => {}}
             />
-            <div style={{ padding: '24px 40px 56px' }}>
+            <div className={s.gridWrap}>
               <MediaGrid
                 media={filteredMedia}
                 selectedMedia={selectedMedia}
@@ -382,7 +381,7 @@ export default function Page() {
         </div>
 
         {/* RIGHT COLUMN: desktop only */}
-          <aside className="desktop-panel" style={{ width: 500, flexShrink: 0, height: '100vh', borderLeft: '1px solid #e5ddd0', background: '#ffffff' }}>
+        <aside className={s.panel} aria-label="Memory details">
           <StoryPanel
             selectedMedia={selectedMedia} albumId={album.id} user={user} allMedia={media} taggedPeople={taggedPeople}
             onClose={() => setSelectedMedia(null)} onDelete={handleDelete} onLightbox={(m) => setLightboxMedia(m)}
@@ -394,20 +393,29 @@ export default function Page() {
         </aside>
       </div>
 
-      {/* Mobile story panel */}
+      {/* Mobile story panel: a bottom sheet over the page (hidden from 1024px, where the aside shows it) */}
       {selectedMedia && (
-        <>
-          <div className="mobile-panel-backdrop" onClick={() => setSelectedMedia(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 40 }} />
-          <div className="mobile-panel-sheet" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, top: '8%', zIndex: 50, background: '#fcfbf8', borderRadius: '28px 28px 0 0', overflow: 'hidden', boxShadow: '0 -10px 40px rgba(0,0,0,0.15)' }}>
-            <StoryPanel
-              selectedMedia={selectedMedia} albumId={album.id} user={user} allMedia={media} taggedPeople={taggedPeople}
-              onClose={() => setSelectedMedia(null)} onDelete={handleDelete} onLightbox={(m) => setLightboxMedia(m)}
-              onCaptionSaved={(id, caption) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, caption } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, caption } : p)); }}
-              onDateSaved={(id, memory_date) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, memory_date } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, memory_date } : p)); }}
-              onCommentCountChanged={() => {}} onVoiceNoteCountChanged={() => {}}
-            />
+        <div className={s.sheetLayer}>
+          <div className={s.sheetScrim} onClick={() => setSelectedMedia(null)} aria-hidden="true" />
+          <div
+            ref={sheetRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Memory details"
+            className={cx(ui.sheet, ui.sheetBottom, s.storySheet, s.dialog)}
+          >
+            <div className={ui.sheetHandle} aria-hidden="true" />
+            <div className={s.storySheetBody}>
+              <StoryPanel
+                selectedMedia={selectedMedia} albumId={album.id} user={user} allMedia={media} taggedPeople={taggedPeople}
+                onClose={() => setSelectedMedia(null)} onDelete={handleDelete} onLightbox={(m) => setLightboxMedia(m)}
+                onCaptionSaved={(id, caption) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, caption } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, caption } : p)); }}
+                onDateSaved={(id, memory_date) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, memory_date } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, memory_date } : p)); }}
+                onCommentCountChanged={() => {}} onVoiceNoteCountChanged={() => {}}
+              />
+            </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* Overlays */}

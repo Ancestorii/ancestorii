@@ -1,0 +1,502 @@
+/* ============================================================
+   Library (/dashboard/library): the few looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have:
+   folder cards, square media tiles, the full-screen viewer, the
+   upload drop zone and its previews. Kit classes sit in the
+   "components" cascade layer, so a plain rule here wins over them.
+   Motion is transform and opacity only.
+   ============================================================ */
+
+/* ── Folder card: the cover photo inset in a white card ───── */
+
+.folderCard {
+  position: relative;
+  height: 100%;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+@media (hover: hover) {
+  .folderCard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--hairline-ring), var(--lift);
+  }
+}
+
+.folderCard:has(.folderOpen:active) {
+  transform: scale(0.99);
+  transition-duration: 80ms;
+}
+
+/* With its menu open, the card sits over the cards after it. */
+.folderCard:has([aria-expanded='true']) {
+  z-index: 5;
+}
+
+/* The whole card opens the folder; the menu sits on top of it, outside the button. */
+.folderOpen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cover {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--hover);
+}
+
+/* A faint hairline over the photo, so a mostly white picture still has an edge on the white page. */
+.cover::after,
+.tileOpen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1.5px rgba(10, 10, 15, 0.06);
+  pointer-events: none;
+}
+
+/* A folder with nothing in it yet. */
+.coverEmpty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coverEmptyDisc {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--hairline-ring);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The kit's photo chip, at the cover's bottom-left (the menu has the top-right). */
+.countChip {
+  top: auto;
+  left: 10px;
+  bottom: 10px;
+}
+
+.folderInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 8px 8px;
+}
+
+.folderName {
+  display: block;
+  font-size: 17px;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.folderDate {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.folderMenu {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+}
+
+/* ── Media tiles: square photos, the date under each ──────── */
+
+.tile {
+  position: relative;
+  border-radius: 16px;
+  transition: transform 0.25s ease;
+}
+
+.tileOpen {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--hover);
+  cursor: zoom-in;
+  transition: box-shadow 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .tile:hover {
+    transform: translateY(-3px);
+  }
+
+  .tile:hover .tileOpen {
+    box-shadow: var(--lift);
+  }
+}
+
+.tile:has(.tileOpen:active) {
+  transform: scale(0.98);
+  transition-duration: 80ms;
+}
+
+.tileVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Small ink chip on a video's first frame. */
+.playChip {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  gap: 5px;
+  pointer-events: none;
+}
+
+.tileDelete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
+.tileDate {
+  margin: 8px 2px 0;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+/* ── Full-screen viewer: ink backdrop, white round buttons ─── */
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 10, 15, 0.94);
+  animation: libFade 0.2s ease both;
+}
+
+.viewerBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  padding: max(14px, env(safe-area-inset-top, 0px)) 16px 0;
+}
+
+.viewerClose {
+  margin-left: auto;
+}
+
+.viewerStage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px max(18px, env(safe-area-inset-bottom, 0px));
+}
+
+.viewerMedia {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .viewerBar {
+    padding: 22px 28px 0;
+  }
+
+  .viewerStage {
+    padding: 18px 40px 40px;
+  }
+}
+
+/* ── Dialogs: a short fade and rise when they open ────────── */
+
+.fadeIn {
+  animation: libFade 0.2s ease both;
+}
+
+.popIn {
+  animation: libPop 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes libFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes libPop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Upload drawer: stays mounted, fades in and out ───────── */
+
+/* Closed, it is hidden from taps, Tab and screen readers (visibility flips after the fade).
+   It fades out in 0.2s, before the drawer empties its queue (200ms after closing), so the
+   previews never flip to the empty drop zone while still visible. */
+.upOverlay {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    visibility 0s linear 0.18s;
+}
+
+.upOverlayOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.3s ease,
+    visibility 0s;
+}
+
+.upPanel {
+  transform: translateY(16px);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.upOverlayOpen .upPanel {
+  transform: none;
+}
+
+/* File drop zone: dashed hairline, ink on hover or while a file is dragged over it. */
+.drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 220px;
+  padding: 28px 20px;
+  border: 2px dashed rgba(10, 10, 15, 0.2);
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .drop:hover {
+    border-color: var(--ink);
+  }
+}
+
+/* Added by the drag listeners while a file is over the zone. */
+.dropActive {
+  border-color: var(--ink);
+  background: var(--hover);
+}
+
+/* The slim "Add more files" row once something is queued. */
+.dropRow {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 56px;
+  padding: 10px 16px;
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+/* Photos and videos: both icons on one orange tile. */
+.dropTile {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 52px;
+  margin-bottom: 10px;
+  padding: 0 15px;
+  border-radius: 16px;
+  background: var(--c2);
+  color: var(--ink);
+}
+
+.dropTitle {
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+.dropHint {
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.dropCount {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Queued files */
+.qThumb {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--hover);
+}
+
+.qImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qVideo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+}
+
+.qState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qBusy {
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+}
+
+.qDone,
+.qError {
+  background: rgba(10, 10, 15, 0.35);
+}
+
+.qBadge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.55);
+}
+
+.qBadgeError {
+  color: var(--danger);
+}
+
+/* Remove a queued file: 26px to look at, a 44px tap target. */
+.qRemove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.qRemove::before {
+  content: '';
+  position: absolute;
+  inset: -9px;
+}
+
+.qRemove:active {
+  transform: scale(0.9);
+}
+
+.qName {
+  margin: 6px 1px 0;
+  font-size: 11.5px;
+  line-height: 1.3;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The upload bar fills by scaling (transform only), from the left. */
+.progressFill {
+  border-radius: 0;
+  transform-origin: left center;
+  transition: transform 0.3s ease-out;
+}
