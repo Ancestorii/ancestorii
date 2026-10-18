@@ -43,12 +43,14 @@ export default function VoiceNotePlayer({
   const barCount = compact ? 32 : 48;
   const bars = useMemo(() => waveformBars(src, barCount), [src, barCount]);
 
+  // The element's own events drive the button (below), so it never shows "Pause" while nothing
+  // plays: a note still being converted, or one this browser can't decode, rejects play()
+  // instead of spinning.
   const toggle = () => {
     const el = audioRef.current;
     if (!el) return;
-    if (playing) el.pause();
-    else el.play();
-    setPlaying(!playing);
+    if (el.paused) el.play().catch(() => setPlaying(false));
+    else el.pause();
   };
   const seek = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = audioRef.current;
@@ -70,6 +72,8 @@ export default function VoiceNotePlayer({
         preload="metadata"
         onTimeUpdate={(e) => setProgress((e.target as HTMLAudioElement).currentTime)}
         onLoadedMetadata={(e) => setDuration((e.target as HTMLAudioElement).duration)}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
       />
       <button

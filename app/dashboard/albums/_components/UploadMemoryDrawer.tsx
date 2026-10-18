@@ -19,6 +19,7 @@ type AlbumMediaRow = {
   file_path: string;
   file_type: string;
   created_at: string;
+  signed_url: string;
 };
 
 type Props = {
@@ -168,7 +169,8 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
     setUploadedCount(0);
     setFailedCount(0);
 
-    const user = (await supabase.auth.getUser()).data.user;
+    // The local session, not a round trip to the auth server.
+    const user = (await supabase.auth.getSession()).data.session?.user;
     if (!user) {
       toast.error('Not authenticated.');
       setUploading(false);
@@ -223,7 +225,8 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
 
         if (error) throw error;
 
-        onUploaded({ ...data, file_path: signedUrl });
+        // The row as stored (file_path stays the bucket path, which the delete needs) plus its URL.
+        onUploaded({ ...data, signed_url: signedUrl });
         doneCount++;
         setUploadedCount(doneCount);
 
@@ -279,7 +282,10 @@ export default function UploadMemoryDrawer({ albumId, open, onClose, onUploaded 
     <div
       className={cx(ui.scrim, s.layer, 'scrim-blur z-[9999] flex items-center justify-center p-4')}
       data-open={open ? 'true' : 'false'}
-      onClick={onClose}
+      onClick={() => {
+        // As the close button: not mid-upload (the drawer vanished and the progress with it).
+        if (!uploading) onClose();
+      }}
     >
       <div
         ref={panelRef}

@@ -138,7 +138,6 @@ export default function MemoryModalBody({
   onDeleteComment,
   onDeleteVoice,
   onUploadMedia,
-  uploadingMedia,
   onDeleteMedia, // 👈 ADD THIS
 }: {
   loading: boolean;
@@ -154,7 +153,6 @@ export default function MemoryModalBody({
   onDeleteComment: (commentId: string) => void;
   onDeleteVoice: (voiceId: string) => void;
   onUploadMedia: (file: File) => void;
-  uploadingMedia: boolean;
   onDeleteMedia: (media: MediaItem) => void;
 }) {
 
@@ -207,10 +205,6 @@ const stopRecording = () => {
 
   if (loading) {
   return <AppLoader compact label="Preserving memories" className={s.loading} />;
-}
-
-if (uploadingMedia) {
-  return <AppLoader compact label="Preserving memory" className={s.loading} />;
 }
 
   return (

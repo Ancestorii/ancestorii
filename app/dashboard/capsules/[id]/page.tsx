@@ -79,6 +79,13 @@ type Media = {
   signed_url?: string | null;
 };
 
+// A tagged person (a family_members row through capsule_tags).
+type TaggedPerson = {
+  id: string;
+  full_name: string;
+  avatar_url?: string | null;
+};
+
 // Inside a tile button, so a span (a button holds only inline content). The photo fills the
 // square tile.
 function CapsuleMediaImage({ src }: { src: string }) {
@@ -115,6 +122,8 @@ export default function CapsuleDetailPage() {
   const [media, setMedia] = useState<Media[]>([]);
 
   const [loading, setLoading] = useState(true);
+  // No cache buster on any signed link here: a file at a path never changes, so the browser
+  // may keep it between visits (with the buster every photo downloaded again each time).
   const signCapsuleMedia = useCallback(async (filePath: string) => {
   const objectPath = filePath.includes("capsule-media/")
     ? filePath.split("capsule-media/")[1]
@@ -124,8 +133,28 @@ export default function CapsuleDetailPage() {
     .from("capsule-media")
     .createSignedUrl(objectPath, 60 * 60 * 24 * 7);
 
-  return data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null;
+  return data?.signedUrl ?? null;
 }, [supabase]);
+
+  // One signing request for every tagged person's photo (it was one request per person).
+  const withSignedAvatars = useCallback(async (people: TaggedPerson[]) => {
+    const paths = people.map((p) => p.avatar_url).filter(Boolean) as string[];
+    if (!paths.length) return people.map((p) => ({ ...p, avatar_signed: null }));
+
+    const { data } = await supabase.storage
+      .from('user-media')
+      .createSignedUrls(paths, 60 * 60 * 24 * 7);
+
+    const byPath = new Map<string, string>();
+    (data ?? []).forEach((row, i) => {
+      if (row.signedUrl) byPath.set(paths[i], row.signedUrl);
+    });
+
+    return people.map((p) => ({
+      ...p,
+      avatar_signed: p.avatar_url ? byPath.get(p.avatar_url) ?? null : null,
+    }));
+  }, [supabase]);
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
@@ -152,11 +181,21 @@ const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
   >([]);
 
   const removePersonFromCapsule = async (familyMemberId: string) => {
-  await supabase
+  // Only the capsule's creator may remove a tag (RLS), and a blocked delete returns no rows
+  // rather than an error: the chip goes only once a row really went.
+  const { data, error } = await supabase
     .from("capsule_tags")
     .delete()
     .eq("capsule_id", capsuleId)
-    .eq("family_member_id", familyMemberId);
+    .eq("family_member_id", familyMemberId)
+    .select("id");
+
+  if (error || !data?.length) {
+    toast.error(
+      error ? 'Failed to remove them.' : 'Only the person who created this capsule can remove a tag.'
+    );
+    return;
+  }
 
   setTaggedPeople((prev) =>
     prev.filter((p) => p.id !== familyMemberId)
@@ -177,23 +216,23 @@ const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
 
   const handleDeleteMedia = async (m: Media) => {
   try {
+    // The row first. Only the capsule's creator may delete (RLS), and a blocked delete
+    // returns no rows rather than an error; the file used to be removed before this check,
+    // which left a blocked row pointing at nothing.
+    const { data: gone, error } = await supabase
+      .from("capsule_media")
+      .delete()
+      .eq("id", m.id)
+      .select("id");
 
-    // 🔹 If library media → unlink only
-    if (m.library_media_id) {
-      const { error } = await supabase
-        .from("capsule_media")
-        .delete()
-        .eq("id", m.id);
-
-      if (error) throw error;
-
-      setMedia((prev) => prev.filter((x) => x.id !== m.id));
-      toast.success("Removed from capsule.");
+    if (error) throw error;
+    if (!gone?.length) {
+      toast.error("Only the person who created this capsule can delete its memories.");
       return;
     }
 
-    // 🔹 Direct upload → delete storage file
-    if (m.file_path) {
+    // 🔹 Library media is only unlinked; a direct upload's file goes too
+    if (!m.library_media_id && m.file_path) {
       const objectPath = m.file_path.includes("capsule-media/")
         ? m.file_path.split("capsule-media/")[1]
         : m.file_path;
@@ -203,16 +242,9 @@ const [sealOverlayOpen, setSealOverlayOpen] = useState(false);
         .remove([objectPath]);
     }
 
-    const { error } = await supabase
-      .from("capsule_media")
-      .delete()
-      .eq("id", m.id);
-
-    if (error) throw error;
-
     setMedia((prev) => prev.filter((x) => x.id !== m.id));
 
-    toast.success("Memory deleted.");
+    toast.success(m.library_media_id ? "Removed from capsule." : "Memory deleted.");
   } catch (e) {
     console.error(e);
     toast.error("Failed to delete memory.");
@@ -264,9 +296,7 @@ const handlePickFromLibrary = async (item: LibraryPickerItem) => {
 
     const rowWithSigned = {
       ...data,
-      signed_url: signed?.signedUrl
-        ? `${signed.signedUrl}&cb=${Date.now()}`
-        : null,
+      signed_url: signed?.signedUrl ?? null,
     };
 
     setMedia((prev) => [rowWithSigned as any, ...prev]);
@@ -278,6 +308,7 @@ const handlePickFromLibrary = async (item: LibraryPickerItem) => {
   }
 };
 
+// Reloads the tagged people (after the tagger saves).
 const loadTaggedPeople = async () => {
   const { data, error } = await supabase
     .from('capsule_tags')
@@ -298,22 +329,7 @@ const loadTaggedPeople = async () => {
   const mapped =
     data?.map((x: any) => x.family_members).filter(Boolean) || [];
 
-  const withSigned = await Promise.all(
-    mapped.map(async (p: any) => {
-      if (!p.avatar_url) return { ...p, avatar_signed: null };
-
-      const { data: signed } = await supabase.storage
-        .from('user-media')
-        .createSignedUrl(p.avatar_url, 60 * 60 * 24 * 7);
-
-      return {
-        ...p,
-        avatar_signed: signed?.signedUrl || null,
-      };
-    })
-  );
-
-  setTaggedPeople(withSigned);
+  setTaggedPeople(await withSignedAvatars(mapped));
 };
 
  useEffect(() => {
@@ -337,16 +353,21 @@ const loadTaggedPeople = async () => {
       try {
         setLoading(true);
 
-        const { data: capsuleData, error: capsuleErr } = await supabase
-          .from('memory_capsules')
-          .select('id,title,description,unlock_date,is_locked,created_at')
-          .eq('id', capsuleId)
-          .single();
-        if (capsuleErr) throw capsuleErr;
-
-       const { data: mediaData, error: mediaErr } = await supabase
-  .from('capsule_media')
-  .select(`
+        // The capsule, its media and its tagged people are independent: one round, not
+        // three one after another (and the people's photos are signed with the media below).
+        const [
+          { data: capsuleData, error: capsuleErr },
+          { data: mediaData, error: mediaErr },
+          { data: tagRows, error: tagErr },
+        ] = await Promise.all([
+          supabase
+            .from('memory_capsules')
+            .select('id,title,description,unlock_date,is_locked,created_at')
+            .eq('id', capsuleId)
+            .maybeSingle(),
+          supabase
+            .from('capsule_media')
+            .select(`
   id,
   capsule_id,
   file_path,
@@ -360,10 +381,28 @@ const loadTaggedPeople = async () => {
     created_at
   )
 `)
-  .eq('capsule_id', capsuleId)
-  .order('created_at', { ascending: false });
+            .eq('capsule_id', capsuleId)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('capsule_tags')
+            .select(`
+      family_members (
+        id,
+        full_name,
+        avatar_url
+      )
+    `)
+            .eq('capsule_id', capsuleId),
+        ]);
 
-if (mediaErr) throw mediaErr;
+        if (capsuleErr) throw capsuleErr;
+        if (mediaErr) throw mediaErr;
+        if (tagErr) console.error(tagErr);
+
+        // The embed is one row per tag (a to-one key), whatever the query typing guesses.
+        const people = (tagRows ?? [])
+          .map((x) => x.family_members as unknown as TaggedPerson | null)
+          .filter((p): p is TaggedPerson => !!p);
 
 // split library vs capsule files
 const capsuleRows = (mediaData ?? []).filter((m: any) => !m.library_media_id);
@@ -384,7 +423,7 @@ const libraryPaths = libraryRows
   .filter(Boolean);
 
 // batch sign URLs
-const [capsuleSigned, librarySigned] = await Promise.all([
+const [capsuleSigned, librarySigned, taggedWithPhotos] = await Promise.all([
   capsulePaths.length
     ? supabase.storage.from("capsule-media").createSignedUrls(capsulePaths, 60 * 60 * 24 * 7)
     : { data: [] },
@@ -392,6 +431,8 @@ const [capsuleSigned, librarySigned] = await Promise.all([
   libraryPaths.length
     ? supabase.storage.from("library-media").createSignedUrls(libraryPaths, 60 * 60 * 24 * 7)
     : { data: [] },
+
+  withSignedAvatars(people),
 ]);
 
 // rebuild media list
@@ -401,18 +442,18 @@ const signedMedia: Media[] = (mediaData ?? []).map((m: any) => {
   if (isLibrary) {
     const idx = libraryRows.findIndex((r: any) => r.id === m.id);
     const url = librarySigned.data?.[idx]?.signedUrl ?? null;
-    return { ...m, signed_url: url ? `${url}&cb=${Date.now()}` : null };
+    return { ...m, signed_url: url ?? null };
   }
 
   const idx = capsuleRows.findIndex((r: any) => r.id === m.id);
   const url = capsuleSigned.data?.[idx]?.signedUrl ?? null;
 
-  return { ...m, signed_url: url ? `${url}&cb=${Date.now()}` : null };
+  return { ...m, signed_url: url ?? null };
 });
 
 setCapsule(capsuleData);
 setMedia(signedMedia);
-await loadTaggedPeople();
+setTaggedPeople(taggedWithPhotos);
       } catch (e) {
         console.error(e);
         toast.error('Failed to load capsule.');
@@ -420,19 +461,23 @@ await loadTaggedPeople();
         setLoading(false);
       }
     })();
-  }, [capsuleId, supabase]);
+  }, [capsuleId, supabase, withSignedAvatars]);
 
 
   const handleSealCapsule = async () => {
   try {
     setSealing(true);
 
-    const { error } = await supabase
+    // With the row back: a silently blocked update (RLS) returns none, and then nothing
+    // was sealed.
+    const { data, error } = await supabase
       .from('memory_capsules')
       .update({ is_locked: true })
-      .eq('id', capsuleId);
+      .eq('id', capsuleId)
+      .select('id');
 
     if (error) throw error;
+    if (!data?.length) throw new Error('Not sealed');
 
     // Update local state
     setCapsule((prev) =>
@@ -441,12 +486,8 @@ await loadTaggedPeople();
 
     setConfirmSeal(false);
 
-    // 🔒 PLAY SEAL ANIMATION
+    // 🔒 PLAY SEAL ANIMATION (back to the list when it closes, see closeSealOverlay)
     setSealOverlayOpen(true);
-    // ⏱️ After animation, go back to dashboard
-setTimeout(() => {
-  router.push('/dashboard/capsules');
-}, 2200); // match your overlay animation length
   } catch (e) {
     console.error(e);
     toast.error('Failed to seal capsule.');
@@ -454,6 +495,13 @@ setTimeout(() => {
     setSealing(false);
   }
 };
+
+  // The seal celebration closes by itself (or on Escape, or a tap): then back to the list.
+  // It used to leave on a separate 2.2s timer while the card said 4s, cutting it short.
+  const closeSealOverlay = () => {
+    setSealOverlayOpen(false);
+    router.push('/dashboard/capsules');
+  };
 
 
   if (loading) {
@@ -478,6 +526,40 @@ setTimeout(() => {
             </Btn>
           </EmptyState>
         </div>
+      </div>
+    );
+  }
+
+  // Sealed with its date still ahead: closed, as the card says ("Capsule Locked", no View
+  // button), so the address alone doesn't open what the list won't. Once the date has come
+  // it shows (the unlock job unseals it within minutes).
+  if (capsule.is_locked && new Date(capsule.unlock_date).getTime() > Date.now()) {
+    return (
+      <div className={ui.page}>
+        <div className={ui.wrapNarrow}>
+          <EmptyState
+            Icon={Lock}
+            tone={toneByKey('pink')}
+            title="This capsule is sealed"
+            text={`It opens on ${longDate(capsule.unlock_date)}.`}
+          >
+            <Btn
+              variant="soft"
+              onClick={() => router.push('/dashboard/capsules')}
+              icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}
+            >
+              Back to Capsules
+            </Btn>
+          </EmptyState>
+        </div>
+
+        {/* The moment it was sealed just now (the page swaps to this view beneath it) */}
+        <CapsuleSealOverlay
+          open={sealOverlayOpen}
+          capsuleTitle={capsule.title}
+          unlockDate={capsule.unlock_date}
+          onClose={closeSealOverlay}
+        />
       </div>
     );
   }
@@ -762,45 +844,13 @@ function prevMedia() {
        parentId={capsule.id}
        open={tagOpen}
        onClose={() => setTagOpen(false)}
-       onSaved={async () => {
-       const { data } = await supabase
-      .from('capsule_tags')
-      .select(`
-        family_member_id,
-        family_members (
-          id,
-          full_name,
-          avatar_url
-        )
-      `)
-      .eq('capsule_id', capsule.id);
-
-    const mapped =
-      data?.map((x: any) => x.family_members).filter(Boolean) || [];
-
-    const withSigned = await Promise.all(
-      mapped.map(async (p: any) => {
-        if (!p.avatar_url) return { ...p, avatar_signed: null };
-
-        const { data: signed } = await supabase.storage
-          .from('user-media')
-          .createSignedUrl(p.avatar_url, 60 * 60 * 24 * 7);
-
-        return {
-          ...p,
-          avatar_signed: signed?.signedUrl || null,
-        };
-      })
-    );
-
-    setTaggedPeople(withSigned);
-  }}
+       onSaved={loadTaggedPeople}
 />
 <CapsuleSealOverlay
   open={sealOverlayOpen}
   capsuleTitle={capsule.title}
   unlockDate={capsule.unlock_date}
-  onClose={() => setSealOverlayOpen(false)}
+  onClose={closeSealOverlay}
 />
 
 <LibraryPickerModal

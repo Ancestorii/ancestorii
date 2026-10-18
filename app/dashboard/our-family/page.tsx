@@ -9,6 +9,7 @@ import PendingInviteCard from './_components/PendingInviteCard';
 import InviteMemberDrawer from './_components/InviteMemberDrawer';
 import MemberDetailDrawer from './_components/MemberDetailDrawer';
 import { safeToast as toast } from '@/lib/safeToast';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 import { ui, Accent, AppLoader, Btn, SectionHead } from '@/components/dashboard/ui/AppBits';
 import s from './_components/family.module.css';
 
@@ -33,6 +34,31 @@ type PendingInvite = {
   inviter_name?: string | null;
 };
 
+type InviteRow = Omit<PendingInvite, 'inviter_name'>;
+
+// Everything this page reads about another person from Profiles.
+type ProfileRow = {
+  id: string;
+  full_name: string | null;
+  profile_image_url: string | null;
+  email: string | null;
+  bio: string | null;
+};
+
+type Supabase = ReturnType<typeof getBrowserClient>;
+
+// The family's open invites, newest first (RLS: owners and admins see their family's).
+const fetchInvites = (supabase: Supabase, familyId: string) =>
+  supabase
+    .from('family_invites')
+    .select('id, email, role, invited_by, expires_at, created_at')
+    .eq('family_id', familyId)
+    .is('accepted_at', null)
+    .order('created_at', { ascending: false });
+
+const nameInvites = (invites: InviteRow[], names: Map<string, string | null>): PendingInvite[] =>
+  invites.map((inv) => ({ ...inv, inviter_name: names.get(inv.invited_by) ?? null }));
+
 export default function OurFamilyPage() {
   const supabase = getBrowserClient();
 
@@ -47,136 +73,137 @@ export default function OurFamilyPage() {
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  // Four round trips: membership, then the family's rows side by side, then one Profiles read
+  // for everyone, then one signing call for every avatar. The page keeps its content while a
+  // later load runs; only the first one shows the loader.
   const loadFamily = useCallback(async () => {
-    setLoading(true);
-
-    const { data: auth } = await supabase.auth.getUser();
-    const uid = auth?.user?.id;
+    // The session is already in memory (no network); RLS is the real boundary in the browser.
+    const { data: { session } } = await supabase.auth.getSession();
+    const uid = session?.user?.id;
     if (!uid) {
       setLoading(false);
       return;
     }
 
-    setCurrentUserId(uid);
-
-    /* ── Get my membership ── */
-    const { data: myMembership } = await supabase
+    /* ── 1. My membership ── */
+    const { data: myMembership, error: membershipError } = await supabase
       .from('family_memberships')
       .select('family_id, role')
       .eq('user_id', uid)
       .limit(1)
       .maybeSingle();
 
+    if (membershipError) toast.error('Could not load your family.');
     if (!myMembership) {
+      setCurrentUserId(uid);
       setLoading(false);
       return;
     }
 
-    setFamilyId(myMembership.family_id);
-    setMyRole(myMembership.role);
+    const fid: string = myMembership.family_id;
+    const canSeeInvites = myMembership.role === 'owner' || myMembership.role === 'admin';
 
-    /* ── Family name ── */
-    const { data: family } = await supabase
-      .from('families')
-      .select('name')
-      .eq('id', myMembership.family_id)
-      .single();
+    /* ── 2. Everything that only needs the family id, in parallel ──
+       Verified-family badge: earned the t5 cosmetic reward tier. Show iff a
+       family_reward_claims row exists for this family with tier_key 't5'. The claim is a
+       fire-once latch (never retracted), and t5 is cosmetic so it stays 'earned'
+       permanently, presence is enough. Pending invites: only owner/admin can see them. */
+    const [familyRes, t5Res, membershipsRes, invitesRes] = await Promise.all([
+      supabase.from('families').select('name').eq('id', fid).single(),
+      supabase
+        .from('family_reward_claims')
+        .select('tier_key')
+        .eq('family_id', fid)
+        .eq('tier_key', 't5')
+        .maybeSingle(),
+      supabase
+        .from('family_memberships')
+        .select('user_id, role, joined_at')
+        .eq('family_id', fid)
+        .order('joined_at', { ascending: true }),
+      canSeeInvites ? fetchInvites(supabase, fid) : null,
+    ]);
 
-    if (family?.name) setFamilyName(family.name);
+    if (membershipsRes.error) toast.error('Could not load your family members.');
+    const memberRows = membershipsRes.data ?? [];
+    const inviteRows: InviteRow[] = invitesRes?.data ?? [];
 
-    /* ── Verified-family badge: earned the t5 cosmetic reward tier ──
-       Show iff a family_reward_claims row exists for this family with
-       tier_key 't5'. The claim is a fire-once latch (never retracted), and
-       t5 is cosmetic so it stays 'earned' permanently, presence is enough. */
-    const { data: t5Claim } = await supabase
-      .from('family_reward_claims')
-      .select('tier_key')
-      .eq('family_id', myMembership.family_id)
-      .eq('tier_key', 't5')
-      .maybeSingle();
-
-    setIsVerifiedFamily(!!t5Claim);
-
-    /* ── All members with profiles ── */
-    const { data: memberships } = await supabase
-      .from('family_memberships')
-      .select('user_id, role, joined_at')
-      .eq('family_id', myMembership.family_id)
-      .order('joined_at', { ascending: true });
-
-    if (memberships && memberships.length > 0) {
-      const memberDetails = await Promise.all(
-        memberships.map(async (m) => {
-          const { data: profile } = await supabase
-            .from('Profiles')
-            .select('full_name, profile_image_url, email, bio')
-            .eq('id', m.user_id)
-            .maybeSingle();
-
-          let avatarSigned: string | null = null;
-          if (profile?.profile_image_url) {
-            const { data: signed } = await supabase.storage
-              .from('user-media')
-              .createSignedUrl(profile.profile_image_url, 3600);
-            avatarSigned = signed?.signedUrl
-              ? `${signed.signedUrl}&cb=${Date.now()}`
-              : null;
-          }
-
-          return {
-            user_id: m.user_id,
-            role: m.role as 'owner' | 'admin' | 'member',
-            joined_at: m.joined_at,
-            full_name: profile?.full_name ?? null,
-            email: profile?.email ?? null,
-            profile_image_url: profile?.profile_image_url ?? null,
-            avatar_signed: avatarSigned,
-            bio: profile?.bio ?? null,
-          };
-        })
-      );
-
-      setMembers(memberDetails);
+    /* ── 3. One Profiles read for every member and every inviter ── */
+    const userIds = Array.from(
+      new Set<string>([...memberRows.map((m) => m.user_id), ...inviteRows.map((i) => i.invited_by)])
+    );
+    const profileById = new Map<string, ProfileRow>();
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('Profiles')
+        .select('id, full_name, profile_image_url, email, bio')
+        .in('id', userIds);
+      for (const p of (profiles ?? []) as ProfileRow[]) profileById.set(p.id, p);
     }
 
-    /* ── Pending invites (only owner/admin can see) ── */
-    if (myMembership.role === 'owner' || myMembership.role === 'admin') {
-      const { data: invites } = await supabase
-        .from('family_invites')
-        .select('id, email, role, invited_by, expires_at, created_at')
-        .eq('family_id', myMembership.family_id)
-        .is('accepted_at', null)
-        .order('created_at', { ascending: false });
-
-      if (invites && invites.length > 0) {
-        const enriched = await Promise.all(
-          invites.map(async (inv) => {
-            const { data: inviterProfile } = await supabase
-              .from('Profiles')
-              .select('full_name')
-              .eq('id', inv.invited_by)
-              .maybeSingle();
-
-            return {
-              ...inv,
-              inviter_name: inviterProfile?.full_name ?? null,
-            };
-          })
-        );
-        setPendingInvites(enriched);
-      } else {
-        setPendingInvites([]);
+    /* ── 4. One signing call for every avatar (no cache buster: the browser may keep them) ── */
+    const avatarPaths = Array.from(
+      new Set(
+        memberRows
+          .map((m) => profileById.get(m.user_id)?.profile_image_url)
+          .filter((p): p is string => !!p)
+      )
+    );
+    const signedByPath = new Map<string, string>();
+    if (avatarPaths.length > 0) {
+      const { data: signed } = await supabase.storage
+        .from('user-media')
+        .createSignedUrls(avatarPaths, 3600);
+      for (const entry of signed ?? []) {
+        if (entry.path && entry.signedUrl) signedByPath.set(entry.path, entry.signedUrl);
       }
     }
 
+    const names = new Map<string, string | null>();
+    profileById.forEach((p, id) => names.set(id, p.full_name));
+
+    // One render: React batches these after the awaits.
+    setCurrentUserId(uid);
+    setFamilyId(fid);
+    setMyRole(myMembership.role);
+    if (familyRes.data?.name) setFamilyName(familyRes.data.name);
+    setIsVerifiedFamily(!!t5Res.data);
+    setMembers(
+      memberRows.map((m) => {
+        const profile = profileById.get(m.user_id);
+        const path = profile?.profile_image_url ?? null;
+        return {
+          user_id: m.user_id,
+          role: m.role as 'owner' | 'admin' | 'member',
+          joined_at: m.joined_at,
+          full_name: profile?.full_name ?? null,
+          email: profile?.email ?? null,
+          profile_image_url: path,
+          avatar_signed: path ? signedByPath.get(path) ?? null : null,
+          bio: profile?.bio ?? null,
+        };
+      })
+    );
+    setPendingInvites(canSeeInvites ? nameInvites(inviteRows, names) : []);
     setLoading(false);
   }, [supabase]);
 
-  useEffect(() => {
-    if (!loading && members.length > 0) {
-      window.dispatchEvent(new CustomEvent('family-members-updated', { detail: members.length }));
+  // After an invite is sent only the invites change: refresh those, not the whole page.
+  const loadInvites = useCallback(async () => {
+    if (!familyId) return;
+    const { data: invites } = await fetchInvites(supabase, familyId);
+    const rows: InviteRow[] = invites ?? [];
+    const names = new Map<string, string | null>();
+    const inviterIds = Array.from(new Set(rows.map((i) => i.invited_by)));
+    if (inviterIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('Profiles')
+        .select('id, full_name')
+        .in('id', inviterIds);
+      for (const p of profiles ?? []) names.set(p.id, p.full_name);
     }
-  }, [loading, members]);
+    setPendingInvites(nameInvites(rows, names));
+  }, [supabase, familyId]);
 
   useEffect(() => {
     loadFamily();
@@ -185,28 +212,31 @@ export default function OurFamilyPage() {
   const handleRename = async (newName: string) => {
     if (!familyId) return;
 
-    const { error } = await supabase
+    // RLS lets only the owner update the family; a blocked update returns 0 rows, not an error.
+    const { data, error } = await supabase
       .from('families')
       .update({ name: newName })
-      .eq('id', familyId);
+      .eq('id', familyId)
+      .select('id');
 
-    if (error) {
+    if (error || !data || data.length === 0) {
       toast.error('Failed to rename family.');
       return;
     }
 
     setFamilyName(newName);
     toast.success('Family name updated.');
-    window.dispatchEvent(new CustomEvent('family-name-updated', { detail: newName }));
   };
 
   const handleCancelInvite = async (inviteId: string) => {
-    const { error } = await supabase
-      .from('family_invites')
-      .delete()
-      .eq('id', inviteId);
-
-    if (error) {
+    try {
+      // RLS: a blocked delete returns 0 rows without an error, so check what was removed.
+      const deleted = await deleteWithOwnerCheck(supabase, 'family_invites', inviteId, 'invite');
+      if (!deleted) {
+        loadInvites();
+        return;
+      }
+    } catch {
       toast.error('Failed to cancel invite.');
       return;
     }
@@ -344,7 +374,7 @@ export default function OurFamilyPage() {
         open={inviteDrawerOpen}
         onClose={() => setInviteDrawerOpen(false)}
         onInviteSent={() => {
-          loadFamily();
+          loadInvites();
           setInviteDrawerOpen(false);
         }}
       />

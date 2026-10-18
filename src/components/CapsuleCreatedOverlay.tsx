@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
-import { useEffect, useId, type CSSProperties } from 'react';
+import { useEffect, useId, useRef, type CSSProperties } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Accent, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './Celebration.module.css';
@@ -23,11 +23,18 @@ export default function CapsuleCreatedOverlay({
   // Escape closes it too (as a click does), and focus goes back where it was.
   const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
+  // The page passes a fresh onClose on every render; held in a ref so the timer runs once
+  // from opening, not again from each render of the list behind it.
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
-    const t = setTimeout(onClose, durationMs);
+    const t = setTimeout(() => closeRef.current(), durationMs);
     return () => clearTimeout(t);
-  }, [open, durationMs, onClose]);
+  }, [open, durationMs]);
 
   return (
     <MotionConfig reducedMotion="user">

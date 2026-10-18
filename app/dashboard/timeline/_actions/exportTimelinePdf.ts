@@ -221,15 +221,24 @@ export async function exportTimelinePdf(
       if (!firstBy[m.event_id]) firstBy[m.event_id] = m;
     }
 
-    // download sequentially (keep it simple & stable)
+    // Download a few at a time (one after another, a long timeline took many seconds).
+    const queue: TimelineEventRow[] = [];
     for (const ev of events) {
-      const pick = firstBy[ev.id];
-      if (!pick?.file_path) {
-        firstPhotoByEvent[ev.id] = null;
-        continue;
-      }
-      firstPhotoByEvent[ev.id] = await downloadStorageBytes(supabase, 'timeline-media', pick.file_path);
+      if (firstBy[ev.id]?.file_path) queue.push(ev);
+      else firstPhotoByEvent[ev.id] = null;
     }
+    const CONCURRENCY = 4;
+    await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+        for (let ev = queue.shift(); ev; ev = queue.shift()) {
+          firstPhotoByEvent[ev.id] = await downloadStorageBytes(
+            supabase,
+            'timeline-media',
+            firstBy[ev.id].file_path
+          );
+        }
+      })
+    );
   }
 
   // ---------- Layout math (strictly horizontal) ----------

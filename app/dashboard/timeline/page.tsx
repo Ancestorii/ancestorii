@@ -54,7 +54,7 @@ export default function TimelinePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
   const [selectedTimeline, setSelectedTimeline] = useState<Timeline | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string; cover_path: string | null } | null>(null);
   const [celebrate, setCelebrate] = useState(false);
 
   const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
@@ -72,17 +72,26 @@ export default function TimelinePage() {
   const limitMessage = `You’ve reached your current plan limit for timelines (${counts?.timelines} / ${limits?.max_timelines}). Upgrade your plan to create more.`;
 
 
-  // signed url helper
+  // Signed cover URLs, all in one call. No cache buster: a new cover gets a new path, so the
+  // browser can keep these cached (the buster re-downloaded every cover on every visit).
+  const signCoverUrls = async (paths: string[]): Promise<Map<string, string>> => {
+    const map = new Map<string, string>();
+    if (!paths.length) return map;
+    const { data, error } = await supabase.storage
+      .from('timeline-media')
+      .createSignedUrls(paths, 60 * 60 * 24 * 7);
+    if (error || !data) return map;
+    data.forEach((row, i) => {
+      if (row?.signedUrl) map.set(row.path ?? paths[i], row.signedUrl);
+    });
+    return map;
+  };
+
   const getSignedCoverUrl = async (path: string | null): Promise<string | null> => {
-  if (!path) return null;
-
-  const { data, error } = await supabase.storage
-    .from('timeline-media')
-    .createSignedUrl(path, 60 * 60 * 24 * 7);
-
-  if (error) return null;
-  return data.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null;
-};
+    if (!path) return null;
+    const map = await signCoverUrls([path]);
+    return map.get(path) ?? null;
+  };
 
   useEffect(() => {
     if (hasLoaded.current) return;
@@ -102,15 +111,16 @@ export default function TimelinePage() {
 
          if (error) throw error;
 
-         const signed = await Promise.all(
-  (data ?? []).map(async (t) => ({
-    ...t,
-    cover_signed: t.cover_path
-      ? await getSignedCoverUrl(t.cover_path)
-      : null,
-  }))
-);
-setTimelines(signed);
+         const rows = data ?? [];
+         const covers = await signCoverUrls(
+           rows.map((t) => t.cover_path).filter((p): p is string => !!p)
+         );
+         setTimelines(
+           rows.map((t) => ({
+             ...t,
+             cover_signed: t.cover_path ? covers.get(t.cover_path) ?? null : null,
+           }))
+         );
 
 
 
@@ -123,15 +133,33 @@ setTimelines(signed);
     })();
   }, [supabase]);
 
-  const handleDeleteTimeline = async (id: string) => {
+  const handleDeleteTimeline = async (id: string, coverPath: string | null) => {
   try {
+    // The confirm promises the timeline is only deleted when it is empty, but the database
+    // cascades its memories away (and leaves their photos in storage): check first.
+    const { count, error: countErr } = await supabase
+      .from('timeline_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('timeline_id', id);
+    if (countErr) throw countErr;
+    if ((count ?? 0) > 0) {
+      toast.error('Remove all memories from this timeline before deleting it.');
+      return;
+    }
 
     const deleted = await deleteWithOwnerCheck(supabase, 'timelines', id, 'timeline');
     if (!deleted) return;
 
     setTimelines((prev) => (prev ? prev.filter((t) => t.id !== id) : prev));
+    // The sidebar's count
+    window.dispatchEvent(new Event('dashboard-data-changed'));
 
     toast.success('Timeline deleted.');
+
+    // The cover file belongs to this row: remove it with it (best effort).
+    if (coverPath) {
+      void supabase.storage.from('timeline-media').remove([coverPath]);
+    }
 
   } catch (err: any) {
 
@@ -244,6 +272,7 @@ setTimelines(signed);
                                 setConfirmDelete({
                                   id: t.id,
                                   title: t.title || 'Untitled Timeline',
+                                  cover_path: t.cover_path,
                                 })
                               }
                             />
@@ -292,6 +321,8 @@ setTimelines(signed);
         open={drawerOpen}
         mode={drawerMode}
         timeline={selectedTimeline}
+        limitReached={!limitsLoading && !canCreate.timeline}
+        limitMessage={limitMessage}
         onClose={() => setDrawerOpen(false)}
         onCreated={async (tl: Timeline) => {
   const signed = await getSignedCoverUrl(tl.cover_path);
@@ -365,7 +396,7 @@ setTimelines(signed);
               <Btn
                 variant="danger"
                 onClick={() => {
-                  handleDeleteTimeline(confirmDelete.id);
+                  handleDeleteTimeline(confirmDelete.id, confirmDelete.cover_path);
                   setConfirmDelete(null);
                 }}
               >
@@ -402,7 +433,7 @@ function TimelineCover({ src, alt }: { src: string; alt: string }) {
       quality={90}
       sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 480px"
       className={cx(s.coverImg, loaded ? 'opacity-100' : 'opacity-0')}
-      onLoadingComplete={() => setLoaded(true)}
+      onLoad={() => setLoaded(true)}
     />
   );
 }

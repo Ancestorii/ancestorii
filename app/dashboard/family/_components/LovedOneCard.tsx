@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { LovedOneMenu } from "./LovedOneMenu";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { ui, toneFor } from "@/components/dashboard/ui/AppBits";
+import { parseDateOnly } from "../_utils/dateOnly";
 import s from "./lovedOnes.module.css";
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
@@ -26,19 +27,17 @@ export default function LovedOneCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  // Not reset when the signed URL changes (every reload signs afresh): the old picture stays
+  // until the new one has loaded, instead of every portrait fading out and in again.
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    setLoaded(false);
-  }, [member.avatar_signed]);
-
+  const born = parseDateOnly(member.birth_date)?.getFullYear();
+  const died = parseDateOnly(member.death_date)?.getFullYear();
   const lifespan =
-    member.birth_date && !member.death_date
-      ? `${new Date(member.birth_date).getFullYear()} to present`
-      : member.birth_date && member.death_date
-      ? `${new Date(member.birth_date).getFullYear()} to ${new Date(
-          member.death_date
-        ).getFullYear()}`
+    born && !died
+      ? `${born} to present`
+      : born && died
+      ? `${born} to ${died}`
       : "A life remembered";
 
   // A stable frame colour for this person.

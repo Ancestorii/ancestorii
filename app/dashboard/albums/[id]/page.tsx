@@ -6,6 +6,7 @@ import { ArrowLeft, Images } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { ui, AppLoader, Btn, EmptyState, toneByKey, useDialog } from '@/components/dashboard/ui/AppBits';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 
 import AlbumHeader from '../_components/AlbumHeader';
 import MediaGrid from '../_components/MediaGrid';
@@ -130,41 +131,77 @@ export default function Page() {
   }, [selectedMedia, uploadOpen, taggerOpen]);
 
   async function loadUser() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) setUser({ id: user.id });
+    // The id comes from the local session (getUser() was a round trip to the auth server).
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess?.session?.user?.id;
+    if (uid) setUser({ id: uid });
+  }
+
+  /* who is in the album, their photos signed in one request (the tagger's onSaved reloads just
+     this, not the whole page) */
+  async function loadTags() {
+    try {
+      const { data: tags } = await supabase
+        .from('album_tags')
+        .select('family_member_id, family_members(id, full_name, avatar_url)')
+        .eq('album_id', albumId);
+
+      const mapped: TaggedPerson[] = tags?.map((x: any) => x.family_members).filter(Boolean) || [];
+      const toSign = mapped.filter((p) => p.avatar_url && !p.avatar_url.startsWith('http'));
+      const byPath = new Map<string, string>();
+      if (toSign.length > 0) {
+        const { data: signed } = await supabase.storage
+          .from('user-media')
+          .createSignedUrls(toSign.map((p) => p.avatar_url as string), 60 * 60 * 24 * 7);
+        toSign.forEach((p, i) => {
+          const url = signed?.[i]?.signedUrl;
+          if (url) byPath.set(p.avatar_url as string, url);
+        });
+      }
+      setTaggedPeople(
+        mapped.map((p) => ({
+          ...p,
+          avatar_signed: !p.avatar_url
+            ? null
+            : p.avatar_url.startsWith('http')
+            ? p.avatar_url
+            : byPath.get(p.avatar_url) ?? null,
+        })),
+      );
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function loadAll() {
     try {
       setLoading(true);
 
-      /* 1. album row */
-      const { data: albumData, error: albumErr } = await supabase
-        .from('albums')
-        .select('*')
-        .eq('id', albumId)
-        .single();
-      if (albumErr) throw albumErr;
-      setAlbum(albumData);
-
-      /* 2. media rows WITH library_media join */
-      const { data: mediaDataRaw, error: mediaErr } = await supabase
-        .from('album_media')
-        .select(`
+      /* 1. the album row, its media (with the library join) and its people go out together
+            (they ran one after another, and every avatar was then signed on its own) */
+      const [albumRes, mediaRes] = await Promise.all([
+        supabase.from('albums').select('*').eq('id', albumId).maybeSingle(),
+        supabase
+          .from('album_media')
+          .select(`
           id, album_id, user_id, file_path, file_type, created_at,
           library_media_id, caption, memory_date,
           library_media:library_media_id (
             id, file_path, file_type, created_at
           )
         `)
-        .eq('album_id', albumId)
-        .order('created_at', { ascending: false });
-      if (mediaErr) throw mediaErr;
+          .eq('album_id', albumId)
+          .order('created_at', { ascending: false }),
+        loadTags(),
+      ]);
+      if (albumRes.error) throw albumRes.error;
+      // No row (deleted, or another family's): the "Album not found" state below, quietly.
+      if (!albumRes.data) return;
+      setAlbum(albumRes.data);
+      if (mediaRes.error) throw mediaRes.error;
 
-      /* 3. split into album vs library rows for correct bucket signing */
-      const rows = mediaDataRaw ?? [];
+      /* 2. split into album vs library rows for correct bucket signing */
+      const rows = mediaRes.data ?? [];
       const albumRows = rows.filter((m: any) => !m.library_media_id);
       const libraryRows = rows.filter((m: any) => !!m.library_media_id);
 
@@ -193,6 +230,8 @@ export default function Page() {
           : { data: [] },
       ]);
 
+      /* the signed URLs are used as they are: a cache buster (cb=) on each one made the browser
+         download every photo again on every visit */
       const mediaWithSigned: Media[] = rows.map((m: any) => {
         const isLibrary = !!m.library_media_id;
         const lib = Array.isArray(m.library_media) ? m.library_media[0] : m.library_media;
@@ -200,34 +239,15 @@ export default function Page() {
         if (isLibrary) {
           const idx = libraryRows.findIndex((r: any) => r.id === m.id);
           const url = (librarySigned.data as any)?.[idx]?.signedUrl ?? null;
-          return { ...m, library_media: lib, signed_url: url ? `${url}&cb=${Date.now()}` : null };
+          return { ...m, library_media: lib, signed_url: url };
         }
 
         const idx = albumRows.findIndex((r: any) => r.id === m.id);
         const url = (albumSigned.data as any)?.[idx]?.signedUrl ?? null;
-        return { ...m, library_media: lib, signed_url: url ? `${url}&cb=${Date.now()}` : null };
+        return { ...m, library_media: lib, signed_url: url };
       });
 
       setMedia(mediaWithSigned);
-
-      /* 4. tagged people (album-level) with signed avatars */
-      const { data: tags } = await supabase
-        .from('album_tags')
-        .select('family_member_id, family_members(id, full_name, avatar_url)')
-        .eq('album_id', albumId);
-
-      const mapped = tags?.map((x: any) => x.family_members).filter(Boolean) || [];
-
-      const withSignedAvatars = await Promise.all(
-        mapped.map(async (p: any) => {
-          if (!p.avatar_url) return { ...p, avatar_signed: null };
-          const { data: signed } = await supabase.storage
-            .from('user-media')
-            .createSignedUrl(p.avatar_url, 60 * 60 * 24 * 7);
-          return { ...p, avatar_signed: signed?.signedUrl || null };
-        }),
-      );
-      setTaggedPeople(withSignedAvatars);
     } catch (err) {
       console.error(err);
       toast.error('Failed to load album');
@@ -251,11 +271,10 @@ export default function Page() {
     if (mediaItem.library_media_id) {
       (async () => {
         try {
-          const { error } = await supabase
-            .from('album_media')
-            .delete()
-            .eq('id', mediaItem.id);
-          if (error) throw error;
+          // RLS lets only the album's creator remove rows, and a blocked delete returns 0 rows
+          // silently, so check before saying it went.
+          const removed = await deleteWithOwnerCheck(supabase, 'album_media', mediaItem.id, 'album');
+          if (!removed) return;
           setMedia((prev) => prev.filter((x) => x.id !== mediaItem.id));
           if (selectedMedia?.id === mediaItem.id) setSelectedMedia(null);
           toast.success('Removed from album.');
@@ -307,7 +326,7 @@ export default function Page() {
       const rowWithSigned: Media = {
         ...(data as any),
         library_media: lib,
-        signed_url: signed?.signedUrl ? `${signed.signedUrl}&cb=${Date.now()}` : null,
+        signed_url: signed?.signedUrl ?? null,
       };
       setMedia((prev) => [rowWithSigned, ...prev]);
       toast.success('Added from your library.');
@@ -386,21 +405,24 @@ export default function Page() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: desktop only */}
+        {/* RIGHT COLUMN: desktop only. One StoryPanel at a time: with both the panel and the phone
+            sheet mounted, every selection fetched its comments and voice notes twice. */}
         <aside className={s.panel} aria-label="Memory details">
-          <StoryPanel
-            selectedMedia={selectedMedia} albumId={album.id} user={user} allMedia={media} taggedPeople={taggedPeople}
-            onClose={() => setSelectedMedia(null)} onDelete={handleDelete} onLightbox={(m) => setLightboxMedia(m)}
-            onCaptionSaved={(id, caption) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, caption } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, caption } : p)); }}
-            onDateSaved={(id, memory_date) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, memory_date } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, memory_date } : p)); }}
-            onCommentCountChanged={(id, delta) => { setEnrichment((p) => ({ ...p, comments: { ...p.comments, [id]: (p.comments[id] || 0) + delta } })); }}
-            onVoiceNoteCountChanged={(id, delta) => { setEnrichment((p) => ({ ...p, voiceNotes: { ...p.voiceNotes, [id]: (p.voiceNotes[id] || 0) + delta } })); }}
-          />
+          {!narrow && (
+            <StoryPanel
+              selectedMedia={selectedMedia} albumId={album.id} user={user} allMedia={media} taggedPeople={taggedPeople}
+              onClose={() => setSelectedMedia(null)} onDelete={handleDelete} onLightbox={(m) => setLightboxMedia(m)}
+              onCaptionSaved={(id, caption) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, caption } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, caption } : p)); }}
+              onDateSaved={(id, memory_date) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, memory_date } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, memory_date } : p)); }}
+              onCommentCountChanged={(id, delta) => { setEnrichment((p) => ({ ...p, comments: { ...p.comments, [id]: (p.comments[id] || 0) + delta } })); }}
+              onVoiceNoteCountChanged={(id, delta) => { setEnrichment((p) => ({ ...p, voiceNotes: { ...p.voiceNotes, [id]: (p.voiceNotes[id] || 0) + delta } })); }}
+            />
+          )}
         </aside>
       </div>
 
       {/* Mobile story panel: a bottom sheet over the page (hidden from 1024px, where the aside shows it) */}
-      {selectedMedia && (
+      {narrow && selectedMedia && (
         <div className={s.sheetLayer}>
           <div className={s.sheetScrim} onClick={() => setSelectedMedia(null)} aria-hidden="true" />
           <div
@@ -417,7 +439,8 @@ export default function Page() {
                 onClose={() => setSelectedMedia(null)} onDelete={handleDelete} onLightbox={(m) => setLightboxMedia(m)}
                 onCaptionSaved={(id, caption) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, caption } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, caption } : p)); }}
                 onDateSaved={(id, memory_date) => { setMedia((p) => p.map((m) => (m.id === id ? { ...m, memory_date } : m))); setSelectedMedia((p) => (p?.id === id ? { ...p, memory_date } : p)); }}
-                onCommentCountChanged={() => {}} onVoiceNoteCountChanged={() => {}}
+                onCommentCountChanged={(id, delta) => { setEnrichment((p) => ({ ...p, comments: { ...p.comments, [id]: (p.comments[id] || 0) + delta } })); }}
+                onVoiceNoteCountChanged={(id, delta) => { setEnrichment((p) => ({ ...p, voiceNotes: { ...p.voiceNotes, [id]: (p.voiceNotes[id] || 0) + delta } })); }}
               />
             </div>
           </div>
@@ -426,8 +449,10 @@ export default function Page() {
 
       {/* Overlays */}
       <Lightbox media={lightboxMedia} allMedia={filteredMedia} open={!!lightboxMedia} onClose={() => setLightboxMedia(null)} onNavigate={(m) => setLightboxMedia(m)} />
-      <UploadMemoryDrawer albumId={album.id} open={uploadOpen} onClose={() => { setUploadOpen(false); loadAll(); }} onUploaded={() => {}} />
-      <UniversalPeopleTagger parentType="album" parentId={album.id} open={taggerOpen} onClose={() => setTaggerOpen(false)} onSaved={() => loadAll()} />
+      {/* New memories join the grid as each one lands (the page used to reload and re-sign every
+          photo on close, which faded the whole grid out and in); the tagger reloads only the people */}
+      <UploadMemoryDrawer albumId={album.id} open={uploadOpen} onClose={() => setUploadOpen(false)} onUploaded={(row) => setMedia((p) => [row, ...p])} />
+      <UniversalPeopleTagger parentType="album" parentId={album.id} open={taggerOpen} onClose={() => setTaggerOpen(false)} onSaved={() => loadTags()} />
       <LibraryPickerModal open={libraryOpen} onClose={() => setLibraryOpen(false)} onPick={async (item: LibraryPickerItem) => { setLibraryOpen(false); await handlePickFromLibrary(item); }} />
       <DeleteMemoryModal
         open={deleteOpen} mediaId={deleteTarget?.id || ''} filePath={deleteTarget?.file_path || ''}

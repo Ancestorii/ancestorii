@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, type CSSProperties } from 'react';
+import { useEffect, useId, useRef, type CSSProperties } from 'react';
 import { MotionConfig, motion } from 'framer-motion';
 import { LockOpen } from 'lucide-react';
 import { Accent } from '@/components/dashboard/ui/AppBits';
@@ -13,13 +13,20 @@ export default function CapsuleUnlock({
 }) {
   const titleId = useId();
 
+  // The page passes a fresh onComplete on every render; held in a ref so the timer runs
+  // once from mounting, not again from each render of the list behind it.
+  const completeRef = useRef(onComplete);
+  useEffect(() => {
+    completeRef.current = onComplete;
+  }, [onComplete]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      onComplete();
+      completeRef.current();
     }, 2600); // animation duration
 
     return () => clearTimeout(timer);
-  }, [onComplete]);
+  }, []);
 
   // It closes by itself (no buttons, nothing to focus), so it's announced, not focused.
   return (

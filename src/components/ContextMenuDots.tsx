@@ -21,27 +21,19 @@ export function ContextMenuDots({
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const closeTimeout = useRef<NodeJS.Timeout | null>(null);
   const menuId = useId();
 
-  // Click outside closes after 0.2s
+  // A press anywhere outside closes it at once (it waited 0.2s before, which read as lag, and
+  // two menus could be open together). pointerdown covers mouse, pen and touch.
   useEffect(() => {
     if (!open) return;
 
-    const handler = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) {
-        closeTimeout.current = setTimeout(() => {
-          setOpen(false);
-        }, 200);
-      }
+    const handler = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setOpen(false);
     };
 
-    window.addEventListener("mousedown", handler);
-
-    return () => {
-      window.removeEventListener("mousedown", handler);
-      if (closeTimeout.current) clearTimeout(closeTimeout.current);
-    };
+    window.addEventListener("pointerdown", handler);
+    return () => window.removeEventListener("pointerdown", handler);
   }, [open]);
 
   // Focus goes back to the dots button as the menu closes (the rows unmount), so a drawer or

@@ -56,23 +56,15 @@ export function usePlanLimits() {
           .eq('name', 'Free')
           .maybeSingle(),
 
-        // 🔑 counts
-        supabase
-          .from('albums')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', uid),
+        // 🔑 counts. The database's limit triggers (album_limit_trigger, timeline_limit_trigger,
+        // capsule_limit_trigger) count the whole FAMILY's rows, and the plans are per family, so
+        // these count the same way: no user filter. Row security already scopes a signed-in
+        // member to their family's rows, so the count equals the trigger's.
+        supabase.from('albums').select('id', { count: 'exact', head: true }),
 
-        // timelines has owner_id (no user_id column), and capsules live in memory_capsules:
-        // the old queries failed (400 and 404), so both counts always read 0.
-        supabase
-          .from('timelines')
-          .select('*', { count: 'exact', head: true })
-          .eq('owner_id', uid),
+        supabase.from('timelines').select('id', { count: 'exact', head: true }),
 
-        supabase
-          .from('memory_capsules')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', uid),
+        supabase.from('memory_capsules').select('id', { count: 'exact', head: true }),
       ]);
 
       const premiumRow = (Array.isArray(limitData) ? limitData[0] : limitData) as Limits | null;

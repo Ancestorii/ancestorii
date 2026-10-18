@@ -23,6 +23,8 @@ type Capsule = {
   is_locked: boolean;
   created_at: string;
   cover_image: string | null;
+  // The signed link for the cover (cover_image is its path in storage).
+  cover_url: string | null;
 };
 
 type Props = {
@@ -36,7 +38,7 @@ export default function CapsuleCard({ capsule, onEdit, onDelete }: Props) {
 
   useEffect(() => {
     setCoverLoaded(false);
-  }, [capsule.cover_image]);
+  }, [capsule.cover_url]);
 
   // 🔐 LOCK STATE (frontend auto-unlock logic)
   const now = Date.now();
@@ -113,9 +115,9 @@ const timeRemaining = useMemo(() => {
       {/* Cover in a solid colour frame */}
       <div className={ui.frame} style={{ '--frame': frame.bg } as CSSProperties}>
         <div className={cx(ui.frameInner, s.cover)}>
-          {capsule.cover_image ? (
+          {capsule.cover_url ? (
             <Image
-              src={capsule.cover_image}
+              src={capsule.cover_url}
               alt={capsule.title || 'Capsule cover'}
               fill
               sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 400px"

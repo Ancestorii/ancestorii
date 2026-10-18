@@ -77,7 +77,7 @@ export default function MemberCard({
               className={`object-cover transition-opacity duration-300 ${
                 avatarLoaded ? 'opacity-100' : 'opacity-0'
               }`}
-              onLoadingComplete={() => setAvatarLoaded(true)}
+              onLoad={() => setAvatarLoaded(true)}
             />
           ) : (
             <span aria-hidden="true">{initials}</span>

@@ -41,7 +41,11 @@ export default function MemberDetailDrawer({
   // The page clears `member` the moment the drawer closes; keep showing the last one so the
   // drawer can animate out instead of vanishing.
   const [shown, setShown] = useState(member);
-  if (member && member !== shown) setShown(member);
+  if (member && member !== shown) {
+    setShown(member);
+    // A different person: let their photo fade in rather than pop.
+    setAvatarLoaded(false);
+  }
   const current = member ?? shown;
 
   // Escape closes it, Tab stays inside, focus goes back to the member card.
@@ -122,7 +126,7 @@ export default function MemberDetailDrawer({
                       className={`object-cover transition-opacity duration-300 ${
                         avatarLoaded ? 'opacity-100' : 'opacity-0'
                       }`}
-                      onLoadingComplete={() => setAvatarLoaded(true)}
+                      onLoad={() => setAvatarLoaded(true)}
                     />
                   ) : (
                     <span aria-hidden="true">{initials}</span>

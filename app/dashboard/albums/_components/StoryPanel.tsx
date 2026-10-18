@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 import VoiceNoteDrawer from './VoiceNoteDrawer';
 import { X, Trash2, Mic, Send, Maximize2, Pencil, Calendar, Images } from 'lucide-react';
 import { ui, Btn, IconBtn, IconTile, Tag, toneByKey } from '@/components/dashboard/ui/AppBits';
@@ -90,9 +91,11 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
     setDateEditing(false);
   }, [selectedMedia?.id]);
 
-  /* load story entries (comments) + voice notes */
+  /* load story entries (comments) + voice notes. A quick switch to another memory used to let the
+     earlier memory's entries land afterwards; the notes are signed in one request. */
   useEffect(() => {
     if (!selectedMedia) { setStoryEntries([]); setVoiceNotes([]); return; }
+    let cancelled = false;
     (async () => {
       try {
         const [cRes, vRes] = await Promise.all([
@@ -101,11 +104,18 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
         ]);
         if (cRes.error) throw cRes.error;
         if (vRes.error) throw vRes.error;
+        const notes = (vRes.data ?? []) as VoiceNote[];
+        let signed: VoiceNote[] = [];
+        if (notes.length > 0) {
+          const { data } = await supabase.storage.from('album-media').createSignedUrls(notes.map((v) => v.file_path), 3600);
+          signed = notes.map((v, i) => ({ ...v, file_path: data?.[i]?.signedUrl ?? '' }));
+        }
+        if (cancelled) return;
         setStoryEntries(cRes.data ?? []);
-        const signed = await Promise.all((vRes.data ?? []).map(async (v) => { const { data } = await supabase.storage.from('album-media').createSignedUrl(v.file_path, 3600); return { ...v, file_path: data?.signedUrl ?? '' }; }));
         setVoiceNotes(signed);
-      } catch { toast.error('Failed to load details.'); }
+      } catch { if (!cancelled) toast.error('Failed to load details.'); }
     })();
+    return () => { cancelled = true; };
   }, [selectedMedia?.id, supabase]);
 
   /* ── save heading (caption) ── */
@@ -159,7 +169,9 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
   const deleteStoryEntry = async (id: string) => {
     if (!selectedMedia) return;
     try {
-      await supabase.from('album_media_comments').delete().eq('id', id);
+      // RLS lets only the album's creator delete; a blocked delete returns 0 rows silently.
+      const removed = await deleteWithOwnerCheck(supabase, 'album_media_comments', id, 'album');
+      if (!removed) return;
       setStoryEntries((p) => p.filter((c) => c.id !== id));
       onCommentCountChanged(selectedMedia.id, -1);
     } catch { toast.error('Failed.'); }
@@ -169,7 +181,8 @@ export default function StoryPanel({ selectedMedia, albumId, user, allMedia, tag
   const deleteVoiceNote = async (id: string) => {
     if (!selectedMedia) return;
     try {
-      await supabase.from('album_media_voice_notes').delete().eq('id', id);
+      const removed = await deleteWithOwnerCheck(supabase, 'album_media_voice_notes', id, 'album');
+      if (!removed) return;
       setVoiceNotes((p) => p.filter((v) => v.id !== id));
       onVoiceNoteCountChanged(selectedMedia.id, -1);
     } catch { toast.error('Failed.'); }

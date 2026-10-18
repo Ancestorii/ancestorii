@@ -5,12 +5,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { X, ImagePlus, CalendarDays, Check, Package, Plus } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
-import { usePlanLimits } from '@/lib/usePlanLimits';
 import { ensureDisplayableImage } from '@/lib/convertImage';
 import { ui, Btn, IconBtn, IconTile, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './capsules.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// Today as YYYY-MM-DD on the visitor's own calendar (toISOString() gave the UTC day, which is
+// a day out for part of the world around midnight).
+const todayLocal = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 
 export type CreatedCapsule = {
@@ -37,6 +43,11 @@ type Props = {
   open: boolean;
   mode: 'create' | 'edit';
   capsule: Capsule | null;
+  // The plan's say on a new capsule, from the page (it already asks usePlanLimits; asking
+  // again here ran the same five reads twice on every visit).
+  limitsLoading: boolean;
+  canCreateCapsule: boolean;
+  limitMessage: string;
   onClose: () => void;
   onCreated: (cap: Capsule) => void;
   onUpdated: (cap: Capsule) => void;
@@ -46,6 +57,9 @@ export default function CreateCapsuleDrawer({
     open,
   mode,
   capsule,
+  limitsLoading,
+  canCreateCapsule,
+  limitMessage,
   onClose,
   onCreated,
   onUpdated,
@@ -58,9 +72,7 @@ export default function CreateCapsuleDrawer({
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const dropRef = useRef<HTMLDivElement | null>(null);
-  const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
   const headingId = useId();
   const titleFieldId = useId();
@@ -72,6 +84,9 @@ export default function CreateCapsuleDrawer({
   const getSignedCoverUrl = async (path: string | null) => {
   if (!path) return null;
 
+  // A link is not a path and can't be signed (storage answered 400): show it as it is.
+  if (/^https?:\/\//.test(path)) return path;
+
   const cleanPath = path.replace(/^capsule-media\//, '');
 
   const { data } = await supabase.storage
@@ -80,8 +95,6 @@ export default function CreateCapsuleDrawer({
 
   return data?.signedUrl ?? null;
 };
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (coverFile) {
@@ -96,19 +109,21 @@ export default function CreateCapsuleDrawer({
   };
 
   useEffect(() => {
-  if (mode === 'edit' && capsule) {
-    setTitle(capsule.title);
-    setDescription(capsule.description ?? '');
-    setUnlockDate(capsule.unlock_date);
+  if (mode !== 'edit' || !capsule) return;
+  setTitle(capsule.title);
+  setDescription(capsule.description ?? '');
+  setUnlockDate(capsule.unlock_date);
 
-    (async () => {
-      const signed = await getSignedCoverUrl(capsule.cover_image);
-      // The list hands over a cover it has already signed, which can't be signed again: show
-      // that one, or the current cover never appeared here.
-      const handed = capsule.cover_image && /^https?:\/\//.test(capsule.cover_image) ? capsule.cover_image : null;
-      setPreviewUrl(signed || handed);
-    })();
-  }
+  // The list hands over the cover's storage path; sign it for the preview. Closed before the
+  // answer came back, the answer is dropped (it used to land as the next capsule's preview).
+  let cancelled = false;
+  (async () => {
+    const signed = await getSignedCoverUrl(capsule.cover_image);
+    if (!cancelled) setPreviewUrl(signed);
+  })();
+  return () => {
+    cancelled = true;
+  };
 }, [mode, capsule]);
 
   // Drag & drop. The zone only exists while the drawer is open, so attach each time it
@@ -141,7 +156,7 @@ export default function CreateCapsuleDrawer({
       area.removeEventListener('dragleave', leave);
       area.removeEventListener('drop', drop);
     };
-  }, [open, mounted]);
+  }, [open]);
 
 
   const isSubmittingRef = useRef(false);
@@ -164,8 +179,17 @@ const handleSubmit = async () => {
   setLoading(true);
 
   try {
-    const user = (await supabase.auth.getUser()).data.user;
+    // The session is local (no round trip); RLS is the boundary for every write below.
+    const { data: sess } = await supabase.auth.getSession();
+    const user = sess?.session?.user;
     if (!user) throw new Error('Not authenticated');
+
+    // The date field's "min" is only a hint (a typed date gets past it): a date that has
+    // gone is refused here, unless it is an existing capsule's own date left as it was.
+    if (unlockDate !== (capsule?.unlock_date ?? '') && unlockDate.slice(0, 10) < todayLocal()) {
+      toast.error('Choose a date in the future.');
+      return;
+    }
 
     // 🔒 CAPSULE PLAN LIMIT GUARD (CREATE ONLY)
     if (mode === 'create') {
@@ -176,10 +200,8 @@ const handleSubmit = async () => {
         return;
       }
 
-      if (!canCreate.capsule) {
-        toast.error(
-          `Capsule limit reached (${counts?.capsules} / ${limits?.max_capsules})`
-        );
+      if (!canCreateCapsule) {
+        toast.error(limitMessage);
         setLoading(false);
         isSubmittingRef.current = false;
         return;
@@ -254,8 +276,6 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
   }
 };
 
-
-  if (!mounted) return null;
 
   return (
     <AnimatePresence>
@@ -363,7 +383,7 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
                     aria-describedby={dateHintId}
                     data-empty={!unlockDate}
                     className={cx(ui.input, s.dateInput)}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={todayLocal()}
                   />
                 </div>
 

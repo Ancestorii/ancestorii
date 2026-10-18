@@ -186,6 +186,30 @@ commit;
 create index if not exists idx_email_verifications_user_id on public.email_verifications(user_id);
 
 -- ============================================================================
+-- Batch 2 follow-up (coordinator request).
+-- ============================================================================
+-- Step 7. One albums row held a full signed URL in cover_image (the old edit drawer wrote the
+-- display URL back). Checked the same pattern on memory_capsules.cover_image,
+-- timelines.cover_path, family_members.avatar_url, Profiles.profile_image_url and
+-- library_media.file_path: all 0. Healed the one row back to its storage path; the object
+-- exists in album-media at that path.
+-- Before: https://wekebqaooixjngznycnm.supabase.co/storage/v1/object/sign/album-media/f5d224ef-2314-418a-8d8f-44d0fb304320/1772130875568_pexels-cottonbro-8848784_(1).jpg?token=...&cb=1778663829269
+-- After:  f5d224ef-2314-418a-8d8f-44d0fb304320/1772130875568_pexels-cottonbro-8848784_(1).jpg
+update public.albums
+set cover_image = split_part(regexp_replace(cover_image, '^.*album-media/', ''), '?', 1)
+where cover_image like 'http%';   -- 1 row: albums.id = f7d39a5e-af58-4d6a-a240-dc5cb8702fbe
+
+-- Step 8. timeline_tags lacked the UNIQUE (timeline_id, family_member_id) that album_tags and
+-- capsule_tags have. 5 rows, no duplicate pairs, no null keys, so the constraint went on as is.
+-- The tagger deletes a timeline's tags then re-inserts, so no upsert depends on its absence.
+alter table public.timeline_tags add constraint timeline_tags_timeline_id_family_member_id_key unique (timeline_id, family_member_id);
+
+-- Not applied: the requested idx_notifications_user_unread (user_id, is_read). The existing
+-- idx_notifications_user is (user_id, is_read, created_at desc), whose leading prefix is that
+-- exact pair, and EXPLAIN shows the planner using it for the unread read
+-- (Index Cond: user_id = ... AND is_read = false). A second index would only add write cost.
+
+-- ============================================================================
 -- Reverts (not run). Each block undoes the step with the same number.
 -- ============================================================================
 -- Step 1 revert: reverse the wrapper (a mirror of the DO block above).
@@ -231,3 +255,7 @@ create index if not exists idx_email_verifications_user_id on public.email_verif
 -- grant select on table public."Profiles" to anon;
 -- Step 6 revert:
 -- drop index public.idx_email_verifications_user_id;
+-- Step 7 revert (puts the expired signed URL back; only useful as a record):
+-- update public.albums set cover_image = 'https://wekebqaooixjngznycnm.supabase.co/storage/v1/object/sign/album-media/f5d224ef-2314-418a-8d8f-44d0fb304320/1772130875568_pexels-cottonbro-8848784_(1).jpg' where id = 'f7d39a5e-af58-4d6a-a240-dc5cb8702fbe';
+-- Step 8 revert:
+-- alter table public.timeline_tags drop constraint timeline_tags_timeline_id_family_member_id_key;

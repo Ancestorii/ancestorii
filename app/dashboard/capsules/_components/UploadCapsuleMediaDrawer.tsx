@@ -116,7 +116,9 @@ useEffect(() => {
     setLoading(true);
 
     try {
-      const user = (await supabase.auth.getUser()).data.user;
+      // The session is local (no round trip); RLS is the boundary for the writes below.
+      const { data: sess } = await supabase.auth.getSession();
+      const user = sess?.session?.user;
 if (!user) throw new Error('User not authenticated.');
 
 const processedFile =
@@ -137,14 +139,6 @@ const { error: uploadErr } = await supabase.storage
   .upload(filePath, processedFile);  // ← processedFile
       if (uploadErr) throw uploadErr;
 
-      // create signed URL (same as albums)
-const { data: signed } = await supabase.storage
-  .from('capsule-media')
-  .createSignedUrl(filePath, 60 * 60 * 24 * 7); // 7 days
-
-const signedUrl = signed?.signedUrl;
-if (!signedUrl) throw new Error('Failed to generate signed URL.');
-
 const { data, error } = await supabase
   .from('capsule_media')
   .insert({
@@ -157,11 +151,10 @@ const { data, error } = await supabase
 
 if (error) throw error;
 
-// 🔥 overwrite file_path like albums
-onUploaded({
-  ...data,
-  file_path: signedUrl,
-});
+// The row as stored (file_path is the storage path): the page signs it for display. A
+// signed link in file_path was signed again by the page and, on delete, the file it named
+// could not be removed.
+onUploaded(data);
       toast.success('Memory preserved.');
       setFile(null);
       onClose();
@@ -257,7 +250,11 @@ onUploaded({
               className={ui.srOnly}
               aria-label="Choose a photo, video or voice note to upload"
               onClick={(e) => e.stopPropagation()}
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={(e) => {
+                setFile(e.target.files?.[0] || null);
+                // So the same file can be chosen again after an upload
+                e.target.value = '';
+              }}
             />
           </div>
         </div>

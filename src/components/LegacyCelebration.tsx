@@ -53,10 +53,19 @@ export default function LegacyCelebration({
     closeRef.current = onClose;
   }, [onClose]);
 
+  // It closes on its own after durationMs; a tap on it or Escape closes it sooner (it used to
+  // hold the whole screen for four seconds with no way out).
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(() => closeRef.current(), durationMs);
-    return () => clearTimeout(t);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRef.current();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open, durationMs]);
 
   // The emoji's variation selector (U+FE0F) is dropped, so an emoji finds its tile with or
@@ -81,6 +90,7 @@ export default function LegacyCelebration({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
               className={s.scrim}
+              onClick={() => closeRef.current()}
             >
               {/* The card: transform string (not y/scale) so Motion runs it on the compositor */}
               <motion.div

@@ -18,6 +18,7 @@ import StorySection from "./_components/StorySection";
 import LinkedContentSection from "./_components/LinkedContentSection";
 import LovedOneAI from "./_components/LovedOneAI";
 import s from "./_components/lovedOne.module.css";
+import { parseDateOnly } from "../_utils/dateOnly";
 
 type FamilyMember = {
   id: string;
@@ -63,6 +64,8 @@ type Capsule = {
   unlock_date?: string | null;
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default function LovedOneProfilePage() {
   const supabase = getBrowserClient();
   const router = useRouter();
@@ -81,16 +84,46 @@ export default function LovedOneProfilePage() {
   const [previewDraft, setPreviewDraft] = useState("");
 
   const fetchAll = async () => {
-    if (!id) return;
+    // Everything keys on the id in the address, never on the fetched row: the linked queries
+    // read `data.id` and fired `family_member_id=eq.undefined` whenever the member response
+    // was not the single row expected. Nothing runs without a well-formed id.
+    if (!memberId || !UUID_RE.test(memberId)) {
+      setMember(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("family_members")
-      .select("*")
-      .eq("id", memberId)
-      .single();
+    // One round trip for the loved one and everything linked to them (all need only the id).
+    const [memberRes, tlRes, albRes, capRes] = await Promise.all([
+      supabase.from("family_members").select("*").eq("id", memberId).maybeSingle(),
 
-    if (!data || error) {
+      supabase
+        .from("family_member_timelines")
+        .select("id, title, description, created_at")
+        .eq("family_member_id", memberId),
+
+      supabase
+        .from("album_tags")
+        .select("albums(id, title, description, created_at)")
+        .eq("family_member_id", memberId),
+
+      supabase
+        .from("capsule_tags")
+        .select(`
+          memory_capsules (
+            id,
+            title,
+            message,
+            is_locked,
+            unlock_date
+          )
+        `)
+        .eq("family_member_id", memberId),
+    ]);
+
+    const data = memberRes.data as FamilyMember | null;
+    if (!data || memberRes.error || !data.id) {
       setMember(null);
       setTimelines([]);
       setAlbums([]);
@@ -106,44 +139,13 @@ export default function LovedOneProfilePage() {
         .from("user-media")
         .createSignedUrl(data.avatar_url, 60 * 60 * 24);
 
-      signedAvatar = signed?.signedUrl
-        ? `${signed.signedUrl}&cb=${Date.now()}`
-        : null;
+      // No cache buster: a replaced photo gets a new storage path (AddMemberModal), so the
+      // browser may keep this one.
+      signedAvatar = signed?.signedUrl || null;
     }
 
-    const memberWithAvatar: FamilyMember = {
-      ...data,
-      avatar_signed: signedAvatar,
-    };
-
-    setMember(memberWithAvatar);
+    setMember({ ...data, avatar_signed: signedAvatar });
     setPreviewDraft(data.story_preview || "");
-
-    const [tlRes, albRes, capRes] = await Promise.all([
-      supabase
-        .from("family_member_timelines")
-        .select("id, title, description, created_at")
-        .eq("family_member_id", data.id),
-
-      supabase
-        .from("album_tags")
-        .select("albums(id, title, description, created_at)")
-        .eq("family_member_id", data.id),
-
-      supabase
-        .from("capsule_tags")
-        .select(`
-          memory_capsules (
-            id,
-            title,
-            message,
-            is_locked,
-            unlock_date
-          )
-        `)
-        .eq("family_member_id", data.id),
-    ]);
-
     setTimelines(tlRes.data || []);
     setAlbums(albRes.data?.map((x: any) => x.albums).filter(Boolean) || []);
     setCapsules(
@@ -170,12 +172,8 @@ export default function LovedOneProfilePage() {
 
   const lifespan = useMemo(() => {
     if (!member) return "";
-    const b = member.birth_date
-      ? new Date(member.birth_date).getFullYear()
-      : null;
-    const d = member.death_date
-      ? new Date(member.death_date).getFullYear()
-      : null;
+    const b = parseDateOnly(member.birth_date)?.getFullYear() ?? null;
+    const d = parseDateOnly(member.death_date)?.getFullYear() ?? null;
 
     if (b && !d) return `${b} to present`;
     if (b && d) return `${b} to ${d}`;
@@ -185,8 +183,8 @@ export default function LovedOneProfilePage() {
   const nextCelebration = useMemo(() => {
     if (!member?.birth_date || member.death_date) return null;
 
-    const birth = new Date(member.birth_date);
-    if (Number.isNaN(birth.getTime())) return null;
+    const birth = parseDateOnly(member.birth_date);
+    if (!birth) return null;
 
     const today = new Date();
     const thisYear = today.getFullYear();
@@ -211,8 +209,8 @@ export default function LovedOneProfilePage() {
 
   const formattedBirthDate = useMemo(() => {
     if (!member?.birth_date) return "Unknown";
-    const date = new Date(member.birth_date);
-    if (Number.isNaN(date.getTime())) return "Unknown";
+    const date = parseDateOnly(member.birth_date);
+    if (!date) return "Unknown";
     return date.toLocaleDateString(undefined, {
       year: "numeric",
       month: "long",
@@ -237,7 +235,11 @@ export default function LovedOneProfilePage() {
   if (loading) {
     return (
       <div className={ui.page}>
-        <AppLoader label="Loading their space" />
+        <div className={ui.wrap}>
+          {/* The way back is there from the first paint (this route has no sidebar). */}
+          <TopActions router={router} />
+          <AppLoader label="Loading their space" />
+        </div>
       </div>
     );
   }

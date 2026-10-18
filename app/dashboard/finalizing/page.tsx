@@ -8,7 +8,7 @@ const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boo
 export default function FinalizingPage() {
   useEffect(() => {
     const t = setTimeout(() => {
-      window.location.href = '/dashboard/home';
+      window.location.href = '/dashboard/our-family';
     }, 4000);
 
     return () => clearTimeout(t);

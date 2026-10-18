@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, ArrowRight, Users } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/browser";
@@ -42,12 +43,17 @@ export default function UniversalPeopleTagger({
   onSaved?: () => void;
 }) {
   const supabase = getBrowserClient();
+  const router = useRouter();
 
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
+  // The tags as they are in the database, so saving writes only the differences.
+  const [existingIds, setExistingIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  // True while the family loads, so "No family members yet" doesn't flash before the list.
-  const [loading, setLoading] = useState(false);
+  // False until the first load lands, so "No family members yet" never shows before the list
+  // (a loading flag switched on inside the effect let the first frame show the empty state).
+  // Later opens keep what is on screen while they refresh.
+  const [loaded, setLoaded] = useState(false);
 
   const titleId = useId();
   // Escape closes it (as the close button does), Tab stays inside, focus returns to the button.
@@ -67,63 +73,63 @@ export default function UniversalPeopleTagger({
       ? "capsule_id"
       : "timeline_id";
 
-  // ✅ LOAD FAMILY + SIGN AVATARS FROM *user-media* BUCKET
+  // Load the family and which of them are tagged, together, and sign the photos in one request
+  // (it was getUser() on the network, then the members, then one signing request per photo,
+  // then the tags, one after another). The whole family is listed, as My Loved Ones lists it:
+  // filtered by owner_id, a member could not tag loved ones another member had added.
   useEffect(() => {
     if (!open) return;
+    let cancelled = false;
 
     (async () => {
-      setLoading(true);
       try {
-        const {
-       data: { user },
-       } = await supabase.auth.getUser();
+        const [{ data: fam }, { data: existing }] = await Promise.all([
+          supabase
+            .from("family_members")
+            .select("id, full_name, avatar_url")
+            .order("created_at", { ascending: true }),
+          supabase.from(TAG_TABLE).select("family_member_id").eq(PARENT_KEY, parentId),
+        ]);
 
-if (!user) return;
+        const rows: FamilyMember[] = fam || [];
+        const toSign = rows.filter((m) => m.avatar_url && !m.avatar_url.startsWith("http"));
+        const byPath = new Map<string, string>();
+        if (toSign.length > 0) {
+          const { data: signed } = await supabase.storage
+            .from("user-media")
+            .createSignedUrls(toSign.map((m) => m.avatar_url as string), 60 * 60);
+          toSign.forEach((m, i) => {
+            const url = signed?.[i]?.signedUrl;
+            if (url) byPath.set(m.avatar_url as string, url);
+          });
+        }
 
-const { data: fam } = await supabase
-  .from("family_members")
-  .select("id, full_name, avatar_url")
-  .eq("owner_id", user.id)
-  .order("created_at", { ascending: true });
-
-
-        const signedMembers = await Promise.all(
-          (fam || []).map(async (m) => {
-            if (!m.avatar_url) return m;
-
-            // ✅ If full public URL already
-            if (m.avatar_url.startsWith("http")) {
-              return { ...m, avatar_signed: m.avatar_url };
-            }
-
-            const objectPath = m.avatar_url; // ✅ THIS FIXES EVERYTHING
-
-            const { data: signed } = await supabase.storage
-              .from("user-media")
-              .createSignedUrl(objectPath, 60 * 60);
-
-            return {
-              ...m,
-              avatar_signed: signed?.signedUrl || null,
-            };
-          })
+        if (cancelled) return;
+        setMembers(
+          rows.map((m) => ({
+            ...m,
+            avatar_signed: !m.avatar_url
+              ? null
+              : m.avatar_url.startsWith("http")
+              ? m.avatar_url
+              : byPath.get(m.avatar_url) ?? null,
+          }))
         );
-
-        setMembers(signedMembers);
-
-        const { data: existing } = await supabase
-          .from(TAG_TABLE)
-          .select("family_member_id")
-          .eq(PARENT_KEY, parentId);
-
-        setSelected(existing?.map((x: any) => x.family_member_id) || []);
+        const tagged: string[] = existing?.map((x: any) => x.family_member_id) || [];
+        setExistingIds(tagged);
+        setSelected(tagged);
       } catch (e) {
+        if (cancelled) return;
         console.error(e);
         toast.error("Failed to load people.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoaded(true);
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [open, parentId, parentType, supabase]);
 
   const toggle = (id: string) => {
@@ -136,10 +142,26 @@ const { data: fam } = await supabase
     try {
       setSaving(true);
 
-      await supabase.from(TAG_TABLE).delete().eq(PARENT_KEY, parentId);
+      // Only the differences are written. Deleting every tag and inserting the selection again
+      // left a family member who is not the creator with duplicates (RLS lets only the creator
+      // delete, returning 0 rows silently) and no way to untag anyone.
+      const toAdd = selected.filter((id) => !existingIds.includes(id));
+      const toRemove = existingIds.filter((id) => !selected.includes(id));
+      let blocked = false;
 
-      if (selected.length > 0) {
-        const payload = selected.map((family_member_id) => ({
+      if (toRemove.length > 0) {
+        const { data: removed, error } = await supabase
+          .from(TAG_TABLE)
+          .delete()
+          .eq(PARENT_KEY, parentId)
+          .in("family_member_id", toRemove)
+          .select("family_member_id");
+        if (error) throw error;
+        blocked = (removed?.length ?? 0) < toRemove.length;
+      }
+
+      if (toAdd.length > 0) {
+        const payload = toAdd.map((family_member_id) => ({
           family_member_id,
           [PARENT_KEY]: parentId,
         }));
@@ -148,7 +170,8 @@ const { data: fam } = await supabase
         if (error) throw error;
       }
 
-      toast.success("People tagged.");
+      if (blocked) toast.error(`Only the person who created this ${parentType} can untag people.`);
+      else toast.success("People tagged.");
       onSaved?.();
       onClose();
     } catch (e) {
@@ -199,7 +222,7 @@ const { data: fam } = await supabase
 
             {/* People / Empty State */}
             <div className={ui.sheetBody}>
-              {loading && members.length === 0 ? (
+              {!loaded ? (
                 <AppLoader label="Loading" className="min-h-0" />
               ) : members.length === 0 ? (
                 <EmptyState
@@ -218,7 +241,8 @@ const { data: fam } = await supabase
                   <Btn
                     onClick={() => {
                       onClose();
-                      window.location.href = "/dashboard/family";
+                      // A client-side move, not a full page reload.
+                      router.push("/dashboard/family");
                     }}
                     tile={<ArrowRight size={18} strokeWidth={2.4} />}
                   >

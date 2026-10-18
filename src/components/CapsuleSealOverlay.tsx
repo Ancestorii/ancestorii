@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
-import { useEffect, useId, useMemo, type CSSProperties } from 'react';
+import { useEffect, useId, useMemo, useRef, type CSSProperties } from 'react';
 import { Lock } from 'lucide-react';
 import { ui, Accent, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './Celebration.module.css';
@@ -39,15 +39,23 @@ export default function CapsuleSealedOverlay({
   onClose,
   durationMs = 4000,
 }: CapsuleSealedOverlayProps) {
+  // The page passes a fresh onClose on every render; held in a ref so the timer runs once
+  // from opening, not again from each render of the page behind it.
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
-    const t = setTimeout(onClose, durationMs);
+    const t = setTimeout(() => closeRef.current(), durationMs);
     return () => clearTimeout(t);
-  }, [open, durationMs, onClose]);
+  }, [open, durationMs]);
 
+  // The British way, as on the capsule's card and page.
   const formattedDate = useMemo(
     () =>
-      new Date(unlockDate).toLocaleDateString(undefined, {
+      new Date(unlockDate).toLocaleDateString('en-GB', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

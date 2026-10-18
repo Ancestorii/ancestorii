@@ -1,9 +1,9 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X } from 'lucide-react';
-import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, AppLoader, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './timelineList.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -17,17 +17,53 @@ export default function ExportTimelineDrawer({
   onClose: () => void;
   timelineId: string;
 }) {
-  const [downloading, setDownloading] = useState(false);
+  // The PDF is built once each time the drawer opens: the preview shows it and Download saves
+  // the same bytes. It used to be generated twice (once for the preview frame, again in a new
+  // tab), and a failure showed as a browser error page inside the frame.
+  const [pdf, setPdf] = useState<{ url: string; filename: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const titleId = useId();
   const subId = useId();
 
   // Escape closes it, Tab stays inside, focus returns to whatever opened it.
   const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    setPdf(null);
+    setError(null);
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/timelines/${timelineId}/export`, { credentials: 'same-origin' });
+        if (!res.ok) throw new Error(`Export failed (${res.status}): ${(await res.text()).slice(0, 200)}`);
+        const blob = await res.blob();
+        if (cancelled) return;
+        const match = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '');
+        objectUrl = URL.createObjectURL(blob);
+        setPdf({ url: objectUrl, filename: match?.[1] || 'timeline.pdf' });
+      } catch (e) {
+        console.error('[TIMELINE_PDF_PREVIEW]', e);
+        if (!cancelled) setError('The PDF could not be prepared just now. Close this and try again in a moment.');
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [open, timelineId]);
+
   const download = () => {
-    setDownloading(true);
-    window.open(`/api/timelines/${timelineId}/export`, '_blank');
-    setTimeout(() => setDownloading(false), 1200);
+    if (!pdf) return;
+    const a = document.createElement('a');
+    a.href = pdf.url;
+    a.download = pdf.filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   return (
@@ -75,10 +111,17 @@ export default function ExportTimelineDrawer({
             <div className={ui.sheetBody}>
               {/* PDF Preview */}
               <div className={s.pdf}>
-                <iframe
-                  src={`/api/timelines/${timelineId}/export?preview=true`}
-                  title="Timeline PDF preview"
-                />
+                {pdf ? (
+                  <iframe src={pdf.url} title="Timeline PDF preview" />
+                ) : error ? (
+                  <p className={cx(ui.noticeError, 'm-4')} role="alert">
+                    {error}
+                  </p>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <AppLoader compact label="Preparing your PDF" />
+                  </div>
+                )}
               </div>
 
               <p className={s.pdfNote}>
@@ -94,10 +137,10 @@ export default function ExportTimelineDrawer({
               </Btn>
               <Btn
                 onClick={download}
-                disabled={downloading}
-                tile={downloading ? <Spinner size={16} /> : <Download size={18} strokeWidth={2.6} />}
+                disabled={!pdf}
+                tile={pdf || error ? <Download size={18} strokeWidth={2.6} /> : <Spinner size={16} />}
               >
-                {downloading ? 'Preparing…' : 'Download PDF'}
+                {pdf || error ? 'Download PDF' : 'Preparing…'}
               </Btn>
             </div>
           </motion.div>

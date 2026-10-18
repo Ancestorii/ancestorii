@@ -15,6 +15,10 @@ import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
 // background, so, unlike the Apple badge, it does NOT switch by theme. Rendered at its
 // natural aspect ratio, never recoloured or stretched. Per Google's guideline the Play badge
 // is shown at the SAME height as the Apple badge (never smaller) so the two line up.
+//
+// Both images are loading="lazy". The React server renderer adds a <link rel="preload"> for every
+// other <img> it renders, and the badges usually sit far below the fold (footers, closing CTAs),
+// so those preloads went unused and Chrome warned about each one on every page that has them.
 type Props = {
   theme?: 'light' | 'dark';
   className?: string;
@@ -37,6 +41,7 @@ export default function StoreBadges({ theme = 'light', className = '' }: Props) 
           alt="Download Ancestorii on the App Store"
           width={132}
           height={BADGE_HEIGHT}
+          loading="lazy"
           style={{ height: BADGE_HEIGHT, width: 'auto', display: 'block' }}
         />
       </a>
@@ -48,6 +53,7 @@ export default function StoreBadges({ theme = 'light', className = '' }: Props) 
           alt="Get Ancestorii on Google Play"
           width={148}
           height={BADGE_HEIGHT}
+          loading="lazy"
           style={{ height: BADGE_HEIGHT, width: 'auto', display: 'block' }}
         />
       </a>

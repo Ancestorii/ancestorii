@@ -471,9 +471,13 @@
   transition-duration: 80ms;
 }
 
+/* A video tile keeps its box before its first frame arrives (it was 0px tall until then, and
+   the column jumped). */
 .tile > video {
   display: block;
   width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
 }
 
 /* A memory told as a card (a dated photo, a recording): white with the hairline ring. */

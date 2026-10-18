@@ -1,7 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { scaleTime, zoom, zoomIdentity, select, timeYear } from 'd3';
+// Only the d3 modules the drawing uses (the whole 'd3' bundle used to ship for these five).
+// d3-transition is imported for its effect: it gives selections the .transition() the zoom
+// buttons animate with.
+import { scaleTime } from 'd3-scale';
+import { zoom, zoomIdentity, type ZoomTransform } from 'd3-zoom';
+import { select } from 'd3-selection';
+import { timeYear } from 'd3-time';
+import 'd3-transition';
 import { Calendar, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
 import MemoryModal from '@app/dashboard/timeline/_components/MemoryModal';
 import TimelineEventCard from './TimelineEventCard';
@@ -33,7 +40,8 @@ type Props = {
   minContentPxPerYear?: number;
   onEventClick?: (ev: TimelineEvent) => void;
   onCreateMemory?: () => void;
-  thumbnailResolver?: (ev: TimelineEvent) => Promise<TimelineThumbnail[]>;
+  /** The first photos or videos of each memory, by memory id (the page loads them in one batch). */
+  thumbnails?: Record<string, TimelineThumbnail[]>;
 };
 
 export default function HorizontalTimeline({
@@ -44,7 +52,7 @@ export default function HorizontalTimeline({
   minContentPxPerYear = 250,
   onEventClick,
   onCreateMemory,
-  thumbnailResolver,
+  thumbnails,
 }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -103,7 +111,11 @@ export default function HorizontalTimeline({
   }, [domainStart, domainEnd, start, end, minContentPxPerYear, events.length, width]);
 
   const [transform, setTransform] = useState<any>(zoomIdentity);
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const zoomLevel: number = transform.k ?? 1;
+  // The zoom fires many times a frame while the wheel or a drag moves: keep the latest
+  // transform and commit it once per frame, so the drawing renders at most once per frame.
+  const pendingRef = useRef<ZoomTransform | null>(null);
+  const frameRef = useRef<number | null>(null);
   const x = useMemo(
     () => (transform.rescaleX ? transform.rescaleX(baseX) : baseX),
     [transform, baseX]
@@ -135,49 +147,23 @@ export default function HorizontalTimeline({
     const z = zoom()
       .scaleExtent([0.4, 8])
       .on('zoom', (e: any) => {
-        setTransform(e.transform);
-        setZoomLevel(e.transform.k);
+        pendingRef.current = e.transform;
+        if (frameRef.current != null) return;
+        frameRef.current = requestAnimationFrame(() => {
+          frameRef.current = null;
+          if (pendingRef.current) setTransform(pendingRef.current);
+        });
       });
     zoomRef.current = z;
     selRef.current = sel;
     (sel as any).call(z as any);
     (sel as any).call((z as any).transform, zoomIdentity);
-    return () => (sel as any).on('.zoom', null);
-  }, []);
-
-  // Cache thumbnails for each event
-  const [thumbsById, setThumbsById] = useState<
-  Record<string, TimelineThumbnail[]>
-  >({});
-  useEffect(() => {
-    if (!thumbnailResolver || !events.length) return;
-    let cancelled = false;
-    (async () => {
-  const need = events.filter((ev) => !thumbsById[ev.id]);
-
-  const results = await Promise.all(
-    need.map(async (ev) => {
-      try {
-        const urls = (await thumbnailResolver(ev)) || [];
-        return { id: ev.id, urls };
-      } catch {
-        return { id: ev.id, urls: [] };
-      }
-    })
-  );
-
-  if (cancelled) return;
-
-  setThumbsById((prev) => {
-    const next = { ...prev };
-    for (const r of results) next[r.id] = r.urls;
-    return next;
-  });
-})();
     return () => {
-      cancelled = true;
+      (sel as any).on('.zoom', null);
+      if (frameRef.current != null) cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
     };
-  }, [events, thumbnailResolver]);
+  }, []);
 
   const onImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const el = e.currentTarget;
@@ -209,16 +195,16 @@ export default function HorizontalTimeline({
     });
   }, [years, x]);
 
-  // Floating active year label
-  const [activeYear, setActiveYear] = useState<number | null>(null);
-  const [visibleYear, setVisibleYear] = useState<number | null>(null);
-  const hideTimer = useRef<number | null>(null);
-  useEffect(() => {
+  // Floating active year label (read off the scale, not set from an effect: that was a second
+  // render after every zoom frame)
+  const activeYear = useMemo(() => {
     const leftDate = x.invert(0);
     const rightDate = x.invert(width * 2);
     const mid = new Date((leftDate.getTime() + rightDate.getTime()) / 2);
-    setActiveYear(mid.getUTCFullYear());
-  }, [transform, x, width]);
+    return mid.getUTCFullYear();
+  }, [x, width]);
+  const [visibleYear, setVisibleYear] = useState<number | null>(null);
+  const hideTimer = useRef<number | null>(null);
   useEffect(() => {
     if (activeYear == null) return;
     setVisibleYear(activeYear);
@@ -358,8 +344,8 @@ export default function HorizontalTimeline({
           const accent = tone(i).bg;
 
           const resolved: TimelineThumbnail[] =
-          thumbsById[ev.id]?.length
-         ? thumbsById[ev.id]
+          thumbnails?.[ev.id]?.length
+         ? thumbnails[ev.id]
          : (ev.media ?? []).filter(
           (m): m is TimelineThumbnail =>
           (m.type === 'photo' || m.type === 'video') && !!m.url

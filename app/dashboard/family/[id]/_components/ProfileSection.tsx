@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getBrowserClient } from "@/lib/supabase/browser";
+import { safeToast as toast } from "@/lib/safeToast";
 import React, { useEffect } from "react";
 import type { CSSProperties } from "react";
 import {
@@ -225,7 +226,9 @@ export default function ProfileSection({
           {!isEditingPreview ? (
             <motion.button
               type="button"
-              initial={{ opacity: 0, y: 18 }}
+              /* No entrance of its own: it sits inside the hero's, and it remounts after every
+                 Save or Cancel, where a fade and slide read as a flash. */
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className={s.aboutView}
@@ -283,18 +286,23 @@ export default function ProfileSection({
                   <Btn
                     size="sm"
                     onClick={async () => {
-                      const { error } = await supabase
+                      // select('id'): an update row security blocks returns no error and no
+                      // row, and used to read as saved.
+                      const { data: updated, error } = await supabase
                         .from("family_members")
                         .update({ story_preview: previewDraft || null })
-                        .eq("id", member.id);
+                        .eq("id", member.id)
+                        .select("id");
 
-                      if (!error) {
+                      if (!error && updated && updated.length > 0) {
                         setMember((prev: any) =>
                           prev
                             ? { ...prev, story_preview: previewDraft }
                             : prev
                         );
                         setIsEditingPreview(false);
+                      } else {
+                        toast.error("Couldn't save those words. Please try again.");
                       }
                     }}
                   >

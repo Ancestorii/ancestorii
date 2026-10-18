@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
-import { getSignedMediaUrl } from '@app/dashboard/timeline/_actions/uploadMedia';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 import MemoryModalBody from './MemoryModalBody';
 import { safeToast as toast } from '@/lib/safeToast';
 import { Trash2 } from 'lucide-react';
@@ -13,8 +13,6 @@ import { ui, Btn, IconBtn, Spinner, btnClass, useDialog } from '@/components/das
 import s from './memoryModal.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
-
-const signedUrlCache = new Map<string, string>();
 
 type DbMedia = {
   id: string;
@@ -165,7 +163,19 @@ export default function MemoryModal({
     if (!deleting) setConfirmDeleteOpen(false);
   });
 
-  async function loadMedia() {
+  // Signed URLs for many files in one call per bucket.
+  async function signPaths(bucket: 'timeline-media' | 'library-media', paths: string[]) {
+    const map = new Map<string, string>();
+    const unique = [...new Set(paths)];
+    if (!unique.length) return map;
+    const { data } = await supabase.storage.from(bucket).createSignedUrls(unique, 3600);
+    data?.forEach((row, i) => {
+      if (row?.signedUrl) map.set(row.path ?? unique[i], row.signedUrl);
+    });
+    return map;
+  }
+
+  async function fetchMedia(): Promise<MediaItem[]> {
   const { data: m, error } = await supabase
     .from('timeline_event_media')
     .select(`
@@ -185,52 +195,40 @@ export default function MemoryModal({
     .limit(50)
     .order('created_at', { ascending: true });
 
-  if (error || !m) {
-    setMedia([]);
-    return;
-  }
+  if (error || !m) return [];
 
-  const out = await Promise.all(
-    m.map(async (row: any) => {
+  const rows = (m as unknown as DbMedia[]).map((row) => {
+    const isLibrary = !!row.library_media_id;
+    const lib = Array.isArray(row.library_media) ? row.library_media[0] : row.library_media;
+    const realPath: string | null = (isLibrary ? lib?.file_path : row.file_path) ?? null;
+    return { row, isLibrary, realPath };
+  });
 
-      const isLibrary = !!row.library_media_id;
+  // One signing call per bucket (it used to be one per file, one after another).
+  const [tlUrls, libUrls] = await Promise.all([
+    signPaths(
+      'timeline-media',
+      rows.filter((r) => !r.isLibrary && r.realPath).map((r) => r.realPath as string)
+    ),
+    signPaths(
+      'library-media',
+      rows.filter((r) => r.isLibrary && r.realPath).map((r) => r.realPath as string)
+    ),
+  ]);
 
-      const lib = Array.isArray(row.library_media)
-        ? row.library_media[0]
-        : row.library_media;
-
-      const realPath = isLibrary ? lib?.file_path : row.file_path;
-
-      if (!realPath) return null;
-
-      let signed = signedUrlCache.get(realPath);
-
-if (!signed) {
-
-  if (isLibrary) {
-    const { data } = await supabase.storage
-      .from('library-media')
-      .createSignedUrl(realPath, 3600);
-
-    signed = data?.signedUrl || '';
-  } else {
-    signed = await getSignedMediaUrl(realPath, 3600);
-  }
-
-  if (signed) signedUrlCache.set(realPath, signed);
+  return rows
+    .filter((r) => !!r.realPath)
+    .map(({ row, isLibrary, realPath }) => ({
+      id: row.id,
+      url: (isLibrary ? libUrls : tlUrls).get(realPath as string) ?? '',
+      type: row.file_type || 'file',
+      created_at: row.created_at,
+    }));
 }
 
-      return {
-        id: row.id,
-        url: signed,
-        type: row.file_type || 'file',
-        created_at: row.created_at,
-      };
-    })
-  );
-
-  setMedia(out.filter(Boolean) as MediaItem[]);
-}
+  async function loadMedia() {
+    setMedia(await fetchMedia());
+  }
 
   useEffect(() => {
   if (!open) return;
@@ -252,41 +250,68 @@ if (!signed) {
   };
 }, [open]);
 
-  // load event title
+  // Everything the memory shows, loaded together when it opens: the photos, the words and the
+  // voice notes go out as one round, then their signed URLs as one more (each used to be its
+  // own effect, signing one file at a time). The modal keeps its state between memories, so the
+  // previous memory's title, words and voices are cleared first: they used to show under the
+  // new memory's photos until their own queries came back. The title comes from the timeline
+  // (the page reloads it after a save), not a query of its own.
   useEffect(() => {
     if (!open || !eventId) return;
+    let cancelled = false;
+
+    setTitle(eventTitle || '');
+    setComments([]);
+    setVoices([]);
+    setNewComment('');
+    setLoading(true);
+
     (async () => {
       try {
-        const { data, error } = await supabase
-          .from('timeline_events')
-          .select('title')
-          .eq('id', eventId)
-          .single();
-        if (!error && data) {
-          setTitle(data.title ?? eventTitle ?? 'Memory');
-        }
-      } catch {
-        // ignore
+        const [mediaItems, commentRes, voiceRes] = await Promise.all([
+          fetchMedia(),
+          supabase
+            .from('timeline_event_media_comments')
+            .select('id, comment, created_at, event_id, user_id, profile:"Profiles"!user_id(full_name)')
+            .eq('event_id', eventId)
+            .order('created_at', { ascending: true }),
+          supabase
+            .from('timeline_event_media_voice_notes')
+            .select('id, file_path, created_at, event_id, user_id, profile:"Profiles"!user_id(full_name)')
+            .eq('event_id', eventId)
+            .order('created_at', { ascending: true }),
+        ]);
+
+        type VoiceRow = Omit<VoiceItem, 'url'> & { file_path: string };
+        const voiceRows = (voiceRes.data ?? []) as unknown as VoiceRow[];
+        const voiceUrls = await signPaths(
+          'timeline-media',
+          voiceRows.map((v) => v.file_path).filter(Boolean)
+        );
+
+        if (cancelled) return;
+        setMedia(mediaItems);
+        setComments((commentRes.data ?? []) as CommentItem[]);
+        setVoices(
+          voiceRows.map((v) => ({
+            id: v.id,
+            url: voiceUrls.get(v.file_path) ?? '',
+            created_at: v.created_at,
+            event_id: v.event_id,
+            user_id: v.user_id,
+            profile: v.profile ?? null,
+          }))
+        );
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, eventId]);
-
-
-
- // load media for this event
-useEffect(() => {
-  if (!open || !eventId) return;
-
-  (async () => {
-    setLoading(true);
-    try {
-      await loadMedia();
-    } finally {
-      setLoading(false);
-    }
-  })();
-}, [open, eventId]);
 
   async function handlePickFromLibrary(item: LibraryPickerItem) {
   try {
@@ -379,17 +404,23 @@ async function deleteMedia(media: MediaItem) {
 
     const isLibrary = !!row?.library_media_id;
 
+    // The voice notes on this file (their rows go with it, by cascade): remember their files.
+    const { data: voices } = await supabase
+      .from('timeline_event_media_voice_notes')
+      .select('file_path')
+      .eq('event_id', eventId)
+      .eq('media_id', media.id);
+
+    // The row first, and only if a row really went: RLS lets only the timeline's creator
+    // delete, silently (the file used to be removed first, then the row delete did nothing
+    // and the tile vanished anyway).
+    const deleted = await deleteWithOwnerCheck(supabase, 'timeline_event_media', media.id, 'timeline');
+    if (!deleted) return;
+
     // delete related comments
     await supabase
       .from('timeline_event_media_comments')
       .delete()
-      .eq('event_id', eventId)
-      .eq('media_id', media.id);
-
-    // delete voice notes
-    const { data: voices } = await supabase
-      .from('timeline_event_media_voice_notes')
-      .select('file_path')
       .eq('event_id', eventId)
       .eq('media_id', media.id);
 
@@ -399,24 +430,12 @@ async function deleteMedia(media: MediaItem) {
         .remove(voices.map(v => v.file_path));
     }
 
-    await supabase
-      .from('timeline_event_media_voice_notes')
-      .delete()
-      .eq('event_id', eventId)
-      .eq('media_id', media.id);
-
     // delete storage ONLY if direct upload
     if (!isLibrary && row?.file_path) {
       await supabase.storage
         .from('timeline-media')
         .remove([row.file_path]);
     }
-
-    // delete row
-    await supabase
-      .from('timeline_event_media')
-      .delete()
-      .eq('id', media.id);
 
     setMedia(prev => prev.filter(m => m.id !== media.id));
     toast.success('Removed from memory.');
@@ -426,44 +445,6 @@ async function deleteMedia(media: MediaItem) {
     toast.error('Failed to delete media.');
   }
 }
-
-useEffect(() => {
-  if (!open || !eventId) return;
-
-  supabase
-    .from('timeline_event_media_comments')
-    .select('id, comment, created_at, event_id, user_id, profile:"Profiles"!user_id(full_name)')
-    .eq('event_id', eventId)
-    .order('created_at', { ascending: true })
-    .then(({ data }) => {
-      setComments(data ?? []);
-    });
-}, [open, eventId]);
-
-useEffect(() => {
-  if (!open || !eventId) return;
-
-  (async () => {
-    const { data } = await supabase
-      .from('timeline_event_media_voice_notes')
-      .select('id, file_path, created_at, event_id, user_id, profile:"Profiles"!user_id(full_name)')
-      .eq('event_id', eventId)
-      .order('created_at', { ascending: true });
-
-    if (!data) return;
-
-    const signed = await Promise.all(
-      data.map(async (v) => ({
-        ...v,
-        url: await getSignedMediaUrl(v.file_path, 3600),
-      }))
-    );
-
-    setVoices(signed);
-  })();
-}, [open, eventId]);
-
-
 
   // Save title with visible confirmation
   async function saveTop() {
@@ -561,12 +542,10 @@ useEffect(() => {
         .eq('event_id', eventId);
     }
 
-    const { error } = await supabase
-      .from('timeline_events')
-      .delete()
-      .eq('id', eventId);
-
-    if (error) throw error;
+    // Only if a row really went: RLS lets only the timeline's creator delete, silently (the
+    // toast used to say "deleted" while the memory stayed).
+    const deleted = await deleteWithOwnerCheck(supabase, 'timeline_events', eventId, 'timeline');
+    if (!deleted) return;
 
     toast.success('Memory deleted.');
     window.dispatchEvent(new Event('timeline-media-updated'));
@@ -628,12 +607,8 @@ async function addComment() {
 
 async function deleteComment(commentId: string) {
   try {
-    const { error } = await supabase
-      .from('timeline_event_media_comments')
-      .delete()
-      .eq('id', commentId);
-
-    if (error) throw error;
+    const deleted = await deleteWithOwnerCheck(supabase, 'timeline_event_media_comments', commentId, 'timeline');
+    if (!deleted) return;
 
     setComments((p) => p.filter((c) => c.id !== commentId));
     toast.success('Comment deleted.');
@@ -645,26 +620,20 @@ async function deleteComment(commentId: string) {
 
 async function deleteVoice(voiceId: string) {
   try {
-    const voice = voices.find((v) => v.id === voiceId);
-
-    if (voice?.url) {
-      const { data: row } = await supabase
-        .from('timeline_event_media_voice_notes')
-        .select('file_path')
-        .eq('id', voiceId)
-        .single();
-
-      if (row?.file_path) {
-        await supabase.storage.from('timeline-media').remove([row.file_path]);
-      }
-    }
-
-    const { error } = await supabase
+    const { data: row } = await supabase
       .from('timeline_event_media_voice_notes')
-      .delete()
-      .eq('id', voiceId);
+      .select('file_path')
+      .eq('id', voiceId)
+      .single();
 
-    if (error) throw error;
+    // The row first, and only if a row really went (RLS lets only the timeline's creator
+    // delete, silently); then its file.
+    const deleted = await deleteWithOwnerCheck(supabase, 'timeline_event_media_voice_notes', voiceId, 'timeline');
+    if (!deleted) return;
+
+    if (row?.file_path) {
+      await supabase.storage.from('timeline-media').remove([row.file_path]);
+    }
 
     setVoices((p) => p.filter((v) => v.id !== voiceId));
     toast.success('Voice note deleted.');
@@ -708,7 +677,10 @@ async function uploadVoice(file: File) {
 
     if (error) throw error;
 
-    const signed = await getSignedMediaUrl(data.file_path, 3600);
+    const { data: signedRow } = await supabase.storage
+      .from('timeline-media')
+      .createSignedUrl(data.file_path, 3600);
+    const signed = signedRow?.signedUrl ?? '';
 
     setVoices((p) => [
       ...p,
@@ -779,13 +751,23 @@ async function uploadVoice(file: File) {
           <div className={s.actions}>
             <div className={s.actionGroup}>
               {/* UPLOAD (the file field is hidden from sight, not from the keyboard) */}
-              <label className={btnClass({ variant: 'soft', size: 'sm', className: s.fileBtn })}>
-                <Upload size={17} strokeWidth={2.3} aria-hidden="true" />
+              {/* While a file uploads the button shows a spinner; the photos and words stay put
+                  (the whole body used to be swapped for a loader and back) */}
+              <label
+                className={btnClass({ variant: 'soft', size: 'sm', className: s.fileBtn })}
+                aria-busy={uploadingMedia || undefined}
+              >
+                {uploadingMedia ? (
+                  <Spinner size={16} />
+                ) : (
+                  <Upload size={17} strokeWidth={2.3} aria-hidden="true" />
+                )}
                 <span>Upload</span>
                 <input
                   type="file"
                   className={ui.srOnly}
                   accept="image/*,video/*,audio/*"
+                  disabled={uploadingMedia}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
@@ -862,7 +844,6 @@ async function uploadVoice(file: File) {
             onDeleteComment={deleteComment}
             onDeleteVoice={deleteVoice}
             onUploadMedia={uploadMedia}
-            uploadingMedia={uploadingMedia}
             onDeleteMedia={deleteMedia}
           />
         </div>

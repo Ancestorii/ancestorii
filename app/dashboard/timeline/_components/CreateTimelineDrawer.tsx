@@ -5,7 +5,6 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import { X, ImagePlus, Check, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePlanLimits } from '@/lib/usePlanLimits';
 import { ensureDisplayableImage } from '@/lib/convertImage';
 import { ui, Btn, IconBtn, IconTile, Spinner, toneByKey, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './timelineList.module.css';
@@ -29,6 +28,8 @@ export default function CreateTimelineDrawer({
   onUpdated,
   mode = 'create',
   timeline,
+  limitReached = false,
+  limitMessage,
 }: {
   open: boolean;
   onClose: () => void;
@@ -36,6 +37,9 @@ export default function CreateTimelineDrawer({
   onUpdated?: (tl: Timeline) => void;
   mode?: 'create' | 'edit';
   timeline?: Timeline | null;
+  /** The page's plan check (it runs usePlanLimits once; the drawer used to run it a second time). */
+  limitReached?: boolean;
+  limitMessage?: string;
 }) {
   const supabase = getBrowserClient();
   const [title, setTitle] = useState('');
@@ -54,8 +58,6 @@ export default function CreateTimelineDrawer({
 
   // Escape closes it (as the close button does), Tab stays inside, focus returns to the button.
   const panelRef = useDialog<HTMLDivElement>(open, onClose);
-
-  const { loading: limitsLoading, canCreate, limits, counts } = usePlanLimits();
 
   useEffect(() => setMounted(true), []);
 
@@ -139,22 +141,11 @@ useEffect(() => {
       const user = sess?.session?.user;
       if (!user) throw new Error('Not signed in');
 
-     if (mode === 'create') {
-  if (limitsLoading) {
-    toast.error('Checking plan limits…');
-    setUploading(false);
-    isSubmittingRef.current = false;
-    return;
-  }
-
-  if (!canCreate.timeline) {
-    toast.error(
-      `Timeline limit reached (${counts?.timelines} / ${limits?.max_timelines})`
-    );
-    setUploading(false);
-    isSubmittingRef.current = false;
-    return;
-  }
+     if (mode === 'create' && limitReached) {
+  toast.error(limitMessage || 'You’ve reached your current plan limit for timelines.');
+  setUploading(false);
+  isSubmittingRef.current = false;
+  return;
 }
 
 

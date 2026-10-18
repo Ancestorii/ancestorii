@@ -211,32 +211,47 @@ export default function StorySection({
       special_memories: member.special_memories_image || null,
       who_they_are: member.who_they_are_image || null,
     });
-  }, [member]);
+    // Only when a different loved one arrives: the parent's setMember (the About box, a chapter
+    // save) re-ran this, wiping unsaved chapter text and re-signing every photo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [member.id]);
+
+  // Signed URLs by storage path, kept for the page's life: each path is signed once (all of
+  // them in one request), so adding or removing one photo leaves the others' URLs, and their
+  // cached images, alone.
+  const signedByPath = useRef<Record<string, string>>({});
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadSignedImages = async () => {
-      const nextUrls: StoryImages = {
-        early_years: null,
-        important_moments: null,
-        special_memories: null,
-        who_they_are: null,
-      };
+      const keys = Object.keys(imagePaths) as StoryKey[];
+      const unsigned = keys
+        .map((key) => imagePaths[key])
+        .filter((path): path is string => !!path && !signedByPath.current[path]);
 
-      for (const key of Object.keys(imagePaths) as StoryKey[]) {
-        const path = imagePaths[key];
-        if (!path) continue;
-
+      if (unsigned.length > 0) {
         const { data } = await supabase.storage
           .from("user-media")
-          .createSignedUrl(path, 60 * 60 * 24);
-
-        nextUrls[key] = data?.signedUrl || null;
+          .createSignedUrls(unsigned, 60 * 60 * 24);
+        for (const row of data || []) {
+          if (row.path && row.signedUrl) signedByPath.current[row.path] = row.signedUrl;
+        }
       }
+      if (cancelled) return;
 
+      const nextUrls = { ...INITIAL_IMAGES };
+      for (const key of keys) {
+        const path = imagePaths[key];
+        nextUrls[key] = path ? signedByPath.current[path] || null : null;
+      }
       setImageUrls(nextUrls);
     };
 
     loadSignedImages();
+    return () => {
+      cancelled = true;
+    };
   }, [imagePaths, supabase]);
 
   const filledSections = useMemo(() => {
@@ -288,8 +303,8 @@ export default function StorySection({
     try {
       const file = await ensureDisplayableImage(rawFile);
 
-      const { data: auth } = await supabase.auth.getUser();
-      const uid = auth?.user?.id;
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess?.session?.user?.id;
 
       if (!uid) {
         setUploadingKey(null);
@@ -313,6 +328,7 @@ export default function StorySection({
       const { data: signed } = await supabase.storage
         .from("user-media")
         .createSignedUrl(path, 60 * 60 * 24);
+      if (signed?.signedUrl) signedByPath.current[path] = signed.signedUrl;
 
       setImagePaths((prev) => ({
         ...prev,

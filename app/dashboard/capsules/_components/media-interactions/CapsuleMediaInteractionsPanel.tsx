@@ -86,17 +86,14 @@ export default function CapsuleMediaInteractionsPanel({
 
         if (vErr) throw vErr;
 
-        const withSigned = await Promise.all(
-          (voices ?? []).map(async (v) => {
-            const { data } = await supabase.storage
-              .from('capsule-media')
-              .createSignedUrl(v.file_path, 3600);
+        // One signing request for every note (it was one request per note).
+        const rows = voices ?? [];
+        const paths = rows.map((v) => v.file_path);
+        const { data: signed } = paths.length
+          ? await supabase.storage.from('capsule-media').createSignedUrls(paths, 3600)
+          : { data: [] };
 
-            return { ...v, signed_url: data?.signedUrl ?? null };
-          })
-        );
-
-        setVoiceNotes(withSigned);
+        setVoiceNotes(rows.map((v, i) => ({ ...v, signed_url: signed?.[i]?.signedUrl ?? null })));
       } catch {
         toast.error('Failed to load capsule interactions.');
       }
@@ -111,15 +108,20 @@ export default function CapsuleMediaInteractionsPanel({
       const userId = sess?.session?.user?.id;
       if (!userId) return;
 
+      // Errors were not read before: "Letter saved" showed whether or not it was.
       if (letter) {
-        await supabase
+        const { data, error } = await supabase
           .from('capsule_comments')
           .update({ comment: draft.trim() })
-          .eq('id', letter.id);
+          .eq('id', letter.id)
+          .select('id');
+
+        if (error) throw error;
+        if (!data?.length) throw new Error('Not saved');
 
         setLetter({ ...letter, comment: draft.trim() });
       } else {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('capsule_comments')
           .insert({
             capsule_id: capsuleId,
@@ -128,6 +130,8 @@ export default function CapsuleMediaInteractionsPanel({
           })
           .select('id,capsule_id,user_id,comment,created_at,Profiles(full_name)')
           .single();
+
+        if (error) throw error;
 
         setLetter(data as Letter);
       }
@@ -139,8 +143,29 @@ export default function CapsuleMediaInteractionsPanel({
   };
 
   const deleteVoice = async (id: string) => {
-    await supabase.from('capsule_voice_notes').delete().eq('id', id);
-    setVoiceNotes((p) => p.filter((v) => v.id !== id));
+    try {
+      // Only the capsule's creator may delete (RLS), and a blocked delete returns no rows
+      // rather than an error: the note stays listed until its row really went.
+      const { data, error } = await supabase
+        .from('capsule_voice_notes')
+        .delete()
+        .eq('id', id)
+        .select('file_path');
+
+      if (error) throw error;
+      if (!data?.length) {
+        toast.error('Only the person who created this capsule can delete a voice note.');
+        return;
+      }
+
+      setVoiceNotes((p) => p.filter((v) => v.id !== id));
+
+      // The recording itself, where storage lets us (its uploader's file)
+      const path = data[0]?.file_path;
+      if (path) await supabase.storage.from('capsule-media').remove([path]);
+    } catch {
+      toast.error('Failed to delete voice note.');
+    }
   };
 
   return (
@@ -259,15 +284,9 @@ export default function CapsuleMediaInteractionsPanel({
         capsuleId={capsuleId}
         open={voiceOpen}
         onClose={() => setVoiceOpen(false)}
-        onUploaded={async (note) => {
-          const { data } = await supabase.storage
-            .from('capsule-media')
-            .createSignedUrl(note.file_path, 3600);
-
-          setVoiceNotes((p) => [
-            { ...note, signed_url: data?.signedUrl ?? null },
-            ...p,
-          ]);
+        onUploaded={(note) => {
+          // The drawer hands it over signed already.
+          setVoiceNotes((p) => [note, ...p]);
 
           toast.success('Voice note added.');
         }}

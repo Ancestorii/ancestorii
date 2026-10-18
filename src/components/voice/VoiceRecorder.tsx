@@ -34,16 +34,34 @@ export default function VoiceRecorder({
   const [bars] = useState(() => Array.from({ length: 36 }, (_, i) => 15 + Math.sin(i * 0.4) * 12 + Math.random() * 8));
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
+  const previewUrlRef = useRef<string | null>(null);
 
-  useEffect(() => () => {
-    mountedRef.current = false;
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  useEffect(() => {
+    previewUrlRef.current = previewUrl;
   }, [previewUrl]);
+
+  // On unmount only. This cleanup used to run on every new take (it followed previewUrl), which
+  // marked the recorder unmounted, so after a send the button stayed on "Saving…"; and it never
+  // let go of the microphone when the parent took the recorder away mid-recording.
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (timerRef.current) clearInterval(timerRef.current);
+      const r = mediaRecorderRef.current;
+      if (r && r.state !== 'inactive') {
+        r.onstop = null;
+        r.stop();
+      }
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    };
+  }, []);
 
   const fmt = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
@@ -51,6 +69,7 @@ export default function VoiceRecorder({
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const recorder = new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;
       chunksRef.current = [];
@@ -64,6 +83,7 @@ export default function VoiceRecorder({
         setPreviewUrl(URL.createObjectURL(blob));
         setFile(recorded);
         stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       };
       recorder.start();
       setRecording(true);
@@ -77,10 +97,12 @@ export default function VoiceRecorder({
     setRecording(false);
   };
 
+  // The element's events drive the button, so a take the browser can't play never shows "Pause".
   const togglePlayback = () => {
-    if (!audioRef.current) return;
-    playing ? audioRef.current.pause() : audioRef.current.play();
-    setPlaying(!playing);
+    const el = audioRef.current;
+    if (!el) return;
+    if (el.paused) el.play().catch(() => setPlaying(false));
+    else el.pause();
   };
 
   const reset = () => {
@@ -118,7 +140,7 @@ export default function VoiceRecorder({
       {/* PREVIEW: audio captured, ready to send */}
       {file && previewUrl ? (
         <div className={s.take}>
-          <audio ref={audioRef} src={previewUrl} onEnded={() => setPlaying(false)} />
+          <audio ref={audioRef} src={previewUrl} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} />
           <button
             type="button"
             onClick={togglePlayback}

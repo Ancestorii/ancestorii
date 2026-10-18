@@ -32,7 +32,6 @@ export default function CreateAlbumDrawer({
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
   const isSubmittingRef = useRef(false);
 
@@ -43,10 +42,13 @@ export default function CreateAlbumDrawer({
   // Escape closes it (as the close button does), Tab stays inside, focus returns to the button.
   const panelRef = useDialog<HTMLDivElement>(open, onClose);
 
-  useEffect(() => setMounted(true), []);
-
-  useEffect(() => {
-    if (open) {
+  // The fields follow the album as the drawer opens. Set during render (not in an effect after
+  // it), so the first frame never shows the previous album's words or cover.
+  const [openedFor, setOpenedFor] = useState<string | null>(null);
+  const openKey = open ? `${mode}:${album?.id ?? 'new'}` : null;
+  if (openKey !== openedFor) {
+    setOpenedFor(openKey);
+    if (openKey) {
       if (mode === 'edit' && album) {
         setTitle(album.title || '');
         setDescription(album.description || '');
@@ -59,7 +61,7 @@ export default function CreateAlbumDrawer({
         setPreviewUrl(null);
       }
     }
-  }, [open, mode, album]);
+  }
 
   useEffect(() => {
     if (coverFile) {
@@ -102,7 +104,7 @@ export default function CreateAlbumDrawer({
       area.removeEventListener('dragleave', leave);
       area.removeEventListener('drop', drop);
     };
-  }, [open, mounted]);
+  }, [open]);
 
   const handleSubmit = async () => {
     if (isSubmittingRef.current || !title.trim()) return;
@@ -125,13 +127,12 @@ export default function CreateAlbumDrawer({
         uploadedPath = path;
       }
 
-      let coverUrl: string | null = album?.cover_image || null;
-      if (uploadedPath) coverUrl = uploadedPath;
-
       if (mode === 'edit' && album) {
+        // Without a new photo the cover column is left alone. It used to be rewritten with the
+        // list's signed URL (which expires after a week), so the cover later went blank.
         const { data, error } = await supabase
           .from('albums')
-          .update({ title, description, cover_image: coverUrl })
+          .update({ title, description, ...(uploadedPath ? { cover_image: uploadedPath } : {}) })
           .eq('id', album.id)
           .select()
           .single();
@@ -141,7 +142,7 @@ export default function CreateAlbumDrawer({
       } else {
         const { data, error } = await supabase
           .from('albums')
-          .insert({ title, description, cover_image: coverUrl, user_id: user.id })
+          .insert({ title, description, cover_image: uploadedPath, user_id: user.id })
           .select()
           .single();
         if (error) throw error;
@@ -157,8 +158,6 @@ export default function CreateAlbumDrawer({
       isSubmittingRef.current = false;
     }
   };
-
-  if (!mounted) return null;
 
   return (
     <AnimatePresence>

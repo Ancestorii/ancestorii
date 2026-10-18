@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Calendar, FileDown, Monitor, Plus, Users, X } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast as toast } from '@/lib/safeToast';
 import HorizontalTimeline, { TimelineEvent } from '@app/dashboard/timeline/_components/HorizontalTimeline';
 import CreateEventDrawer from '@app/dashboard/timeline/_components/CreateEventDrawer';
 import UniversalPeopleTagger from '@/components/UniversalPeopleTagger';
@@ -24,20 +26,10 @@ import s from './timelineDetail.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
-const thumbnailCache = new Map<string, TimelineThumbnail[]>();
-
 
 const isUuid = (v?: string) =>
   typeof v === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
-
-function CenterLoader({ label = 'Loading timeline…' }: { label?: string }) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-white">
-      <AppLoader label={label} />
-    </div>
-  );
-}
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
@@ -54,6 +46,27 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
   );
 }
 
+// A link that isn't one of this family's timelines (or isn't a timeline at all): say so, instead
+// of a loader that never ends, or an empty page whose "Add your first memory" button can't.
+function NotFound() {
+  return (
+    <div className={s.page}>
+      <div className={s.inner}>
+        <KitEmptyState
+          Icon={Calendar}
+          tone={toneByKey('aqua')}
+          title="Timeline not found"
+          text="It may have been deleted, or it belongs to another family."
+        >
+          <Btn href="/dashboard/timeline" icon={<ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />}>
+            Back to Timelines
+          </Btn>
+        </KitEmptyState>
+      </div>
+    </div>
+  );
+}
+
 type TimelineMeta = {
   id: string;
   title: string;
@@ -67,201 +80,192 @@ type TimelineThumbnail = {
   type: 'photo' | 'video';
 };
 
+type TaggedPerson = { id: string; full_name: string; avatar_signed?: string | null };
+
+// A memory as the events query returns it, its media embedded (with a library file's own path).
+type MediaRow = {
+  file_path: string | null;
+  file_type: string;
+  created_at: string | null;
+  library_media: { file_path: string } | { file_path: string }[] | null;
+};
+type EventRow = {
+  id: string;
+  title: string;
+  event_date: string;
+  timeline_event_media: MediaRow[] | null;
+};
+type Bucket = 'timeline-media' | 'library-media';
+
 export default function TimelineDetailPage() {
-  const supabase = getBrowserClient();
+  // One client for the page (the loader below is memoised on it).
+  const supabase = useMemo(() => getBrowserClient(), []);
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const routeId = (params?.id as string | undefined) || undefined;
   const timelineId = useMemo(() => (isUuid(routeId) ? routeId : undefined), [routeId]);
 
   const [timeline, setTimeline] = useState<TimelineMeta | null>(null);
-  const [tlLoading, setTlLoading] = useState(true);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [thumbs, setThumbs] = useState<Record<string, TimelineThumbnail[]>>({});
+  const [taggedPeople, setTaggedPeople] = useState<TaggedPerson[]>([]);
+  // False until the first load lands: the page's chrome shows at once, and the title, the count
+  // and the drawing arrive together (there used to be a whole-page loader, then the header with
+  // a second loader under it).
+  const [ready, setReady] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-
-  const [mediaVersion, setMediaVersion] = useState(0);
-
   const [tagOpen, setTagOpen] = useState(false);
-  const [taggedPeople, setTaggedPeople] = useState<
-  { id: string; full_name: string; avatar_signed?: string | null }[]
-  >([]);
+
+  // Everything the page shows, in two rounds: the timeline, its memories (with their media) and
+  // its people go out together, then the signed URLs, one call per bucket. It used to be a query
+  // and a signing call per memory, plus one per avatar. Later calls (after a memory changes)
+  // update the drawing in place.
+  const load = useCallback(async () => {
+    if (!timelineId) return;
+
+    const [tlRes, evRes, tagRes] = await Promise.all([
+      supabase
+        .from('timelines')
+        .select('id, title, description, cover_path, created_at')
+        .eq('id', timelineId)
+        .maybeSingle(),
+      supabase
+        .from('timeline_events')
+        .select(
+          'id, title, event_date, timeline_event_media(file_path, file_type, created_at, library_media:library_media_id(file_path))'
+        )
+        .eq('timeline_id', timelineId)
+        .order('event_date', { ascending: true }),
+      supabase
+        .from('timeline_tags')
+        .select('family_members(id, full_name, avatar_url)')
+        .eq('timeline_id', timelineId),
+    ]);
+
+    if (tlRes.error || !tlRes.data) {
+      setNotFound(true);
+      setReady(true);
+      return;
+    }
+    if (evRes.error) toast.error('Failed to load the memories on this timeline.');
+
+    const rows = (evRes.data ?? []) as unknown as EventRow[];
+
+    // The first four photos or videos of each memory, and the bucket each one lives in.
+    type Pick = { path: string; bucket: Bucket; type: 'photo' | 'video' };
+    const perEvent: Record<string, Pick[]> = {};
+    const paths: Record<Bucket, Set<string>> = { 'timeline-media': new Set(), 'library-media': new Set() };
+    for (const r of rows) {
+      const list: Pick[] = [];
+      const media = [...(r.timeline_event_media ?? [])]
+        .filter((m) => m.file_type === 'photo' || m.file_type === 'video')
+        .sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''))
+        .slice(0, 4);
+      for (const m of media) {
+        const lib = Array.isArray(m.library_media) ? m.library_media[0] : m.library_media;
+        const bucket: Bucket = lib?.file_path ? 'library-media' : 'timeline-media';
+        const path = lib?.file_path ?? m.file_path;
+        if (!path) continue;
+        paths[bucket].add(path);
+        list.push({ path, bucket, type: m.file_type as 'photo' | 'video' });
+      }
+      perEvent[r.id] = list;
+    }
+
+    type Person = { id: string; full_name: string; avatar_url: string | null };
+    const people = ((tagRes.data ?? []) as unknown as { family_members: Person | Person[] | null }[])
+      .map((row) => (Array.isArray(row.family_members) ? row.family_members[0] : row.family_members))
+      .filter((p): p is Person => !!p);
+    const avatarPaths = people
+      .map((p) => p.avatar_url)
+      .filter((u): u is string => !!u && !u.startsWith('http'));
+
+    const sign = async (bucket: string, list: string[]) => {
+      const map = new Map<string, string>();
+      if (!list.length) return map;
+      const { data } = await supabase.storage.from(bucket).createSignedUrls(list, 3600);
+      data?.forEach((row, i) => {
+        if (row?.signedUrl) map.set(row.path ?? list[i], row.signedUrl);
+      });
+      return map;
+    };
+    const [tlUrls, libUrls, avatarUrls] = await Promise.all([
+      sign('timeline-media', [...paths['timeline-media']]),
+      sign('library-media', [...paths['library-media']]),
+      sign('user-media', avatarPaths),
+    ]);
+
+    const nextThumbs: Record<string, TimelineThumbnail[]> = {};
+    for (const [id, list] of Object.entries(perEvent)) {
+      nextThumbs[id] = list.flatMap((m) => {
+        const url = (m.bucket === 'library-media' ? libUrls : tlUrls).get(m.path);
+        return url ? [{ url, type: m.type }] : [];
+      });
+    }
+    // Warm the cache, so the cards off to the right don't pop in when panned to.
+    for (const list of Object.values(nextThumbs)) {
+      for (const t of list) {
+        if (t.type === 'photo') {
+          const img = new Image();
+          img.src = t.url;
+        }
+      }
+    }
+
+    setTimeline(tlRes.data as TimelineMeta);
+    setEvents(
+      rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        happened_at: r.event_date ? `${r.event_date}T00:00:00Z` : new Date().toISOString(),
+      }))
+    );
+    setThumbs(nextThumbs);
+    setTaggedPeople(
+      people.map((p) => ({
+        id: p.id,
+        full_name: p.full_name,
+        avatar_signed: !p.avatar_url
+          ? null
+          : p.avatar_url.startsWith('http')
+          ? p.avatar_url
+          : avatarUrls.get(p.avatar_url) ?? null,
+      }))
+    );
+    setReady(true);
+  }, [supabase, timelineId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  // A memory changed inside its modal (media added or removed, or the memory deleted): redraw.
+  useEffect(() => {
+    const refresh = () => {
+      void load();
+    };
+    window.addEventListener('timeline-media-updated', refresh);
+    return () => window.removeEventListener('timeline-media-updated', refresh);
+  }, [load]);
 
   const removePersonFromTimeline = async (familyMemberId: string) => {
-  await supabase
-    .from("timeline_tags")
-    .delete()
-    .eq("timeline_id", timelineId)
-    .eq("family_member_id", familyMemberId);
-
-  setTaggedPeople((prev) =>
-    prev.filter((p) => p.id !== familyMemberId)
-  );
-};
-
-
-  const thumbnailResolver = async (
-  ev: TimelineEvent
-): Promise<TimelineThumbnail[]> => {
-
-  if (thumbnailCache.has(ev.id)) {
-    return thumbnailCache.get(ev.id)!;
-  }
-
-  try {
-    const { data } = await supabase
-      .from('timeline_event_media')
-      .select('file_path, file_type')
-      .eq('event_id', ev.id)
-      .in('file_type', ['photo', 'video'])
-      .order('created_at', { ascending: true })
-      .limit(4);
-
-    if (!data || data.length === 0) {
-    thumbnailCache.set(ev.id, []);
-  return [];
-}
-
-    const paths = data
-  .map((r) => r.file_path)
-  .filter(Boolean) as string[];
-
-    const { data: signed } = await supabase.storage
-      .from('timeline-media')
-      .createSignedUrls(paths, 3600);
-
-    const result = signed
-      ?.map((s, i) =>
-        s?.signedUrl
-          ? {
-              url: s.signedUrl,
-              type: data[i].file_type,
-            }
-          : null
-      )
-      .filter(Boolean) as TimelineThumbnail[];
-
-    thumbnailCache.set(ev.id, result);
-    // preload images
-  result.forEach((img) => {
-  const i = new Image();
-  i.src = img.url;
-});
-
-    return result;
-  } catch {
-    return [];
-  }
-};
-
-
-  async function loadTimeline() {
-    if (!timelineId) return;
-    setTlLoading(true);
-    const { data } = await supabase
-      .from('timelines')
-      .select('id, title, description, cover_path, created_at')
-      .eq('id', timelineId)
-      .single();
-    if (data) setTimeline(data as TimelineMeta);
-    setTlLoading(false);
-  }
-
-  useEffect(() => {
-  if (!timelineId) return;
-
-  const refresh = () => {
-    loadEvents();
-    setMediaVersion((v) => v + 1); // 👈 FORCE re-render
-  };
-
-  window.addEventListener('timeline-media-updated', refresh);
-
-  return () => {
-    window.removeEventListener('timeline-media-updated', refresh);
-  };
-}, [timelineId]);
-
-
-
-  async function loadTaggedPeople() {
-  if (!timelineId) return;
-
-  const { data, error } = await supabase
-    .from('timeline_tags')
-    .select(`
-      family_members (
-        id,
-        full_name,
-        avatar_url
-      )
-    `)
-    .eq('timeline_id', timelineId);
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  const people =
-    data?.map((row: any) => row.family_members).filter(Boolean) ?? [];
-
-  // sign avatars (same pattern as elsewhere)
-  const withSigned = await Promise.all(
-    people.map(async (p: any) => {
-      if (!p.avatar_url) return p;
-
-      const { data: signed } = await supabase.storage
-        .from('user-media')
-        .createSignedUrl(p.avatar_url, 60 * 60);
-
-      return {
-        ...p,
-        avatar_signed: signed?.signedUrl ?? null,
-      };
-    })
-  );
-
-  setTaggedPeople(withSigned);
-}
-
-
-  async function loadEvents() {
-    if (!timelineId) return;
-    setLoading(true);
-    const { data } = await supabase
-      .from('timeline_events')
-      .select('id, title, event_date')
+    // RLS lets only the timeline's creator delete tags, silently: check a row really went.
+    const { data, error } = await supabase
+      .from('timeline_tags')
+      .delete()
       .eq('timeline_id', timelineId)
-      .order('event_date', { ascending: true });
-
-    if (data) {
-      setEvents(
-        data.map((r: any) => ({
-          id: r.id,
-          title: r.title,
-          happened_at: r.event_date ? `${r.event_date}T00:00:00Z` : new Date().toISOString(),
-        }))
-      );
+      .eq('family_member_id', familyMemberId)
+      .select('id');
+    if (error || !data?.length) {
+      toast.error('Only the person who created this timeline can remove people from it.');
+      return;
     }
-    setLoading(false);
-  }
+    setTaggedPeople((prev) => prev.filter((p) => p.id !== familyMemberId));
+  };
 
-  useEffect(() => {
-    if (timelineId) {
-      loadTimeline();
-      loadEvents();
-      loadTaggedPeople(); // 👈 ADD
-    }
-  }, [timelineId]);
-
-  if (!timelineId) return <CenterLoader />;
-  if (tlLoading) return <CenterLoader label="Loading timeline info…" />;
-
-  // The first load of the memories (later reloads keep the drawing in place): a loader, not a
-  // flash of the empty state, and the count chip holds its place.
-  const firstLoad = loading && events.length === 0;
+  if (!timelineId || notFound) return <NotFound />;
 
  return (
   <div className={s.page}>
@@ -274,10 +278,10 @@ export default function TimelineDetailPage() {
           The timeline builder needs a wider screen: a laptop, a desktop, or a tablet turned sideways. Open Ancestorii on one to view your timeline.
         </p>
         <div className={ui.emptyActions}>
-          <a href="/dashboard/timeline" className={btnClass()}>
+          <Link href="/dashboard/timeline" className={btnClass()}>
             <ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />
             <span>Back to Timelines</span>
-          </a>
+          </Link>
         </div>
       </div>
     </div>
@@ -329,19 +333,22 @@ export default function TimelineDetailPage() {
           </div>
         </div>
 
-        {/* Title, count, description, people */}
+        {/* Title, count, description, people. Until the first load lands the title and the
+            count hold their place (invisible), so nothing moves when they appear. */}
         <div className={s.titleBlock}>
           <div className={ui.headerTop}>
             <Eyebrow dot="var(--c3)">Timeline</Eyebrow>
           </div>
 
-          <h1 className={cx(ui.title, ui.titleMd)}>{timeline?.title}</h1>
+          <h1 className={cx(ui.title, ui.titleMd, !ready && 'invisible')}>
+            {timeline?.title || ' '}
+          </h1>
 
           <div className={ui.meta}>
             <span
-              className={cx(ui.chip, ui.chipInk, ui.chipDot, firstLoad && 'invisible')}
+              className={cx(ui.chip, ui.chipInk, ui.chipDot, !ready && 'invisible')}
               style={{ '--dot': 'var(--c3)' } as CSSProperties}
-              aria-hidden={firstLoad || undefined}
+              aria-hidden={!ready || undefined}
             >
               {events.length} {events.length === 1 ? 'memory' : 'memories'}
             </span>
@@ -381,10 +388,10 @@ export default function TimelineDetailPage() {
 
     {/* The timeline (display:none below 1024px: the notice above covers the page there, so phones skip laying it out) */}
     <section
-      className={cx('hidden lg:block', s.band, !firstLoad && events.length > 0 && s.bandTimeline)}
+      className={cx('hidden lg:block', s.band, ready && events.length > 0 && s.bandTimeline)}
       aria-label="Timeline"
     >
-      {firstLoad ? (
+      {!ready ? (
         <AppLoader compact label="Loading timeline…" className={s.bandLoader} />
       ) : events.length === 0 ? (
         <EmptyState onCreate={() => setCreateOpen(true)} />
@@ -392,17 +399,19 @@ export default function TimelineDetailPage() {
         <HorizontalTimeline
           key={timelineId} // 👈 IMPORTANT
           events={events}
-          thumbnailResolver={thumbnailResolver}
+          thumbnails={thumbs}
           onCreateMemory={() => setCreateOpen(true)}
           height={420}
         />
       )}
     </section>
 
-    <TimelineAI
-        timelineTitle={timeline?.title || ''}
+    {ready && timeline && (
+      <TimelineAI
+        timelineTitle={timeline.title || ''}
         taggedPeopleNames={taggedPeople.map((p) => p.full_name)}
       />
+    )}
 
       <UniversalPeopleTagger
        parentType="timeline"
@@ -410,7 +419,7 @@ export default function TimelineDetailPage() {
        open={tagOpen}
        onClose={() => setTagOpen(false)}
        onSaved={() => {
-        loadTaggedPeople(); // 👈 refresh tags after save
+        void load(); // 👈 refresh tags after save
        }}
       />
 
@@ -425,7 +434,9 @@ export default function TimelineDetailPage() {
       open={createOpen}
       onOpenChange={setCreateOpen}
       timelineId={timelineId}
-      onCreated={loadEvents}
+      onCreated={() => {
+        void load();
+      }}
     />
   </div>
 );

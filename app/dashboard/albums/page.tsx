@@ -66,18 +66,35 @@ export default function AlbumsPage() {
   // The plan-limit message (the create button also shows it as a toast).
   const limitMessage = `You’ve reached your current plan limit for albums (${counts?.albums} / ${limits?.max_albums}). Upgrade your plan to create more.`;
 
-  // Signed URL helper
-  const getSignedCoverUrl = async (url: string | null): Promise<string | null> => {
+  // The storage path of a cover. Rows hold the bucket path; older ones a full URL, and one
+  // edited album was saved with the list's signed URL (token and all), so the query is dropped.
+  const coverPath = (url: string | null): string | null => {
     if (!url) return null;
+    const match = url.match(/album-media\/(.+)$/);
+    return (match ? match[1] : url).split('?')[0];
+  };
+
+  // Signs every cover in one request. It was one request per album, each with a cache buster
+  // (cb=) that made the browser download every cover again on every visit.
+  const signCovers = async <T extends { cover_image: string | null }>(rows: T[]): Promise<T[]> => {
+    const paths = rows.map((a) => coverPath(a.cover_image));
+    const unique = [...new Set(paths.filter(Boolean) as string[])];
+    if (unique.length === 0) return rows;
     try {
-      const match = url.match(/album-media\/(.+)$/);
-      const path = match ? match[1] : url;
       const { data: signed } = await supabase.storage
         .from('album-media')
-        .createSignedUrl(path, 60 * 60 * 24 * 7);
-      return signed?.signedUrl ? `${signed.signedUrl}&cb=${Date.now()}` : url;
+        .createSignedUrls(unique, 60 * 60 * 24 * 7);
+      const byPath = new Map<string, string>();
+      (signed ?? []).forEach((item, i) => {
+        if (item.signedUrl) byPath.set(unique[i], item.signedUrl);
+      });
+      return rows.map((a, i) => {
+        const p = paths[i];
+        return { ...a, cover_image: p ? byPath.get(p) ?? null : null };
+      });
     } catch {
-      return url;
+      // No signed URL, no cover (a bare path would break next/image).
+      return rows.map((a) => ({ ...a, cover_image: null }));
     }
   };
 
@@ -114,14 +131,7 @@ export default function AlbumsPage() {
 
         if (error) throw error;
 
-        const signedAlbums = await Promise.all(
-          (data || []).map(async (a: Album) => ({
-            ...a,
-            cover_image: await getSignedCoverUrl(a.cover_image),
-          }))
-        );
-
-        setAlbums(signedAlbums);
+        setAlbums(await signCovers((data || []) as Album[]));
       } catch (e: any) {
         setError(e?.message || String(e));
         toast.error('Failed to load albums.');
@@ -136,6 +146,8 @@ export default function AlbumsPage() {
       const deleted = await deleteWithOwnerCheck(supabase, 'albums', id, 'album');
       if (!deleted) return;
       setAlbums((prev) => (prev ? prev.filter((a) => a.id !== id) : prev));
+      // The sidebar's counts follow (they did on create, not on delete).
+      window.dispatchEvent(new Event('dashboard-data-changed'));
       toast.success('Album deleted.');
     } catch {
       toast.error('Failed to delete album.');
@@ -315,7 +327,7 @@ export default function AlbumsPage() {
         album={selectedAlbum}
         onClose={() => setDrawerOpen(false)}
         onCreated={async (album) => {
-          const signed = await getSignedCoverUrl(album.cover_image);
+          const [signed] = await signCovers([album as Album]);
 
           setDrawerOpen(false);
 
@@ -323,7 +335,7 @@ export default function AlbumsPage() {
           window.dispatchEvent(new Event('dashboard-data-changed'));
 
           setTimeout(() => {
-            setAlbums((prev) => [{ ...album, cover_image: signed }, ...(prev ?? [])]);
+            setAlbums((prev) => [signed, ...(prev ?? [])]);
           }, 120);
 
           // 🎉 Celebration stays as-is
@@ -332,11 +344,9 @@ export default function AlbumsPage() {
           }, 220);
         }}
         onUpdated={async (album) => {
-          const signed = await getSignedCoverUrl(album.cover_image);
+          const [signed] = await signCovers([album as Album]);
           setAlbums((prev) =>
-            prev
-              ? prev.map((x) => (x.id === album.id ? { ...x, ...album, cover_image: signed } : x))
-              : prev
+            prev ? prev.map((x) => (x.id === signed.id ? { ...x, ...signed } : x)) : prev
           );
         }}
       />

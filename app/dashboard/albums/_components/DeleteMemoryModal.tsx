@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from 'react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
+import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 import { ui, Btn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './albums.module.css';
 
@@ -47,20 +48,18 @@ export default function DeleteMemoryModal({
     try {
       setIsDeleting(true);
 
-      // 1. Delete from storage
-      const { error: storageErr } = await supabase.storage
-        .from('album-media')
-        .remove([filePath]);
+      // 1. The row first, checking RLS let it go: only the album's creator may delete, and a
+      //    blocked delete returned 0 rows silently while the file had already been removed,
+      //    leaving a memory whose photo was gone for good.
+      const removed = await deleteWithOwnerCheck(supabase, 'album_media', mediaId, 'album');
+      if (!removed) return;
 
-      if (storageErr) throw storageErr;
-
-      // 2. Delete from database
-      const { error: dbErr } = await supabase
-        .from('album_media')
-        .delete()
-        .eq('id', mediaId);
-
-      if (dbErr) throw dbErr;
+      // 2. Then the file, best effort (the row is gone; a leftover file only costs storage).
+      //    Older rows hold the bucket in the path.
+      if (filePath) {
+        const path = filePath.includes('album-media/') ? filePath.split('album-media/')[1] : filePath;
+        await supabase.storage.from('album-media').remove([path]);
+      }
 
       toast.success('Memory deleted.');
       onDeleted();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Plus } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import AddMemberModal from "./_components/AddMemberModal";
@@ -26,13 +26,6 @@ type FamilyMember = {
   avatar_signed?: string | null;
 };
 
-type Relationship = {
-  id: string;
-  member_a: string;
-  member_b: string;
-  role: string;
-};
-
 export default function FamilyPage() {
   const supabase = getBrowserClient();
 
@@ -44,13 +37,12 @@ export default function FamilyPage() {
   const [refreshKey, setRefreshKey] = useState(Date.now());
   const reload = useCallback(() => setRefreshKey(Date.now()), []);
 
-  const [memberCount, setMemberCount] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [membersLoading, setMembersLoading] = useState(true);
 
   const [members, setMembers] = useState<FamilyMember[]>([]);
-  const [relationships, setRelationships] = useState<Relationship[]>([]);
-  const [groups, setGroups] = useState<Record<string, FamilyMember[]> | null>(null);
+  // Grouped as the list changes (a state set from an effect painted the headings once
+  // without their cards).
+  const groups = useMemo(() => getLovedOneGroups(members), [members]);
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const shouldOpenAdd = searchParams.get("add") === "true";
@@ -61,7 +53,9 @@ export default function FamilyPage() {
   // ✅ PUT THIS INSIDE FamilyPage() (same place Albums has it)
 const line1 = 'The people who shaped your life, remembered and celebrated forever.';
 const line2 = 'Add your loved ones and preserve their stories, memories, and legacy.';
-const [hasSubscription, setHasSubscription] = useState<boolean | null>(null);
+// The number the database itself checks on insert (enforce_loved_one_limit): 1 on Free,
+// effectively unlimited with a subscription. null until it is known.
+const [maxLovedOnes, setMaxLovedOnes] = useState<number | null>(null);
 
 useEffect(() => {
   (async () => {
@@ -69,8 +63,8 @@ useEffect(() => {
     const uid = sess?.session?.user?.id;
     if (!uid) return;
 
-    const { data } = await supabase.rpc('has_active_subscription', { uid });
-    setHasSubscription(!!data);
+    const { data } = await supabase.rpc('get_effective_max_loved_ones', { uid });
+    setMaxLovedOnes(typeof data === 'number' ? data : null);
   })();
 }, []);
 
@@ -78,8 +72,10 @@ useEffect(() => {
 useEffect(() => {
   if (shouldOpenAdd) {
     setAddOpen(true);
+    // The parameter has done its job; left in the address, the dialog came back on refresh.
+    router.replace("/dashboard/family", { scroll: false });
   }
-}, [shouldOpenAdd]);
+}, [shouldOpenAdd, router]);
 
 useEffect(() => {
   if (!editId || members.length === 0) return;
@@ -89,29 +85,10 @@ useEffect(() => {
 
   setEditMember(found);
   setAddOpen(true);
-}, [editId, members]);
-
-  /* ===========================================================
-      LOAD MEMBER COUNT
-  ============================================================*/
-  const fetchFamilyMeta = useCallback(async () => {
-    const { data: sess } = await supabase.auth.getSession();
-    const user = sess?.session?.user;
-    if (!user) return;
-
-    const { count } = await supabase
-      .from("family_members")
-      .select("id", { head: true, count: "exact" });
-
-    setMemberCount(count || 0);
-  }, [supabase]);
-
-  useEffect(() => {
-    (async () => {
-      await fetchFamilyMeta();
-      setLoading(false);
-    })();
-  }, [fetchFamilyMeta]);
+  // Cleared once opened: this effect runs again when the list reloads after a save, and it
+  // used to reopen the dialog that had just closed.
+  router.replace("/dashboard/family", { scroll: false });
+}, [editId, members, router]);
 
   /* ===========================================================
       LOAD MEMBERS + RELATIONSHIPS
@@ -140,40 +117,32 @@ useEffect(() => {
 
     const membersData = (memberRows || []) as FamilyMember[];
 
-    const withSigned = await Promise.all(
-      membersData.map(async (m) => {
-        if (!m.avatar_url) return m;
-        const { data: signed, error } = await supabase.storage
-          .from("user-media")
-          .createSignedUrl(m.avatar_url, 60 * 60);
-        if (error || !signed?.signedUrl) return m;
-        return {
-          ...m,
-          avatar_signed: `${signed.signedUrl}&cb=${Date.now()}`,
-        };
-      })
+    // Every portrait signed in one request (it was one request per loved one), and no cache
+    // buster: a replaced photo gets a new storage path, so the browser may keep these.
+    const paths = membersData
+      .map((m) => m.avatar_url)
+      .filter((p): p is string => !!p);
+    const signedByPath = new Map<string, string>();
+    if (paths.length > 0) {
+      const { data: signedRows } = await supabase.storage
+        .from("user-media")
+        .createSignedUrls(paths, 60 * 60);
+      for (const row of signedRows || []) {
+        if (row.path && row.signedUrl) signedByPath.set(row.path, row.signedUrl);
+      }
+    }
+    const withSigned = membersData.map((m) =>
+      m.avatar_url && signedByPath.has(m.avatar_url)
+        ? { ...m, avatar_signed: signedByPath.get(m.avatar_url) ?? null }
+        : m
     );
 
     setMembers(withSigned);
-
-    const { data: relRows } = await supabase
-      .from("family_relationships")
-      .select("id, member_a, member_b, role");
-
-    setRelationships((relRows || []) as Relationship[]);
-
-    const grouped = getLovedOneGroups(withSigned);
-
     setMembersLoading(false); // ✅ ONLY HERE
   };
 
   loadData();
 }, [refreshKey, supabase]);
-
-// ✅ ADD THIS RIGHT HERE
-useEffect(() => {
-  setGroups(getLovedOneGroups(members));
-}, [members]);
 
 
   /* ===========================================================
@@ -219,6 +188,8 @@ useEffect(() => {
 
     toast.success("Loved one removed from your legacy.");
     setMembers((prev) => prev.filter((m) => m.id !== id));
+    // The sidebar's loved-ones count follows (it already did after an add).
+    window.dispatchEvent(new Event('dashboard-data-changed'));
     reload();
   } catch (err: any) {
   console.error("DELETE FAILED:", {
@@ -237,7 +208,7 @@ useEffect(() => {
   ============================================================*/
   // The loader shows until there is something to draw; a refresh after an edit or a delete
   // keeps the cards on screen instead of blanking the page.
-  const showLoader = loading || (membersLoading && members.length === 0);
+  const showLoader = membersLoading && members.length === 0;
 
   return (
     <div className={ui.page}>
@@ -269,10 +240,7 @@ useEffect(() => {
         }}
       />
 
-      {/* ---------- LOADING ---------- */}
-      {showLoader ? (
-        <AppLoader label="Loading your loved ones" />
-      ) : (
+      {/* The header is drawn at once; only the list below it waits for the data. */}
         <div className={ui.wrap}>
           {/* ---------- HEADER ---------- */}
           <PageHeader
@@ -294,9 +262,7 @@ useEffect(() => {
                   aria-haspopup="dialog"
                   tile={<Plus size={18} strokeWidth={2.4} />}
                   onClick={() => {
-  if (loading || hasSubscription === null) return;
-
-  if (!hasSubscription && memberCount >= 1) {
+  if (maxLovedOnes !== null && members.length >= maxLovedOnes) {
     toast.error(
       "You’ve reached your current plan limit for loved ones. Upgrade to add more."
     );
@@ -312,6 +278,10 @@ useEffect(() => {
             }
           />
 
+          {showLoader ? (
+            <AppLoader label="Loading your loved ones" />
+          ) : (
+            <>
           {/* ---------- EMPTY STATE ---------- */}
           {members.length === 0 && (
             <div className={ui.section}>
@@ -333,8 +303,9 @@ useEffect(() => {
              <LovedOneSection title="Other Loved Ones" members={groups.Other ?? []} onEdit={handleEditMember} onDelete={(id) => setDeleteTarget(id)} />
             </>
           )}
+            </>
+          )}
         </div>
-      )}
     </div>
   );
 }

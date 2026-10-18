@@ -53,6 +53,10 @@ export default function CreateEventDrawer({
   // buttons (it has no trigger), so focus fell to the page's body: remember the button that
   // opened it, and give focus back to that.
   const openerRef = useRef<HTMLElement | null>(null);
+  // A memory saved whose photo then failed to upload: a retry adds the photo to it instead of
+  // saving a second memory. Cleared once it is complete, or when the drawer closes.
+  const createdIdRef = useRef<string | null>(null);
+  const savingRef = useRef(false);
 
   function handleFile(file: File) {
     setMediaFile(file);
@@ -69,16 +73,23 @@ export default function CreateEventDrawer({
       return;
     }
 
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     setErr('');
 
+    let evt: { id: string } | null = createdIdRef.current ? { id: createdIdRef.current } : null;
+
     try {
       // 1️⃣ CREATE EVENT
-      const evt = await createTimelineEvent({
-        timelineId,
-        title,
-        eventDateISO: date,
-      });
+      if (!evt) {
+        evt = await createTimelineEvent({
+          timelineId,
+          title,
+          eventDateISO: date,
+        });
+        createdIdRef.current = evt.id;
+      }
 
       // 2️⃣ UPLOAD MEDIA (IF PROVIDED)
       if (mediaFile) {
@@ -118,10 +129,9 @@ export default function CreateEventDrawer({
         if (insertErr) throw insertErr;
       }
 
-      // 3️⃣ FORCE TIMELINE REFRESH
-      window.dispatchEvent(new Event('timeline-media-updated'));
-
-      // 4️⃣ RESET + CLOSE
+      // 3️⃣ RESET + CLOSE (the page reloads the timeline once, through onCreated; the window
+      // event it also fired made it load twice)
+      createdIdRef.current = null;
       setTitle('');
       setDate('');
       setMediaFile(null);
@@ -129,14 +139,40 @@ export default function CreateEventDrawer({
       onOpenChange(false);
       onCreated?.(evt.id);
     } catch (e: any) {
-      setErr(e?.message || 'Failed to save memory.');
+      if (createdIdRef.current) {
+        // The memory itself is saved: show it on the timeline, and keep the drawer open so the
+        // photo can be tried again (it won't save a second memory).
+        onCreated?.(createdIdRef.current);
+        setErr(
+          `Your memory was saved, but the photo or video could not be added (${
+            e?.message || 'upload failed'
+          }). Try again to add it.`
+        );
+      } else {
+        setErr(e?.message || 'Failed to save memory.');
+      }
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet
+      open={open}
+      onOpenChange={(v) => {
+        if (!v && createdIdRef.current) {
+          // Closed after the memory was saved (its photo failed): the next one starts clean.
+          createdIdRef.current = null;
+          setTitle('');
+          setDate('');
+          setMediaFile(null);
+          setPreviewUrl(null);
+          setErr('');
+        }
+        onOpenChange(v);
+      }}
+    >
       {/* A Radix portal outside the dashboard's .app root: appRoot brings the kit's tokens and
           Plus Jakarta Sans. The kit's right sheet: header, a scrolling body, a footer. */}
       <SheetContent

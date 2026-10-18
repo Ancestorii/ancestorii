@@ -43,6 +43,7 @@ export default function OurFamilyHeader({
   }, [editing]);
 
   const handleSave = async () => {
+    if (saving) return;
     const trimmed = draft.trim();
     if (!trimmed || trimmed === familyName) {
       setDraft(familyName);

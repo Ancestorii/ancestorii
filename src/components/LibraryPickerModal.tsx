@@ -175,30 +175,18 @@ export default function LibraryPickerModal({
         }
       });
 
-      // Sign cover URLs in parallel
-      const signedCovers = await Promise.all(
-        folderRows.map(async (f) => {
-          const cover = coverByFolder[f.id];
-          if (!cover) {
-            return { id: f.id, url: null as string | null, file_type: null as string | null };
-          }
-          const { data: urlData } = await supabase.storage
-            .from(bucket)
-            .createSignedUrl(cover.file_path, 60 * 60 * 24 * 7);
-          return {
-            id: f.id,
-            url: urlData?.signedUrl
-              ? `${urlData.signedUrl}&cb=${Date.now()}`
-              : null,
-            file_type: cover.file_type,
-          };
-        })
-      );
-
+      // Sign the covers in one request (it was one request per folder, each with a cache buster
+      // that made the browser download every cover again on every open)
       const coverMap: Record<string, { url: string | null; file_type: string | null }> = {};
-      signedCovers.forEach((c) => {
-        coverMap[c.id] = { url: c.url, file_type: c.file_type ?? null };
-      });
+      const withCover = folderRows.filter((f) => coverByFolder[f.id]);
+      if (withCover.length > 0) {
+        const { data: signed } = await supabase.storage
+          .from(bucket)
+          .createSignedUrls(withCover.map((f) => coverByFolder[f.id].file_path), 60 * 60 * 24 * 7);
+        withCover.forEach((f, i) => {
+          coverMap[f.id] = { url: signed?.[i]?.signedUrl ?? null, file_type: coverByFolder[f.id].file_type };
+        });
+      }
 
       const merged: LibraryFolder[] = folderRows.map((f) => ({
         id: f.id,
@@ -233,32 +221,25 @@ export default function LibraryPickerModal({
       if (error) throw error;
 
       const rows = (data || []) as LibraryPickerItem[];
-      setMedia(rows);
 
       if (rows.length === 0) {
+        setMedia([]);
         setSignedMap({});
         return;
       }
 
-      const signedResults = await Promise.all(
-        rows.map(async (item) => {
-          const { data: urlData } = await supabase.storage
-            .from(bucket)
-            .createSignedUrl(item.file_path, 60 * 60 * 24 * 7);
-
-          return {
-            id: item.id,
-            url: urlData?.signedUrl
-              ? `${urlData.signedUrl}&cb=${Date.now()}`
-              : null,
-          };
-        })
-      );
+      // One signing request for the folder, and the rows land together with their URLs (they
+      // showed "Preview unavailable" until each one's own request came back)
+      const { data: signed } = await supabase.storage
+        .from(bucket)
+        .createSignedUrls(rows.map((item) => item.file_path), 60 * 60 * 24 * 7);
 
       const next: Record<string, string> = {};
-      signedResults.forEach((r) => {
-        if (r.url) next[r.id] = r.url;
+      rows.forEach((item, i) => {
+        const url = signed?.[i]?.signedUrl;
+        if (url) next[item.id] = url;
       });
+      setMedia(rows);
       setSignedMap(next);
     } catch (err: any) {
       console.error(err);

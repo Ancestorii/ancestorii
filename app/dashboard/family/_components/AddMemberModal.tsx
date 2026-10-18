@@ -7,6 +7,7 @@ import { getBrowserClient } from "@/lib/supabase/browser";
 import { X, ImagePlus, Plus, Check } from "lucide-react";
 import LegacyCelebration from "@/components/LegacyCelebration";
 import { ensureDisplayableImage } from '@/lib/convertImage';
+import { parseDateOnly } from "../_utils/dateOnly";
 import { ui, Btn, IconBtn, Spinner, useDialog } from "@/components/dashboard/ui/AppBits";
 import s from "./lovedOnes.module.css";
 
@@ -42,8 +43,9 @@ function formatDisplayDate(iso: string | null): string {
 function calcAge(birthISO: string | null, deathISO: string | null): string | null {
   if (!birthISO) return null;
   try {
-    const birth = new Date(birthISO);
-    const end = deathISO ? new Date(deathISO) : new Date();
+    const birth = parseDateOnly(birthISO);
+    if (!birth) return null;
+    const end = (deathISO && parseDateOnly(deathISO)) || new Date();
     let age = end.getFullYear() - birth.getFullYear();
     const m = end.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && end.getDate() < birth.getDate())) age--;
@@ -237,7 +239,9 @@ return;
 
       }
 
-      const { error } = await supabase
+      // select('id'): an update row security blocks returns no error and no row, and used to
+      // read as "Changes saved".
+      const { data: updated, error } = await supabase
         .from("family_members")
         .update({
           full_name: fullName,
@@ -246,14 +250,24 @@ return;
           avatar_url: avatarPath,
           relationship_to_user: relationship, // ✅ ADD THIS
         })
-        .eq("id", member?.id);
+        .eq("id", member?.id)
+        .select("id");
 
       if (error) throw error;
+      if (!updated || updated.length === 0) {
+        throw new Error("Couldn't save these changes. Please try again.");
+      }
       toast.success("Changes saved");
       onClose();
       onUpdated?.();
     } catch (err: any) {
-      toast.error(err.message || "Failed to save");
+      // The database's own guard (enforce_loved_one_limit) speaks in its terms.
+      const limitHit = /loved one limit reached/i.test(err?.message || "");
+      toast.error(
+        limitHit
+          ? "You’ve reached your current plan limit for loved ones. Upgrade to add more."
+          : err.message || "Failed to save"
+      );
     } finally {
       setUploading(false);
       isSubmitting.current = false;
