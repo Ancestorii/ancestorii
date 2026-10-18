@@ -1241,7 +1241,9 @@
 
 /* ── Sheets, drawers and dialogs ──────────────────────────── */
 
-/* Dimmed backdrop. Add the global "scrim-blur" class for a blur with a mouse only. */
+/* Dimmed backdrop: a plain colour, never a backdrop blur. Fading a full-screen blur with Motion
+   re-rasterises the whole screen every frame and flashes on Windows Chrome, so the global
+   "scrim-blur" class (still on many dialogs) is now a no-op; see app/globals.css. */
 .scrim {
   position: fixed;
   inset: 0;

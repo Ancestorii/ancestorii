@@ -50,30 +50,35 @@ export default function FirstMemoryPage() {
 
   useEffect(() => {
     const init = async () => {
+      // The middleware has already checked the cookie, so the local session gives the id
+      // without a round trip; the two lookups then run together instead of one after the other.
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) {
         router.replace('/login');
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('Profiles')
-        .select('onboarding_complete')
-        .eq('id', user.id)
-        .single();
+      const [{ data: profile }, { data: membership }] = await Promise.all([
+        supabase
+          .from('Profiles')
+          .select('onboarding_complete')
+          .eq('id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('family_memberships')
+          .select('family_id, families(name)')
+          .eq('user_id', user.id)
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
       if (profile?.onboarding_complete) {
         router.replace('/dashboard/home');
         return;
       }
-
-      const { data: membership } = await supabase
-        .from('family_memberships')
-        .select('family_id, families(name)')
-        .eq('user_id', user.id)
-        .single();
 
       if (membership) {
         setFamilyId(membership.family_id);
@@ -143,9 +148,17 @@ export default function FirstMemoryPage() {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) throw new Error('Not authenticated');
+      if (!familyId) {
+        // The sign-up trigger normally creates the family; without one the insert would fail
+        // with a database message, so say it plainly instead.
+        throw new Error(
+          "We couldn't find your family library. Please log out and back in, or email support@ancestorii.com."
+        );
+      }
 
       setSubmitStep('Saving your memory…');
       const { data: memory, error: memoryError } = await supabase

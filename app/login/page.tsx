@@ -34,22 +34,21 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // The session comes back with the sign-in and its cookie is written before this resolves,
+      // so there is nothing to wait for.
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
       if (!session) {
         throw new Error("Login failed. Please try again.");
       }
-
-      await new Promise((res) => setTimeout(res, 200));
 
       // Check onboarding status
       const { data: profile } = await supabase

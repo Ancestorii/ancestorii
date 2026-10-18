@@ -5,10 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
-   Locked brand palette, Ancestorii web UI.
-   Pure white ground, ink text, gold + periwinkle accents,
-   pale cool tints for depth. Light-only; no dark mode.
+   Base tokens, Ancestorii web UI. Light-only; no dark mode.
    (Replaces the former shadcn slate/neutral OKLCH ramp.)
+   The gold and periwinkle tokens below are LEGACY: the redesign
+   (white, pink, blue, orange, aqua, ink) uses no gold, and nothing
+   in app/ or src/ reads them any more. They stay only so the last
+   shadcn pieces (--primary, --ring, --chart-*) keep resolving.
+   The app kit (src/components/dashboard/ui) and the landing root
+   each define their own palette on their root element.
    ============================================================ */
 :root {
   /* Brand primitives */
@@ -68,7 +72,9 @@
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--font-dmsans), system-ui, sans-serif;
+    /* Plus Jakarta Sans everywhere (jakarta.variable sits on <body>): every page root sets it
+       too, so this is the fallback for anything outside a root. DM Sans no longer loads. */
+    font-family: var(--font-jakarta), system-ui, sans-serif;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
@@ -100,8 +106,9 @@
 }
 
 @theme inline {
-  --font-serif: var(--font-playfair), Georgia, serif;
-  --font-sans: var(--font-dmsans), system-ui, sans-serif;
+  /* Tailwind's default face (preflight puts it on <html>). No --font-serif: Playfair Display
+     was registered for it and nothing used font-serif, so it no longer loads. */
+  --font-sans: var(--font-jakarta), system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -171,23 +178,16 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* -------------------------------------------- */
-/*  Smooth Scroll + Section Snap Transitions    */
-/* -------------------------------------------- */
-html {
-  scroll-behavior: smooth;
-}
-
+  /* Legacy "main" rules. The old smooth scroll on <html> and the section snapping (and the
+     !important rules that cancelled them again further down) are gone: their net effect was
+     nil. overflow-y:auto on every <main> MUST STAY: pages were laid out with it (the dashboard
+     shell overrides it on its own <main>), and removing it changes margin collapsing and the
+     clipping of in-page elements on pages this file does not own. scroll-behavior here only
+     matters when a <main> is itself a scroll container, which none is today. */
 main {
-  scroll-snap-type: y proximity;
   scroll-behavior: smooth;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-}
-
-section {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
 }
@@ -209,15 +209,13 @@ main * {
   -webkit-backdrop-filter: none !important;
 }
 
-/* Drawer scrims keep their blur only with a mouse (desktop): on touch screens a
-   full-viewport backdrop blur re-renders every frame while the drawer animates.
-   Not named backdrop-blur*, or the rule above would strip it everywhere. */
-@media (hover: hover) and (pointer: fine) {
-  .scrim-blur {
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-  }
-}
+/* Drawer scrims: NO backdrop blur on any device. The earlier decision kept the blur with a mouse
+   and skipped it on touch screens (a full-viewport blur re-renders every frame while the drawer
+   animates). That is now extended to every device: the scrim's opacity is animated as a box
+   opens, and animating the opacity of a full-screen backdrop-filter element re-rasterises the
+   whole screen every frame, which visibly flashes on Windows Chrome (the owner's complaint).
+   The "scrim-blur" class stays on the dialogs as a no-op, so no page needs touching; the kit's
+   .scrim is a plain rgba(10,10,15,0.45) dim, dark enough on its own. */
 
 /* Frosted controls over photos, videos and the timeline: frosted with a mouse, as before;
    on touch screens a slightly more solid fill instead of a blur that re-renders every frame. */
@@ -235,16 +233,9 @@ main * {
   }
 }
 
-/* Remove scroll snapping (can feel glitchy on mobile) */
-main {
-  scroll-snap-type: none !important;
-}
-section {
-  scroll-snap-align: none !important;
-  scroll-snap-stop: normal !important;
-}
-
-/* Disable smooth scroll only */
+/* Native scrolling, never smooth (CLAUDE.md: no smooth-scroll anywhere). Nothing in app/ or src/
+   sets scroll-behavior on <html> today; the !important is a guard against a page-level
+   scroll-smooth utility turning it back on. */
 html {
   scroll-behavior: auto !important;
 }
@@ -309,4 +300,68 @@ html {
   to {
     transform: translateX(50%);
   }
+}
+
+/* ===========================
+   DASHBOARD SHELL (app/dashboard/_layout.client.tsx)
+   Plain CSS, not a <style jsx> block in the shell: without a styled-jsx registry those styles
+   reach the page only after hydration, and the server-rendered sidebar painted at the top of
+   the page, under the 72px bar, for a moment on every hard load.
+   =========================== */
+
+/* The desktop sidebar starts right under the 72px top bar (PublicNav). */
+@media (min-width: 1024px) {
+  .dashboard-sidebar {
+    top: 72px !important;
+    height: calc(100vh - 72px) !important;
+  }
+}
+
+/* Keyboard focus (and in-page jumps) stop clear of the sticky top bar (72px, 64px on
+   phones) and, below 1024px, of the floating bottom navigation, instead of under them. */
+html:has(.dashboard-sidebar) {
+  scroll-padding-top: 88px;
+}
+@media (max-width: 599px) {
+  html:has(.dashboard-sidebar) {
+    scroll-padding-top: 80px;
+  }
+}
+@media (max-width: 1023px) {
+  html:has(.dashboard-shell) {
+    scroll-padding-bottom: 104px;
+  }
+}
+
+/* A sidebar section's links fade in as it opens (opacity and transform only). */
+.sidebar-reveal {
+  animation: sidebarReveal 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes sidebarReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(10, 10, 15, 0.18) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(10, 10, 15, 0.18);
+  border-radius: 10px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(10, 10, 15, 0.32);
 }

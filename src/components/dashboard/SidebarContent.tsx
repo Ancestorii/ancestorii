@@ -32,6 +32,8 @@ type SidebarContentProps = {
   totalMemories?: number;
   usedStorage?: number;
   maxStorage?: number;
+  /** False while the counts and storage are still loading: the card holds their place quietly. */
+  loaded?: boolean;
 };
 
 const sections = [
@@ -70,8 +72,12 @@ export default function SidebarContent({
   totalMemories = 0,
   usedStorage = 0,
   maxStorage = 1 * 1024 ** 3,
+  loaded = true,
 }: SidebarContentProps) {
   const pathname = usePathname();
+  // The section reveal runs after the user opens a section, not on the first paint of the page
+  // (the sidebar now renders on the server, and a fade-in on every load read as a flash).
+  const [revealOn, setRevealOn] = useState(false);
 
   const getActiveSection = useCallback(() => {
     for (const section of sections) {
@@ -115,6 +121,7 @@ export default function SidebarContent({
   }, [pathname, openSection]);
 
   const toggleSection = (key: string) => {
+    setRevealOn(true);
     setOpenSection(key);
   };
 
@@ -166,7 +173,7 @@ export default function SidebarContent({
                   <div
                     id={`sidebar-section-${section.key}`}
                     hidden={!isOpen}
-                    className="sidebar-reveal"
+                    className={revealOn ? 'sidebar-reveal' : undefined}
                   >
                     <div className="flex flex-col gap-1 pt-0.5">
                       {section.links.map((item) => (
@@ -192,45 +199,60 @@ export default function SidebarContent({
             <p className="text-[15px] font-extrabold leading-tight tracking-[-0.02em]">
               Your Library
             </p>
-            <p className="mt-1 text-[13px] font-semibold">
-              {totalMemories.toLocaleString()} memories
-            </p>
+            {/* Until the numbers arrive, two text-height pills and the empty track hold their
+                lines, so the card never changes height and no "0 memories" flashes first. */}
+            {loaded ? (
+              <>
+                <p className="mt-1 text-[13px] font-semibold">
+                  {totalMemories.toLocaleString()} memories
+                </p>
 
-            <div
-              className={`${ui.progress} mt-3`}
-              role="progressbar"
-              aria-label="Storage used"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={storagePct}
-            >
-              <div className={ui.progressFill} style={{ width: `${storagePct}%` }} />
-            </div>
-            <p className="mt-2 text-[13px] font-semibold">
-              {formatBytes(usedStorage)} of {formatBytes(maxStorage)} used
-            </p>
+                <div
+                  className={`${ui.progress} mt-3`}
+                  role="progressbar"
+                  aria-label="Storage used"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={storagePct}
+                >
+                  <div className={ui.progressFill} style={{ width: `${storagePct}%` }} />
+                </div>
+                <p className="mt-2 text-[13px] font-semibold">
+                  {formatBytes(usedStorage)} of {formatBytes(maxStorage)} used
+                </p>
+              </>
+            ) : (
+              <>
+                <p className={`${ui.skeleton} mt-1 w-[7em] text-[13px] font-semibold`} aria-hidden="true">&nbsp;</p>
+                <div className={`${ui.progress} mt-3`} aria-hidden="true" />
+                <p className={`${ui.skeleton} mt-2 w-[11em] text-[13px] font-semibold`} aria-hidden="true">&nbsp;</p>
+              </>
+            )}
 
             {/* 44px tall: tablets in landscape show this sidebar, and they are touch screens.
-                Until the plan is known, a quiet placeholder holds the button's place. */}
+                Until the plan is known, a quiet placeholder holds the button's place.
+                Links, not full page reloads: the shell and its data stay put. */}
             {!planName ? (
               <div className={`${ui.skeleton} mt-4`} style={{ height: 44, borderRadius: 12 }} aria-hidden="true" />
             ) : planName === 'Premium' ? (
-              <button
-                onClick={() => { closeDrawer(); window.location.href = '/dashboard/plans'; }}
+              <Link
+                href="/dashboard/plans"
+                onClick={closeDrawer}
                 className={btnClass({ variant: 'soft', size: 'sm', block: true, className: 'mt-4' })}
                 style={{ minHeight: 44 }}
               >
                 <span className="h-2 w-2 flex-none rounded-full bg-[var(--c3)]" aria-hidden="true" />
                 Premium Plan
-              </button>
+              </Link>
             ) : (
-              <button
-                onClick={() => { closeDrawer(); window.location.href = '/dashboard/plans'; }}
+              <Link
+                href="/dashboard/plans"
+                onClick={closeDrawer}
                 className={btnClass({ variant: 'primary', size: 'sm', block: true, className: 'mt-4' })}
                 style={{ minHeight: 44 }}
               >
                 Upgrade Plan
-              </button>
+              </Link>
             )}
           </div>
         </div>

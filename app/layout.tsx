@@ -1,11 +1,12 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Inter, Playfair_Display, DM_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import DeferredTags from "@/components/DeferredTags";
 import CookieConsent from "@/components/CookieConsent";
 import NavigationProgress from "@/components/NavigationProgress";
+import ScrollLockGutter from "@/components/dashboard/ui/ScrollLockGutter";
 import JsonLd from "@/components/site/seo/JsonLd";
 import { FOUNDER, FOUNDER_ID } from "@/lib/seo/schema";
 import { jakarta } from "@/components/landing/fonts";
@@ -14,19 +15,10 @@ import { jakarta } from "@/components/landing/fonts";
 // 800-weight Memory Book cover titles (editor and print export) rely on.
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  display: "swap",
-  variable: "--font-playfair",
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  display: "swap",
-  variable: "--font-dmsans",
-});
+// Two faces only: Inter (above) and Plus Jakarta Sans (every page root, the toasts and the cookie
+// banner name it). Playfair Display and DM Sans used to load here too, with nothing left using
+// them (the SEO, Stories, auth and app roots all set Jakarta), so their font files no longer
+// delay the first text paint.
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.ancestorii.com"),
@@ -146,7 +138,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
 
       <body
-        className={`${inter.variable} ${playfair.variable} ${dmSans.variable} ${jakarta.variable} antialiased text-gray-900 bg-transparent min-h-screen`}
+        className={`${inter.variable} ${jakarta.variable} antialiased text-gray-900 bg-transparent min-h-screen`}
       >
         {/* No GTM <noscript> fallback: without JavaScript the cookie banner can't ask, so nothing loads. */}
         {/* The banner comes first in the page, so keyboard users reach it first (it shows at the bottom). */}
@@ -154,6 +146,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>
+        {/* Keeps the page from shifting sideways while a dialog locks scrolling (see the file). */}
+        <ScrollLockGutter />
         <CookieConsent />
         {children}
 

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import type { CSSProperties } from 'react';
+import { cache, type CSSProperties } from 'react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
@@ -36,8 +36,9 @@ export const dynamic = 'force-dynamic';
 type SharePreview = { memory_id: string; title: string; author_name: string; family_name: string };
 
 // Anon preview lookup via PostgREST RPC. Returns null on any failure so the page (and its
-// store redirect) keep working even if the preview can't be fetched.
-async function fetchPreview(code: string): Promise<SharePreview | null> {
+// store redirect) keep working even if the preview can't be fetched. Wrapped in cache() so
+// generateMetadata and the page share one call per request (POSTs are not deduped by fetch).
+const fetchPreview = cache(async (code: string): Promise<SharePreview | null> => {
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -59,7 +60,7 @@ async function fetchPreview(code: string): Promise<SharePreview | null> {
   } catch {
     return null;
   }
-}
+});
 
 export async function generateMetadata({ params }: { params: Promise<{ code: string }> }): Promise<Metadata> {
   const { code } = await params;

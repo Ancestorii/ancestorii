@@ -110,6 +110,33 @@ export async function POST(req: Request) {
 
     // 7. Clean up the solo family (if it's different from the one we just joined)
     if (soloMembership && soloMembership.family_id !== targetFamilyId) {
+      // Bring their own memories along first (as accept-invite does): family_memories has no
+      // cascade from families, so without this the delete below fails quietly and the memories
+      // are stranded in a family they no longer belong to.
+      await admin
+        .from('family_memories')
+        .update({ family_id: targetFamilyId })
+        .eq('family_id', soloMembership.family_id)
+        .eq('author_id', userId);
+
+      await admin
+        .from('family_memory_media')
+        .update({ family_id: targetFamilyId })
+        .eq('family_id', soloMembership.family_id)
+        .eq('user_id', userId);
+
+      await admin
+        .from('family_memory_comments')
+        .update({ family_id: targetFamilyId })
+        .eq('family_id', soloMembership.family_id)
+        .eq('user_id', userId);
+
+      await admin
+        .from('family_memory_reactions')
+        .update({ family_id: targetFamilyId })
+        .eq('family_id', soloMembership.family_id)
+        .eq('user_id', userId);
+
       // Remove solo membership
       await admin
         .from('family_memberships')

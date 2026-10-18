@@ -6,7 +6,7 @@ import { TOPICS, getTopicByKey } from '@/lib/stories/topics';
 import type { LandingStory } from '@/lib/stories/landing';
 import { topicToneClass } from '@/components/site/stories-browse/topicTone';
 import Fold from './Fold';
-import { ArrowLink } from './LandingBits';
+import StoryCta from './StoryCta';
 import styles from './landing.module.css';
 import st from './stories.module.css';
 
@@ -58,13 +58,7 @@ function Cover({ story, sizes }: { story: LandingStory; sizes: string }) {
   );
 }
 
-export default function LandingStories({
-  stories,
-  isLoggedIn,
-}: {
-  stories: LandingStory[];
-  isLoggedIn: boolean;
-}) {
+export default function LandingStories({ stories }: { stories: LandingStory[] }) {
   const [lead, ...rest] = stories;
   const leadTopic = lead ? topicLabel(lead) : null;
 
@@ -192,9 +186,7 @@ export default function LandingStories({
             ))}
           </nav>
           <div className={st.actions}>
-            <ArrowLink href={isLoggedIn ? '/stories/create' : '/signup'} prefetch={false}>
-              Share Your Story
-            </ArrowLink>
+            <StoryCta prefetch={false}>Share Your Story</StoryCta>
             {/* The hero's pair: the outline button matches the arrow button's height and corners. */}
             <Link href="/stories" prefetch={false} className={styles.btnOutline}>
               Read Our Stories

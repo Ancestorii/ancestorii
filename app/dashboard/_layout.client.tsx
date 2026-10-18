@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useState, useCallback } from 'react';
+import { ReactNode, useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
@@ -18,6 +18,12 @@ import { appRoot, btnClass, ui, useDialog } from '@/components/dashboard/ui/AppB
 
 const supabase = getBrowserClient();
 
+// The avatar's signed URL lives a week (as on the album and capsule pages), and nothing re-signs
+// it on a timer: the browser keeps one cached copy instead of downloading the photo again.
+const AVATAR_TTL = 60 * 60 * 24 * 7;
+
+type ProfileRow = { full_name: string | null; profile_image_url: string | null } | null;
+
 /* Phone sheets (My Memories, My Heirlooms, My Account): the kit's bottom sheet, with rows
    that are white with a hairline, or ink for the page you're on. */
 const sheetHead = 'flex flex-none items-center justify-between gap-4 px-5 pb-3 pt-4';
@@ -32,14 +38,17 @@ const doneBtn = btnClass({ variant: 'soft', size: 'sm' });
 const doneBtnStyle = { minHeight: 44 };
 
 
-/* ---------- Layout ---------- */
+/* ---------- Layout ----------
+   The shell renders on the server and on the first client paint (the server layout has already
+   checked the session). What only the browser knows (counts, storage, plan, name, photo) fills in
+   afterwards behind placeholders that hold their place, so nothing jumps. */
 export default function DashboardClientLayout({ children }: { children: ReactNode }) {
   const [lovedOnesCount, setLovedOnesCount] = useState(0);
   const [capsulesCount, setCapsulesCount] = useState(0);
   const [albumsCount, setAlbumsCount] = useState(0);
   const [timelinesCount, setTimelinesCount] = useState(0);
   const [libraryMediaCount, setLibraryMediaCount] = useState(0);
-  const [hydrated, setHydrated] = useState(false);
+  const [countsLoaded, setCountsLoaded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -55,11 +64,12 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [collapsed, setCollapsed] = useState(false);
   // null until the subscription is read, so a Premium family never sees "Upgrade Plan" flash first.
   const [planName, setPlanName] = useState<'Free' | 'Premium' | null>(null);
-  const [familyName, setFamilyName] = useState('My Family');
-  const [familyMemberCount, setFamilyMemberCount] = useState(1);
-  const [familyId, setFamilyId] = useState<string | null>(null);
+  // The family id only steers the capsule count (see loadDashboardCounts); a ref keeps that
+  // callback stable for the "dashboard-data-changed" listener.
+  const familyIdRef = useRef<string | null>(null);
   const [usedStorage, setUsedStorage] = useState(0);
   const [maxStorage, setMaxStorage] = useState(1 * 1024 ** 3);
+  const [storageLoaded, setStorageLoaded] = useState(false);
 
 
   const router = useRouter();
@@ -68,20 +78,12 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   // The print editors keep the old desktop overflow (their stage may need to scroll sideways on
   // small laptops); every other page's main is a plain clipping box at every width.
   const isEditor = /^\/dashboard\/(books|canvas|acrylic)\/[^/]+/.test(pathname);
-  useEffect(() => {
-  window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-}, [pathname]);
 
   const loadDashboardCounts = useCallback(async () => {
-    const { data: sess } = await supabase.auth.getSession();
-    const user = sess?.session?.user;
-    if (!user) return;
+    const familyId = familyIdRef.current;
 
-    const uid = user.id;
-
-    // Build capsule query: must filter by family_id because
-    // capsule RLS has an OR clause that leaks unlocked capsules
-    // from other families
+    // Capsule count scoped to this family (the live RLS policy is family_id IN get_my_family_ids(),
+    // so this is belt and braces, not a leak fix).
     let capsuleQuery = supabase
       .from('memory_capsules')
       .select('id', { head: true, count: 'exact' });
@@ -118,140 +120,156 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     setAlbumsCount(albums || 0);
     setTimelinesCount(timelines || 0);
     setLibraryMediaCount(libraryMedia || 0);
+    setCountsLoaded(true);
+  }, []);
 
-    setLovedOnesCount(loved || 0);
-    setCapsulesCount(caps || 0);
-    setAlbumsCount(albums || 0);
-    setTimelinesCount(timelines || 0);
-  }, [familyId]);
+  // Name and photo from one Profiles row (the top bar takes them as props instead of reading the
+  // same row and signing the same photo again). No cache buster on the signed URL: replacing the
+  // photo stores it at a new path, so the browser may keep one cached copy of the old one.
+  const applyProfile = useCallback(async (uid: string, prof: ProfileRow, metadataName: string | null) => {
+    let name = prof?.full_name ?? null;
 
+    if (!name && metadataName) {
+      await supabase
+        .from('Profiles')
+        .update({ full_name: metadataName })
+        .eq('id', uid);
+      name = metadataName;
+    }
+
+    setFullName(name);
+
+    if (prof?.profile_image_url) {
+      const { data } = await supabase.storage
+        .from('user-media')
+        .createSignedUrl(prof.profile_image_url, AVATAR_TTL);
+
+      setAvatarUrl(data?.signedUrl ?? null);
+    } else {
+      setAvatarUrl(null);
+    }
+  }, []);
+
+  // After the profile page saves ("profile-updated", "profile-image-updated").
+  const fetchProfile = useCallback(async () => {
+    const { data: sess } = await supabase.auth.getSession();
+    const user = sess?.session?.user;
+    if (!user) return;
+
+    const { data: prof } = await supabase
+      .from('Profiles')
+      .select('full_name, profile_image_url')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    await applyProfile(
+      user.id,
+      prof,
+      user.user_metadata?.full_name || user.user_metadata?.name || null
+    );
+  }, [applyProfile]);
+
+  // Everything the sidebar needs, in two rounds: the user from the local session (no network;
+  // the server layout has verified it), then the five independent reads at once, then the counts
+  // (they wait for the family id). Before: seven reads one after another, and the counts twice.
   useEffect(() => {
-    if (!hydrated) return;
+    let cancelled = false;
 
     (async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data?.user) {
+      const { data: sess } = await supabase.auth.getSession();
+      const user = sess?.session?.user;
+      if (!user) {
         router.push('/login');
         return;
       }
 
-      setUserId(data.user.id);
-      setUserEmail(data.user.email ?? null);
+      const uid = user.id;
+      setUserId(uid);
+      setUserEmail(user.email ?? null);
+
+      const [
+        { data: sub },
+        { data: plans },
+        { data: totalBytes },
+        { data: membership },
+        { data: prof },
+      ] = await Promise.all([
+        supabase
+          .from('subscriptions')
+          .select('plan_id, status, cancel_at_period_end, current_period_end')
+          .eq('user_id', uid)
+          .maybeSingle(),
+        supabase
+          .from('plans')
+          .select('id, name, max_storage'),
+        // Family-wide storage (shared pool), matching the plans page. get_total_storage_used
+        // is family-scoped: it sums storage across every member sharing this user's family_id.
+        supabase.rpc('get_total_storage_used', { uid }),
+        supabase
+          .from('family_memberships')
+          .select('family_id')
+          .eq('user_id', uid)
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('Profiles')
+          .select('full_name, profile_image_url')
+          .eq('id', uid)
+          .maybeSingle(),
+      ]);
+
+      if (cancelled) return;
+
+      const matchedPlan = plans?.find((p) => p.id === sub?.plan_id);
+
+      const isPremium =
+        matchedPlan?.name === 'Premium' &&
+        sub?.status === 'active' &&
+        sub?.cancel_at_period_end === false &&
+        (!sub?.current_period_end ||
+          new Date(sub.current_period_end) > new Date());
+
+      setPlanName(isPremium ? 'Premium' : 'Free');
+
+      if (matchedPlan?.max_storage) {
+        setMaxStorage(matchedPlan.max_storage);
+      }
+
+      if (totalBytes != null) {
+        setUsedStorage(Number(totalBytes));
+      }
+      setStorageLoaded(true);
+
+      familyIdRef.current = membership?.family_id ?? null;
+      void loadDashboardCounts();
+      void applyProfile(
+        uid,
+        prof,
+        user.user_metadata?.full_name || user.user_metadata?.name || null
+      );
     })();
-  }, [hydrated, router]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router, loadDashboardCounts, applyProfile]);
 
   useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-  const loadSidebarData = async () => {
-    const supabase = getBrowserClient();
-
-    const { data: authResp } = await supabase.auth.getUser();
-    const uid = authResp?.user?.id;
-
-    if (!uid) return;
-
-    const { data: sub } = await supabase
-      .from('subscriptions')
-      .select('plan_id, status, cancel_at_period_end, current_period_end')
-      .eq('user_id', uid)
-      .maybeSingle();
-
-    const { data: plans } = await supabase
-      .from('plans')
-      .select('id, name, max_storage');
-
-    const matchedPlan = plans?.find((p) => p.id === sub?.plan_id);
-
-    const isPremium =
-      matchedPlan?.name === 'Premium' &&
-      sub?.status === 'active' &&
-      sub?.cancel_at_period_end === false &&
-      (!sub?.current_period_end ||
-        new Date(sub.current_period_end) > new Date());
-
-    setPlanName(isPremium ? 'Premium' : 'Free');
-
-    if (matchedPlan?.max_storage) {
-      setMaxStorage(matchedPlan.max_storage);
-    }
-
-    // Family-wide storage (shared pool), matching the plans page. get_total_storage_used
-    // is family-scoped: it sums storage across every member sharing this user's family_id.
-    const { data: totalBytes } = await supabase.rpc('get_total_storage_used', { uid });
-
-    if (totalBytes != null) {
-      setUsedStorage(Number(totalBytes));
-    }
-    // Fetch family data
-    const { data: membership } = await supabase
-      .from('family_memberships')
-      .select('family_id, role')
-      .eq('user_id', uid)
-      .limit(1)
-      .single();
-
-    if (membership) {
-      setFamilyId(membership.family_id);
-      const { data: family } = await supabase
-        .from('families')
-        .select('name')
-        .eq('id', membership.family_id)
-        .single();
-      if (family?.name) setFamilyName(family.name);
-
-      const { count: memberCount } = await supabase
-        .from('family_memberships')
-        .select('*', { count: 'exact', head: true })
-        .eq('family_id', membership.family_id);
-      setFamilyMemberCount(memberCount || 1);
-    }
-  };
-
-  loadSidebarData();
-}, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    loadDashboardCounts();
-  }, [hydrated, loadDashboardCounts]);
-
-  useEffect(() => {
-    const handler = () => loadDashboardCounts();
+    const handler = () => {
+      void loadDashboardCounts();
+    };
     window.addEventListener('dashboard-data-changed', handler);
     return () => window.removeEventListener('dashboard-data-changed', handler);
   }, [loadDashboardCounts]);
 
-  useEffect(() => {
-    const handleFamilyRename = (e: Event) => {
-      const name = (e as CustomEvent).detail;
-      if (name) setFamilyName(name);
-    };
-    window.addEventListener('family-name-updated', handleFamilyRename);
-    return () => window.removeEventListener('family-name-updated', handleFamilyRename);
-  }, []);
-
-  useEffect(() => {
-    const handleMemberCount = (e: Event) => {
-      const count = (e as CustomEvent).detail;
-      if (count) setFamilyMemberCount(count);
-    };
-    window.addEventListener('family-members-updated', handleMemberCount);
-    return () => window.removeEventListener('family-members-updated', handleMemberCount);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    if (typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      if (path === '/dashboard') router.replace('/dashboard/our-family');
-    }
-  }, [router, hydrated]);
-
+  // The welcome note is created once per account. Checked once per browser tab, not on every
+  // page load (it used to be a read and sometimes a write on every dashboard visit).
   useEffect(() => {
     if (!userId) return;
+    const key = `ancestorii:welcome-checked:${userId}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+    } catch {}
 
     (async () => {
       const { data: welcomeExists } = await supabase
@@ -259,6 +277,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
         .select('id')
         .eq('user_id', userId)
         .eq('type', 'welcome')
+        .limit(1)
         .maybeSingle();
 
       if (!welcomeExists) {
@@ -268,57 +287,16 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
           actor_name: 'Ancestorii',
         });
       }
+      try {
+        sessionStorage.setItem(key, '1');
+      } catch {}
     })();
   }, [userId]);
 
-  const fetchProfile = async () => {
-    if (!userId) return;
-
-    const { data: auth } = await supabase.auth.getUser();
-    const user = auth?.user;
-    if (!user) return;
-
-    let { data: prof } = await supabase
-      .from('Profiles')
-      .select('full_name, profile_image_url')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (!prof?.full_name) {
-      const fullName =
-        user.user_metadata?.full_name ||
-        user.user_metadata?.name ||
-        null;
-
-      if (fullName) {
-        await supabase
-          .from('Profiles')
-          .update({ full_name: fullName })
-          .eq('id', userId);
-
-        prof = { ...prof!, full_name: fullName };
-      }
-    }
-
-    setFullName(prof?.full_name ?? null);
-
-    if (prof?.profile_image_url) {
-      const { data } = await supabase.storage
-        .from('user-media')
-        .createSignedUrl(prof.profile_image_url, 3600);
-
-      setAvatarUrl(
-        data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null
-      );
-    } else {
-      setAvatarUrl(null);
-    }
-  };
-
   useEffect(() => {
-    if (!hydrated) return;
-
-    const refresh = () => fetchProfile();
+    const refresh = () => {
+      void fetchProfile();
+    };
 
     window.addEventListener('profile-updated', refresh);
     window.addEventListener('profile-image-updated', refresh);
@@ -327,7 +305,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
       window.removeEventListener('profile-updated', refresh);
       window.removeEventListener('profile-image-updated', refresh);
     };
-  }, [hydrated, userId]);
+  }, [fetchProfile]);
 
  useEffect(() => {
   if (memoriesOpen || heirloomsOpen || accountOpen) {
@@ -338,15 +316,6 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   }
 }, [memoriesOpen, heirloomsOpen, accountOpen]);
 
-  useEffect(() => {
-    if (!userId) return;
-
-    fetchProfile();
-    const interval = setInterval(fetchProfile, 5 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [userId]);
-
   const handleLogout = async () => {
     await supabase.auth.signOut({ scope: 'local' });
     setUserEmail(null);
@@ -356,14 +325,12 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     router.push('/login');
   };
 
-  if (!hydrated) return null;
-
  return (
   <>
 
-    <div className={`${appRoot} antialiased`} suppressHydrationWarning>
+    <div className={`${appRoot} dashboard-shell antialiased`}>
 
-    {!hideSidebar && <PublicNav />}
+    {!hideSidebar && <PublicNav account={{ email: userEmail, avatarUrl }} />}
 
     {/* ---------- Sidebar ---------- */}
 {!hideSidebar && (
@@ -379,8 +346,8 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
 
     ${drawerOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 max-lg:invisible lg:translate-x-0 lg:opacity-100'}
 
-    ${drawerOpen 
-      ? 'transition-[transform,opacity] duration-600 ease-[cubic-bezier(0.16,1,0.3,1)]' 
+    ${drawerOpen
+      ? 'transition-[transform,opacity] duration-600 ease-[cubic-bezier(0.16,1,0.3,1)]'
       : 'transition-[transform,opacity] duration-120 ease-in'
     }
 
@@ -402,11 +369,10 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   avatarUrl={avatarUrl}
   planName={planName}
   handleLogout={handleLogout}
-  familyName={familyName}
-  familyMemberCount={familyMemberCount}
   totalMemories={lovedOnesCount + capsulesCount + albumsCount + timelinesCount + libraryMediaCount}
   usedStorage={usedStorage}
   maxStorage={maxStorage}
+  loaded={countsLoaded && storageLoaded}
 />
 </aside>
 )}
@@ -671,55 +637,10 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
       setAccountOpen={setAccountOpen}
     />
 
-    <style jsx global>{`
-        /* The desktop sidebar starts right under the 72px top bar (PublicNav). */
-        @media (min-width: 1024px) {
-          .dashboard-sidebar {
-            top: 72px !important;
-            height: calc(100vh - 72px) !important;
-          }
-        }
-        /* Keyboard focus (and in-page jumps) stop clear of the sticky top bar (72px, 64px on
-           phones) and, below 1024px, of the floating bottom navigation, instead of under them. */
-        html:has(.dashboard-sidebar) {
-          scroll-padding-top: 88px;
-        }
-        @media (max-width: 599px) {
-          html:has(.dashboard-sidebar) {
-            scroll-padding-top: 80px;
-          }
-        }
-        @media (max-width: 1023px) {
-          html {
-            scroll-padding-bottom: 104px;
-          }
-        }
-        /* A sidebar section's links fade in as it opens (opacity and transform only). */
-        .sidebar-reveal {
-          animation: sidebarReveal 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        @keyframes sidebarReveal {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: none; }
-        }
-        .sidebar-scroll {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(10, 10, 15, 0.18) transparent;
-        }
-        .sidebar-scroll::-webkit-scrollbar {
-  width: 5px;
-}
-.sidebar-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.sidebar-scroll::-webkit-scrollbar-thumb {
-  background: rgba(10, 10, 15, 0.18);
-  border-radius: 10px;
-}
-.sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(10, 10, 15, 0.32);
-}
-    `}</style>
+    {/* The shell's own CSS (sidebar offset under the top bar, scroll padding, the section reveal,
+        the thin scrollbar) lives in app/globals.css under "Dashboard shell": a <style jsx> block
+        here reached the page only after hydration, so the server-rendered sidebar painted in the
+        wrong place first. */}
       </div>
   </>
 )}

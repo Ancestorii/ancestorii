@@ -33,13 +33,23 @@ const LINK_DOT: Record<string, string> = {
 const dot = (color: string) => ({ '--dot': color }) as CSSProperties;
 
 // ── Component ──────────────────────────────────────────────────
-export default function PublicNav() {
+// `account`: the dashboard shell reads the profile once for the whole page and passes the email
+// and signed photo URL in, so the bar does not read the same row and sign the same photo again.
+// Without it (anywhere else) the bar loads them itself.
+export default function PublicNav({
+  account,
+}: {
+  account?: { email: string | null; avatarUrl: string | null };
+} = {}) {
   const supabase = getBrowserClient();
   const router = useRouter();
   const pathname = usePathname();
 
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [ownEmail, setOwnEmail] = useState<string | null>(null);
+  const [ownAvatarUrl, setOwnAvatarUrl] = useState<string | null>(null);
+  const controlled = !!account;
+  const userEmail = account ? account.email : ownEmail;
+  const avatarUrl = account ? account.avatarUrl : ownAvatarUrl;
   const [isOpen, setIsOpen] = useState(false);
   // The phone menu panel: Escape closes it, Tab stays inside, focus returns to the menu button.
   const menuPanelRef = useDialog<HTMLDivElement>(isOpen, () => setIsOpen(false));
@@ -68,22 +78,27 @@ export default function PublicNav() {
   // Free while the user loads.
   const isLoggedIn = !!userEmail || isDashboard;
 
-  // ── Auth ──
+  // ── Auth (only when the bar loads its own details) ──
+  // The user comes from the local session (no round trip to the auth server; RLS guards the
+  // reads), and the signed URL carries no cache buster: a replaced photo is stored at a new path,
+  // so the browser may keep one cached copy.
   useEffect(() => {
+    if (controlled) return;
     const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUserEmail(data.user.email ?? null);
+      const { data: sess } = await supabase.auth.getSession();
+      const user = sess?.session?.user;
+      if (user) {
+        setOwnEmail(user.email ?? null);
         const { data: profile } = await supabase
           .from('Profiles')
           .select('profile_image_url')
-          .eq('id', data.user.id)
-          .single();
+          .eq('id', user.id)
+          .maybeSingle();
         if (profile?.profile_image_url) {
           const { data: signed } = await supabase.storage
             .from('user-media')
             .createSignedUrl(profile.profile_image_url, 3600);
-          if (signed?.signedUrl) setAvatarUrl(`${signed.signedUrl}&cb=${Date.now()}`);
+          if (signed?.signedUrl) setOwnAvatarUrl(signed.signedUrl);
         }
       }
     };
@@ -92,11 +107,11 @@ export default function PublicNav() {
     const onAvatarChange = () => getUser();
     window.addEventListener('profile-image-updated', onAvatarChange);
     return () => window.removeEventListener('profile-image-updated', onAvatarChange);
-  }, []);
+  }, [controlled]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut({ scope: 'local' });
-    setUserEmail(null);
+    setOwnEmail(null);
     setProfileOpen(false);
     router.push('/login');
   };

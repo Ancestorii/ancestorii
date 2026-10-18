@@ -1,11 +1,12 @@
-import { getServerClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { getLandingStories } from '@/lib/stories/landing';
 import LandingPage from '@/components/landing/LandingPage';
 import JsonLd from '@/components/site/seo/JsonLd';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Ancestorii: Stories from Real Families',
+  // `absolute`: the root layout's "%s | Ancestorii" template would name the brand twice.
+  title: { absolute: 'Ancestorii: Stories from Real Families' },
   description:
     'Every family has a story worth sharing. Share your family’s stories, photos and voices with the people who matter, read real stories from real families, and turn them into printed Memory Books. Free to start.',
   keywords: [
@@ -52,13 +53,19 @@ export const metadata: Metadata = {
   },
 };
 
+// Static HTML, rebuilt in the background at most once a minute: the page comes straight from the
+// CDN instead of waiting on a server render and its database queries on every visit. Nothing here
+// reads cookies. Who is signed in only decides where the nav and the story buttons point, and they
+// work that out in the browser (SiteNav, StoryCta), as on every other public page.
+export const revalidate = 60;
+
 export default async function HomePage() {
-  const supabase = await getServerClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  // Published stories only, read as the public does (RLS), so no cookie-bound client is needed.
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  );
   const stories = await getLandingStories(supabase);
 
   return (
@@ -76,7 +83,7 @@ export default async function HomePage() {
         }}
       />
 
-      <LandingPage stories={stories} isLoggedIn={!!user} />
+      <LandingPage stories={stories} />
     </>
   );
 }

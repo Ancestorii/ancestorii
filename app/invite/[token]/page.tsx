@@ -30,6 +30,10 @@ export default function InvitePage() {
   const [loadingInvite, setLoadingInvite] = useState(true);
   const [inviteError, setInviteError] = useState('');
 
+  // Someone already signed in accepts with their account instead of creating a second one.
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [accepting, setAccepting] = useState(false);
+
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [agree, setAgree] = useState(false);
@@ -68,6 +72,42 @@ export default function InvitePage() {
     if (token) fetchInvite();
   }, [token]);
 
+  // Local read of the session cookie: no round trip.
+  useEffect(() => {
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => setSignedIn(!!session))
+      .catch(() => setSignedIn(false));
+  }, [supabase]);
+
+  // Signed-in user: /api/accept-invite checks the email matches and moves them (and their
+  // memories) out of the solo library the sign-up trigger gave them.
+  const handleAccept = async () => {
+    if (accepting) return;
+    setAccepting(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/accept-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.error || 'We could not accept this invitation. Please try again.');
+        setAccepting(false);
+        return;
+      }
+
+      router.replace('/dashboard/our-family');
+    } catch {
+      setError('Something went wrong. Please try again.');
+      setAccepting(false);
+    }
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -95,10 +135,7 @@ export default function InvitePage() {
 
       if (signUpError) throw signUpError;
 
-      // Allow auth cookies to persist
-      await new Promise((res) => setTimeout(res, 200));
-
-      // Redirect to dashboard
+      // Redirect to dashboard (the session cookie is already written)
       router.replace('/dashboard/our-family');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- unchanged handler
     } catch (err: any) {
@@ -108,7 +145,7 @@ export default function InvitePage() {
   };
 
   // ── Loading state ──
-  if (loadingInvite) {
+  if (loadingInvite || signedIn === null) {
     return (
       <AuthShell variant="signup" cards={FAMILY_CARDS}>
         <div className={styles.loading} role="status">
@@ -130,6 +167,47 @@ export default function InvitePage() {
         <ArrowLink href="/signup" className={`${landing.btnShadow} ${styles.blockLink}`}>
           Create your own account
         </ArrowLink>
+      </AuthShell>
+    );
+  }
+
+  // ── Signed in: accept with this account ──
+  if (signedIn) {
+    return (
+      <AuthShell variant="signup" cards={FAMILY_CARDS}>
+        <h2 className={`${auth.title} ${styles.title}`}>
+          You&apos;re invited to join
+          <br />
+          <Accent tone="pink">{invite!.familyName}</Accent>
+        </h2>
+        <p className={auth.intro}>
+          {invite!.inviterName} wants you to help preserve your family&apos;s memories.
+        </p>
+
+        <h1 className={styles.formTitle}>Accept the invitation</h1>
+        <p className={styles.formLead}>
+          This invitation was sent to <span className={styles.strong}>{invite!.email}</span>. You&apos;ll be
+          able to view and contribute to everything in{' '}
+          <span className={styles.strong}>{invite!.familyName}</span>.
+        </p>
+
+        {error && <p className={`${site.noticeError} ${styles.errorGap}`} role="alert">{error}</p>}
+
+        <SubmitButton
+          type="button"
+          onClick={handleAccept}
+          disabled={accepting}
+          className={styles.action}
+        >
+          {accepting ? 'Joining family…' : `Join ${invite!.familyName}`}
+        </SubmitButton>
+
+        <p className={auth.switch}>
+          Wrong account?{' '}
+          <Link href={`/login?redirect=/invite/${token}`}>
+            Switch account
+          </Link>
+        </p>
       </AuthShell>
     );
   }
@@ -245,7 +323,7 @@ export default function InvitePage() {
 
       <p className={auth.switch}>
         Already have an account?{' '}
-        <Link href="/login">
+        <Link href={`/login?redirect=/invite/${token}`}>
           Log in
         </Link>
       </p>

@@ -2,6 +2,7 @@ import WhyThisExists from "@/components/WhyThisExists";
 import SiteShell from '@/components/site/SiteShell';
 import type { Metadata } from "next";
 import JsonLd from '@/components/site/seo/JsonLd';
+import { FOUNDER_ID, ORG_ID } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
   title: { absolute: "Our Roots: Why Ancestorii Exists" },
@@ -52,23 +53,9 @@ export default function WhyThisExistsPage() {
           "description":
             "The personal story behind Ancestorii, built because every family has moments worth sharing, and most of them are never written down.",
           "url": "https://www.ancestorii.com/why-this-exists",
-          "author": {
-            "@type": "Person",
-            "name": "Dante Leon",
-            "jobTitle": "Founder",
-            "worksFor": {
-              "@type": "Organization",
-              "name": "Ancestorii"
-            }
-          },
-          "about": {
-            "@type": "Organization",
-            "name": "Ancestorii"
-          },
-          "publisher": {
-            "@type": "Organization",
-            "name": "Ancestorii"
-          }
+          "author": { "@id": FOUNDER_ID },
+          "about": { "@id": ORG_ID },
+          "publisher": { "@id": ORG_ID }
         }}
       />
 

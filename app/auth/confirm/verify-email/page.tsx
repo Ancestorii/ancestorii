@@ -3,8 +3,6 @@ import AuthShell from '@/components/site/AuthShell';
 import forms from '@/components/site/auth/authForms.module.css';
 import VerifyEmailClient from './VerifyEmailClient';
 
-export const dynamic = 'force-dynamic';
-
 export default function VerifyEmailPage() {
   return (
     <AuthShell>

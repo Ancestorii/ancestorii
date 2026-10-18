@@ -1,5 +1,5 @@
 import HeroRing, { type RingCard } from './HeroRing';
-import { ArrowLink } from './LandingBits';
+import StoryCta from './StoryCta';
 import SmoothAnchor from './SmoothAnchor';
 import styles from './landing.module.css';
 
@@ -26,7 +26,7 @@ const CARDS: RingCard[] = [
   { kind: 'quote', text: 'Never go to bed on an argument.', who: 'Grandma June', color: BLUE, fg: '#FFFFFF' },
 ];
 
-export default function LandingHero({ isLoggedIn }: { isLoggedIn: boolean }) {
+export default function LandingHero() {
   return (
     <section id="top" className={styles.hero}>
       <div className={styles.heroText}>
@@ -38,9 +38,7 @@ export default function LandingHero({ isLoggedIn }: { isLoggedIn: boolean }) {
           share the moments that matter.
         </p>
         <div className={styles.heroCtas}>
-          <ArrowLink href={isLoggedIn ? '/stories/create' : '/signup'} className={styles.btnShadow}>
-            Share Your Story
-          </ArrowLink>
+          <StoryCta className={styles.btnShadow}>Share Your Story</StoryCta>
           <SmoothAnchor href="#how" className={styles.btnOutline}>
             See how it works
           </SmoothAnchor>

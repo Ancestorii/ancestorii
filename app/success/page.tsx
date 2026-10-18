@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { LucideIcon } from "lucide-react";
 import {
   FileUp,
@@ -26,6 +27,12 @@ import styles from "./success.module.css";
 // It shows NO price and NO buy or upgrade button, because whoever reaches it has
 // already paid, so it stays a safe general page. The app door is the page's one ink
 // card, so StoreBadges uses theme="dark" there: white Apple badge for full contrast.
+
+export const metadata: Metadata = {
+  title: "Welcome to Premium",
+  description: "Your Premium upgrade is confirmed. Your whole family is now on Premium.",
+  robots: { index: false, follow: false },
+};
 
 const FEATURES = [
   "100GB storage for your whole family",

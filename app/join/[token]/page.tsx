@@ -59,8 +59,9 @@ export default function JoinPage() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setIsLoggedIn(!!user);
+        // Local read of the session cookie: no round trip, and RLS still guards every query.
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsLoggedIn(!!session);
       } catch {
         setIsLoggedIn(false);
       } finally {
@@ -149,10 +150,7 @@ export default function JoinPage() {
 
       if (signUpError) throw signUpError;
 
-      // Allow auth cookies to persist
-      await new Promise((res) => setTimeout(res, 300));
-
-      // 2. Now join the family via the link token
+      // 2. Now join the family via the link token (the session cookie is already written)
       const joinRes = await fetch('/api/join-via-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -2,34 +2,47 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeRedirect } from '@/lib/safeRedirect';
 import AuthShell from '@/components/site/AuthShell';
 import AuthLoader from '@/components/site/auth/AuthLoader';
+import auth from '@/components/site/auth.module.css';
+import site from '@/components/site/site.module.css';
 import forms from '@/components/site/auth/authForms.module.css';
 
 export default function AuthCallback() {
   const supabase = getBrowserClient();
   const router = useRouter();
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const handleOAuth = async () => {
+      // Google (or Supabase) reporting a problem: say so instead of bouncing to /login silently.
+      const query = new URLSearchParams(window.location.search);
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      if (query.get('error') || hash.get('error')) {
+        setFailed(true);
+        return;
+      }
+
       const {
         data: { user },
         error,
       } = await supabase.auth.getUser();
 
       if (error || !user) {
-        router.replace('/login');
+        setFailed(true);
         return;
       }
 
-      // Create profile if it doesn't exist, never overwrite user's custom values
+      // Create profile if it doesn't exist, never overwrite user's custom values.
+      // onboarding_complete is read here too, so the redirect below needs no second lookup.
       const { data: existingProfile } = await supabase
         .from('Profiles')
-        .select('id')
+        .select('id, onboarding_complete')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -92,25 +105,43 @@ export default function AuthCallback() {
       if (inviteToken) {
         // Invited users skip onboarding, feed already has content
         router.replace('/dashboard/our-family');
+      } else if (!existingProfile?.onboarding_complete) {
+        // Everyone else: a brand new profile (or one created just above) has not onboarded yet
+        router.replace('/onboarding/first-memory');
       } else {
-        // Everyone else: check onboarding
-        const { data: profile } = await supabase
-          .from('Profiles')
-          .select('onboarding_complete')
-          .eq('id', user.id)
-          .single();
-
-        if (!profile?.onboarding_complete) {
-          router.replace('/onboarding/first-memory');
-        } else {
-          router.replace(safeRedirect(postLoginRedirect) || '/dashboard/our-family');
-        }
+        router.replace(safeRedirect(postLoginRedirect) || '/dashboard/our-family');
       }
     };
 
     handleOAuth();
     // Runs once: the browser client is a singleton and the app router instance never changes.
   }, [router, supabase]);
+
+  if (failed) {
+    return (
+      <AuthShell>
+        <h1 className={auth.title}>
+          Sign in <span className={site.accentPink}>didn&apos;t finish.</span>
+        </h1>
+        <p className={auth.intro}>
+          We couldn&apos;t complete signing you in. The link may have expired or already been used.
+          Please try again.
+        </p>
+        <Link href="/login" className={`${site.btnSubmit} ${forms.submit}`}>
+          <span>Back to log in</span>
+          <span className={site.btnSubmitTile} aria-hidden="true">
+            →
+          </span>
+        </Link>
+        <p className={auth.switch}>
+          New to Ancestorii?{' '}
+          <Link href="/signup" className={forms.tapLink}>
+            Create a free account
+          </Link>
+        </p>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell>

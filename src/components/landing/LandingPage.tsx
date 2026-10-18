@@ -1,6 +1,6 @@
 import type { LandingStory } from '@/lib/stories/landing';
 import { jakarta } from './fonts';
-import LandingNav from './LandingNav';
+import SiteNav from '@/components/site/SiteNav';
 import LandingHero from './LandingHero';
 import LandingTrust from './LandingTrust';
 import FeatureIndex from './sections/FeatureIndex';
@@ -17,13 +17,7 @@ import LandingFooter from './LandingFooter';
 import styles from './landing.module.css';
 import pageGlow from '@/components/site/glow.module.css';
 
-export default function LandingPage({
-  stories,
-  isLoggedIn,
-}: {
-  stories: LandingStory[];
-  isLoggedIn: boolean;
-}) {
+export default function LandingPage({ stories }: { stories: LandingStory[] }) {
   return (
     <div className={`${jakarta.variable} ${styles.page} ${pageGlow.glowPage}`}>
       <div className={styles.glows} aria-hidden="true">
@@ -31,10 +25,11 @@ export default function LandingPage({
         <div className={styles.glowBottom} />
       </div>
 
-      <LandingNav isLoggedIn={isLoggedIn} />
+      {/* Reads who is signed in once it mounts: the page itself is static. */}
+      <SiteNav />
 
       <main className={styles.landingMain}>
-        <LandingHero isLoggedIn={isLoggedIn} />
+        <LandingHero />
         <LandingTrust />
         <FeatureIndex />
         <MyFamily />
@@ -43,9 +38,9 @@ export default function LandingPage({
         <AlbumsLibrary />
         <TimelinesLovedOnes />
         <VoicesCapsules />
-        <LandingStories stories={stories} isLoggedIn={isLoggedIn} />
+        <LandingStories stories={stories} />
         <Heirlooms />
-        <LandingCta isLoggedIn={isLoggedIn} />
+        <LandingCta />
       </main>
 
       <LandingFooter />

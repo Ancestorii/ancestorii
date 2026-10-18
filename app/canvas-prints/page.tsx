@@ -160,7 +160,7 @@ const SOURCES: Source[] = [
     publisher: 'Ancestorii',
     title: 'Terms of Service, section 23: Physical Products & My Heirlooms',
     href: 'https://www.ancestorii.com/terms',
-    date: 'updated 16 October 2026',
+    date: 'updated 17 October 2026',
   },
 ];
 

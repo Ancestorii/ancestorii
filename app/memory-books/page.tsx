@@ -38,7 +38,7 @@ export default function MemoryBooksPage() {
           name: "Memory Books | Ancestorii",
           description: "Design and print a custom hardcover Memory Book filled with your family's stories, photos, and voices, with full creative control over every page.",
           url: "https://www.ancestorii.com/memory-books",
-          isPartOf: { "@type": "WebSite", name: "Ancestorii" },
+          isPartOf: { "@id": "https://www.ancestorii.com/#website" },
         }}
       />
       <JsonLd
@@ -49,7 +49,7 @@ export default function MemoryBooksPage() {
           brand: { "@type": "Brand", name: "Ancestorii" },
           url: "https://www.ancestorii.com/memory-books",
           category: "Books > Custom & Personalised Books",
-          offers: { "@type": "Offer", priceCurrency: "GBP", availability: "https://schema.org/InStock", url: "https://www.ancestorii.com/memory-books" },
+          offers: { "@type": "AggregateOffer", priceCurrency: "GBP", lowPrice: "44.99", highPrice: "64.99", offerCount: 3, availability: "https://schema.org/InStock", url: "https://www.ancestorii.com/memory-books" },
         }}
       />
       <JsonLd

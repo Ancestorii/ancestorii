@@ -2,11 +2,8 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getBrowserClient } from '@/lib/supabase/browser';
 import AuthLoader from '@/components/site/auth/AuthLoader';
 import forms from '@/components/site/auth/authForms.module.css';
-
-const supabase = getBrowserClient();
 
 export default function VerifyEmailClient() {
   const params = useSearchParams();
@@ -20,24 +17,24 @@ export default function VerifyEmailClient() {
     }
 
     (async () => {
-      const { data } = await supabase
-        .from('email_verifications')
-        .select('*')
-        .eq('token', token)
-        .is('used_at', null)
-        .maybeSingle();
+      try {
+        // Checked and marked used server-side (service role): the table is not open to the browser.
+        const res = await fetch('/api/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
 
-      if (!data) {
-        setStatus('This link is invalid or expired.');
-        return;
+        if (res.ok) {
+          setStatus('Your email has been verified successfully.');
+        } else if (res.status >= 500) {
+          setStatus('We could not verify your email just now. Please try the link again in a moment.');
+        } else {
+          setStatus('This link is invalid or expired.');
+        }
+      } catch {
+        setStatus('We could not verify your email just now. Please try the link again in a moment.');
       }
-
-      await supabase
-        .from('email_verifications')
-        .update({ used_at: new Date().toISOString() })
-        .eq('id', data.id);
-
-      setStatus('Your email has been verified successfully.');
     })();
   }, [token]);
 

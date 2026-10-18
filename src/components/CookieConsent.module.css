@@ -1,5 +1,6 @@
 /* The cookie banner: a small white card pinned to the bottom of the screen. It sits above the
-   page but under the mobile menu and the dashboard's sheets (z-index 300). No animation. */
+   page but under the mobile menu and the dashboard's sheets (z-index 300). It slides up as it
+   appears (transform and opacity only, so nothing else repaints) rather than popping in. */
 .banner {
   position: fixed;
   left: 16px;
@@ -20,6 +21,24 @@
     0 0 0 1px rgba(10, 10, 15, 0.08),
     0 24px 50px -24px rgba(10, 10, 15, 0.45);
   font-family: var(--font-jakarta), system-ui, sans-serif;
+  animation: bannerIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes bannerIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner {
+    animation: none;
+  }
 }
 
 .text {

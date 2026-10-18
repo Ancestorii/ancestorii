@@ -12,16 +12,33 @@ import {
   Reading,
 } from '@/components/site/seo-articles/ArticleBits';
 
+const DESCRIPTION =
+  'Discover how to build a living digital legacy by capturing family stories, voices, and everyday moments as they happen, and growing a library your family can return to.';
+
 export const metadata: Metadata = {
   title: 'Digital Legacy: Capture and Grow Your Family Story Digitally',
-  description:
-    'Discover how to build a living digital legacy by capturing family stories, voices, and everyday moments as they happen, and growing a library your family can return to.',
+  description: DESCRIPTION,
   alternates: {
     canonical: 'https://www.ancestorii.com/digital-legacy',
   },
   robots: {
     index: true,
     follow: true,
+  },
+  openGraph: {
+    title: 'Digital Legacy | Ancestorii',
+    description: DESCRIPTION,
+    url: 'https://www.ancestorii.com/digital-legacy',
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Building a digital legacy' }],
+    locale: 'en_GB',
+    type: 'article',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Digital Legacy | Ancestorii',
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 

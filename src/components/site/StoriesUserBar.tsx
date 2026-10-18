@@ -53,34 +53,33 @@ export default function StoriesUserBar({ isLoggedIn }: { isLoggedIn?: boolean })
     };
   }, [isLoggedIn]);
 
-  // ── Avatar (exactly as PublicNav loads it, and again on 'profile-image-updated') ──
+  // ── Avatar (as PublicNav loads it, and again on 'profile-image-updated') ──
   useEffect(() => {
     if (!userId) return;
     let active = true;
 
-    const getUser = async () => {
+    // The session's user id is enough (RLS guards the read): no round trip to Auth first. A cache
+    // buster is added only when the photo has just been replaced at the same path.
+    const loadAvatar = async (replaced = false) => {
       const { getBrowserClient } = await import('@/lib/supabase/browser');
       const supabase = getBrowserClient();
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        const { data: profile } = await supabase
-          .from('Profiles')
-          .select('profile_image_url')
-          .eq('id', data.user.id)
-          .single();
-        if (profile?.profile_image_url) {
-          const { data: signed } = await supabase.storage
-            .from('user-media')
-            .createSignedUrl(profile.profile_image_url, 3600);
-          if (active && signed?.signedUrl) {
-            setAvatar({ userId: data.user.id, url: `${signed.signedUrl}&cb=${Date.now()}` });
-          }
+      const { data: profile } = await supabase
+        .from('Profiles')
+        .select('profile_image_url')
+        .eq('id', userId)
+        .single();
+      if (profile?.profile_image_url) {
+        const { data: signed } = await supabase.storage
+          .from('user-media')
+          .createSignedUrl(profile.profile_image_url, 3600);
+        if (active && signed?.signedUrl) {
+          setAvatar({ userId, url: replaced ? `${signed.signedUrl}&cb=${Date.now()}` : signed.signedUrl });
         }
       }
     };
-    getUser();
+    loadAvatar();
 
-    const onAvatarChange = () => getUser();
+    const onAvatarChange = () => loadAvatar(true);
     window.addEventListener('profile-image-updated', onAvatarChange);
     return () => {
       active = false;

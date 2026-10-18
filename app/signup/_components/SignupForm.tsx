@@ -161,9 +161,6 @@ export default function SignupForm() {
       sessionStorage.removeItem('family_name');
       sessionStorage.removeItem('invite_token');
 
-      // Allow auth cookies to persist
-      await new Promise((res) => setTimeout(res, 200));
-
       // Invited users go straight to dashboard, new users write first memory
       router.replace(hadInvite ? '/dashboard/our-family' : '/onboarding/first-memory');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

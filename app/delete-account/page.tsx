@@ -11,12 +11,28 @@ import {
   legalStyles,
 } from '@/components/site/legal/LegalBits';
 
+const DESCRIPTION = 'How to delete your Ancestorii account and what happens to your data when you do.';
+
 export const metadata: Metadata = {
   title: 'Delete Your Account',
-  description:
-    'How to delete your Ancestorii account and what happens to your data when you do.',
+  description: DESCRIPTION,
   alternates: {
     canonical: 'https://www.ancestorii.com/delete-account',
+  },
+  openGraph: {
+    title: 'Delete Your Account | Ancestorii',
+    description: DESCRIPTION,
+    url: 'https://www.ancestorii.com/delete-account',
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii' }],
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Delete Your Account | Ancestorii',
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 
@@ -50,7 +66,7 @@ export default function DeleteAccountPage() {
               .
             </p>
             <p className={legalStyles.contactNote}>
-              This page was last reviewed and updated on 26 June 2026.
+              This page was last reviewed and updated on 16 October 2026.
             </p>
           </LegalContactCard>
         }

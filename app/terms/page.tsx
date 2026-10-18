@@ -1,5 +1,6 @@
 
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import SiteShell from '@/components/site/SiteShell';
 import { Accent, PageHero } from '@/components/site/SiteBits';
 import {
@@ -11,12 +12,29 @@ import {
 } from '@/components/site/legal/LegalBits';
 import LegalToc, { type TocGroup } from '@/components/site/legal/LegalToc';
 
+const DESCRIPTION =
+  'Terms and conditions governing use of the Ancestorii website, mobile app, physical products, and services.';
+
 export const metadata: Metadata = {
   title: 'Terms & Conditions',
-  description:
-    'Terms and conditions governing use of the Ancestorii website, mobile app, physical products, and services.',
+  description: DESCRIPTION,
   alternates: {
     canonical: 'https://www.ancestorii.com/terms',
+  },
+  openGraph: {
+    title: 'Terms & Conditions | Ancestorii',
+    description: DESCRIPTION,
+    url: 'https://www.ancestorii.com/terms',
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii' }],
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Terms & Conditions | Ancestorii',
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 
@@ -368,8 +386,8 @@ export default function TermsPage() {
         <Section number="9" title="Privacy &amp; Data Protection">
           <p>
             Your privacy is central to Ancestorii. We collect and process
-            personal data as described in our <a href="/privacy-policy">Privacy
-            Policy</a>, which forms part of these Terms.
+            personal data as described in our <Link href="/privacy-policy">Privacy
+            Policy</Link>, which forms part of these Terms.
           </p>
           <p>
             By using the Service, you acknowledge that certain data may be

@@ -11,12 +11,29 @@ import {
 } from '@/components/site/legal/LegalBits';
 import LegalToc, { type TocGroup } from '@/components/site/legal/LegalToc';
 
+const DESCRIPTION =
+  'How Ancestorii collects, uses, stores, and protects your personal data across the website and the mobile app.';
+
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description:
-    'How Ancestorii collects, uses, stores, and protects your personal data across the website and the mobile app.',
+  description: DESCRIPTION,
   alternates: {
     canonical: 'https://www.ancestorii.com/privacy-policy',
+  },
+  openGraph: {
+    title: 'Privacy Policy | Ancestorii',
+    description: DESCRIPTION,
+    url: 'https://www.ancestorii.com/privacy-policy',
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii' }],
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Privacy Policy | Ancestorii',
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 

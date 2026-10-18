@@ -16,16 +16,33 @@ import {
   Reading,
 } from '@/components/site/seo-articles/ArticleBits';
 
+const DESCRIPTION =
+  'Discover what a living library is and how it differs from simple digital storage. Learn how stories, voices, and memories can grow over time in one intentional space.';
+
 export const metadata: Metadata = {
   title: 'What Is a Living Library? | A New Way to Preserve Family Stories',
-  description:
-    'Discover what a living library is and how it differs from simple digital storage. Learn how stories, voices, and memories can grow over time in one intentional space.',
+  description: DESCRIPTION,
   alternates: {
     canonical: 'https://www.ancestorii.com/living-library',
   },
   robots: {
     index: true,
     follow: true,
+  },
+  openGraph: {
+    title: 'What Is a Living Library? | Ancestorii',
+    description: DESCRIPTION,
+    url: 'https://www.ancestorii.com/living-library',
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'What is a living library?' }],
+    locale: 'en_GB',
+    type: 'article',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'What Is a Living Library? | Ancestorii',
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 

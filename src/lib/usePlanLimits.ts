@@ -36,42 +36,49 @@ export function usePlanLimits() {
         return;
       }
 
-      // 🔑 Active Premium plan limits, the RPC returns no rows for free users.
-      const { data: limitData } = await supabase
-        .rpc('get_user_plan_limits', { uid });
-      const premiumRow = (Array.isArray(limitData) ? limitData[0] : limitData) as Limits | null;
+      // The five reads are independent, so they go out together (they used to run as three
+      // rounds, one after another, on every page that uses this hook).
+      const [
+        { data: limitData },
+        { data: freePlan },
+        { count: albums },
+        { count: timelines },
+        { count: capsules },
+      ] = await Promise.all([
+        // 🔑 Active Premium plan limits, the RPC returns no rows for free users.
+        supabase.rpc('get_user_plan_limits', { uid }),
 
-      // 🔑 Free-tier baseline read straight from the plans table, so the cap
-      // always comes from the tier column rather than a hardcoded constant.
-      const { data: freePlan } = await supabase
-        .from('plans')
-        .select('max_albums, max_timelines, max_capsules, max_storage, max_upload_size, max_video_length')
-        .eq('name', 'Free')
-        .maybeSingle();
+        // 🔑 Free-tier baseline read straight from the plans table, so the cap
+        // always comes from the tier column rather than a hardcoded constant.
+        supabase
+          .from('plans')
+          .select('max_albums, max_timelines, max_capsules, max_storage, max_upload_size, max_video_length')
+          .eq('name', 'Free')
+          .maybeSingle(),
+
+        // 🔑 counts
+        supabase
+          .from('albums')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', uid),
+
+        // timelines has owner_id (no user_id column), and capsules live in memory_capsules:
+        // the old queries failed (400 and 404), so both counts always read 0.
+        supabase
+          .from('timelines')
+          .select('*', { count: 'exact', head: true })
+          .eq('owner_id', uid),
+
+        supabase
+          .from('memory_capsules')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', uid),
+      ]);
+
+      const premiumRow = (Array.isArray(limitData) ? limitData[0] : limitData) as Limits | null;
 
       // Premium wins when present; otherwise fall back to the Free tier row.
       const effective = (premiumRow ?? (freePlan as Limits | null) ?? null);
-
-      // 🔑 get counts
-      const [{ count: albums }, { count: timelines }, { count: capsules }] =
-        await Promise.all([
-          supabase
-            .from('albums')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', uid),
-
-          // timelines has owner_id (no user_id column), and capsules live in memory_capsules:
-          // the old queries failed (400 and 404), so both counts always read 0.
-          supabase
-            .from('timelines')
-            .select('*', { count: 'exact', head: true })
-            .eq('owner_id', uid),
-
-          supabase
-            .from('memory_capsules')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', uid),
-        ]);
 
       setLimits(effective);
       setCounts({
