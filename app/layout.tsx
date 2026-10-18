@@ -8,6 +8,7 @@ import CookieConsent from "@/components/CookieConsent";
 import NavigationProgress from "@/components/NavigationProgress";
 import JsonLd from "@/components/site/seo/JsonLd";
 import { FOUNDER, FOUNDER_ID } from "@/lib/seo/schema";
+import { jakarta } from "@/components/landing/fonts";
 
 // Keep: this registers the global "Inter" face that the dashboard's font-[Inter] classes and the
 // 800-weight Memory Book cover titles (editor and print export) rely on.
@@ -145,7 +146,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
 
       <body
-        className={`${inter.variable} ${playfair.variable} ${dmSans.variable} antialiased text-gray-900 bg-transparent min-h-screen`}
+        className={`${inter.variable} ${playfair.variable} ${dmSans.variable} ${jakarta.variable} antialiased text-gray-900 bg-transparent min-h-screen`}
       >
         {/* No GTM <noscript> fallback: without JavaScript the cookie banner can't ask, so nothing loads. */}
         {/* The banner comes first in the page, so keyboard users reach it first (it shows at the bottom). */}
@@ -168,6 +169,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               padding: "12px 18px",
               fontSize: "15.5px",
               fontWeight: 500,
+              // Toasts sit outside every page root, so they name the site's typeface themselves
+              // (jakarta.variable is on <body> for this).
+              fontFamily: "var(--font-jakarta), system-ui, sans-serif",
             },
             success: {
               iconTheme: {

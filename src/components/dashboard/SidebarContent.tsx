@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -9,6 +9,7 @@ import {
   accountLinks,
 } from '@/lib/dashboardNavigation';
 import NavItem from '@/components/dashboard/NavItem';
+import { ui, btnClass } from '@/components/dashboard/ui/AppBits';
 import {
   User as UserIcon,
   Users,
@@ -38,6 +39,14 @@ const sections = [
   { key: 'heirlooms', title: 'My Heirlooms', links: heirloomsLinks },
   { key: 'account', title: 'My Account', links: accountLinks },
 ];
+
+// Each section's round dot. Heirlooms take orange, as "Memory Books and prints" does in the
+// landing's feature index; the account pages take blue.
+const SECTION_DOT: Record<string, string> = {
+  memories: 'var(--c0)',
+  heirlooms: 'var(--c2)',
+  account: 'var(--c1)',
+};
 
 function formatBytes(bytes?: number | null) {
   if (!bytes || bytes <= 0) return '0 MB';
@@ -91,41 +100,48 @@ export default function SidebarContent({
     <>
       <div className="relative flex h-full flex-col overflow-hidden bg-white">
 
-       {/* ─── TOP SPACER ─── */}
-        <div className="pt-[16px]" />
-
         {/* ─── NAVIGATION ─── */}
-        <nav className="flex-1 overflow-y-auto px-[12px] pt-[28px] pb-4 sidebar-scroll">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {/* On short screens the links scroll above the Library card; the last 24px fade out. */}
+        <nav
+          aria-label="Dashboard"
+          className="sidebar-scroll flex-1 overflow-y-auto px-[12px] pb-6 pt-6 [mask-image:linear-gradient(to_bottom,#000_calc(100%-24px),transparent)]"
+        >
+          <div className="flex flex-col gap-1">
             <NavItem href="/dashboard/our-family" label="My Family" Icon={Users} onClick={closeDrawer} />
 
             {sections.map((section) => {
               const isOpen = openSection === section.key;
 
               return (
-                <div key={section.key} className="pt-[24px]">
+                <div key={section.key} className="pt-4">
                   <button
                     type="button"
                     onClick={() => toggleSection(section.key)}
-                    className="mb-[4px] flex w-full items-center justify-between px-[14px] py-1"
+                    aria-expanded={isOpen}
+                    aria-controls={`sidebar-section-${section.key}`}
+                    className="mb-1 flex min-h-[44px] w-full items-center justify-between rounded-[12px] px-[14px] text-[var(--ink)] transition-colors duration-150 hover:bg-[var(--hover)]"
                   >
-                    <span className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#C8A557]">
+                    <span
+                      className={ui.tag}
+                      style={{ '--dot': SECTION_DOT[section.key] } as CSSProperties}
+                    >
                       {section.title}
                     </span>
                     <ChevronDown
-                      className="h-4 w-4 text-[#9CA3AF] transition-transform duration-200"
+                      className="h-4 w-4 transition-transform duration-200"
+                      strokeWidth={2.6}
                       style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}
+                      aria-hidden="true"
                     />
                   </button>
 
+                  {/* Shown only when open, so closed sections' links stay out of the tab order */}
                   <div
-                    className="overflow-hidden transition-all duration-250 ease-in-out"
-                    style={{
-                      maxHeight: isOpen ? `${section.links.length * 52}px` : '0px',
-                      opacity: isOpen ? 1 : 0,
-                    }}
+                    id={`sidebar-section-${section.key}`}
+                    hidden={!isOpen}
+                    className="sidebar-reveal"
                   >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingTop: '2px' }}>
+                    <div className="flex flex-col gap-1 pt-0.5">
                       {section.links.map((item) => (
                         <NavItem
                           key={item.href}
@@ -144,56 +160,47 @@ export default function SidebarContent({
         </nav>
 
         {/* ─── YOUR LIBRARY ─── */}
-        <div className="px-[16px] pb-[20px]">
-          <div
-            className="rounded-[20px] p-[18px]"
-            style={{ background: '#FAFAFA', border: '1px solid #E5E7EB' }}
-          >
-            <p className="text-[15px] font-semibold text-[#111827]">
+        <div className="px-[16px] pb-[20px] pt-2">
+          <div className={ui.card}>
+            <p className="text-[15px] font-extrabold leading-tight tracking-[-0.02em]">
               Your Library
             </p>
-            <p className="mt-[2px] text-[13px] text-[#6B7280]">
+            <p className="mt-1 text-[13px] font-semibold">
               {totalMemories.toLocaleString()} memories
             </p>
 
-            <div className="mt-[12px] h-[5px] w-full overflow-hidden rounded-full bg-[#E5E7EB]">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{ width: `${storagePct}%`, background: 'linear-gradient(90deg, #C8A557, #D4AF37)' }}
-              />
+            <div
+              className={`${ui.progress} mt-3`}
+              role="progressbar"
+              aria-label="Storage used"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={storagePct}
+            >
+              <div className={ui.progressFill} style={{ width: `${storagePct}%` }} />
             </div>
-            <p className="mt-[8px] text-[13px] text-[#6B7280]">
+            <p className="mt-2 text-[13px] font-semibold">
               {formatBytes(usedStorage)} of {formatBytes(maxStorage)} used
             </p>
 
-            {planName === 'Premium' ? (
+            {/* 44px tall: tablets in landscape show this sidebar, and they are touch screens.
+                Until the plan is known, a quiet placeholder holds the button's place. */}
+            {!planName ? (
+              <div className={`${ui.skeleton} mt-4`} style={{ height: 44, borderRadius: 12 }} aria-hidden="true" />
+            ) : planName === 'Premium' ? (
               <button
                 onClick={() => { closeDrawer(); window.location.href = '/dashboard/plans'; }}
-                className="mt-[14px] flex w-full items-center justify-center rounded-[12px] h-[40px] text-[14px] font-semibold transition-all duration-[180ms] text-[#8F7A2A] hover:bg-[#F0EDE6]"
-                style={{
-                  background: '#F7F5F0',
-                  border: '1px solid #E7D9AF',
-                }}
+                className={btnClass({ variant: 'soft', size: 'sm', block: true, className: 'mt-4' })}
+                style={{ minHeight: 44 }}
               >
+                <span className="h-2 w-2 flex-none rounded-full bg-[var(--c3)]" aria-hidden="true" />
                 Premium Plan
               </button>
             ) : (
               <button
                 onClick={() => { closeDrawer(); window.location.href = '/dashboard/plans'; }}
-                className="mt-[14px] flex w-full items-center justify-center rounded-[12px] h-[40px] text-[14px] font-semibold transition-all duration-[180ms]"
-                style={{
-                  background: 'linear-gradient(135deg, #D4AF37, #C8A557)',
-                  color: '#FFFFFF',
-                  boxShadow: '0 2px 8px rgba(196,165,87,0.35)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #C8A557, #B8924A)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(196,165,87,0.45)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #D4AF37, #C8A557)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(196,165,87,0.35)';
-                }}
+                className={btnClass({ variant: 'primary', size: 'sm', block: true, className: 'mt-4' })}
+                style={{ minHeight: 44 }}
               >
                 Upgrade Plan
               </button>

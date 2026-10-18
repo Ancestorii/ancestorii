@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check } from 'lucide-react';
+import { Bell, Check } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { getRecentNotifications } from '@/lib/stories/queries';
 import { markNotificationRead, markAllNotificationsRead } from '@/lib/stories/mutations';
 import type { Notification } from '@/lib/stories/types';
 import NotificationItem from './NotificationItem';
+import styles from './notifications.module.css';
 
 const MEMORY_TYPES = ['memory_reaction', 'memory_comment', 'memory_addition', 'prompt_answered'];
 
@@ -85,49 +86,52 @@ export default function NotificationDropdown({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-[98]" onClick={onClose} />
+      <div className={styles.backdrop} onClick={onClose} />
 
       {/* Dropdown */}
-      <div
-        className="absolute right-0 top-full mt-2 z-[99] w-[380px] max-h-[480px] overflow-hidden rounded-[16px] border bg-white shadow-[0_24px_60px_rgba(22,18,12,0.15)]"
-        style={{ borderColor: '#EAD8B8' }}
-      >
+      <div className={styles.panel} role="region" aria-label="Notifications">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#EAD8B8' }}>
-          <p className="text-[13px] font-bold text-[#17120E]">Notifications</p>
+        <div className={styles.head}>
+          <p className={styles.title}>Notifications</p>
           {unreadCount > 0 && (
             <button
+              type="button"
               onClick={handleMarkAllRead}
-              className="flex items-center gap-1 text-[12px] font-medium text-[#A9782F] transition hover:text-[#8A6324]"
+              className={styles.markAll}
             >
-              <Check size={12} strokeWidth={2} />
+              <Check size={14} strokeWidth={3} aria-hidden="true" />
               Mark all read
             </button>
           )}
         </div>
 
         {/* List */}
-        <div className="max-h-[400px] overflow-y-auto">
+        <div className={styles.body} aria-busy={loading}>
           {loading ? (
-            <div className="flex items-center justify-center py-10">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#DCC7A4] border-t-[#C8A557]" />
+            <div className={styles.loading}>
+              <span className={styles.spinner} aria-hidden="true" />
             </div>
           ) : notifications.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="text-[14px] text-[#9B8E7D]">No notifications yet</p>
+            <div className={styles.empty}>
+              <span className={styles.emptyIcon} aria-hidden="true">
+                <Bell size={24} strokeWidth={2.4} />
+              </span>
+              <p className={styles.emptyText}>No notifications yet</p>
             </div>
           ) : (
-            notifications.map((n) => (
-              <NotificationItem
-                key={n.id}
-                type={n.type}
-                actorName={n.actor_name}
-                storyTitle={(n as any).story_title}
-                isRead={n.is_read}
-                createdAt={n.created_at}
-                onClick={() => handleClick(n)}
-              />
-            ))
+            <div className={styles.list}>
+              {notifications.map((n) => (
+                <NotificationItem
+                  key={n.id}
+                  type={n.type}
+                  actorName={n.actor_name}
+                  storyTitle={(n as any).story_title}
+                  isRead={n.is_read}
+                  createdAt={n.created_at}
+                  onClick={() => handleClick(n)}
+                />
+              ))}
+            </div>
           )}
         </div>
       </div>

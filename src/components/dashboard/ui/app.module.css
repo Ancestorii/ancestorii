@@ -1,0 +1,1579 @@
+/* ============================================================
+   Ancestorii app kit: the inside of the platform (dashboard,
+   onboarding) in the landing page's look.
+   Same palette, type and shapes as src/components/landing and
+   src/components/site: pure white, four solid colours plus one
+   ink, Plus Jakarta Sans, tight 800-weight headings.
+
+   .app is the root (the dashboard shell puts it on its wrapper;
+   anything rendered outside that, a portal or onboarding, puts
+   `appRoot` from AppBits on its own root). It provides:
+   --c0 pink, --c1 blue, --c2 orange, --c3 aqua, --ink, --hover,
+   --hairline-ring and the other tokens below.
+
+   Rules (from the landing):
+   - Text is ink. Hierarchy comes from size and weight, never greys.
+   - Coloured text only in pink (headings) or blue (any size).
+   - Body-size text on pink, orange and aqua is ink; white text
+     only on blue and ink.
+   - Small coloured markers are ROUND dots. No gold, no cream.
+   - Dark (ink) is used sparingly: buttons, one card, one slab.
+   - Motion: transform and opacity only.
+
+   Everything here sits in Tailwind's "components" cascade layer,
+   so it beats Tailwind's base reset but a Tailwind utility on the
+   same element wins (cx(ui.btn, 'mt-6') works). A plain *.module.css
+   next to a page is unlayered and wins over both.
+   ============================================================ */
+
+/* The same layer order Tailwind declares in globals.css, stated here too so it holds
+   whichever stylesheet the browser reads first. */
+@layer theme, base, components, utilities;
+
+@layer components {
+
+/* ── Root ─────────────────────────────────────────────────── */
+
+.app {
+  --c0: #ff2d87; /* pink */
+  --c1: #2b4bff; /* blue */
+  --c2: #ff7a1a; /* orange */
+  --c3: #12d3ac; /* aqua */
+  --ink: #0a0a0f;
+  --hover: #f2f2f4;
+  --hairline-ring: 0 0 0 1.5px rgba(10, 10, 15, 0.08);
+  --rule: rgba(10, 10, 15, 0.1); /* 1.5px dividers */
+  --line: rgba(10, 10, 15, 0.14); /* field and soft-button outlines */
+  --placeholder: rgba(10, 10, 15, 0.42);
+  --lift: 0 24px 50px -36px rgba(10, 10, 15, 0.45);
+  --float: 0 30px 70px -30px rgba(10, 10, 15, 0.45);
+  --danger: #e0004d;
+  /* Light tints, for notices and selected states only (never big surfaces). */
+  --pink-tint: #ffe3ef;
+  --blue-tint: #e8ecff;
+  --orange-tint: #ffeedf;
+  --aqua-tint: #e3faf4;
+  --grad: linear-gradient(135deg, var(--c0), var(--c2));
+
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  color: var(--ink);
+  background: #fff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app a:focus-visible,
+.app button:focus-visible,
+.app [role='button']:focus-visible,
+.app [role='tab']:focus-visible,
+.app summary:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+/* ── Page frame ───────────────────────────────────────────── */
+
+/* One page's content: side gutters, room under the fixed top bar's line, and room at the
+   bottom for the floating phone navigation. */
+.page {
+  position: relative;
+  padding: clamp(24px, 3.4vw, 44px) clamp(16px, 3.2vw, 44px) clamp(112px, 12vw, 120px);
+}
+
+@media (min-width: 1024px) {
+  .page {
+    padding-bottom: 88px;
+  }
+}
+
+.wrap {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+}
+
+.wrapNarrow {
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+
+/* ── Page header ──────────────────────────────────────────── */
+
+.header {
+  position: relative;
+  isolation: isolate;
+}
+
+/* A soft pink and blue glow behind the title, like the landing hero. Static, one paint.
+   Each glow is inscribed in its own tile inside the box (closest-side), so it has faded to
+   nothing before every edge: no hard line, nothing wider than the page, pink and blue side
+   by side (never mixed into lilac). */
+.headerGlow {
+  position: absolute;
+  inset: -40px 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(closest-side, rgba(255, 45, 135, 0.15), rgba(255, 45, 135, 0)) 0 0 / 58% 100% no-repeat,
+    radial-gradient(closest-side, rgba(43, 75, 255, 0.13), rgba(43, 75, 255, 0)) 100% 0 / 42% 100% no-repeat;
+}
+
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 32px;
+}
+
+.headerText {
+  min-width: 0;
+  flex: 1 1 520px;
+}
+
+.headerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-bottom: 18px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(36px, 4.6vw, 64px);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere; /* titles often hold a name someone typed */
+}
+
+.titleMd {
+  font-size: clamp(30px, 3.6vw, 48px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.lead {
+  margin: 14px 0 0;
+  max-width: 38em;
+  font-size: clamp(16px, 1.3vw, 18px);
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 16px;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+@media (max-width: 599px) {
+  .headerActions {
+    width: 100%;
+  }
+
+  .headerActions > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* ── Sections ─────────────────────────────────────────────── */
+
+.section {
+  position: relative;
+  margin-top: clamp(40px, 5vw, 64px);
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px 24px;
+  margin-bottom: 20px;
+}
+
+.sectionHeadText {
+  min-width: 0;
+}
+
+.h2 {
+  margin: 0;
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.h3 {
+  margin: 0;
+  font-size: clamp(18px, 1.5vw, 21px);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.sectionLead {
+  margin: 8px 0 0;
+  max-width: 36em;
+  font-size: 15.5px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.body {
+  font-size: 15.5px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.small {
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* Coloured words inside a heading (pink only at heading sizes; blue at any size). */
+.accentPink {
+  color: var(--c0);
+}
+
+.accentBlue {
+  color: var(--c1);
+}
+
+.gradientText {
+  color: var(--c0);
+  background-image: linear-gradient(90deg, var(--c0) 0%, var(--c2) 45%, var(--c1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-bottom: 0.08em;
+}
+
+.rule {
+  height: 1.5px;
+  border: 0;
+  margin: 0;
+  background: var(--rule);
+}
+
+/* ── Labels ───────────────────────────────────────────────── */
+
+/* Ink pill with a round coloured dot (the landing's eyebrow). Set --dot. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 15px 8px 11px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--dot, var(--c0));
+}
+
+/* Small uppercase label with a round dot before it, no pill. Set --dot. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--dot, var(--c0));
+}
+
+/* White pill with a hairline, for counts, roles and states. Optional dot: add .chipDot. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.chipDot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--dot, var(--c0));
+}
+
+.chipInk {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* Solid colour chip. Set --chip and --chip-fg (ink on pink, orange and aqua; white on blue). */
+.chipColor {
+  background: var(--chip, var(--c0));
+  color: var(--chip-fg, var(--ink));
+  box-shadow: none;
+}
+
+.chipSm {
+  min-height: 24px;
+  padding: 3px 9px;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+}
+
+/* Pink count bubble (unread, new), ink number (white text only goes on blue and ink). */
+.count {
+  min-width: 21px;
+  height: 21px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--c0);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 21px;
+  text-align: center;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.15;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btnPrimary {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* Main action of a page or sheet: ink, with the landing's pink-to-orange tile on the right.
+   Put the icon (+, an arrow) in a .btnTile span after the label. */
+.btnTiled {
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 6px 0 20px;
+}
+
+.btnTile {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--grad);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.btnOutline {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.btnSoft {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--ink);
+}
+
+.btnDanger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btnDangerSoft {
+  background: #fff;
+  color: var(--danger);
+  box-shadow: inset 0 0 0 1.5px rgba(224, 0, 77, 0.35);
+}
+
+/* White button for use on ink or colour. */
+.btnLight {
+  background: #fff;
+  color: var(--ink);
+}
+
+.btnSm {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  gap: 8px;
+}
+
+.btnSm.btnTiled {
+  padding: 0 5px 0 14px;
+}
+
+.btnSm .btnTile {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+
+.btnLg {
+  min-height: 56px;
+  padding: 0 26px;
+  border-radius: 16px;
+  font-size: 16px;
+}
+
+.btnLg.btnTiled {
+  padding: 0 8px 0 24px;
+}
+
+.btnLg .btnTile {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.btnBlock {
+  width: 100%;
+}
+
+/* Touch screens: the small sizes still give a 44px tap target. */
+@media (pointer: coarse) {
+  .btnSm {
+    min-height: 44px;
+  }
+}
+
+@media (hover: hover) {
+  .btnPrimary:not(:disabled):hover,
+  .btnDanger:not(:disabled):hover,
+  .btnLight:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+
+  .btnTiled:not(:disabled):hover .btnTile {
+    transform: translateX(2px);
+  }
+
+  .btnOutline:not(:disabled):hover {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  .btnSoft:not(:disabled):hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+
+  .btnGhost:not(:disabled):hover {
+    background: var(--hover);
+  }
+
+  .btnDangerSoft:not(:disabled):hover {
+    background: var(--danger);
+    color: #fff;
+    box-shadow: none;
+  }
+}
+
+.btn:not(:disabled):active {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 80ms;
+}
+
+/* Square icon button (44px tap target). Give it an aria-label. */
+.iconBtn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.iconBtnSm {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+}
+
+@media (pointer: coarse) {
+  .iconBtnSm {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.iconBtnGhost {
+  background: transparent;
+  box-shadow: none;
+}
+
+.iconBtn[aria-expanded='true'],
+.iconBtn[aria-pressed='true'],
+.iconBtnActive {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* Round white button laid over a photo. */
+.iconBtnOnPhoto {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.55);
+}
+
+.iconBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (hover: hover) {
+  .iconBtn:not(:disabled):not([aria-expanded='true']):not([aria-pressed='true']):not(.iconBtnActive):hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+
+  .iconBtnGhost:not(:disabled):hover {
+    background: var(--hover);
+  }
+}
+
+.iconBtn:not(:disabled):active {
+  transform: scale(0.94);
+  transition-duration: 80ms;
+}
+
+/* Plain blue underlined link inside copy. */
+.textLink {
+  font-weight: 800;
+  color: var(--c1);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* ── Cards ────────────────────────────────────────────────── */
+
+/* White card with the landing's hairline ring. */
+.card {
+  position: relative;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 24px;
+  }
+}
+
+.cardFlush {
+  padding: 0;
+  overflow: hidden;
+}
+
+.cardLift {
+  box-shadow: var(--hairline-ring), var(--lift);
+}
+
+/* A card that is a link or button: lifts on hover, presses on tap. */
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+@media (hover: hover) {
+  .cardLink:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--hairline-ring), var(--lift);
+  }
+}
+
+.cardLink:active {
+  transform: scale(0.99);
+  transition-duration: 80ms;
+}
+
+/* Solid colour card. Set --card and --fg (ink on pink, orange and aqua; white on blue and ink). */
+.colorCard {
+  position: relative;
+  border-radius: 24px;
+  padding: 22px;
+  background: var(--card, var(--c0));
+  color: var(--fg, var(--ink));
+}
+
+/* The one dark card on a page. */
+.inkCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: clamp(24px, 3vw, 36px);
+  background: var(--ink);
+  color: #fff;
+}
+
+/* The logo's pink and blue dots cropped by the ink card's corners (as on the landing's slab). */
+.inkCard .dotPink,
+.inkCard .dotBlue {
+  position: absolute;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.inkCard .dotPink {
+  right: -46px;
+  top: -46px;
+  width: 120px;
+  background: var(--c0);
+}
+
+.inkCard .dotBlue {
+  left: -32px;
+  bottom: -32px;
+  width: 76px;
+  background: var(--c1);
+}
+
+/* Solid colour icon tile. Set --tile and --tile-fg (white on pink and blue, ink on orange and aqua). */
+.iconTile {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 15px;
+  background: var(--tile, var(--c0));
+  color: var(--tile-fg, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconTileLg {
+  width: 60px;
+  height: 60px;
+  border-radius: 19px;
+}
+
+.iconTileSm {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+
+/* ── Photos and avatars ───────────────────────────────────── */
+
+/* A photo in a solid colour frame, like the hero ring cards. Set --frame. */
+.frame {
+  position: relative;
+  padding: 6px;
+  border-radius: 22px;
+  background: var(--frame, var(--c0));
+}
+
+.frameInner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--hover);
+}
+
+/* White chip laid over a photo (top-left), with a dot in --frame. */
+.photoChip {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: calc(100% - 24px);
+  padding: 7px 12px 7px 9px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 6px 16px -8px rgba(10, 10, 15, 0.5);
+}
+
+.photoChip::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--frame, var(--c0));
+}
+
+/* Round avatar with a white gap and a coloured ring. Set --ring. */
+.avatar {
+  position: relative;
+  width: var(--size, 48px);
+  height: var(--size, 48px);
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--ring, var(--c0));
+  color: #fff;
+  box-shadow:
+    0 0 0 2.5px #fff,
+    0 0 0 5px var(--ring, var(--c0));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--size, 48px) * 0.38);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlain {
+  box-shadow: none;
+}
+
+/* ── Forms ────────────────────────────────────────────────── */
+
+.field + .field {
+  margin-top: 18px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px; /* 16px keeps iOS from zooming in on focus */
+  font-weight: 600;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.input,
+.select {
+  height: 52px;
+  padding: 0 16px;
+}
+
+.select {
+  padding-right: 42px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230A0A0F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+.textarea {
+  min-height: 120px;
+  padding: 14px 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--placeholder);
+  font-weight: 500;
+  opacity: 1;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.inputError,
+.inputError:focus {
+  border-color: var(--danger);
+}
+
+.hint {
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.fieldError {
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 700;
+  color: var(--danger);
+}
+
+/* Search field: a pill with the icon inside (as on the Our Stories bar). Put an svg first. */
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 46px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: box-shadow 0.2s ease;
+}
+
+.search:focus-within {
+  box-shadow:
+    inset 0 0 0 1.5px var(--c0),
+    0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+.search > svg {
+  position: absolute;
+  left: 16px;
+  pointer-events: none;
+}
+
+.search > input {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0 18px 0 44px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
+}
+
+.search > input::placeholder {
+  color: var(--placeholder);
+  font-weight: 500;
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.check input {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  flex: none;
+  accent-color: var(--c0);
+  cursor: pointer;
+}
+
+/* On/off switch: a <button role="switch" aria-checked> with an empty <span> inside. */
+.switch {
+  position: relative;
+  width: 50px;
+  height: 30px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(10, 10, 15, 0.16);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.switch > span {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(10, 10, 15, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.switch[aria-checked='true'] {
+  background: var(--c1);
+}
+
+.switch[aria-checked='true'] > span {
+  transform: translateX(20px);
+}
+
+.switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Choice cards (pick one of several options): add aria-pressed or .optionActive. */
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 18px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.option[aria-pressed='true'],
+.option[aria-checked='true'],
+.optionActive {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+@media (hover: hover) {
+  .option:not([aria-pressed='true']):not([aria-checked='true']):not(.optionActive):hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+}
+
+/* ── Tabs (segmented control) ─────────────────────────────── */
+
+.tabs {
+  display: inline-flex;
+  max-width: 100%;
+  overflow-x: auto;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.tab[aria-selected='true'],
+.tab[aria-pressed='true'],
+.tabActive {
+  background: var(--ink);
+  color: #fff;
+}
+
+@media (hover: hover) {
+  .tab:not([aria-selected='true']):not([aria-pressed='true']):not(.tabActive):hover {
+    background: var(--hover);
+  }
+}
+
+/* ── Sheets, drawers and dialogs ──────────────────────────── */
+
+/* Dimmed backdrop. Add the global "scrim-blur" class for a blur with a mouse only. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 15, 0.45);
+}
+
+/* The white panel of a drawer, bottom sheet or dialog. */
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  background: #fff;
+  color: var(--ink);
+  border-radius: 28px;
+  box-shadow: var(--float);
+  overflow: hidden;
+}
+
+/* Side drawer from the right: square on the right edge. */
+.sheetRight {
+  border-radius: 28px 0 0 28px;
+}
+
+/* Bottom sheet on phones: square at the bottom. */
+.sheetBottom {
+  border-radius: 28px 28px 0 0;
+}
+
+.sheetHandle {
+  width: 40px;
+  height: 4px;
+  margin: 10px auto 0;
+  border-radius: 999px;
+  background: rgba(10, 10, 15, 0.16);
+  flex: none;
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 20px 14px 24px;
+  flex: none;
+}
+
+.sheetTitle {
+  margin: 0;
+  font-size: clamp(22px, 2vw, 26px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.sheetSub {
+  margin: 6px 0 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.sheetBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px 24px 24px;
+}
+
+.sheetFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px calc(18px + env(safe-area-inset-bottom, 0px));
+  border-top: 1.5px solid var(--rule);
+  background: #fff;
+  flex: none;
+}
+
+@media (max-width: 599px) {
+  .sheetHeader {
+    padding: 18px 16px 12px 20px;
+  }
+
+  .sheetBody {
+    padding: 4px 20px 20px;
+  }
+
+  .sheetFooter {
+    padding: 14px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .sheetFooter > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* ── Menus (dropdowns, popovers) ──────────────────────────── */
+
+.menu {
+  min-width: 200px;
+  padding: 6px;
+  border-radius: 18px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--hairline-ring), var(--float);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.menuItemDanger {
+  color: var(--danger);
+}
+
+@media (hover: hover) {
+  .menuItem:hover {
+    background: var(--hover);
+  }
+}
+
+.menuItem:active {
+  background: var(--hover);
+}
+
+.menuRule {
+  height: 1.5px;
+  margin: 6px 8px;
+  background: var(--rule);
+}
+
+/* ── States ───────────────────────────────────────────────── */
+
+/* Empty state: a centred card with a colour tile, a title, a line and an action. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: clamp(32px, 5vw, 56px) clamp(20px, 4vw, 48px);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+}
+
+.emptyTitle {
+  margin: 18px 0 0;
+  font-size: clamp(22px, 2.2vw, 28px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.emptyText {
+  margin: 10px 0 0;
+  max-width: 34em;
+  font-size: 15.5px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* Loading: three brand dots that pulse, and a label. */
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 50vh;
+  padding: 40px 16px;
+}
+
+.loaderDots {
+  display: flex;
+  gap: 8px;
+}
+
+.loaderDots > span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--c0);
+  animation: appLoaderPulse 1s ease-in-out infinite;
+}
+
+.loaderDots > span:nth-child(2) {
+  background: var(--c1);
+  animation-delay: 0.15s;
+}
+
+.loaderDots > span:nth-child(3) {
+  background: var(--c2);
+  animation-delay: 0.3s;
+}
+
+.loaderLabel {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@keyframes appLoaderPulse {
+  0%,
+  100% {
+    transform: scale(0.7);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Placeholder block while something loads. */
+.skeleton {
+  border-radius: 18px;
+  background: var(--hover);
+}
+
+/* Messages. */
+.notice,
+.noticeInfo,
+.noticeWarn,
+.noticeError {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 15px;
+  border-radius: 14px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.notice {
+  background: var(--aqua-tint);
+}
+
+.noticeInfo {
+  background: var(--blue-tint);
+}
+
+.noticeWarn {
+  background: var(--orange-tint);
+}
+
+.noticeError {
+  background: var(--pink-tint);
+}
+
+/* Storage or progress bar. */
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(10, 10, 15, 0.08);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--c0), var(--c2));
+}
+
+/* A big number with a label under it. */
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.statLabel {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ── Tables ───────────────────────────────────────────────── */
+
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--hairline-ring);
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.table th,
+.table td {
+  padding: 14px 18px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table thead th {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1.5px solid var(--rule);
+}
+
+.table td {
+  font-weight: 600;
+}
+
+.table tbody tr + tr > * {
+  border-top: 1.5px solid rgba(10, 10, 15, 0.06);
+}
+
+/* ── Spinner, popover, inset focus ────────────────────────── */
+
+/* Small busy ring in the current text colour (inside a Btn, an icon tile). The ring turns
+   inside its own clip box, so the endless animation never spreads a layer. */
+.spinner {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: 50%;
+  overflow: clip;
+}
+
+.spinner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  animation: appSpin 0.8s linear infinite;
+}
+
+@keyframes appSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A menu or panel that fades and drops in. Set data-open="true" to show it; closed, it is
+   hidden from taps, Tab and screen readers (visibility flips after the fade). */
+.popover {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  visibility: hidden;
+  pointer-events: none;
+  transform-origin: top right;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s linear 0.18s;
+}
+
+.popover[data-open='true'] {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s;
+}
+
+/* Focus ring drawn inside the element, for rows in a scrolling list (an outside ring is
+   clipped there). */
+.app .focusInset:focus-visible {
+  outline-offset: -3px;
+}
+
+/* ── Utilities ────────────────────────────────────────────── */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Hide a scroll bar but keep scrolling (horizontal chip rows). */
+.noScrollbar {
+  scrollbar-width: none;
+}
+
+.noScrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app *,
+  .app *::before,
+  .app *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+} /* @layer components */

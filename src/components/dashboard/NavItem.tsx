@@ -23,27 +23,24 @@ export default function NavItem({
       ? pathname === '/dashboard' || pathname === '/dashboard/home'
       : pathname === href || pathname.startsWith(href + '/');
 
+  // Ink when it's the page you're on; otherwise ink text on white with a soft grey hover.
   return (
     <Link
       href={href}
       onClick={onClick}
+      aria-current={active ? 'page' : undefined}
       className={`
-        group flex items-center gap-3 rounded-[14px] px-4 py-3
-        transition-all duration-[180ms] ease-in-out
+        flex min-h-[46px] items-center gap-3 rounded-[14px] px-[14px] py-2
+        text-[15px] leading-tight
+        transition-colors duration-150 ease-out
         ${active
-          ? 'bg-[#FBF3E0] text-[#92710E]'
-          : 'text-[#374151] hover:bg-[#F9F5ED] hover:text-[#92710E]'}
+          ? 'bg-[var(--ink)] font-bold text-white'
+          : 'font-semibold text-[var(--ink)] hover:bg-[var(--hover)]'}
       `}
     >
-      <Icon
-        className={`
-          h-5 w-5 flex-shrink-0 transition-colors duration-[180ms]
-          ${active ? 'text-[#B8924A]' : 'text-[#9CA3AF] group-hover:text-[#B8924A]'}
-        `}
-        strokeWidth={1.5}
-      />
+      <Icon className="h-5 w-5 flex-shrink-0" strokeWidth={2} aria-hidden="true" />
 
-      <span className={`text-[15px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
+      <span className="min-w-0 truncate">
         {label}
       </span>
     </Link>

@@ -2,49 +2,28 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type CSSProperties } from 'react';
+import { flushSync } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
+import { LogOut, Menu, Search as SearchIcon, User as UserIcon, X } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import NotificationBell from '@/components/stories/notifications/NotificationBell';
 import { Logo } from '@/components/landing/LandingBits';
+import { ui, useDialog } from '@/components/dashboard/ui/AppBits';
+import css from './publicNav.module.css';
 
-// ── Palette ────────────────────────────────────────────────────
-const GOLD = '#C8A557';
-const GOLD_HOVER = '#B8953F';
-const INK = '#111827';
-const MUTED = '#6B7280';
-const BG = '#FFFDF8';
-const BORDER = '#F0EDE6';
+// Round dots for menu rows, in the landing's order: pink, blue, orange, aqua.
+const DOTS = ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)'];
 
-// ── Icons ──────────────────────────────────────────────────────
-const SearchIcon = ({ size = 20, color = MUTED }: { size?: number; color?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" />
-    <path d="M21 21l-4.35-4.35" />
-  </svg>
-);
+// Each kind of search result keeps its own dot colour.
+const RESULT_DOT: Record<string, string> = {
+  'Loved One': 'var(--c0)',
+  Timeline: 'var(--c1)',
+  Album: 'var(--c2)',
+  Capsule: 'var(--c3)',
+};
 
-const MenuIcon = () => (
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.6" strokeLinecap="round">
-    <line x1="4" y1="7" x2="20" y2="7" />
-    <line x1="4" y1="12" x2="20" y2="12" />
-    <line x1="4" y1="17" x2="20" y2="17" />
-  </svg>
-);
-
-const CloseIcon = () => (
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.6" strokeLinecap="round">
-    <line x1="6" y1="6" x2="18" y2="18" />
-    <line x1="18" y1="6" x2="6" y2="18" />
-  </svg>
-);
-
-const UserIcon = ({ size = 20 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
+const dot = (color: string) => ({ '--dot': color }) as CSSProperties;
 
 // ── Component ──────────────────────────────────────────────────
 export default function PublicNav() {
@@ -55,6 +34,8 @@ export default function PublicNav() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  // The phone menu panel: Escape closes it, Tab stays inside, focus returns to the menu button.
+  const menuPanelRef = useDialog<HTMLDivElement>(isOpen, () => setIsOpen(false));
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
@@ -69,7 +50,10 @@ export default function PublicNav() {
 
   const isDashboard = pathname.startsWith('/dashboard');
 
-  const isLoggedIn = !!userEmail;
+  // The dashboard only ever renders for a signed-in user (its layout checks the session), so the
+  // bar is drawn signed in from the first paint there, instead of flashing Log In and Start For
+  // Free while the user loads.
+  const isLoggedIn = !!userEmail || isDashboard;
 
   // ── Auth ──
   useEffect(() => {
@@ -197,488 +181,46 @@ export default function PublicNav() {
         { href: '/login', label: 'My Family' },
       ];
 
+  // Which link the current page sits under: Our Stories by prefix, My Family for the whole
+  // dashboard, anything else by exact path.
+  const isActive = (href: string) =>
+    href === '/stories'
+      ? pathname.startsWith('/stories')
+      : href.startsWith('/dashboard')
+        ? pathname.startsWith('/dashboard')
+        : pathname === href;
+
+  // The signed-in user's photo, else a person icon.
+  const avatar = (large = false) => (
+    <span className={`${css.avatar} ${large ? css.avatarLg : ''}`} aria-hidden="true">
+      {avatarUrl ? (
+        <Image src={avatarUrl} alt="" fill sizes="96px" quality={90} className={css.avatarImg} preload />
+      ) : (
+        <UserIcon size={large ? 20 : 18} strokeWidth={2.4} />
+      )}
+    </span>
+  );
+
   return (
     <>
-      <style>{`
-
-        /* ── Root ── */
-        .pn-root {
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          background: ${BG};
-          font-family: 'DM Sans', sans-serif;
-        }
-        .pn-root.scrolled {
-          box-shadow: 0 1px 24px rgba(0,0,0,0.04);
-        }
-        /* Touch screens skip the shadow fade: animating it repaints the sticky bar mid-scroll. */
-        @media (hover: hover) and (pointer: fine) {
-          .pn-root {
-            transition: box-shadow 0.3s ease;
-          }
-        }
-
-        .pn-inner {
-          width: 100%;
-          max-width: 1800px;
-          margin: 0 auto;
-          /* Fluid padding: 20px on mobile → 80px on ultrawide */
-          padding: 0 clamp(20px, 4vw, 80px);
-          /* Fluid height: 64px on mobile → 88px on large */
-          height: clamp(64px, 6vw, 88px);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: clamp(16px, 3vw, 48px);
-        }
-
-        /* ── Nav links ── */
-        .pn-links {
-          display: flex;
-          align-items: center;
-          gap: clamp(28px, 3.5vw, 56px);
-        }
-        .pn-link {
-          font-family: 'DM Sans', sans-serif;
-          font-weight: 500;
-          /* Fluid: 16px → 20px */
-          font-size: clamp(16px, 1.2vw, 20px);
-          letter-spacing: 0.02em;
-          color: ${MUTED};
-          text-decoration: none;
-          position: relative;
-          padding: 4px 0;
-          transition: color 0.2s ease;
-          white-space: nowrap;
-        }
-        .pn-link:hover, .pn-link.active {
-          color: ${INK};
-        }
-        .pn-link::after {
-          content: '';
-          position: absolute;
-          bottom: -2px;
-          left: 0;
-          width: 0;
-          height: 1.5px;
-          background: ${GOLD};
-          transition: width 0.3s ease;
-        }
-        .pn-link:hover::after, .pn-link.active::after {
-          width: 100%;
-        }
-
-        /* ── Search ── */
-        .pn-search-bar {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-        .pn-search-trigger {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: clamp(38px, 3vw, 44px);
-          height: clamp(38px, 3vw, 44px);
-          border-radius: 50%;
-          border: none;
-          background: transparent;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-        .pn-search-trigger:hover {
-          background: rgba(0,0,0,0.04);
-        }
-        .pn-search-wrap {
-          position: absolute;
-          right: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          display: flex;
-          align-items: center;
-          background: #fff;
-          border: 1px solid ${BORDER};
-          border-radius: 100px;
-          overflow: hidden;
-          width: 0;
-          opacity: 0;
-          transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
-          pointer-events: none;
-        }
-        .pn-search-wrap.open {
-          width: clamp(220px, 20vw, 320px);
-          opacity: 1;
-          pointer-events: all;
-          border-color: ${GOLD};
-        }
-        .pn-search-input {
-          width: 100%;
-          padding: 10px 16px 10px 14px;
-          border: none;
-          outline: none;
-          font-family: 'DM Sans', sans-serif;
-          font-size: clamp(13px, 1vw, 15px);
-          color: ${INK};
-          background: transparent;
-        }
-        .pn-search-input::placeholder { color: #B0ADA6; }
-        .pn-search-icon-in {
-          flex-shrink: 0;
-          padding-right: 12px;
-          display: flex;
-        }
-          .pn-search-results {
-          position: absolute;
-          top: calc(100% + 8px);
-          right: 0;
-          width: clamp(280px, 24vw, 380px);
-          background: #fff;
-          border: 1px solid #D4D0C8;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.06), 0 12px 24px rgba(0,0,0,0.12);
-          padding: 6px;
-          max-height: 320px;
-          overflow-y: auto;
-          z-index: 50;
-        }
-        .pn-search-result {
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-          text-align: left;
-          padding: 10px 14px;
-          border: none;
-          background: none;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: background 0.15s;
-        }
-        .pn-search-result:hover { background: #F7F5F0; }
-        .pn-result-title {
-          font-family: 'DM Sans', sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          color: ${INK};
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .pn-result-author {
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          color: ${MUTED};
-          margin-top: 2px;
-        }
-
-        /* ── Bell ── */
-        .pn-bell {
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: clamp(38px, 3vw, 44px);
-          height: clamp(38px, 3vw, 44px);
-          border-radius: 50%;
-          border: none;
-          background: transparent;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-        .pn-bell:hover { background: rgba(0,0,0,0.04); }
-        .pn-bell-dot {
-          position: absolute;
-          top: 7px;
-          right: 8px;
-          width: 8px;
-          height: 8px;
-          background: #E25C5C;
-          border-radius: 50%;
-          border: 2px solid ${BG};
-        }
-
-        /* ── Profile ── */
-        .pn-profile-btn {
-          width: clamp(40px, 3vw, 48px);
-          height: clamp(40px, 3vw, 48px);
-          border-radius: 50%;
-          overflow: hidden;
-          border: 1.5px solid ${BORDER};
-          background: #F7F5F0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: border-color 0.2s, box-shadow 0.2s;
-          color: ${MUTED};
-          flex-shrink: 0;
-        }
-        .pn-profile-btn:hover {
-          border-color: ${GOLD};
-          box-shadow: 0 0 0 3px rgba(200,165,87,0.1);
-        }
-          .pn-avatar-img {
-          object-fit: cover;
-          border-radius: 50%;
-        }
-        .pn-dropdown {
-          position: absolute;
-          top: calc(100% + 10px);
-          right: 0;
-          min-width: 210px;
-          background: #fff;
-          border: 1px solid #D4D0C8;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.06), 0 12px 24px rgba(0,0,0,0.12), 0 24px 48px rgba(0,0,0,0.08);
-          padding: 6px;
-          opacity: 0;
-          visibility: hidden;
-          transform: translateY(-4px);
-          transition: all 0.2s ease;
-        }
-        .pn-dropdown.open {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-        }
-        .pn-dropdown a,
-        .pn-dropdown button {
-          display: block;
-          width: 100%;
-          text-align: left;
-          padding: 10px 14px;
-          border: none;
-          background: none;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 14px;
-          color: ${INK};
-          text-decoration: none;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: background 0.15s;
-        }
-        .pn-dropdown a:hover,
-        .pn-dropdown button:hover {
-          background: #F7F5F0;
-        }
-        .pn-dropdown .pn-logout { color: #DC2626; }
-        .pn-dropdown .pn-logout:hover { background: #FEF2F2; }
-        .pn-divider {
-          height: 1px;
-          background: ${BORDER};
-          margin: 4px 8px;
-        }
-
-        /* ── Right-side groups ── */
-        .pn-actions {
-          display: flex;
-          align-items: center;
-          gap: clamp(2px, 0.5vw, 6px);
-        }
-        .pn-auth {
-          display: flex;
-          align-items: center;
-          gap: clamp(12px, 1.5vw, 24px);
-          flex-shrink: 0;
-        }
-        .pn-btn-login {
-          font-family: 'Playfair Display', serif;
-          font-weight: 600;
-          font-size: clamp(15px, 1.1vw, 18px);
-          color: ${INK};
-          text-decoration: none;
-          padding: 8px 4px;
-          transition: color 0.2s;
-        }
-        .pn-btn-login:hover { color: ${GOLD_HOVER}; }
-        .pn-btn-signup {
-          font-family: 'DM Sans', sans-serif;
-          font-weight: 500;
-          font-size: clamp(13px, 1vw, 15px);
-          letter-spacing: 0.01em;
-          color: ${INK};
-          background: ${GOLD};
-          border: none;
-          padding: clamp(10px, 0.8vw, 14px) clamp(20px, 1.8vw, 32px);
-          cursor: pointer;
-          text-decoration: none;
-          transition: background 0.2s, transform 0.15s;
-        }
-        .pn-btn-signup:hover {
-          background: ${GOLD_HOVER};
-          transform: translateY(-1px);
-        }
-        .pn-btn-signup:active { transform: translateY(0); }
-
-        /* ── Bottom rules ── */
-        .pn-rule {
-          height: 1px;
-          background: ${BORDER};
-          transition: background 0.3s;
-        }
-        .pn-root.scrolled .pn-rule { background: transparent; }
-        .pn-gold-line {
-          height: 1px;
-          background: linear-gradient(90deg, transparent 0%, ${GOLD} 30%, ${GOLD} 70%, transparent 100%);
-          opacity: 0.35;
-        }
-
-        /* ── Mobile drawer ── */
-        .pn-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 250;
-          pointer-events: none;
-          opacity: 0;
-          transition: opacity 0.3s;
-        }
-        .pn-overlay.open { pointer-events: all; opacity: 1; }
-        .pn-backdrop {
-          position: absolute;
-          inset: 0;
-          /* a touch darker instead of a blur, which re-renders the whole screen while the drawer slides */
-          background: rgba(0,0,0,0.3);
-        }
-        .pn-drawer {
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: min(340px, 85vw);
-          height: 100%;
-          background: ${BG};
-          transform: translateX(100%);
-          transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-          display: flex;
-          flex-direction: column;
-          padding: 28px;
-        }
-        .pn-overlay.open .pn-drawer { transform: translateX(0); }
-        .pn-drawer-close {
-          align-self: flex-end;
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 4px;
-          margin-bottom: 32px;
-        }
-        .pn-drawer-link {
-          font-family: 'DM Sans', sans-serif;
-          font-weight: 500;
-          font-size: 18px;
-          color: ${MUTED};
-          text-decoration: none;
-          padding: 14px 0;
-          display: block;
-          transition: color 0.2s;
-          border-bottom: 1px solid ${BORDER};
-        }
-        .pn-drawer-link:hover, .pn-drawer-link.active { color: ${INK}; }
-        .pn-drawer-auth {
-          margin-top: auto;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          padding-top: 28px;
-        }
-        .pn-drawer-login {
-          font-family: 'DM Sans', sans-serif;
-          font-size: 15px;
-          font-weight: 500;
-          color: ${INK};
-          text-decoration: none;
-          text-align: center;
-          padding: 14px;
-          border: 1px solid ${BORDER};
-        }
-        .pn-drawer-signup {
-          font-family: 'DM Sans', sans-serif;
-          font-size: 15px;
-          font-weight: 500;
-          color: ${INK};
-          text-decoration: none;
-          text-align: center;
-          padding: 14px;
-          background: ${GOLD};
-        }
-        .pn-drawer-logout {
-          font-family: 'DM Sans', sans-serif;
-          font-size: 15px;
-          color: #C25550;
-          background: none;
-          border: 1px solid #E8D5D4;
-          padding: 14px;
-          cursor: pointer;
-          text-align: center;
-        }
-        .pn-drawer-profile {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 16px 0 24px;
-          border-bottom: 1px solid ${BORDER};
-          margin-bottom: 8px;
-        }
-        .pn-drawer-avatar {
-          width: 42px;
-          height: 42px;
-          border-radius: 50%;
-          overflow: hidden;
-          background: #F7F5F0;
-          border: 1.5px solid ${BORDER};
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: ${MUTED};
-        }
-        .pn-drawer-info { flex: 1; min-width: 0; }
-        .pn-drawer-name {
-          font-family: 'DM Sans', sans-serif;
-          font-weight: 500;
-          font-size: 15px;
-          color: ${INK};
-        }
-        .pn-drawer-email {
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12.5px;
-          color: ${MUTED};
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        /* ── Responsive breakpoint ── */
-        @media (max-width: 768px) {
-          .pn-links, .pn-actions, .pn-auth { display: none !important; }
-        }
-        @media (min-width: 769px) {
-          .pn-mobile-toggle { display: none !important; }
-        }
-      `}</style>
-
-      <div className={`pn-root ${scrolled ? 'scrolled' : ''}`}>
-        <div className="pn-inner">
-
-          <Logo href="/" />
+      <header
+        className={`${css.bar} ${scrolled ? css.scrolled : ''}`}
+        data-search-open={searchOpen}
+        data-signed-in={isLoggedIn}
+      >
+        <div className={css.inner}>
+          <div className={css.logoWrap}>
+            <Logo href="/" />
+          </div>
 
           {/* Centre links */}
-          <nav className="pn-links">
+          <nav className={css.links} aria-label="Main">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className={`pn-link ${
-  link.href === '/stories'
-    ? pathname.startsWith('/stories')
-      ? 'active'
-      : ''
-    : link.href.startsWith('/dashboard')
-      ? pathname.startsWith('/dashboard')
-        ? 'active'
-        : ''
-      : pathname === link.href
-        ? 'active'
-        : ''
-}`}
+                className={`${css.link} ${isActive(link.href) ? css.linkActive : ''}`}
+                aria-current={isActive(link.href) ? 'page' : undefined}
               >
                 {link.label}
               </Link>
@@ -687,14 +229,16 @@ export default function PublicNav() {
 
           {/* Right: logged in */}
           {isLoggedIn && (
-            <div className="pn-actions">
-             {/* Search */}
-              <div className="pn-search-bar" ref={searchWrapperRef}>
-                <div className={`pn-search-wrap ${searchOpen ? 'open' : ''}`}>
+            <div className={css.actions}>
+              {/* Search: a pill from 1024px; below that an icon that unfolds the field across the bar */}
+              <div className={css.search} ref={searchWrapperRef}>
+                <div className={css.field}>
+                  <SearchIcon className={css.fieldIcon} size={18} strokeWidth={2.6} aria-hidden="true" />
                   <input
                     ref={searchRef}
-                    className="pn-search-input"
+                    className={css.input}
                     type="text"
+                    aria-label="Search"
                     placeholder={isDashboard ? "Search memories, people..." : "Search stories..."}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -711,21 +255,38 @@ export default function PublicNav() {
                       }
                     }}
                   />
-                  <div className="pn-search-icon-in">
-                    <SearchIcon size={15} color="#B0ADA6" />
-                  </div>
                 </div>
+                {/* Folds the unfolded field again (below 1024px), as Escape does */}
+                <button
+                  type="button"
+                  className={`${css.iconBtn} ${css.searchClose}`}
+                  aria-label="Close search"
+                  onClick={() => { setSearchQuery(''); setSearchOpen(false); setSearchDropdownOpen(false); }}
+                >
+                  <X size={20} strokeWidth={2.4} aria-hidden="true" />
+                </button>
                 {!searchOpen && (
-                  <button className="pn-search-trigger" onClick={() => setSearchOpen(true)} aria-label="Search">
-                    <SearchIcon />
+                  <button
+                    type="button"
+                    className={`${css.iconBtn} ${css.searchTrigger}`}
+                    // flushSync shows the field inside the tap itself, so focusing it there raises
+                    // the keyboard on iOS (focus from an effect, after the tap, does not).
+                    onClick={() => {
+                      flushSync(() => setSearchOpen(true));
+                      searchRef.current?.focus();
+                    }}
+                    aria-label="Search"
+                  >
+                    <SearchIcon size={20} strokeWidth={2.4} aria-hidden="true" />
                   </button>
                 )}
                 {searchDropdownOpen && (
-                  <div className="pn-search-results">
-                    {searchResults.map((result) => (
+                  <div className={`${ui.menu} ${css.results}`}>
+                    {searchResults.map((result, i) => (
                       <button
                         key={result.id}
-                        className="pn-search-result"
+                        type="button"
+                        className={css.result}
                         onClick={() => {
                           router.push(result.href);
                           setSearchQuery('');
@@ -733,8 +294,15 @@ export default function PublicNav() {
                           setSearchDropdownOpen(false);
                         }}
                       >
-                        <span className="pn-result-title">{result.title}</span>
-                        <span className="pn-result-author">{result.subtitle}</span>
+                        <span
+                          className={css.resultDot}
+                          style={dot(RESULT_DOT[result.subtitle] ?? DOTS[i % DOTS.length])}
+                          aria-hidden="true"
+                        />
+                        <span className={css.resultText}>
+                          <span className={css.resultTitle}>{result.title}</span>
+                          <span className={css.resultSub}>{result.subtitle}</span>
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -742,24 +310,35 @@ export default function PublicNav() {
               </div>
 
               {/* Bell */}
-              <NotificationBell />
+              <div className={css.bellWrap}>
+                <NotificationBell />
+              </div>
 
               {/* Profile */}
-              <div style={{ position: 'relative' }} ref={profileRef}>
-               <button className="pn-profile-btn" onClick={() => setProfileOpen(!profileOpen)} aria-label="Profile menu">
-                  {avatarUrl ? (
-                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                      <Image src={avatarUrl} alt="" fill sizes="96px" quality={90} className="pn-avatar-img" preload />
-                    </div>
-                  ) : (
-                    <UserIcon />
-                  )}
+              <div className={css.profile} ref={profileRef}>
+                <button
+                  type="button"
+                  className={css.profileBtn}
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  aria-label="Profile menu"
+                  aria-expanded={profileOpen}
+                >
+                  {avatar()}
                 </button>
-                <div className={`pn-dropdown ${profileOpen ? 'open' : ''}`}>
-                  <Link href="/dashboard/profile" onClick={() => setProfileOpen(false)}>My Profile</Link>
-                  <Link href="/dashboard/plans" onClick={() => setProfileOpen(false)}>Plans</Link>
-                  <div className="pn-divider" />
-                  <button className="pn-logout" onClick={handleLogout}>Log Out</button>
+                <div className={`${ui.menu} ${css.dropdown} ${profileOpen ? css.dropdownOpen : ''}`}>
+                  <Link href="/dashboard/profile" className={ui.menuItem} onClick={() => setProfileOpen(false)}>
+                    <span className={css.menuDot} style={dot('var(--c1)')} aria-hidden="true" />
+                    My Profile
+                  </Link>
+                  <Link href="/dashboard/plans" className={ui.menuItem} onClick={() => setProfileOpen(false)}>
+                    <span className={css.menuDot} style={dot('var(--c2)')} aria-hidden="true" />
+                    Plans
+                  </Link>
+                  <div className={ui.menuRule} />
+                  <button type="button" className={ui.menuItem} onClick={handleLogout}>
+                    <LogOut size={18} strokeWidth={2.4} aria-hidden="true" />
+                    Log Out
+                  </button>
                 </div>
               </div>
             </div>
@@ -767,85 +346,69 @@ export default function PublicNav() {
 
           {/* Right: logged out */}
           {!isLoggedIn && (
-            <div className="pn-auth">
-              <Link href="/login" className="pn-btn-login">Log In</Link>
-              <Link href="/signup" className="pn-btn-signup">Start For Free</Link>
+            <div className={css.auth}>
+              <Link href="/login" className={css.login}>Log In</Link>
+              <Link href="/signup" className={css.signup}>Start For Free</Link>
             </div>
           )}
 
-          {/* Mobile hamburger */}
+          {/* Phones: the avatar opens the menu panel */}
           <button
-            className="pn-mobile-toggle"
+            type="button"
+            className={css.mobileToggle}
             onClick={() => setIsOpen(true)}
             aria-label="Menu"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+            aria-expanded={isOpen}
           >
-            <MenuIcon />
+            {isLoggedIn ? avatar() : <Menu size={22} strokeWidth={2.4} aria-hidden="true" />}
           </button>
         </div>
+      </header>
 
-        <div className="pn-rule" />
-        <div className="pn-gold-line" />
-      </div>
+      {/* Mobile menu */}
+      <div className={`${css.overlay} ${isOpen ? css.overlayOpen : ''}`}>
+        <div className={css.backdrop} onClick={() => setIsOpen(false)} />
+        <div className={css.panel} role="dialog" aria-modal="true" aria-label="Menu" ref={menuPanelRef}>
+          <div className={css.panelTop}>
+            {isLoggedIn && (
+              <Link href="/dashboard/profile" className={css.account} onClick={() => setIsOpen(false)}>
+                {avatar(true)}
+                <span className={css.accountText}>
+                  <span className={css.accountName}>My Account</span>
+                  <span className={css.accountEmail}>{userEmail}</span>
+                </span>
+              </Link>
+            )}
+            <button type="button" className={css.close} onClick={() => setIsOpen(false)} aria-label="Close menu">
+              <X size={22} strokeWidth={2.4} aria-hidden="true" />
+            </button>
+          </div>
 
-      {/* Mobile drawer */}
-      <div className={`pn-overlay ${isOpen ? 'open' : ''}`}>
-        <div className="pn-backdrop" onClick={() => setIsOpen(false)} />
-        <div className="pn-drawer">
-          <button className="pn-drawer-close" onClick={() => setIsOpen(false)} aria-label="Close menu">
-            <CloseIcon />
-          </button>
+          <nav className={css.panelLinks} aria-label="Menu">
+            {navLinks.map((link, i) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={`${css.panelLink} ${isActive(link.href) ? css.panelLinkActive : ''}`}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+                onClick={() => setIsOpen(false)}
+              >
+                <span className={css.panelDot} style={dot(DOTS[i % DOTS.length])} aria-hidden="true" />
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
-          {isLoggedIn && (
-            <Link href="/dashboard/profile" className="pn-drawer-profile" onClick={() => setIsOpen(false)} style={{ textDecoration: 'none' }}>
-              <div className="pn-drawer-avatar">
-                {avatarUrl ? (
-                  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                    <Image src={avatarUrl} alt="" fill sizes="96px" quality={90} className="pn-avatar-img" preload />
-                  </div>
-                ) : (
-                  <UserIcon size={20} />
-                )}
-              </div>
-              <div className="pn-drawer-info">
-                <div className="pn-drawer-name">My Account</div>
-                <div className="pn-drawer-email">{userEmail}</div>
-              </div>
-            </Link>
-          )}
-
-          {navLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className={`pn-drawer-link ${
-  link.href === '/stories'
-    ? pathname.startsWith('/stories')
-      ? 'active'
-      : ''
-    : link.href.startsWith('/dashboard')
-      ? pathname.startsWith('/dashboard')
-        ? 'active'
-        : ''
-      : pathname === link.href
-        ? 'active'
-        : ''
-}`}
-              onClick={() => setIsOpen(false)}
-            >
-              {link.label}
-            </Link>
-          ))}
-
-          <div className="pn-drawer-auth">
+          <div className={css.panelActions}>
             {isLoggedIn ? (
-              <button className="pn-drawer-logout" onClick={() => { handleLogout(); setIsOpen(false); }}>
+              <button type="button" className={css.logout} onClick={() => { handleLogout(); setIsOpen(false); }}>
+                <LogOut size={18} strokeWidth={2.4} aria-hidden="true" />
                 Log Out
               </button>
             ) : (
               <>
-                <Link href="/login" className="pn-drawer-login" onClick={() => setIsOpen(false)}>Log In</Link>
-                <Link href="/signup" className="pn-drawer-signup" onClick={() => setIsOpen(false)}>Start For Free</Link>
+                <Link href="/login" className={css.panelLogin} onClick={() => setIsOpen(false)}>Log In</Link>
+                <Link href="/signup" className={css.panelSignup} onClick={() => setIsOpen(false)}>Start For Free</Link>
               </>
             )}
           </div>

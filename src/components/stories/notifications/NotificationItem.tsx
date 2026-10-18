@@ -1,6 +1,12 @@
 'use client';
 
+import type { LucideIcon } from 'lucide-react';
 import { Heart, MessageCircle, Share2, Users, ImageIcon, PenLine, HelpCircle } from 'lucide-react';
+import styles from './notifications.module.css';
+
+// The colour of each kind of notification (as on the Our Stories bar): pink and blue
+// take white icons, orange and aqua take ink.
+type Tone = 'pink' | 'blue' | 'orange' | 'aqua' | 'ink';
 
 export default function NotificationItem({
   type,
@@ -17,39 +23,34 @@ export default function NotificationItem({
   createdAt: string;
   onClick: () => void;
 }) {
-  const { icon, bg, message } = getNotificationMeta(type, actorName, storyTitle);
+  const { Icon, tone, message } = getNotificationMeta(type, actorName, storyTitle);
 
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`flex w-full items-start gap-3 px-4 py-3.5 text-left transition hover:bg-[#FAF4EA] ${
-        !isRead ? 'bg-[#FFFCF5]' : ''
-      }`}
+      className={styles.note}
+      data-unread={!isRead}
     >
-      <div
-        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] mt-0.5"
-        style={{ background: bg }}
-      >
-        {icon}
-      </div>
+      <span className={styles.noteIcon} data-tone={tone} aria-hidden="true">
+        <Icon size={18} strokeWidth={2.4} />
+      </span>
 
-      <div className="flex-1 min-w-0">
-        <p className={`text-[13px] leading-snug ${!isRead ? 'font-semibold text-[#17120E]' : 'text-[#6F6255]'}`}>
-          {message}
-        </p>
-        <p className="mt-0.5 text-[11px] text-[#9B8E7D]">
-          {formatRelative(createdAt)}
-        </p>
-      </div>
+      <span className={styles.noteBody}>
+        <span className={styles.noteText}>{message}</span>
+        <span className={styles.noteTime}>{formatRelative(createdAt)}</span>
+      </span>
 
-      {!isRead && (
-        <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-[#C8A557]" />
-      )}
+      {!isRead && <span className={styles.unread} aria-hidden="true" />}
     </button>
   );
 }
 
-function getNotificationMeta(type: string, actorName: string | null, storyTitle?: string | null) {
+function getNotificationMeta(
+  type: string,
+  actorName: string | null,
+  storyTitle?: string | null
+): { Icon: LucideIcon; tone: Tone; message: string } {
   const name = actorName || 'Someone';
   const isMemoryType = ['memory_reaction', 'memory_comment', 'memory_addition'].includes(type);
   const fallback = isMemoryType ? 'your memory' : 'your story';
@@ -58,82 +59,38 @@ function getNotificationMeta(type: string, actorName: string | null, storyTitle?
   switch (type) {
     // ── Existing public story types ──
     case 'story_like':
-      return {
-        icon: <Heart size={14} className="text-[#C8A557]" strokeWidth={1.8} />,
-        bg: '#F5EDD8',
-        message: `${name} loved ${title}`,
-      };
+      return { Icon: Heart, tone: 'pink', message: `${name} loved ${title}` };
     case 'story_comment':
-      return {
-        icon: <MessageCircle size={14} className="text-[#8B7355]" strokeWidth={1.8} />,
-        bg: '#F0E8D8',
-        message: `${name} commented on ${title}`,
-      };
+      return { Icon: MessageCircle, tone: 'blue', message: `${name} commented on ${title}` };
     case 'story_share':
-      return {
-        icon: <Share2 size={14} className="text-[#A9782F]" strokeWidth={1.8} />,
-        bg: '#F5EDD8',
-        message: `${name} shared ${title}`,
-      };
+      return { Icon: Share2, tone: 'aqua', message: `${name} shared ${title}` };
 
     // ── Existing family types ──
     case 'family_photo_added':
-      return {
-        icon: <ImageIcon size={14} className="text-[#7C8B6A]" strokeWidth={1.8} />,
-        bg: '#EEF0E8',
-        message: `${name} added a photo to the family library`,
-      };
+      return { Icon: ImageIcon, tone: 'orange', message: `${name} added a photo to the family library` };
     case 'family_member_joined':
-      return {
-        icon: <Users size={14} className="text-[#A06A1C]" strokeWidth={1.8} />,
-        bg: '#FEF3C7',
-        message: `${name} joined your family library`,
-      };
+      return { Icon: Users, tone: 'aqua', message: `${name} joined your family library` };
     case 'welcome':
       return {
-        icon: <Heart size={14} className="text-[#C8A557]" strokeWidth={1.8} />,
-        bg: '#F5EDD8',
+        Icon: Heart,
+        tone: 'pink',
         message: 'Welcome to Ancestorii! Write your first memory, then ask your family a question.',
       };
 
     // ── NEW: Private memory types ──
     case 'memory_reaction':
-      return {
-        icon: <Heart size={14} className="text-[#C8A557]" strokeWidth={1.8} />,
-        bg: '#F5EDD8',
-        message: `${name} loved your memory ${title}`,
-      };
+      return { Icon: Heart, tone: 'pink', message: `${name} loved your memory ${title}` };
     case 'memory_comment':
-      return {
-        icon: <MessageCircle size={14} className="text-[#8B7355]" strokeWidth={1.8} />,
-        bg: '#F0E8D8',
-        message: `${name} commented on your memory ${title}`,
-      };
+      return { Icon: MessageCircle, tone: 'blue', message: `${name} commented on your memory ${title}` };
     case 'memory_addition':
-      return {
-        icon: <PenLine size={14} className="text-[#A9782F]" strokeWidth={1.8} />,
-        bg: '#F5EDD8',
-        message: `${name} added their memory to ${title}`,
-      };
+      return { Icon: PenLine, tone: 'orange', message: `${name} added their memory to ${title}` };
     case 'prompt_answered':
-      return {
-        icon: <HelpCircle size={14} className="text-[#A9782F]" strokeWidth={1.8} />,
-        bg: '#F5EDD8',
-        message: `${name} answered your question`,
-      };
+      return { Icon: HelpCircle, tone: 'blue', message: `${name} answered your question` };
     case 'prompt_received':
-      return {
-        icon: <HelpCircle size={14} className="text-[#A9782F]" strokeWidth={1.8} />,
-        bg: '#F5EDD8',
-        message: `${name} asked you a question`,
-      };
+      return { Icon: HelpCircle, tone: 'blue', message: `${name} asked you a question` };
 
     default:
-      return {
-        icon: <Heart size={14} className="text-[#9B8E7D]" strokeWidth={1.8} />,
-        bg: '#F0EBE2',
-        message: `${name} interacted with ${title}`,
-      };
+      return { Icon: Heart, tone: 'ink', message: `${name} interacted with ${title}` };
   }
 }
 

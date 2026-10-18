@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import Image from 'next/image';
-import { User as UserIcon, Shield, ShieldCheck, Crown } from 'lucide-react';
+import { ui, toneFor } from '@/components/dashboard/ui/AppBits';
+import s from './family.module.css';
 
 type FamilyMember = {
   user_id: string;
@@ -14,29 +15,14 @@ type FamilyMember = {
   avatar_signed?: string | null;
 };
 
+// The role chip's dot: the same colours as the role chip in the page header.
 const roleConfig = {
-  owner: {
-    label: 'Owner',
-    icon: Crown,
-    bg: 'bg-[#FEF3C7]',
-    text: 'text-[#A06A1C]',
-    border: 'border-[#E4D2AE]',
-  },
-  admin: {
-    label: 'Admin',
-    icon: ShieldCheck,
-    bg: 'bg-[#F0EAF5]',
-    text: 'text-[#5B3A8A]',
-    border: 'border-[#D4C5E8]',
-  },
-  member: {
-    label: 'Member',
-    icon: Shield,
-    bg: 'bg-[#F5F0E8]',
-    text: 'text-[#6F6255]',
-    border: 'border-[#E7DFD3]',
-  },
+  owner: { label: 'Owner', dot: 'var(--c2)' },
+  admin: { label: 'Admin', dot: 'var(--c1)' },
+  member: { label: 'Member', dot: 'var(--c3)' },
 };
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 export default function MemberCard({
   member,
@@ -50,7 +36,6 @@ export default function MemberCard({
   const [avatarLoaded, setAvatarLoaded] = useState(false);
 
   const config = roleConfig[member.role] || roleConfig.member;
-  const RoleIcon = config.icon;
 
   const joinedDate = new Date(member.joined_at).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -66,80 +51,72 @@ export default function MemberCard({
     .toUpperCase()
     .slice(0, 2);
 
+  // A stable ring colour for this person (the same in the member drawer).
+  const ring = toneFor(displayName);
+
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className="rounded-[20px] border bg-[#FFFDF9] px-5 py-6 sm:px-6 sm:py-7 shadow-[0_14px_36px_rgba(44,36,27,0.05)] transition hover:shadow-[0_18px_44px_rgba(44,36,27,0.08)] cursor-pointer"
-      style={{ borderColor: '#EAD8B8' }}
+      aria-haspopup="dialog"
+      className={cx(ui.card, ui.cardLink, s.memberCard, 'h-full w-full text-left')}
     >
-      <div className="flex items-start gap-4">
+      <span className="flex items-start justify-between gap-3">
         {/* Avatar */}
-        <div
-          className="h-[56px] w-[56px] flex-shrink-0 overflow-hidden rounded-full flex items-center justify-center"
-          style={{
-            border: '2px solid #C8A557',
-            backgroundColor: '#EDE8DC',
-          }}
+        <span
+          className={ui.avatar}
+          style={{ '--size': '56px', '--ring': ring.bg, color: ring.fg } as CSSProperties}
         >
           {member.avatar_signed ? (
-            <div className="relative h-full w-full">
-              <Image
-                src={member.avatar_signed}
-                alt={displayName}
-                fill
-                sizes="112px"
-                quality={90}
-                className={`object-cover transition-opacity duration-300 ${
-                  avatarLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
-                onLoadingComplete={() => setAvatarLoaded(true)}
-              />
-            </div>
+            <Image
+              src={member.avatar_signed}
+              alt=""
+              fill
+              sizes="112px"
+              quality={90}
+              className={`object-cover transition-opacity duration-300 ${
+                avatarLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              onLoadingComplete={() => setAvatarLoaded(true)}
+            />
           ) : (
-            <span
-              className="text-[14px] font-bold"
-              style={{ color: '#A9782F' }}
-            >
-              {initials}
-            </span>
+            <span aria-hidden="true">{initials}</span>
           )}
-        </div>
+        </span>
 
-        {/* Info */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-[16px] font-semibold text-[#17120E] truncate">
-              {displayName}
-            </p>
-            {isCurrentUser && (
-              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9B8E7D]">
-                (You)
-              </span>
-            )}
-          </div>
+        {/* Role chip */}
+        <span
+          className={cx(ui.chip, ui.chipSm, ui.chipDot)}
+          style={{ '--dot': config.dot } as CSSProperties}
+        >
+          {config.label}
+        </span>
+      </span>
 
-          {member.email && (
-            <p className="mt-0.5 text-[13px] text-[#9B8E7D] truncate">
-              {member.email}
-            </p>
-          )}
+      {/* Info */}
+      <span className="mt-4 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="min-w-0 text-[17px] font-extrabold leading-[1.25] tracking-[-0.03em] [overflow-wrap:anywhere]">
+          {displayName}
+        </span>
+        {isCurrentUser && (
+          <span
+            className={cx(ui.chip, ui.chipSm, ui.chipColor)}
+            style={{ '--chip': 'var(--c1)', '--chip-fg': '#fff' } as CSSProperties}
+          >
+            You
+          </span>
+        )}
+      </span>
 
-          <div className="mt-3 flex items-center flex-wrap gap-2">
-            {/* Role badge */}
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.1em] border ${config.bg} ${config.text} ${config.border}`}
-            >
-              <RoleIcon size={11} strokeWidth={2} />
-              {config.label}
-            </span>
+      {member.email && (
+        <span className="mt-1 block truncate text-[14px] font-medium leading-snug">
+          {member.email}
+        </span>
+      )}
 
-            {/* Joined date */}
-            <span className="text-[12px] text-[#9B8E7D]">
-              Joined {joinedDate}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
+      <span className="mt-1.5 block text-[13px] font-semibold leading-snug">
+        Joined {joinedDate}
+      </span>
+    </button>
   );
 }

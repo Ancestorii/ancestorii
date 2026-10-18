@@ -2,8 +2,8 @@ import type { LucideIcon } from 'lucide-react';
 import { Heart, HelpCircle, ImageIcon, MessageCircle, PenLine, Share2, Users } from 'lucide-react';
 
 // Wording and dates are ported unchanged from src/components/stories/notifications/NotificationItem.tsx
-// (which stays as it is for PublicNav). Only the look is new: each kind of notification gets an
-// icon tile in one of the landing colours.
+// (the dashboard top bar's own list, restyled in the same look with the same wording). Each kind of
+// notification gets an icon tile in one of the landing colours.
 
 export type NotificationTone = 'pink' | 'blue' | 'orange' | 'aqua' | 'ink';
 

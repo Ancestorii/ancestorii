@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { UserPlus } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import OurFamilyHeader from './_components/OurFamilyHeader';
 import MemberCard from './_components/MemberCard';
@@ -8,6 +9,8 @@ import PendingInviteCard from './_components/PendingInviteCard';
 import InviteMemberDrawer from './_components/InviteMemberDrawer';
 import MemberDetailDrawer from './_components/MemberDetailDrawer';
 import { safeToast as toast } from '@/lib/safeToast';
+import { ui, Accent, AppLoader, Btn, SectionHead } from '@/components/dashboard/ui/AppBits';
+import s from './_components/family.module.css';
 
 type FamilyMember = {
   user_id: string;
@@ -216,110 +219,125 @@ export default function OurFamilyPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-[13px] uppercase tracking-[0.22em] text-[#9B8E7D]">
-          Loading your family...
-        </p>
+      <div className={ui.page}>
+        <AppLoader label="Loading your family" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#17120E]">
-      <OurFamilyHeader
-        familyName={familyName}
-        isVerified={isVerifiedFamily}
-        memberCount={members.length}
-        myRole={myRole}
-        canInvite={isOwnerOrAdmin}
-        onInvite={() => setInviteDrawerOpen(true)}
-        onRename={handleRename}
-      />
+    <div className={ui.page}>
+      <div className={ui.wrap}>
+        <OurFamilyHeader
+          familyName={familyName}
+          isVerified={isVerifiedFamily}
+          memberCount={members.length}
+          myRole={myRole}
+          canInvite={isOwnerOrAdmin}
+          onInvite={() => setInviteDrawerOpen(true)}
+          onRename={handleRename}
+        />
 
-      {/* ── Members section ── */}
-      <section className="w-full bg-[#FCFAF7] px-4 sm:px-6 py-10">
-        <div className="mx-auto max-w-[1200px]">
-          <div className="mb-6 flex items-end justify-between">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#B8924A]">
-                Family Members
-              </p>
-              <h3 className="mt-2 font-serif text-[28px] leading-[1.1] tracking-[-0.03em] text-[#17120E]">
-                The people behind{' '}
-                <em className="italic text-[#A9782F]">your library</em>
-              </h3>
-            </div>
-            <p className="hidden sm:block text-[14px] text-[#7D6F5F] text-right">
-              {members.length} {members.length === 1 ? 'member' : 'members'}
-            </p>
-          </div>
+        {/* ── Members section ── */}
+        <section className={ui.section} aria-labelledby="family-members-title">
+          <SectionHead
+            id="family-members-title"
+            tag="Family Members"
+            tagDot="var(--c1)"
+            title={
+              <>
+                The people behind <Accent>your library</Accent>
+              </>
+            }
+            action={
+              <span className="hidden sm:block">
+                <span className={ui.chip}>
+                  {members.length} {members.length === 1 ? 'member' : 'members'}
+                </span>
+              </span>
+            }
+          />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {members.map((member) => (
-              <MemberCard
-                key={member.user_id}
-                member={member}
-                isCurrentUser={member.user_id === currentUserId}
-                onClick={() => setSelectedMember(member)}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Pending invites section (owner/admin only) ── */}
-      {isOwnerOrAdmin && pendingInvites.length > 0 && (
-        <section className="w-full bg-white px-4 sm:px-6 py-10">
-          <div className="mx-auto max-w-[1200px]">
-            <div className="mb-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#6F6255]">
-                Pending Invitations
-              </p>
-              <h3 className="mt-2 font-serif text-[28px] leading-[1.1] tracking-[-0.03em] text-[#17120E]">
-                Waiting to{' '}
-                <em className="italic text-[#A9782F]">join</em>
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {pendingInvites.map((invite) => (
-                <PendingInviteCard
-                  key={invite.id}
-                  invite={invite}
-                  onCancel={() => handleCancelInvite(invite.id)}
-                />
+          {/* Columns follow the space beside the sidebar: 1 on phones, 2 on tablets, 3 on desktops */}
+          <div className="@container">
+            <ul role="list" className="grid grid-cols-1 gap-4 @xl:grid-cols-2 @4xl:grid-cols-3">
+              {members.map((member) => (
+                <li key={member.user_id} className="min-w-0">
+                  <MemberCard
+                    member={member}
+                    isCurrentUser={member.user_id === currentUserId}
+                    onClick={() => setSelectedMember(member)}
+                  />
+                </li>
               ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ── Pending invites section (owner/admin only) ── */}
+        {isOwnerOrAdmin && pendingInvites.length > 0 && (
+          <section className={ui.section} aria-labelledby="family-invites-title">
+            <SectionHead
+              id="family-invites-title"
+              tag="Pending Invitations"
+              tagDot="var(--c2)"
+              title={
+                <>
+                  Waiting to <Accent>join</Accent>
+                </>
+              }
+            />
+
+            <div className="@container">
+              <ul role="list" className="grid grid-cols-1 gap-4 @xl:grid-cols-2 @4xl:grid-cols-3">
+                {pendingInvites.map((invite) => (
+                  <li key={invite.id} className="min-w-0">
+                    <PendingInviteCard
+                      invite={invite}
+                      onCancel={() => handleCancelInvite(invite.id)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
+        {/* ── Proactive CTA for growing the family: the page's one ink card ── */}
+        <section className={ui.section} aria-labelledby="family-cta-title">
+          <div className={`${ui.inkCard} ${s.cta}`}>
+            <span className={ui.dotPink} aria-hidden="true" />
+            <span className={ui.dotBlue} aria-hidden="true" />
+
+            <div className={s.ctaInner}>
+              <h2 id="family-cta-title" className={s.ctaTitle}>
+                {members.length === 1
+                  ? <>Every family starts with <Accent>one</Accent></>
+                  : <>Your library is <Accent>growing</Accent></>
+                }
+              </h2>
+              <p className={s.ctaText}>
+                {members.length === 1
+                  ? 'Invite your first family member and start preserving memories together. The more people contributing, the richer your story becomes.'
+                  : `${members.length} people building one story. Keep inviting the people who shaped your life. Every voice makes the library stronger.`
+                }
+              </p>
+
+              {isOwnerOrAdmin && (
+                <Btn
+                  variant="light"
+                  onClick={() => setInviteDrawerOpen(true)}
+                  aria-haspopup="dialog"
+                  icon={<UserPlus size={18} strokeWidth={2.4} aria-hidden="true" />}
+                  className={s.ctaBtn}
+                >
+                  Invite a Family Member
+                </Btn>
+              )}
             </div>
           </div>
         </section>
-      )}
-
-      {/* ── Proactive CTA for growing the family ── */}
-      <section className="w-full bg-white px-4 sm:px-6 py-16">
-        <div className="mx-auto max-w-[600px] text-center">
-          <h3 className="font-serif text-[24px] leading-[1.2] tracking-[-0.02em] text-[#17120E] mb-3">
-            {members.length === 1
-              ? <>Every family starts with <em className="italic text-[#A9782F]">one</em></>
-              : <>Your library is <em className="italic text-[#A9782F]">growing</em></>
-            }
-          </h3>
-          <p className="text-[15px] leading-[1.8] text-[#6F6255] mb-8">
-            {members.length === 1
-              ? 'Invite your first family member and start preserving memories together. The more people contributing, the richer your story becomes.'
-              : `${members.length} people building one story. Keep inviting the people who shaped your life. Every voice makes the library stronger.`
-            }
-          </p>
-
-          {isOwnerOrAdmin && (
-            <button
-              onClick={() => setInviteDrawerOpen(true)}
-              className="inline-flex items-center justify-center gap-2.5 h-[52px] rounded-[12px] bg-[#C8A557] px-8 text-[14px] font-semibold text-white shadow-[0_8px_20px_rgba(184,146,74,0.2)] transition hover:bg-[#B8924A]"
-            >
-              Invite a Family Member
-            </button>
-          )}
-        </div>
-      </section>
+      </div>
 
       {/* ── Invite drawer ── */}
       <InviteMemberDrawer

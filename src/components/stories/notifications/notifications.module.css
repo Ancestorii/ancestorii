@@ -1,0 +1,368 @@
+/* ============================================================
+   The dashboard's notifications: the bell in the top bar and its
+   panel, in the look of the Our Stories bar's panel
+   (src/components/site/stories-bar). It renders inside the
+   dashboard's .app root, so it uses the kit's tokens: --c0 pink,
+   --c1 blue, --c2 orange, --c3 aqua, --ink, --hover, --line,
+   --hairline-ring.
+   ============================================================ */
+
+.root {
+  position: relative;
+  display: flex;
+}
+
+/* ── Bell ─────────────────────────────────────────────────── */
+
+.bell {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.bell[aria-expanded='true'] {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: none;
+}
+
+.bell:active {
+  transform: scale(0.94);
+  transition-duration: 80ms;
+}
+
+/* Unread count: the kit's pink bubble, cut out of the button with a white ring. */
+.count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--c0);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 21px;
+  text-align: center;
+  box-shadow: 0 0 0 2.5px #fff;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Panel ────────────────────────────────────────────────── */
+
+/* Catches a click anywhere else, which closes the panel. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 98;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 99;
+  width: 400px;
+  padding: 8px;
+  border-radius: 24px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow:
+    var(--hairline-ring),
+    0 30px 60px -30px rgba(10, 10, 15, 0.55);
+  transform-origin: top right;
+  animation: notesPop 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes notesPop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 4px 4px 10px 12px;
+  border-bottom: 1.5px solid rgba(10, 10, 15, 0.08);
+}
+
+.title {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+/* "Mark all read": a blue text button. */
+.markAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--c1);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.body {
+  max-height: min(420px, calc(100dvh - 190px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 6px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 44px 0;
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid rgba(10, 10, 15, 0.1);
+  border-top-color: var(--c0);
+  animation: notesSpin 0.8s linear infinite;
+}
+
+@keyframes notesSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 34px 16px 38px;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c0);
+  color: #fff;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ── Rows (NotificationItem) ──────────────────────────────── */
+
+.note {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 10px;
+  align-items: start;
+  gap: 12px;
+  padding: 12px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+/* The list scrolls (and so clips), so the focus ring is drawn inside each row. */
+.body .note:focus-visible {
+  outline-offset: -3px;
+}
+
+/* A round icon in the colour of the kind of notification. */
+.noteIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tone-bg, var(--c0));
+  color: var(--tone-fg, #fff);
+}
+
+/* Pink and blue take white icons; orange and aqua take ink. */
+.noteIcon[data-tone='pink'] {
+  --tone-bg: var(--c0);
+  --tone-fg: #fff;
+}
+
+.noteIcon[data-tone='blue'] {
+  --tone-bg: var(--c1);
+  --tone-fg: #fff;
+}
+
+.noteIcon[data-tone='orange'] {
+  --tone-bg: var(--c2);
+  --tone-fg: var(--ink);
+}
+
+.noteIcon[data-tone='aqua'] {
+  --tone-bg: var(--c3);
+  --tone-fg: var(--ink);
+}
+
+.noteIcon[data-tone='ink'] {
+  --tone-bg: var(--ink);
+  --tone-fg: #fff;
+}
+
+.noteBody {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.noteText {
+  display: block;
+  font-size: 14.5px;
+  line-height: 1.42;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.note[data-unread='true'] .noteText {
+  font-weight: 700;
+}
+
+.noteTime {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* Unread marker. */
+.unread {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--c0);
+}
+
+/* ── Hover (pointer devices only) ─────────────────────────── */
+
+@media (hover: hover) {
+  .bell:not([aria-expanded='true']):hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+
+  .markAll:hover,
+  .note:hover {
+    background: var(--hover);
+  }
+}
+
+/* Touch screens get a 44px target on "Mark all read". */
+@media (pointer: coarse) {
+  .markAll {
+    min-height: 44px;
+  }
+}
+
+/* ── Below 1024px the floating bottom navigation sits on top ── */
+
+/* Keep the panel's end above it, even on a phone held sideways. */
+@media (max-width: 1023px) {
+  .body {
+    max-height: min(420px, calc(100dvh - 220px));
+  }
+}
+
+/* ── Phones: the panel hangs from the whole top bar ───────── */
+
+@media (max-width: 599px) {
+  .root {
+    position: static;
+  }
+
+  .panel {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    transform-origin: top center;
+  }
+
+  .note {
+    padding: 12px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}

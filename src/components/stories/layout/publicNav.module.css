@@ -1,0 +1,797 @@
+/* ============================================================
+   The dashboard's top bar (PublicNav): the logo, the Our Stories
+   and My Family pills, search, the bell and the profile menu, in
+   the landing's look. It renders inside the dashboard's .app root
+   (src/components/dashboard/ui), so it uses the kit's tokens:
+   --c0 pink, --c1 blue, --c2 orange, --c3 aqua, --ink, --hover,
+   --rule, --line, --placeholder, --hairline-ring, --float.
+
+   Height: 72px (64px on phones). The desktop sidebar in
+   app/dashboard/_layout.client.tsx starts right under it
+   (.dashboard-sidebar { top: 72px }): change the two together.
+
+   Widths:
+   - 1024px and up: pills in the centre, the search pill, bell, avatar.
+   - 600 to 1023px: the search folds into an icon that unfolds a
+     field across the bar.
+   - Phones: logo, search icon, bell, and the avatar opens the menu
+     panel (account, Our Stories, My Family, Log Out).
+   ============================================================ */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 72px;
+  background: #fff;
+  color: var(--ink);
+  /* The hairline sits inside the 72px, so the sidebar can start at exactly 72px. */
+  box-shadow: inset 0 -1.5px 0 var(--rule);
+}
+
+/* A soft shade under the bar once the page has scrolled (opacity only). */
+.bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 14px;
+  background: linear-gradient(rgba(10, 10, 15, 0.06), rgba(10, 10, 15, 0));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scrolled::after {
+  opacity: 1;
+}
+
+/* Touch screens skip the fade: the shade simply appears. */
+@media (hover: hover) and (pointer: fine) {
+  .bar::after {
+    transition: opacity 0.3s ease;
+  }
+}
+
+.inner {
+  position: relative;
+  height: 100%;
+  padding: 0 clamp(16px, 2.4vw, 24px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.logoWrap {
+  justify-self: start;
+  display: flex;
+  min-width: 0;
+}
+
+/* ── Centre pills ─────────────────────────────────────────── */
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.linkActive {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* ── Right side ───────────────────────────────────────────── */
+
+.actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bellWrap {
+  display: flex;
+}
+
+/* Square 44px icon button (search on smaller screens, close). */
+.iconBtn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.iconBtn:active {
+  transform: scale(0.94);
+  transition-duration: 80ms;
+}
+
+/* ── Search ───────────────────────────────────────────────── */
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The pill, as on the Our Stories bar. */
+.field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: clamp(232px, 22vw, 300px);
+  min-width: 0;
+  height: 44px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: box-shadow 0.2s ease;
+}
+
+.field:focus-within {
+  box-shadow:
+    inset 0 0 0 1.5px var(--c0),
+    0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+.fieldIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0 18px 0 44px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px; /* 16px keeps iOS from zooming in on focus */
+  font-weight: 600;
+  text-overflow: ellipsis; /* a narrow field ends the placeholder with an ellipsis */
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--placeholder);
+  font-weight: 500;
+  opacity: 1;
+}
+
+/* Only below 1024px: the icon that unfolds the field, and the button that folds it again. */
+.searchTrigger,
+.searchClose {
+  display: none;
+}
+
+/* Close looks like the landing menu's own close button: white with an ink outline. */
+.search .searchClose {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+/* Results: a menu under the field, one row per match with a round dot for its kind. */
+.results {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 5;
+  width: max(100%, 360px);
+  max-height: min(420px, calc(100dvh - 96px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform-origin: top right;
+  animation: navPop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.result + .result {
+  margin-top: 2px;
+}
+
+/* The list scrolls (and so clips), so the focus ring is drawn inside each row. */
+.results .result:focus-visible {
+  outline-offset: -3px;
+}
+
+.resultDot,
+.menuDot,
+.panelDot {
+  flex: none;
+  border-radius: 50%;
+  background: var(--dot, var(--c0));
+}
+
+.resultDot {
+  width: 10px;
+  height: 10px;
+}
+
+.resultText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.resultTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.resultSub {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+/* ── Profile ──────────────────────────────────────────────── */
+
+.profile {
+  position: relative;
+  display: flex;
+}
+
+.profileBtn,
+.mobileToggle {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobileToggle {
+  display: none;
+}
+
+/* Photo (or a person icon) in a white gap and a blue ring, like the landing's review avatars. */
+.avatar {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--c1);
+  color: #fff;
+  box-shadow:
+    0 0 0 2.5px #fff,
+    0 0 0 4.5px var(--c1);
+  transition: box-shadow 0.2s ease;
+}
+
+.avatarLg {
+  width: 42px;
+  height: 42px;
+}
+
+.avatarImg {
+  object-fit: cover;
+}
+
+.profileBtn[aria-expanded='true'] .avatar,
+.mobileToggle[aria-expanded='true'] .avatar {
+  box-shadow:
+    0 0 0 2.5px #fff,
+    0 0 0 4.5px var(--ink);
+}
+
+/* Profile menu (the look comes from the kit's .menu). */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 5;
+  width: 240px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s linear 0.18s;
+}
+
+.dropdownOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s;
+}
+
+.menuDot {
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
+}
+
+/* ── Signed out (the bar never shows this inside the dashboard) ── */
+
+.auth {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.login,
+.signup {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  white-space: nowrap;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.login {
+  padding: 0 16px;
+  border-radius: 999px;
+  color: var(--ink);
+}
+
+.signup {
+  padding: 0 20px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+
+/* ── Phone menu ───────────────────────────────────────────── */
+
+/* Closed, it lets taps through at once, even while it fades out. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    visibility 0s linear 0.2s;
+}
+
+.overlayOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.2s ease,
+    visibility 0s;
+}
+
+/* A plain dim instead of a blur, which re-renders the whole screen while the panel moves. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 15, 0.45);
+}
+
+.panel {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 12px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 8px 12px;
+  border-radius: 28px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--float);
+  transform: translateY(-14px);
+  transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.overlayOpen .panel {
+  transform: none;
+}
+
+.panelTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 2px 8px;
+}
+
+.account {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 6px 10px;
+  border-radius: 18px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.accountText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.accountName {
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.accountEmail {
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.close {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.12s ease;
+}
+
+.close:active {
+  transform: scale(0.92);
+}
+
+.panelLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1.5px solid var(--rule);
+}
+
+.panelLink {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: 16px;
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.panelLinkActive {
+  background: var(--ink);
+  color: #fff;
+}
+
+.panelDot {
+  width: 12px;
+  height: 12px;
+}
+
+.panelActions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  padding: 4px 4px 0;
+}
+
+.logout,
+.panelLogin,
+.panelSignup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 0 20px;
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.panelSignup {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* ── Hover (pointer devices only) ─────────────────────────── */
+
+@media (hover: hover) {
+  .link:not(.linkActive):hover,
+  .result:hover,
+  .account:hover,
+  .panelLink:not(.panelLinkActive):hover {
+    background: var(--hover);
+  }
+
+  .iconBtn:hover,
+  .field:not(:focus-within):hover {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+
+  .search .searchClose:hover {
+    box-shadow: inset 0 0 0 2px var(--ink);
+    background: var(--hover);
+  }
+
+  .profileBtn:hover .avatar,
+  .mobileToggle:hover .avatar {
+    box-shadow:
+      0 0 0 2.5px #fff,
+      0 0 0 4.5px var(--ink);
+  }
+
+  .login:hover {
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+
+  .signup:hover {
+    transform: translateY(-1px);
+  }
+
+  .logout:hover,
+  .panelLogin:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+}
+
+/* ── 1024px and up: the pill takes the room its column has ── */
+
+/* Up to 300px, and never into the centre pills, so the placeholder fits on tablets in
+   landscape (1080 to 1240px) instead of ending in an ellipsis. */
+@media (min-width: 1024px) {
+  .actions {
+    justify-self: stretch;
+    justify-content: flex-end;
+  }
+
+  .search {
+    flex: 0 1 300px;
+  }
+
+  .field {
+    width: 100%;
+  }
+}
+
+/* ── Below 1024px: the search folds into an icon ──────────── */
+
+@media (max-width: 1023px) {
+  .field {
+    display: none;
+  }
+
+  .search .searchTrigger {
+    display: inline-flex;
+  }
+
+  /* Unfolded, the field takes the whole bar until it is closed. */
+  .bar[data-search-open='true'] .inner {
+    display: flex;
+  }
+
+  .bar[data-search-open='true'] .logoWrap,
+  .bar[data-search-open='true'] .links,
+  .bar[data-search-open='true'] .bellWrap,
+  .bar[data-search-open='true'] .profile,
+  .bar[data-search-open='true'] .mobileToggle,
+  .bar[data-search-open='true'] .auth {
+    display: none;
+  }
+
+  .bar[data-search-open='true'] .actions,
+  .bar[data-search-open='true'] .search {
+    flex: 1 1 auto;
+  }
+
+  .bar[data-search-open='true'] .field {
+    display: flex;
+    flex: 1 1 auto;
+    width: auto;
+  }
+
+  .bar[data-search-open='true'] .search .searchClose {
+    display: inline-flex;
+  }
+
+  /* Ends above the floating bottom navigation, even on a phone held sideways. */
+  .results {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: min(420px, calc(100dvh - 170px));
+    transform-origin: top left;
+  }
+
+  /* Signed out there is no room for every link: they move to the menu. */
+  .bar[data-signed-in='false'] .links,
+  .bar[data-signed-in='false'] .auth {
+    display: none;
+  }
+
+  .bar[data-signed-in='false'] .mobileToggle {
+    display: inline-flex;
+    margin-left: auto;
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+
+  .bar[data-signed-in='false'] .inner {
+    display: flex;
+  }
+}
+
+/* ── Phones ───────────────────────────────────────────────── */
+
+@media (max-width: 599px) {
+  .bar {
+    height: 64px;
+  }
+
+  .inner {
+    display: flex;
+    gap: 8px;
+  }
+
+  .logoWrap {
+    margin-right: auto;
+  }
+
+  .links,
+  .profile {
+    display: none;
+  }
+
+  .mobileToggle {
+    display: inline-flex;
+  }
+
+  /* The bell's panel hangs from the whole bar, so it lines up with the screen edges. */
+  .bellWrap {
+    position: static;
+  }
+}
+
+@media (min-width: 600px) {
+  .panel {
+    left: auto;
+    width: min(400px, calc(100% - 24px));
+  }
+}
+
+@keyframes navPop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .results {
+    animation: none;
+  }
+
+  .panel,
+  .dropdown,
+  .overlay {
+    transition-duration: 0.01ms;
+  }
+}

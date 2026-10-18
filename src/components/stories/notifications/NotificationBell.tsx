@@ -5,6 +5,7 @@ import { Bell } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { getUnreadNotificationCount } from '@/lib/stories/queries';
 import NotificationDropdown from './NotificationDropdown';
+import styles from './notifications.module.css';
 
 export default function NotificationBell() {
   const [count, setCount] = useState(0);
@@ -25,15 +26,18 @@ export default function NotificationBell() {
   }, []);
 
   return (
-    <div className="relative">
+    <div className={styles.root}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className="relative flex h-[36px] w-[36px] items-center justify-center rounded-full transition hover:bg-[#F5F0E8]"
+        className={styles.bell}
+        aria-expanded={open}
       >
-        <Bell size={18} className="text-[#6F6255]" strokeWidth={1.8} />
+        <Bell size={20} strokeWidth={2.4} aria-hidden="true" />
+        <span className={styles.srOnly}>Notifications</span>
 
         {count > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#C8A557] px-1 text-[10px] font-bold text-white">
+          <span className={styles.count}>
             {count > 99 ? '99+' : count}
           </span>
         )}

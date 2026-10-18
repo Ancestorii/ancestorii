@@ -149,6 +149,15 @@
   --color-hairline: var(--hairline);
   --color-like: var(--like);
   --color-comment: var(--comment);
+  /* The landing palette for the app kit (src/components/dashboard/ui): bg-brand-pink,
+     text-brand-blue, ring-brand-ink/10, … Four solid colours plus one ink, no gold. */
+  --color-brand-pink: #ff2d87;
+  --color-brand-blue: #2b4bff;
+  --color-brand-orange: #ff7a1a;
+  --color-brand-aqua: #12d3ac;
+  --color-brand-ink: #0a0a0f;
+  --color-brand-hover: #f2f2f4;
+  --color-brand-danger: #e0004d;
 }
 
 /* Dark theme removed: Ancestorii web UI is light-only (no dark mode, ever).

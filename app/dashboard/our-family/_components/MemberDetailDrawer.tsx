@@ -1,18 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  X,
-  Crown,
-  Shield,
-  ShieldCheck,
-  Upload,
-  Calendar,
-  Image as ImageIcon,
-  Mic,
-} from 'lucide-react';
+import { X } from 'lucide-react';
+import { ui, Btn, IconBtn, Tag, toneFor, useDialog } from '@/components/dashboard/ui/AppBits';
 
 type FamilyMember = {
   user_id: string;
@@ -25,29 +17,14 @@ type FamilyMember = {
   bio?: string | null;
 };
 
+// The role chip's dot: the same colours as on the member cards and the page header.
 const roleConfig = {
-  owner: {
-    label: 'Owner',
-    icon: Crown,
-    bg: 'bg-[#FEF3C7]',
-    text: 'text-[#A06A1C]',
-    border: 'border-[#E4D2AE]',
-  },
-  admin: {
-    label: 'Admin',
-    icon: ShieldCheck,
-    bg: 'bg-[#F0EAF5]',
-    text: 'text-[#5B3A8A]',
-    border: 'border-[#D4C5E8]',
-  },
-  member: {
-    label: 'Member',
-    icon: Shield,
-    bg: 'bg-[#F5F0E8]',
-    text: 'text-[#6F6255]',
-    border: 'border-[#E7DFD3]',
-  },
+  owner: { label: 'Owner', dot: 'var(--c2)' },
+  admin: { label: 'Admin', dot: 'var(--c1)' },
+  member: { label: 'Member', dot: 'var(--c3)' },
 };
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 export default function MemberDetailDrawer({
   member,
@@ -59,14 +36,23 @@ export default function MemberDetailDrawer({
   onClose: () => void;
 }) {
   const [avatarLoaded, setAvatarLoaded] = useState(false);
+  const titleId = useId();
 
-  if (!member) return null;
+  // The page clears `member` the moment the drawer closes; keep showing the last one so the
+  // drawer can animate out instead of vanishing.
+  const [shown, setShown] = useState(member);
+  if (member && member !== shown) setShown(member);
+  const current = member ?? shown;
 
-  const config = roleConfig[member.role] || roleConfig.member;
-  const RoleIcon = config.icon;
+  // Escape closes it, Tab stays inside, focus goes back to the member card.
+  const panelRef = useDialog<HTMLDivElement>(open && !!current, onClose);
+
+  if (!current) return null;
+
+  const config = roleConfig[current.role] || roleConfig.member;
 
   const displayName =
-    member.full_name || member.email?.split('@')[0] || 'Family Member';
+    current.full_name || current.email?.split('@')[0] || 'Family Member';
   const initials = displayName
     .split(' ')
     .map((w) => w[0])
@@ -74,11 +60,14 @@ export default function MemberDetailDrawer({
     .toUpperCase()
     .slice(0, 2);
 
-  const joinedDate = new Date(member.joined_at).toLocaleDateString('en-GB', {
+  const joinedDate = new Date(current.joined_at).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
+
+  // The same ring colour as this person's member card.
+  const ring = toneFor(displayName);
 
   return (
     <AnimatePresence>
@@ -87,11 +76,9 @@ export default function MemberDetailDrawer({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          // scrim-blur (globals.css) blurs only with a mouse; on touch it re-rendered the whole screen every frame
-          className="scrim-blur fixed inset-0 z-[200] flex items-center justify-center p-4"
-          style={{
-            background: 'rgba(22,18,12,0.45)',
-          }}
+          // scrim-blur (globals.css) blurs only with a mouse; on touch it re-rendered the whole screen every frame.
+          // Above the floating phone nav (z-[200], later in the DOM), like the invite drawer.
+          className={cx(ui.scrim, 'scrim-blur z-[9999] flex items-center justify-center p-4')}
           onClick={onClose}
         >
           {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
@@ -100,110 +87,101 @@ export default function MemberDetailDrawer({
             animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
             exit={{ opacity: 0, transform: 'translateY(30px) scale(0.96)' }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="w-full max-w-[480px] rounded-[20px] bg-white shadow-[0_24px_60px_rgba(22,18,12,0.25)] overflow-hidden"
+            className={cx(ui.sheet, 'w-full max-w-[480px]')}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            ref={panelRef}
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── Header ── */}
-            <div className="px-6 pt-6 pb-4 flex items-start justify-between">
-              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#B8924A]">
-                Member Details
-              </p>
-              <button
-                onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-[#F5F0E8] transition"
-              >
-                <X className="h-4 w-4 text-[#7D6F5F]" strokeWidth={2} />
-              </button>
+            <div className={ui.sheetHeader}>
+              <div className="self-center">
+                <Tag dot="var(--c1)">Member Details</Tag>
+              </div>
+              <IconBtn label="Close" onClick={onClose}>
+                <X size={20} strokeWidth={2.4} aria-hidden="true" />
+              </IconBtn>
             </div>
 
-            <div className="mx-6 h-px bg-[#EAD8B8]" />
-
             {/* ── Profile section ── */}
-            <div className="px-6 py-6">
-              <div className="flex items-center gap-4 mb-5">
+            <div className={ui.sheetBody}>
+              <div className="flex items-center gap-5">
                 {/* Avatar */}
-                <div
-                  className="h-[72px] w-[72px] flex-shrink-0 overflow-hidden rounded-full flex items-center justify-center"
-                  style={{
-                    border: '2px solid #C8A557',
-                    backgroundColor: '#EDE8DC',
-                  }}
+                <span
+                  className={ui.avatar}
+                  style={{ '--size': '72px', '--ring': ring.bg, color: ring.fg } as CSSProperties}
                 >
-                  {member.avatar_signed ? (
-                    <div className="relative h-full w-full">
-                      <Image
-                        src={member.avatar_signed}
-                        alt={displayName}
-                        fill
-                        sizes="144px"
-                        quality={90}
-                        className={`object-cover transition-opacity duration-300 ${
-                          avatarLoaded ? 'opacity-100' : 'opacity-0'
-                        }`}
-                        onLoadingComplete={() => setAvatarLoaded(true)}
-                      />
-                    </div>
+                  {current.avatar_signed ? (
+                    <Image
+                      src={current.avatar_signed}
+                      alt=""
+                      fill
+                      sizes="144px"
+                      quality={90}
+                      className={`object-cover transition-opacity duration-300 ${
+                        avatarLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      onLoadingComplete={() => setAvatarLoaded(true)}
+                    />
                   ) : (
-                    <span
-                      className="text-[18px] font-bold"
-                      style={{ color: '#A9782F' }}
-                    >
-                      {initials}
-                    </span>
+                    <span aria-hidden="true">{initials}</span>
                   )}
-                </div>
+                </span>
 
                 {/* Name + email */}
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-serif text-[22px] font-normal leading-tight text-[#17120E]">
+                  <h2 id={titleId} className={cx(ui.sheetTitle, '[overflow-wrap:anywhere]')}>
                     {displayName}
-                  </h3>
-                  {member.email && (
-                    <p className="mt-1 text-[13px] text-[#9B8E7D] truncate">
-                      {member.email}
+                  </h2>
+                  {current.email && (
+                    <p className="mt-1 truncate text-[14px] font-medium leading-snug">
+                      {current.email}
                     </p>
                   )}
                 </div>
               </div>
 
               {/* Role + joined */}
-              <div className="flex items-center flex-wrap gap-2 mb-6">
+              <div className="mt-5 flex flex-wrap items-center gap-2">
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.1em] border ${config.bg} ${config.text} ${config.border}`}
+                  className={cx(ui.chip, ui.chipDot)}
+                  style={{ '--dot': config.dot } as CSSProperties}
                 >
-                  <RoleIcon size={11} strokeWidth={2} />
                   {config.label}
                 </span>
-                <span className="text-[12px] text-[#9B8E7D]">
-                  Joined {joinedDate}
-                </span>
+                <span className={ui.chip}>Joined {joinedDate}</span>
               </div>
 
               {/* ── Bio / About ── */}
-              {member.bio && (
+              {current.bio && (
                 <>
-                  <div className="h-px bg-[#EAD8B8] mb-5" />
+                  <div className="mt-6">
+                    <hr className={ui.rule} />
+                  </div>
 
-                  <div className="mb-6">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#6F6255] mb-3">
-                      About {member.full_name?.split(' ')[0] || 'them'}
-                    </p>
-                    <p className="text-[14px] leading-[1.8] text-[#3d3830]">
-                      {member.bio}
+                  <div className="mt-5">
+                    <Tag dot={ring.bg}>
+                      About {current.full_name?.split(' ')[0] || 'them'}
+                    </Tag>
+                    <p className={cx(ui.body, 'mt-3 [overflow-wrap:anywhere]')}>
+                      {current.bio}
                     </p>
                   </div>
                 </>
               )}
 
-              {!member.bio && (
+              {!current.bio && (
                 <>
-                  <div className="h-px bg-[#EAD8B8] mb-5" />
+                  <div className="mt-6">
+                    <hr className={ui.rule} />
+                  </div>
 
-                  <div className="mb-6">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#6F6255] mb-3">
-                      About {member.full_name?.split(' ')[0] || 'them'}
-                    </p>
-                    <p className="text-[14px] leading-[1.7] text-[#9B8E7D] italic">
+                  <div className="mt-5">
+                    <Tag dot={ring.bg}>
+                      About {current.full_name?.split(' ')[0] || 'them'}
+                    </Tag>
+                    <p className={cx(ui.body, 'mt-3')}>
                       No description yet. They can add one from their profile.
                     </p>
                   </div>
@@ -212,14 +190,10 @@ export default function MemberDetailDrawer({
             </div>
 
             {/* ── Close button ── */}
-            <div className="mx-6 h-px bg-[#EAD8B8]" />
-            <div className="px-6 py-5 flex justify-end">
-              <button
-                onClick={onClose}
-                className="flex h-[46px] items-center justify-center rounded-[12px] border border-[#DCC7A4] bg-white px-6 text-[14px] font-semibold text-[#6F6255] transition hover:bg-[#FAF4EA]"
-              >
+            <div className={ui.sheetFooter}>
+              <Btn variant="soft" onClick={onClose}>
                 Close
-              </button>
+              </Btn>
             </div>
           </motion.div>
         </motion.div>

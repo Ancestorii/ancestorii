@@ -7,6 +7,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getBrowserClient } from "@/lib/supabase/browser";
 import { memoriesLinks, heirloomsLinks, accountLinks } from "@/lib/dashboardNavigation";
+import { btnClass, useDialog } from "@/components/dashboard/ui/AppBits";
+
+// One round 44px button in the floating bar: ink with a white icon for the section you're in.
+const tab = (on: boolean) =>
+  `flex h-11 w-11 flex-none items-center justify-center rounded-full transition-[background-color,color,transform] duration-200 active:scale-90 ${
+    on ? "bg-[var(--ink)] text-white" : "text-[var(--ink)] hover:bg-[var(--hover)]"
+  }`;
 
 export default function BottomNavigation({
   setMemoriesOpen,
@@ -37,8 +44,10 @@ const isAccount = accountLinks.some(link =>
 const active = isHome ? "home" : isOurFamily ? "our-family" : isMemories ? "memories" : isHeirlooms ? "heirlooms" : isAccount ? "account" : "home";
   const router = useRouter();
   const supabase = getBrowserClient();
-  
+
   const [confirmLogout, setConfirmLogout] = useState(false);
+  // Escape cancels the log-out question, Tab stays inside it, focus returns to the button.
+  const confirmRef = useDialog<HTMLDivElement>(confirmLogout, () => setConfirmLogout(false));
 
   const openMemories = () => {
   setMemoriesOpen(true);
@@ -56,100 +65,105 @@ const goHome = () => {};
 
   return (
     <>
-      <div className="lg:hidden fixed bottom-0 left-1/2 -translate-x-1/2 z-[200] pb-4">
+      <nav
+        aria-label="Dashboard"
+        className="lg:hidden fixed bottom-0 left-1/2 -translate-x-1/2 z-[200] pb-[max(16px,env(safe-area-inset-bottom))]"
+      >
 
-        <div className="bg-white/90 backdrop-blur-2xl border border-[#D4AF37]/40 shadow-[0_8px_30px_rgba(0,0,0,0.08)] rounded-full px-1.5 py-1.5 transition">
-
-          <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-1 rounded-full bg-white p-1.5 shadow-[0_0_0_1.5px_rgba(10,10,15,0.08),0_16px_40px_-14px_rgba(10,10,15,0.4)]">
 
             {/* OUR FAMILY */}
             <Link
               href="/dashboard/our-family"
-              className={`flex items-center justify-center h-9 w-9 rounded-full transition-all active:scale-90
-              ${active === 'our-family' ? "bg-[#0F1A2E]" : "hover:bg-black/5"}`}
+              aria-label="My Family"
+              aria-current={active === 'our-family' ? 'page' : undefined}
+              className={tab(active === 'our-family')}
             >
-              <Users
-                className={`h-[17px] w-[17px] ${active === 'our-family' ? "text-[#D4AF37]" : "text-slate-700"}`}
-                strokeWidth={1.8}
-              />
+              <Users className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
             </Link>
 
             {/* MEMORIES */}
             <button
+              type="button"
               onClick={openMemories}
-              className={`flex items-center justify-center h-9 w-9 rounded-full transition-all active:scale-90
-              ${active === 'memories' ? "bg-[#0F1A2E]" : "hover:bg-black/5"}`}
+              aria-label="My Memories"
+              aria-haspopup="dialog"
+              className={tab(active === 'memories')}
             >
-              <Library
-                className={`h-[17px] w-[17px] ${active === 'memories' ? "text-[#D4AF37]" : "text-slate-700"}`}
-                strokeWidth={2}
-              />
+              <Library className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
             </button>
 
             {/* HEIRLOOMS */}
             <button
+              type="button"
               onClick={openHeirlooms}
-              className={`flex items-center justify-center h-9 w-9 rounded-full transition-all active:scale-90
-              ${active === 'heirlooms' ? "bg-[#0F1A2E]" : "hover:bg-black/5"}`}
+              aria-label="My Heirlooms"
+              aria-haspopup="dialog"
+              className={tab(active === 'heirlooms')}
             >
-              <Gem
-                className={`h-[17px] w-[17px] ${active === 'heirlooms' ? "text-[#D4AF37]" : "text-slate-700"}`}
-                strokeWidth={1.8}
-              />
+              <Gem className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
             </button>
 
             {/* ACCOUNT */}
             <button
+              type="button"
               onClick={openAccount}
-              className={`flex items-center justify-center h-9 w-9 rounded-full transition-all active:scale-90
-              ${active === 'account' ? "bg-[#0F1A2E]" : "hover:bg-black/5"}`}
+              aria-label="My Account"
+              aria-haspopup="dialog"
+              className={tab(active === 'account')}
             >
-              <User
-                className={`h-[17px] w-[17px] ${active === 'account' ? "text-[#D4AF37]" : "text-slate-700"}`}
-                strokeWidth={1.8}
-              />
+              <User className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
             </button>
+
+            <span className="mx-0.5 h-6 w-[1.5px] flex-none rounded-full bg-[var(--rule)]" aria-hidden="true" />
 
             {/* LOGOUT */}
             <button
+              type="button"
               onClick={() => setConfirmLogout(true)}
-              className="flex items-center justify-center h-9 w-9 rounded-full transition-all active:scale-90 hover:bg-red-50"
+              aria-label="Log out"
+              aria-haspopup="dialog"
+              className={tab(false)}
             >
-              <LogOut
-                className="h-[17px] w-[17px] text-red-400"
-                strokeWidth={2}
-              />
+              <LogOut className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
             </button>
 
-          </div>
         </div>
-      </div>
+      </nav>
 
       {/* LOGOUT CONFIRM MODAL */}
       {confirmLogout && (
-        <div className="fixed inset-0 z-[300] bg-black/30 backdrop-blur-sm flex items-center justify-center px-6">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[rgba(10,10,15,0.45)] px-6">
 
-          <div className="bg-white rounded-[22px] border-2 border-[#D4AF37]/50 shadow-[0_20px_60px_rgba(0,0,0,0.2)] p-6 w-full max-w-[320px]">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="logout-confirm-title"
+            ref={confirmRef}
+            className="w-full max-w-[340px] rounded-[24px] bg-white p-6 text-[var(--ink)] shadow-[0_30px_70px_-30px_rgba(10,10,15,0.45)]"
+          >
 
-            <p className="text-[15px] font-semibold text-slate-900 mb-4">
+            <p id="logout-confirm-title" className="text-[20px] font-extrabold leading-tight tracking-[-0.035em]">
               Log out of your account?
             </p>
 
-            <div className="flex justify-end gap-3">
+            <div className="mt-6 grid grid-cols-2 gap-2.5">
 
               <button
+                type="button"
                 onClick={() => setConfirmLogout(false)}
-                className="px-4 py-2 text-[13px] font-semibold text-slate-700"
+                className={btnClass({ variant: 'soft' })}
               >
                 Cancel
               </button>
 
              <button
+  type="button"
   onClick={async () => {
     await supabase.auth.signOut({ scope: 'local' });
     router.push("/login");
   }}
-  className="px-4 py-2 text-[13px] font-semibold text-red-600"
+  className={btnClass({ variant: 'primary' })}
 >
   Log out
 </button>

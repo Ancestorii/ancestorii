@@ -1,0 +1,223 @@
+/* ============================================================
+   My Family (/dashboard/our-family): the few looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have.
+   Kit classes sit in the "components" cascade layer, so a plain
+   rule here wins over them (the doubled .x.x classes date from
+   before the kit was layered and are harmless).
+   ============================================================ */
+
+/* ── Title: the family name, the verified seal and the rename pencil ── */
+
+/* Same size as the kit's .title, so the seal and the pencil flow after the last word. */
+.titleLine {
+  font-size: clamp(36px, 4.6vw, 64px);
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.titleText {
+  display: inline;
+}
+
+/* The seal sits on the baseline like a letter, a little shorter than the capitals. */
+.seal {
+  display: inline-block;
+  width: 0.62em;
+  height: 0.62em;
+  margin-left: 0.18em;
+  vertical-align: -0.04em;
+}
+
+/* Negative block margins keep the button from opening up the title's last line. */
+.pencil {
+  margin-left: 0.12em;
+  margin-block: -8px;
+  vertical-align: 0.1em;
+}
+
+/* The rename field, at the title's size, with the kit's pink focus. */
+.titleInput {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.06em 0.28em 0.1em;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: clamp(36px, 4.6vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.titleInput:focus {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 5px rgba(255, 45, 135, 0.14);
+}
+
+.titleInput:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+/* ── Touch: small buttons keep a 44px tap target ─────────── */
+
+@media (pointer: coarse) {
+  .tapSafe.tapSafe {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ── Member card ──────────────────────────────────────────── */
+
+/* The card is a <button>, and a button centres its content vertically. Stretched to the
+   tallest card in its row, a shorter card's avatar and role chip sat lower than its
+   neighbours'. As a flex column its content starts at the top, like the invite cards. */
+.memberCard.memberCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* ── Pending invite: an empty seat with a dashed ring ─────── */
+
+.seat {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px dashed rgba(10, 10, 15, 0.3);
+  background: #fff;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seatExpired {
+  opacity: 0.45;
+}
+
+/* ── Closing call to action: the page's one ink card ──────── */
+
+.cta.cta {
+  padding: clamp(44px, 5vw, 64px) clamp(24px, 4vw, 56px);
+  text-align: center;
+}
+
+/* Phones and small tablets: the title starts under the cropped pink dot, and the button
+   ends above the blue one (as on the landing's slab). */
+@media (max-width: 767px) {
+  .cta.cta {
+    padding: 84px 22px 56px;
+  }
+}
+
+.ctaInner {
+  position: relative;
+  max-width: 36rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ctaTitle {
+  margin: 0;
+  max-width: 15ch;
+  font-size: clamp(30px, 3.6vw, 48px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+.ctaText {
+  margin: 16px 0 0;
+  max-width: 31em;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.ctaBtn {
+  margin-top: 28px;
+}
+
+/* ── Invite drawer: the points to weigh before inviting ──── */
+
+.considerList {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.consider {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.considerIcon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--hover);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The two warnings sit in the kit's orange notice, their icon on a solid orange dot. */
+.considerWarn .considerIcon {
+  background: var(--c2);
+}
+
+.considerTitle {
+  display: block;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+.considerText {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* "OR" between the link and the email invite. */
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 22px 0;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.orRule::before,
+.orRule::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1.5px;
+  background: var(--rule);
+}

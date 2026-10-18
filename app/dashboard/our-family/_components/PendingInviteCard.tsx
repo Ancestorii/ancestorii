@@ -1,6 +1,9 @@
 'use client';
 
-import { Mail, Clock, X } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { Mail } from 'lucide-react';
+import { ui, Btn } from '@/components/dashboard/ui/AppBits';
+import s from './family.module.css';
 
 type PendingInvite = {
   id: string;
@@ -11,6 +14,8 @@ type PendingInvite = {
   created_at: string;
   inviter_name?: string | null;
 };
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 export default function PendingInviteCard({
   invite,
@@ -34,68 +39,49 @@ export default function PendingInviteCard({
   const isExpired = daysLeft === 0;
 
   return (
-    <div
-      className="rounded-[20px] border bg-[#FFFDF9] px-5 py-6 sm:px-6 sm:py-7 shadow-[0_14px_36px_rgba(44,36,27,0.05)] relative"
-      style={{
-        borderColor: isExpired ? '#E5D5D5' : '#EAD8B8',
-        opacity: isExpired ? 0.6 : 1,
-      }}
-    >
-      {/* Cancel button */}
-      <button
-        onClick={onCancel}
-        className="absolute top-4 right-4 flex h-7 w-7 items-center justify-center rounded-full bg-[#F5F0E8] text-[#9B8E7D] transition hover:bg-[#EAD8B8] hover:text-[#6F6255]"
-        title="Cancel invite"
-      >
-        <X size={14} strokeWidth={2} />
-      </button>
+    <div className={cx(ui.card, 'h-full')}>
+      <div className="flex items-start justify-between gap-3">
+        {/* An empty seat, waiting for them */}
+        <span className={cx(s.seat, isExpired && s.seatExpired)} aria-hidden="true">
+          <Mail size={22} strokeWidth={2.2} />
+        </span>
 
-      <div className="flex items-start gap-4">
-        {/* Icon */}
-        <div
-          className="h-[56px] w-[56px] flex-shrink-0 overflow-hidden rounded-full flex items-center justify-center"
-          style={{
-            border: '2px dashed #DCC7A4',
-            backgroundColor: '#FAF4EA',
-          }}
+        {/* Cancel button */}
+        <Btn
+          variant="dangerSoft"
+          size="sm"
+          onClick={onCancel}
+          aria-label={`Cancel invite to ${invite.email}`}
+          className={s.tapSafe}
         >
-          <Mail size={20} className="text-[#C8A557]" strokeWidth={1.6} />
-        </div>
+          Cancel
+        </Btn>
+      </div>
 
-        {/* Info */}
-        <div className="min-w-0 flex-1 pr-6">
-          <p className="text-[15px] font-semibold text-[#17120E] truncate">
-            {invite.email}
-          </p>
+      {/* Info */}
+      <p className="mt-4 truncate text-[17px] font-extrabold leading-[1.25] tracking-[-0.03em]">
+        {invite.email}
+      </p>
 
-          <p className="mt-1 text-[13px] text-[#9B8E7D]">
-            Invited as{' '}
-            <span className="font-semibold text-[#6F6255] capitalize">
-              {invite.role}
-            </span>
-            {invite.inviter_name && (
-              <span>
-                {' '}
-                by {invite.inviter_name}
-              </span>
-            )}
-          </p>
+      <p className="mt-1 text-[14px] font-medium leading-snug">
+        Invited as{' '}
+        <span className="font-extrabold capitalize">{invite.role}</span>
+        {invite.inviter_name && (
+          <span>
+            {' '}
+            by {invite.inviter_name}
+          </span>
+        )}
+      </p>
 
-          <div className="mt-3 flex items-center gap-3">
-            <span className="text-[12px] text-[#9B8E7D]">Sent {sentDate}</span>
-
-            <span className="text-[#DCC7A4]">·</span>
-
-            <span
-              className={`inline-flex items-center gap-1 text-[12px] font-medium ${
-                isExpired ? 'text-[#B35454]' : 'text-[#A9782F]'
-              }`}
-            >
-              <Clock size={11} strokeWidth={2} />
-              {isExpired ? 'Expired' : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`}
-            </span>
-          </div>
-        </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className={cx(ui.chip, ui.chipSm)}>Sent {sentDate}</span>
+        <span
+          className={cx(ui.chip, ui.chipSm, ui.chipDot)}
+          style={{ '--dot': isExpired ? 'var(--danger)' : 'var(--c2)' } as CSSProperties}
+        >
+          {isExpired ? 'Expired' : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`}
+        </span>
       </div>
     </div>
   );

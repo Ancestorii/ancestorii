@@ -1,9 +1,19 @@
 'use client';
 
-// with:
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type CSSProperties } from 'react';
 import { Users, UserPlus, Pencil } from 'lucide-react';
 import { FamilyVerifiedBadge } from '@/components/ui/FamilyVerifiedBadge';
+import { ui, Btn, Eyebrow, IconBtn } from '@/components/dashboard/ui/AppBits';
+import s from './family.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
+
+// The dot on the role chip: the same colour for a role here and on the member cards.
+const ROLE_DOT: Record<string, string> = {
+  owner: 'var(--c2)',
+  admin: 'var(--c1)',
+  member: 'var(--c3)',
+};
 
 export default function OurFamilyHeader({
   familyName,
@@ -53,101 +63,76 @@ export default function OurFamilyHeader({
     myRole === 'owner' ? 'Owner' : myRole === 'admin' ? 'Admin' : 'Member';
 
   return (
-    <section
-      className="relative overflow-hidden"
-      style={{ background: 'rgb(250,245,235)' }}
-    >
-      <div className="px-[clamp(1.5rem,3vw,4rem)] py-[clamp(2.5rem,3vw,3.5rem)]">
-        <div className="mx-auto max-w-[1200px]">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#B8932A]">
-            My Family
-          </p>
+    <header className={ui.header}>
+      <div className={ui.headerGlow} aria-hidden="true" />
 
-          <div className="mt-4 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-            {/* Left: family name + meta */}
-            <div className="min-w-0 flex-1">
-              {editing ? (
-                <input
-                  ref={inputRef}
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onBlur={handleSave}
-                  onKeyDown={handleKeyDown}
-                  disabled={saving}
-                  maxLength={60}
-                  className="w-full bg-transparent font-serif font-bold leading-[0.95] text-[#1A1612] outline-none border-b-2 border-[#C8A557] pb-1"
-                  style={{
-                    fontSize: 'clamp(2rem, 4.5vw, 3.5rem)',
-                    letterSpacing: '-0.03em',
-                  }}
-                />
-              ) : (
-                <div className="flex items-baseline gap-3">
-                  <h1
-                    className="font-serif font-bold leading-[0.95] text-[#1A1612]"
-                    style={{
-                      fontSize: 'clamp(2rem, 4.5vw, 3.5rem)',
-                      letterSpacing: '-0.03em',
-                    }}
-                  >
-                    {familyName}
-                    {isVerified && (
-                      <FamilyVerifiedBadge className="ml-[0.25em] inline-block h-[0.66em] w-[0.66em] align-middle" />
-                    )}
-                  </h1>
-                  {isOwner && (
-                    <button
-                      onClick={() => setEditing(true)}
-                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[#B8924A] hover:bg-[#EDE8DC] transition"
-                      title="Rename family"
-                    >
-                      <Pencil size={15} strokeWidth={1.8} />
-                    </button>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#E4D2AE] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#A06A1C]">
-                  <Users size={12} className="text-[#B8924A]" strokeWidth={1.8} />
-                  {roleLabel}
-                </span>
-
-                <span className="text-[14px] text-[#57534E]">
-                  {memberCount} {memberCount === 1 ? 'member' : 'members'}
-                </span>
-              </div>
-
-              <p className="mt-4 max-w-[520px] text-[15px] leading-[1.7] text-[#6F6255]">
-                Everyone here shares your family library: the photos, timelines,
-                albums, and stories you&apos;re preserving together.
-              </p>
-            </div>
-
-            {/* Right: invite button */}
-            {canInvite && (
-              <div className="flex-shrink-0">
-                <button
-                  onClick={onInvite}
-                  className="inline-flex items-center justify-center gap-2.5 h-[52px] rounded-[12px] bg-[#C8A557] px-7 text-[14px] font-semibold text-white shadow-[0_8px_20px_rgba(184,146,74,0.2)] transition hover:bg-[#B8924A]"
-                >
-                  <UserPlus size={16} strokeWidth={1.8} />
-                  Invite Member
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      <div className={ui.headerTop}>
+        <Eyebrow>My Family</Eyebrow>
       </div>
 
-      {/* Bottom gold line */}
-      <div
-        className="h-[3px]"
-        style={{
-          background:
-            'linear-gradient(to right, rgba(184,147,42,0.9), rgba(184,147,42,0.3))',
-        }}
-      />
-    </section>
+      <div className={ui.headerRow}>
+        {/* Left: family name + meta */}
+        <div className={ui.headerText}>
+          {editing ? (
+            <input
+              ref={inputRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={handleSave}
+              onKeyDown={handleKeyDown}
+              disabled={saving}
+              maxLength={60}
+              aria-label="Family name"
+              className={s.titleInput}
+            />
+          ) : (
+            <div className={s.titleLine}>
+              <h1 className={cx(ui.title, s.titleText)}>
+                {familyName}
+                {isVerified && <FamilyVerifiedBadge className={s.seal} />}
+              </h1>
+              {isOwner && (
+                <IconBtn
+                  label="Rename family"
+                  ghost
+                  size="sm"
+                  onClick={() => setEditing(true)}
+                  className={cx(s.pencil, s.tapSafe)}
+                >
+                  <Pencil size={18} strokeWidth={2.2} aria-hidden="true" />
+                </IconBtn>
+              )}
+            </div>
+          )}
+
+          <div className={ui.meta}>
+            <span
+              className={cx(ui.chip, ui.chipInk, ui.chipDot)}
+              style={{ '--dot': ROLE_DOT[myRole] ?? ROLE_DOT.member } as CSSProperties}
+            >
+              {roleLabel}
+            </span>
+            <span className={ui.chip}>
+              <Users size={15} strokeWidth={2.4} aria-hidden="true" />
+              {memberCount} {memberCount === 1 ? 'member' : 'members'}
+            </span>
+          </div>
+
+          <p className={ui.lead}>
+            Everyone here shares your family library: the photos, timelines,
+            albums, and stories you&apos;re preserving together.
+          </p>
+        </div>
+
+        {/* Right: invite button */}
+        {canInvite && (
+          <div className={ui.headerActions}>
+            <Btn onClick={onInvite} aria-haspopup="dialog" tile={<UserPlus size={18} strokeWidth={2.4} />}>
+              Invite Member
+            </Btn>
+          </div>
+        )}
+      </div>
+    </header>
   );
 }
