@@ -1,0 +1,145 @@
+/* ============================================================
+   ImageCropModal: the profile photo's crop dialog, in the app
+   kit's look (src/components/dashboard/ui/app.module.css).
+   The kit sits in the "components" cascade layer, so a plain
+   rule here wins over it.
+   A bottom sheet on phones, a centred dialog from 640px: the
+   photo on an ink stage, the zoom slider under it.
+   ============================================================ */
+
+/* Above the floating phone nav and the shell's sheets. Transparent: the root also carries the
+   kit's .app class (its tokens and font), whose white ground would hide the page. */
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: transparent;
+}
+
+.panel {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .root {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .panel {
+    max-width: 520px;
+    border-radius: 28px;
+  }
+}
+
+/* The photo on ink, with the kit's photo radius. */
+.stage {
+  position: relative;
+  height: min(360px, 46vh);
+  min-height: 200px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+/* The round crop area takes keyboard focus (arrow keys move the photo): the kit's blue ring. */
+.cropArea:focus {
+  outline: none;
+}
+
+.cropArea:focus-visible {
+  outline: 3px solid var(--c1);
+  outline-offset: 3px;
+}
+
+/* ── Zoom: a slider with an ink thumb on a faint track ───── */
+
+.zoomRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.zoomRow > svg {
+  flex: none;
+}
+
+.zoom {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px; /* the tap height; the track is drawn thinner inside it */
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.zoom:focus {
+  outline: none;
+}
+
+.zoom::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(10, 10, 15, 0.14);
+}
+
+.zoom::-moz-range-track {
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(10, 10, 15, 0.14);
+}
+
+.zoom::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  margin-top: -9px; /* centres the thumb on the 6px track */
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px #fff;
+  transition: transform 0.15s ease;
+}
+
+.zoom::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px #fff;
+  transition: transform 0.15s ease;
+}
+
+@media (hover: hover) {
+  .zoom:hover::-webkit-slider-thumb {
+    transform: scale(1.1);
+  }
+
+  .zoom:hover::-moz-range-thumb {
+    transform: scale(1.1);
+  }
+}
+
+/* Keyboard focus: the kit's blue ring round the thumb, outside a white gap. */
+.zoom:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 6px var(--c1);
+}
+
+.zoom:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 6px var(--c1);
+}

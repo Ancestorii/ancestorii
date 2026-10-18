@@ -11,8 +11,9 @@ import {
   LayoutGrid,
   Image as ImageIcon,
   Play,
+  Save,
 } from 'lucide-react';
-import { ui, Avatar, Btn } from '@/components/dashboard/ui/AppBits';
+import { ui, Avatar, Btn, Eyebrow } from '@/components/dashboard/ui/AppBits';
 import s from './albums.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -133,6 +134,10 @@ export default function AlbumHeader({
 
       {/* Title, counts, description, people */}
       <div className={s.titleBlock}>
+        <div className={ui.headerTop}>
+          <Eyebrow dot="var(--c2)">Album</Eyebrow>
+        </div>
+
         <h1 className={cx(ui.title, ui.titleMd)}>{album.title}</h1>
 
         <div className={ui.meta}>
@@ -207,12 +212,19 @@ function SaveButton() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  // As in the print editors: a soft button with the save icon, a tick once saved.
   return (
     <Btn
-      variant={saved ? 'primary' : 'soft'}
+      variant="soft"
       size="sm"
       onClick={handleSave}
-      icon={saved ? <Check size={16} strokeWidth={2.6} aria-hidden="true" /> : null}
+      icon={
+        saved ? (
+          <Check size={17} strokeWidth={2.6} aria-hidden="true" />
+        ) : (
+          <Save size={17} strokeWidth={2.2} aria-hidden="true" />
+        )
+      }
       className={s.saveBtn}
     >
       {saved ? 'Saved' : 'Save'}

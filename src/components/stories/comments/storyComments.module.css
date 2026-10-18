@@ -97,7 +97,7 @@
   border: 0;
   border-radius: 10px;
   background: var(--c0);
-  color: #fff;
+  color: var(--ink); /* ink on pink: white text only goes on blue and ink */
   font: inherit;
   font-size: 13px;
   font-weight: 800;

@@ -88,7 +88,7 @@ export default function CanvasBuilder({
           tone={toneByKey('orange')}
           title="Bigger screen needed"
           text="The canvas editor works best on a laptop, desktop, or tablet. Open Ancestorii on a bigger screen to design your memory canvas."
-          className="m-auto w-full max-w-[460px]"
+          className="m-auto w-full max-w-[440px]"
         >
           <a href="/dashboard/canvas" className={btnClass({ variant: 'primary' })}>
             <ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />

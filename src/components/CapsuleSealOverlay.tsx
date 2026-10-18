@@ -3,8 +3,8 @@
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useEffect, useId, useMemo, type CSSProperties } from 'react';
 import { Lock } from 'lucide-react';
-import { ui, useDialog } from '@/components/dashboard/ui/AppBits';
-import s from './CapsuleSealOverlay.module.css';
+import { ui, Accent, useDialog } from '@/components/dashboard/ui/AppBits';
+import s from './Celebration.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
@@ -15,16 +15,6 @@ type CapsuleSealedOverlayProps = {
   onClose: () => void;
   durationMs?: number;
 };
-
-// The four colours burst out of the seal once, to where they rest around it.
-const DOTS = [
-  { color: 'var(--c1, #2b4bff)', x: -78, y: -40, size: 14 },
-  { color: 'var(--c2, #ff7a1a)', x: 80, y: -32, size: 12 },
-  { color: 'var(--c3, #12d3ac)', x: -70, y: 50, size: 11 },
-  { color: 'var(--c0, #ff2d87)', x: 74, y: 46, size: 16 },
-];
-
-const EASE = [0.2, 0.8, 0.2, 1] as const;
 
 function getTimeRemaining(unlockDate: string) {
   const now = new Date();
@@ -79,91 +69,54 @@ export default function CapsuleSealedOverlay({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className={s.overlay}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className={s.scrim}
             onClick={onClose}
           >
+            {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
             <motion.div
               ref={panelRef}
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
-              initial={{ scale: 0.92, opacity: 0, y: 32 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.97, opacity: 0, y: 16 }}
-              transition={{ duration: 0.55, ease: EASE }}
+              initial={{ opacity: 0, transform: 'translateY(30px) scale(0.92)' }}
+              animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
+              exit={{ opacity: 0, transform: 'translateY(20px) scale(0.95)' }}
+              transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
               className={s.card}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Lock Emblem */}
-              <div className={s.emblemWrap} aria-hidden="true">
-                {DOTS.map((d) => (
-                  <motion.span
-                    key={d.color}
-                    className={s.dot}
-                    style={{
-                      width: d.size,
-                      height: d.size,
-                      marginLeft: -d.size / 2,
-                      marginTop: -d.size / 2,
-                      background: d.color,
-                    } as CSSProperties}
-                    initial={{ x: 0, y: 0, scale: 0.3, opacity: 0 }}
-                    animate={{ x: d.x, y: d.y, scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.7, ease: EASE }}
-                  />
-                ))}
+              <span className={s.corners} aria-hidden="true">
+                <span className={s.cornerPink} />
+                <span className={s.cornerBlue} />
+              </span>
 
-                <motion.div
-                  initial={{ y: -40, scale: 0.7, opacity: 0 }}
-                  animate={{ y: 0, scale: 1, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 17, delay: 0.1 }}
-                  className={s.emblem}
-                >
-                  <Lock size={40} strokeWidth={2.4} />
-                </motion.div>
+              {/* Lock: the pink Capsules tile, and the four colours bursting out of it once */}
+              <div className={s.badge} aria-hidden="true">
+                <span className={s.spark} />
+                <span className={s.spark} />
+                <span className={s.spark} />
+                <span className={s.spark} />
+                <span className={s.tile} style={{ '--tile': 'var(--c0)', '--tile-fg': '#fff' } as CSSProperties}>
+                  <Lock size={36} strokeWidth={2.2} />
+                </span>
               </div>
 
               {/* Headline */}
-              <motion.h2
-                id={titleId}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.5, ease: EASE }}
-                className={s.title}
-              >
-                Capsule <span className={s.accent}>Locked</span>
-              </motion.h2>
+              <h2 id={titleId} className={s.title}>
+                Capsule <Accent>Locked</Accent>
+              </h2>
 
               {/* Capsule Title */}
-              <motion.p
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45, duration: 0.5, ease: EASE }}
-                className={s.name}
-              >
-                “{capsuleTitle}”
-              </motion.p>
+              <p className={s.name}>“{capsuleTitle}”</p>
 
               {/* Unlock Date */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.55, duration: 0.5, ease: EASE }}
-                className={s.meta}
-              >
+              <div className={s.meta}>
                 <span className={cx(ui.chip, ui.chipDot, s.chip)}>Sealed until {formattedDate}</span>
-              </motion.div>
+              </div>
 
               {/* Time Remaining */}
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.65, duration: 0.5, ease: EASE }}
-                className={s.remaining}
-              >
-                {remaining}
-              </motion.p>
+              <p className={s.note}>{remaining}</p>
             </motion.div>
           </motion.div>
         )}

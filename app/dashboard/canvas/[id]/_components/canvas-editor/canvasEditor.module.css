@@ -26,7 +26,7 @@
   justify-content: space-between;
   gap: 16px;
   height: 72px; /* the stage starts under it: the canvas's size and place depend on it */
-  padding: 0 20px;
+  padding: 0 24px; /* 20px below 1280px, as in the Book and Acrylic Print editors */
   background: #fff;
   border-bottom: 1.5px solid var(--rule);
 }
@@ -76,9 +76,10 @@
   flex: none;
 }
 
-/* Save, Saving..., Saved! keep one width ("Saved!" with its tick is the widest, 104px). */
+/* Save, Saving..., Saved! keep one width, each with its icon (as in the Book and Acrylic Print
+   editors). */
 .saveBtn {
-  min-width: 104px;
+  min-width: 118px;
 }
 
 /* Laptops: a little tighter (as in the Acrylic Print editor), so the canvas's name keeps room
@@ -86,6 +87,7 @@
 @media (max-width: 1279px) {
   .header {
     gap: 12px;
+    padding: 0 20px;
   }
 
   .headerStart {

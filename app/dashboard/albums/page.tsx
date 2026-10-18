@@ -17,6 +17,7 @@ import {
   AppLoader,
   Btn,
   EmptyState,
+  IconTile,
   PageHeader,
   btnClass,
   tone,
@@ -205,11 +206,11 @@ export default function AlbumsPage() {
           {/* Columns follow the space beside the sidebar: 1 on phones, 2 on tablets, 3 on desktops */}
           {!loading && !error && list.length > 0 && (
             <div className="@container">
-              <ul role="list" className="grid grid-cols-1 gap-x-6 gap-y-10 @xl:grid-cols-2 @4xl:grid-cols-3">
+              <ul role="list" className="grid grid-cols-1 gap-5 @xl:grid-cols-2 @4xl:grid-cols-3">
                 {list.map((a, i) => (
-                  <li key={a.id} className={s.album}>
+                  <li key={a.id} className={cx(ui.card, s.album)}>
                     <div
-                      className={cx(ui.frame, s.albumFrame)}
+                      className={ui.frame}
                       style={{ '--frame': tone(i).bg } as CSSProperties}
                     >
                       <div className={cx(ui.frameInner, s.albumCover)}>
@@ -217,7 +218,7 @@ export default function AlbumsPage() {
                           <AlbumCover src={a.cover_image} alt={a.title || 'Album cover'} />
                         ) : (
                           <div className={s.noCover}>
-                            <Images size={34} strokeWidth={2} aria-hidden="true" />
+                            <IconTile Icon={Images} tone={toneByKey('orange')} size="lg" />
                             No cover image
                           </div>
                         )}

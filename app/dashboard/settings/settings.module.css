@@ -1,0 +1,166 @@
+/* ============================================================
+   Settings (/dashboard/settings): the looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have.
+   The kit sits in the "components" cascade layer, so a plain
+   rule here wins over it.
+   Two notification cards (side by side once the column is wide
+   enough: a container query, so it follows the room beside the
+   sidebar, not the screen) and the Security card under them.
+   ============================================================ */
+
+.settings {
+  container-type: inline-size;
+  display: grid;
+  gap: 20px;
+}
+
+.prefs {
+  display: grid;
+  gap: 20px;
+}
+
+@container (min-width: 760px) {
+  .prefs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── A notification card (ui.card): the setting, then saving at the foot ── */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(22px, 3vw, 32px);
+}
+
+/* The words grow, so side-by-side cards keep their feet on one line. */
+.cardBody {
+  flex: 1 1 auto;
+  padding-bottom: 24px;
+}
+
+/* The colour tile on the left, the switch on the right. */
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.title {
+  margin: 20px 0 0;
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.text {
+  margin: 10px 0 0;
+  max-width: 34em;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+
+/* The kit's switch, with an invisible ring that makes the tap target 44px tall. */
+.switch::after {
+  content: '';
+  position: absolute;
+  inset: -7px -4px;
+}
+
+/* Saving, under a hairline. The confirmation sits beside the button in a row a little
+   taller than the button, so it appears without moving anything (on phones it wraps onto
+   three short lines, which still fit). */
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 20px;
+  border-top: 1.5px solid var(--rule);
+}
+
+.foot > :first-child {
+  flex: none;
+}
+
+.saved {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 52px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.25;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+/* A round aqua dot with an ink tick. */
+.savedDot {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--c3);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Security: the words, then the new password field ─────── */
+
+.security {
+  display: grid;
+  gap: 24px;
+  padding: clamp(22px, 3vw, 32px);
+}
+
+.securityHead,
+.securityForm {
+  min-width: 0;
+}
+
+/* The field and its button share a row while there is room; otherwise the button moves
+   under the field, at its own width like the Save buttons above. */
+.passRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.passInput {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+/* As tall as the field beside it. */
+.passBtn {
+  flex: none;
+  min-height: 52px;
+}
+
+/* Wide: the words on the left, the field on the right of a hairline that runs the card's
+   height, the field centred against the words. */
+@container (min-width: 760px) {
+  .security {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 40px;
+  }
+
+  .securityForm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 40px;
+    border-left: 1.5px solid var(--rule);
+  }
+}

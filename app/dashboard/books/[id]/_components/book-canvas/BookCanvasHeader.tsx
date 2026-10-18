@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Check, Download, Eye, Save } from 'luc
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import RewardCodeField from '@/components/dashboard/RewardCodeField';
-import { Btn, IconTile, Spinner, toneByKey, ui, useDialog } from '@/components/dashboard/ui/AppBits';
+import { Btn, IconTile, Spinner, Tag, toneByKey, ui, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './bookCanvasHeader.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -202,9 +202,15 @@ export default function BookCanvasHeader({
           <span className={s.backLabel}>Back to Books</span>
         </Btn>
 
-        <h1 className={s.title} title={title}>
-          {title}
-        </h1>
+        <span className={s.headerRule} aria-hidden="true" />
+
+        {/* The feature's tag over the book's name, as in the Canvas and Acrylic Print editors */}
+        <div className={s.titleBlock}>
+          <Tag dot="var(--c2)">Memory Book</Tag>
+          <h1 className={s.title} title={title}>
+            {title}
+          </h1>
+        </div>
 
         <div className={s.actions}>
           <Btn

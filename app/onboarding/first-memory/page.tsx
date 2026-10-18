@@ -1,12 +1,27 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ImagePlus, X, Loader2, Lock, Camera } from 'lucide-react';
+import { ArrowRight, Camera, ImagePlus, X } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ensureDisplayableImage } from '@/lib/convertImage';
 import { Logo } from '@/components/landing/LandingBits';
+import {
+  ui,
+  appRoot,
+  Accent,
+  AppLoader,
+  Btn,
+  Eyebrow,
+  IconBtn,
+  IconTile,
+  Spinner,
+  toneByKey,
+} from '@/components/dashboard/ui/AppBits';
+import s from './firstMemory.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type PendingPhoto = { id: string; file: File; preview: string };
 
@@ -15,6 +30,8 @@ export default function FirstMemoryPage() {
   const router = useRouter();
 
   const [familyName, setFamilyName] = useState('');
+  // While a photo is dragged over a drop zone (the zone highlights).
+  const [dragging, setDragging] = useState(false);
   const [familyId, setFamilyId] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -26,6 +43,10 @@ export default function FirstMemoryPage() {
   const [submitStep, setSubmitStep] = useState('');
   const [error, setError] = useState('');
   const [photoLimitNotice, setPhotoLimitNotice] = useState('');
+
+  // Labels tied to their fields.
+  const titleId = useId();
+  const bodyId = useId();
 
   useEffect(() => {
     const init = async () => {
@@ -186,226 +207,235 @@ export default function FirstMemoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-[#B8932A]" size={24} />
+      <div className={cx(appRoot, s.loading)}>
+        <AppLoader />
       </div>
     );
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center bg-white px-5 sm:px-8 pt-8 sm:pt-12 pb-12"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
-    >
+    <div className={cx(appRoot, s.page)}>
       {/* ── Compact header ── */}
-      <div className="mb-6">
+      <div className={s.top}>
         <Logo href="/" />
       </div>
 
-      <div className="w-full max-w-[560px]">
+      <main className={s.main}>
+        {/* ── Headline ── */}
+        <header className={cx(ui.header, s.intro)}>
+          <div className={ui.headerGlow} aria-hidden="true" />
+          <Eyebrow dot="var(--c0)">Private memory</Eyebrow>
+          <h1 className={s.title}>
+            Write your first <Accent>memory</Accent>
+          </h1>
+          <p className={s.lead}>
+            Start {familyName || 'your family'} with something simple: a moment you
+            don&apos;t want to lose.
+          </p>
+        </header>
 
         {/* ── Main card ── */}
-        <div className="border border-[#E8E2D6] bg-white overflow-hidden">
+        <div className={cx(ui.card, ui.cardLift, s.card)}>
 
-          {/* ── PHOTO HERO ZONE (top of card) ── */}
-          <div className="bg-[#F5F0E5]">
-            {photos.length > 0 ? (
-              <div>
-                {/* Photo grid inside warm background */}
-                <div className="p-4">
-                  <div className={`grid gap-2 ${
-                    photos.length === 1
-                      ? 'grid-cols-1'
-                      : photos.length === 2
-                      ? 'grid-cols-2'
-                      : 'grid-cols-2 sm:grid-cols-3'
-                  }`}>
-                    {photos.map((photo) => (
-                      <div
-                        key={photo.id}
-                        className={`group relative overflow-hidden bg-[#E8E0D0] ${
-                          photos.length === 1
-                            ? 'aspect-[16/9]'
-                            : 'aspect-square'
-                        }`}
-                      >
-                        <Image
-                          src={photo.preview}
-                          alt=""
-                          fill
-                          className="object-cover"
-                        />
-                        {!submitting && (
-                          <button
-                            onClick={() => removePhoto(photo.id)}
-                            className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center bg-[#181512]/70 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X size={12} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Add more strip */}
-                  {photos.length < 10 && (
-                    <label className="flex items-center justify-center gap-2 mt-3 py-2.5 border border-dashed border-[#C8B898] cursor-pointer hover:border-[#B8932A] transition-colors">
-                      <ImagePlus size={14} className="text-[#B8932A]" />
-                      <span className="text-[12px] font-medium text-[#6F6255]">
-                        Add more photos
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*,.heic"
-                        multiple
-                        hidden
-                        disabled={processing}
-                        onChange={(e) => {
-                          if (e.target.files?.length)
-                            addPhotos(e.target.files);
-                          e.target.value = '';
-                        }}
-                      />
-                    </label>
-                  )}
-                </div>
-              </div>
-            ) : (
-              /* Empty state: large inviting upload area */
-              <label
-                className={`flex flex-col items-center justify-center py-16 sm:py-20 cursor-pointer transition-all ${
-                  processing ? '' : 'hover:bg-[#F0E9D8]'
-                }`}
-              >
-                {processing ? (
-                  <>
-                    <Loader2
-                      size={28}
-                      className="animate-spin text-[#B8932A] mb-3"
-                    />
-                    <p className="text-[14px] font-medium text-[#B8932A]">
-                      Processing…
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-center w-14 h-14 bg-white border border-[#D4C9B2] mb-4">
-                      <Camera size={24} className="text-[#B8932A]" />
-                    </div>
-                    <p className="text-[15px] font-semibold text-[#2A2318] mb-1">
-                      Start with a photo
-                    </p>
-                    <p className="text-[12px] text-[#9C9488]">
-                      JPG, PNG or HEIC. Up to 10
-                    </p>
-                  </>
+          {/* ── Photos (top of card) ── */}
+          {photos.length > 0 ? (
+            <div>
+              <ul
+                role="list"
+                className={cx(
+                  s.photos,
+                  'grid gap-2.5',
+                  photos.length === 1
+                    ? 'grid-cols-1'
+                    : photos.length === 2
+                    ? 'grid-cols-2'
+                    : 'grid-cols-2 sm:grid-cols-3'
                 )}
-                <input
-                  type="file"
-                  accept="image/*,.heic"
-                  multiple
-                  hidden
-                  disabled={processing}
-                  onChange={(e) => {
-                    if (e.target.files?.length)
-                      addPhotos(e.target.files);
-                    e.target.value = '';
+              >
+                {photos.map((photo) => (
+                  <li
+                    key={photo.id}
+                    className={cx(
+                      s.tile,
+                      photos.length === 1
+                        ? 'aspect-[16/9]'
+                        : 'aspect-square'
+                    )}
+                  >
+                    <Image
+                      src={photo.preview}
+                      alt=""
+                      fill
+                      sizes="(min-width: 640px) 540px, 100vw"
+                      className={s.tileImg}
+                    />
+                    {!submitting && (
+                      <IconBtn
+                        label="Remove photo"
+                        size="sm"
+                        onPhoto
+                        onClick={() => removePhoto(photo.id)}
+                        className={s.tileRemove}
+                      >
+                        <X size={15} strokeWidth={2.6} aria-hidden="true" />
+                      </IconBtn>
+                    )}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Add more strip */}
+              {photos.length < 10 && (
+                <label
+                  className={cx(ui.dropzone, s.addMore, (processing || dragging) && ui.dropzoneActive)}
+                  onDragOver={(e) => { e.preventDefault(); if (!dragging) setDragging(true); }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={(e) => {
+                    // Without this, a photo dropped here opened in the tab and the text typed so far was lost.
+                    e.preventDefault();
+                    setDragging(false);
+                    if (!processing && e.dataTransfer.files?.length) addPhotos(e.dataTransfer.files);
                   }}
-                />
-              </label>
-            )}
-            {photoLimitNotice && (
-              <p className="mt-3 text-[12px] text-[#A9782F]">{photoLimitNotice}</p>
-            )}
-          </div>
-
-          {/* ── FORM SECTION ── */}
-          <div className="px-7 py-8 sm:px-9 sm:py-10 md:px-10 md:py-11">
-
-            {/* Headline inside the card */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-3">
-                <Lock size={10} className="text-[#C8A557]" />
-                <span className="text-[10px] font-semibold text-[#C8A557] tracking-[0.1em] uppercase">
-                  Private memory
-                </span>
-              </div>
-              <h2
-                className="text-[clamp(24px,4vw,28px)] tracking-[-0.03em] text-[#181512] leading-[1.1] mb-2"
-                style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontWeight: 600,
-                }}
-              >
-                Write your first{' '}
-                <span className="italic text-[#A9782F]">memory</span>
-              </h2>
-              <p className="text-[13px] text-[#8A7F72] leading-relaxed">
-                Start {familyName} with something simple: a moment you
-                don&apos;t want to lose.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              {/* Title */}
-              <div>
-                <label className="block text-[11px] font-semibold text-[#4A4030] mb-1.5 tracking-[0.04em] uppercase">
-                  Title
+                >
+                  {processing ? (
+                    <Spinner size={18} />
+                  ) : (
+                    <ImagePlus size={18} strokeWidth={2.4} aria-hidden="true" />
+                  )}
+                  <span className={s.addMoreText}>
+                    {processing ? 'Processing…' : 'Add more photos'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*,.heic"
+                    multiple
+                    className={ui.srOnly}
+                    disabled={processing}
+                    onChange={(e) => {
+                      if (e.target.files?.length)
+                        addPhotos(e.target.files);
+                      e.target.value = '';
+                    }}
+                  />
                 </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Sunday mornings with Nan"
-                  maxLength={200}
-                  className="w-full border border-[#E2DCD2] bg-[#FAFAF7] px-4 py-3 text-[14px] text-[#181512] placeholder-[#C5BEB2] focus:outline-none focus:border-[#B8932A] focus:ring-2 focus:ring-[#B8932A]/12 focus:bg-white transition-all"
-                />
-              </div>
-
-              {/* Body */}
-              <div>
-                <label className="block text-[11px] font-semibold text-[#4A4030] mb-1.5 tracking-[0.04em] uppercase">
-                  Your memory
-                </label>
-                <textarea
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  placeholder="Write a few sentences about this memory. What happened? Who was there? How did it feel?"
-                  rows={5}
-                  className="w-full border border-[#E2DCD2] bg-[#FAFAF7] px-4 py-3 text-[14px] text-[#181512] placeholder-[#C5BEB2] focus:outline-none focus:border-[#B8932A] focus:ring-2 focus:ring-[#B8932A]/12 focus:bg-white transition-all resize-none leading-relaxed"
-                />
-              </div>
-
-              {error && (
-                <div className="border border-[#E8C4C0] bg-[#FDF6F5] px-4 py-3">
-                  <p className="text-[13px] text-[#8B3A32]">{error}</p>
-                </div>
               )}
-
-              {/* Gold gradient CTA with depth */}
-              <button
-                onClick={handleSubmit}
-                disabled={!canSubmit || submitting}
-                className="w-full py-3.5 text-[13px] font-bold tracking-[0.06em] uppercase text-white transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-30"
-                style={{
-                  background: 'linear-gradient(180deg, #C8A557 0%, #A88530 100%)',
-                  boxShadow: canSubmit && !submitting
-                    ? '0 2px 8px rgba(184, 147, 42, 0.35), inset 0 1px 0 rgba(255,255,255,0.15)'
-                    : 'none',
+            </div>
+          ) : (
+            /* Empty state: large inviting upload area */
+            <label
+              className={cx(ui.dropzone, s.drop, (processing || dragging) && ui.dropzoneActive)}
+              onDragOver={(e) => { e.preventDefault(); if (!dragging) setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                // Without this, a photo dropped here opened in the tab and the text typed so far was lost.
+                e.preventDefault();
+                setDragging(false);
+                if (!processing && e.dataTransfer.files?.length) addPhotos(e.dataTransfer.files);
+              }}
+            >
+              {processing ? (
+                <>
+                  <span className={s.dropSpin}>
+                    <Spinner size={26} />
+                  </span>
+                  <span className={ui.dropzoneTitle}>
+                    Processing…
+                  </span>
+                </>
+              ) : (
+                <>
+                  <IconTile Icon={Camera} tone={toneByKey('orange')} size="lg" />
+                  <span className={ui.dropzoneTitle}>
+                    Start with a photo
+                  </span>
+                  <span className={ui.dropzoneHint}>
+                    JPG, PNG or HEIC. Up to 10
+                  </span>
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/*,.heic"
+                multiple
+                className={ui.srOnly}
+                disabled={processing}
+                onChange={(e) => {
+                  if (e.target.files?.length)
+                    addPhotos(e.target.files);
+                  e.target.value = '';
                 }}
-              >
-                {submitting
-                  ? submitStep || 'Saving…'
-                  : 'Save & Continue'}
-              </button>
+              />
+            </label>
+          )}
+          {photoLimitNotice && (
+            <p className={cx(ui.noticeWarn, s.notice)}>{photoLimitNotice}</p>
+          )}
+
+          {/* ── Form ── */}
+          <div className={s.fields}>
+            {/* Title */}
+            <div className={ui.field}>
+              <label htmlFor={titleId} className={ui.label}>
+                Title
+              </label>
+              <input
+                id={titleId}
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Sunday mornings with Nan"
+                maxLength={200}
+                className={ui.input}
+              />
+            </div>
+
+            {/* Body */}
+            <div className={ui.field}>
+              <label htmlFor={bodyId} className={ui.label}>
+                Your memory
+              </label>
+              <textarea
+                id={bodyId}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Write a few sentences about this memory. What happened? Who was there? How did it feel?"
+                rows={5}
+                className={cx(ui.textarea, 'resize-none')}
+              />
             </div>
           </div>
+
+          {error && (
+            <p className={cx(ui.noticeError, s.error)} role="alert">
+              {error}
+            </p>
+          )}
+
+          {/* Main action: ink, with the landing's arrow tile */}
+          <Btn
+            size="lg"
+            block
+            onClick={handleSubmit}
+            disabled={!canSubmit || submitting}
+            tile={
+              submitting ? (
+                <Spinner size={18} />
+              ) : (
+                <ArrowRight size={20} strokeWidth={2.4} />
+              )
+            }
+            className={s.submit}
+          >
+            {submitting
+              ? submitStep || 'Saving…'
+              : 'Save & Continue'}
+          </Btn>
         </div>
 
-        <p className="text-center text-[11px] text-[#B5AFA6] tracking-[0.02em] mt-5">
-          This will be the first memory in {familyName}. It won&apos;t appear on the public feed.
+        <p className={s.foot}>
+          This will be the first memory in {familyName || 'your family'}. It won&apos;t appear on the public feed.
         </p>
-      </div>
+      </main>
     </div>
   );
 }

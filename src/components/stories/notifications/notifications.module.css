@@ -48,7 +48,8 @@
   transition-duration: 80ms;
 }
 
-/* Unread count: the kit's pink bubble, cut out of the button with a white ring. */
+/* Unread count: the kit's pink bubble, cut out of the button with a white ring. Its number is
+   ink, as on the kit's bubble (white text goes only on blue and ink). */
 .count {
   position: absolute;
   top: -6px;
@@ -58,7 +59,7 @@
   padding: 0 5px;
   border-radius: 999px;
   background: var(--c0);
-  color: #fff;
+  color: var(--ink);
   font-size: 11px;
   font-weight: 800;
   line-height: 21px;

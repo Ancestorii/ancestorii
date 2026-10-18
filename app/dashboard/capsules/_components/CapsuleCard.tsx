@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { ArrowRight, Lock, LockOpen, Package } from 'lucide-react';
 import { ContextMenuDots } from '@/components/ContextMenuDots';
 import { safeToast as toast } from '@/lib/safeToast';
-import { ui, btnClass, IconTile, toneFor } from '@/components/dashboard/ui/AppBits';
+import { ui, btnClass, IconTile, toneByKey, toneFor } from '@/components/dashboard/ui/AppBits';
 import s from './capsules.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -125,7 +125,8 @@ const timeRemaining = useMemo(() => {
             />
           ) : (
             <div className={s.noCover}>
-              <IconTile Icon={isStillLocked ? Lock : Package} tone={frame} size="lg" />
+              {/* The pink Capsules tile, as the other lists use their feature's colour */}
+              <IconTile Icon={isStillLocked ? Lock : Package} tone={toneByKey('pink')} size="lg" />
               No cover image
             </div>
           )}

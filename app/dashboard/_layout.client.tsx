@@ -672,12 +672,6 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     />
 
     <style jsx global>{`
-      /* Kept: the create drawers' loading bars animate "shimmer" and are drawn for this
-         sliding version (globals.css has a different, pulsing one). */
-      @keyframes shimmer {
-        0% { background-position: -200% center; }
-        100% { background-position: 200% center; }
-      }
         /* The desktop sidebar starts right under the 72px top bar (PublicNav). */
         @media (min-width: 1024px) {
           .dashboard-sidebar {

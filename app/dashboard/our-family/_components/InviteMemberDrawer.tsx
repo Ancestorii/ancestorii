@@ -21,19 +21,10 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { ui, Accent, Btn, IconBtn, Tag, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, Accent, Btn, IconBtn, Spinner, Tag, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './family.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
-
-// White spinner for the ink button and the gradient tile, in a tight clipping box.
-function Spinner() {
-  return (
-    <span className="inline-flex h-4 w-4 overflow-clip rounded-full" aria-hidden="true">
-      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-    </span>
-  );
-}
 
 export default function InviteMemberDrawer({
   open,
@@ -232,7 +223,7 @@ export default function InviteMemberDrawer({
                 block
                 onClick={() => setShowShareConfirm(true)}
                 disabled={shareLinkLoading}
-                tile={shareLinkLoading ? <Spinner /> : <Share2 size={18} strokeWidth={2.4} />}
+                tile={shareLinkLoading ? <Spinner size={16} /> : <Share2 size={18} strokeWidth={2.4} />}
                 className="mt-4"
               >
                 {shareLinkLoading ? 'Preparing…' : 'Share with Family'}
@@ -330,7 +321,7 @@ export default function InviteMemberDrawer({
                         <Btn
                           onClick={confirmAndShare}
                           disabled={shareLinkLoading}
-                          icon={shareLinkLoading ? <Spinner /> : <Share2 size={17} strokeWidth={2.4} aria-hidden="true" />}
+                          icon={shareLinkLoading ? <Spinner size={16} /> : <Share2 size={17} strokeWidth={2.4} aria-hidden="true" />}
                         >
                           {shareLinkLoading ? 'Preparing…' : 'Share Link'}
                         </Btn>
@@ -464,7 +455,7 @@ export default function InviteMemberDrawer({
                         <Btn
                           onClick={handleSendInvite}
                           disabled={loading}
-                          icon={loading ? <Spinner /> : <Send size={17} strokeWidth={2.4} aria-hidden="true" />}
+                          icon={loading ? <Spinner size={16} /> : <Send size={17} strokeWidth={2.4} aria-hidden="true" />}
                         >
                           {loading ? 'Sending…' : 'Send Invite'}
                         </Btn>

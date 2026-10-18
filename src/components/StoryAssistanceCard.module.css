@@ -296,12 +296,6 @@
   overflow-wrap: anywhere;
 }
 
-/* The pages pass the name in a span that still carries the old gold text class: here it
-   takes the kit's pink heading accent instead. */
-.heading [class*='A9782F'] {
-  color: var(--c0);
-}
-
 .subheading {
   margin: 0;
   font-size: 19px;

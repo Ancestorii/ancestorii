@@ -1,0 +1,278 @@
+/* ============================================================
+   Celebrations: the short moment after something is made, sealed
+   or opened (LegacyCelebration, CapsuleCreatedOverlay,
+   CapsuleUnlock, CapsuleSealOverlay). One look for all four, in
+   the landing's style: an ink scrim, a white card with the logo's
+   pink and blue dots cropped by its corners, a solid colour tile
+   with the four colours bursting out of it once, and the words
+   rising in. Motion is transform and opacity only, played once
+   (no never-ending animation). They render inside the dashboard's
+   .app root, so the kit's tokens (--c0.., --ink) are inherited and
+   its reduced-motion rule shortens every keyframe here.
+   ============================================================ */
+
+/* Ink scrim, no blur. Over the floating phone navigation (z 200), its sheets (z 300) and
+   the create drawers (z 9999, earlier in the page, still fading out when a celebration
+   opens); the toasts (z 9999, after the page) stay readable above it. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(10, 10, 15, 0.6);
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  width: min(440px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 52px 28px 40px;
+  border-radius: 28px;
+  background: #fff;
+  color: var(--ink);
+  text-align: center;
+  box-shadow: 0 30px 70px -30px rgba(10, 10, 15, 0.6);
+}
+
+@media (max-width: 599px) {
+  .card {
+    padding: 48px 22px 34px;
+  }
+}
+
+/* useDialog focuses the card itself: no ring around it. */
+.card:focus {
+  outline: none;
+}
+
+/* The logo's pink and blue dots, cropped by the card's corners (as on the landing's slab).
+   They are cropped by a layer the size of the card, not by the card itself: the card scrolls
+   on a very short screen, and a dot poking out of its bottom would make it scroll. */
+.corners {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.cornerPink,
+.cornerBlue {
+  position: absolute;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  animation: celebrateCorner 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s backwards;
+}
+
+.cornerPink {
+  right: -48px;
+  top: -48px;
+  width: 124px;
+  background: var(--c0);
+  transform-origin: 100% 0;
+}
+
+.cornerBlue {
+  left: -34px;
+  bottom: -34px;
+  width: 80px;
+  background: var(--c1);
+  transform-origin: 0 100%;
+}
+
+/* ── The badge: a solid colour tile and four dots that burst out of it once ── */
+
+.badge {
+  position: relative;
+  display: inline-flex;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 26px;
+}
+
+/* Set --tile and --tile-fg (white on pink and blue, ink on orange and aqua). */
+.tile {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 25px;
+  background: var(--tile, var(--c0));
+  color: var(--tile-fg, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: celebrateTile 0.65s cubic-bezier(0.2, 0.9, 0.3, 1.3) 0.15s backwards;
+}
+
+/* The four colours, round. Each one rests at its place around the tile (--x, --y from the
+   badge's centre) and flies out to it from the middle. Render the four before the tile. */
+.spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  border-radius: 50%;
+  background: var(--dot);
+  transform: translate(var(--x), var(--y));
+  animation: celebrateSpark 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay) backwards;
+}
+
+.spark:nth-child(1) {
+  --dot: var(--c1);
+  --x: -62px;
+  --y: -30px;
+  --size: 13px;
+  --delay: 0.3s;
+}
+
+.spark:nth-child(2) {
+  --dot: var(--c2);
+  --x: 58px;
+  --y: -40px;
+  --size: 10px;
+  --delay: 0.36s;
+}
+
+.spark:nth-child(3) {
+  --dot: var(--c3);
+  --x: 64px;
+  --y: 26px;
+  --size: 14px;
+  --delay: 0.32s;
+}
+
+.spark:nth-child(4) {
+  --dot: var(--c0);
+  --x: -54px;
+  --y: 38px;
+  --size: 9px;
+  --delay: 0.4s;
+}
+
+/* ── Words (each line rises in a beat after the one above) ─ */
+
+/* Small uppercase label with a round dot (set --dot), centred on its own line. */
+.tag {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: fit-content;
+  margin: 0 auto 14px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  animation: celebrateRise 0.5s ease 0.24s backwards;
+}
+
+.tag::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--dot, var(--c3));
+}
+
+.title {
+  position: relative;
+  margin: 0;
+  font-size: clamp(27px, 3vw, 34px);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  animation: celebrateRise 0.5s ease 0.3s backwards;
+}
+
+.text {
+  position: relative;
+  margin: 14px auto 0;
+  max-width: 30em;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  text-wrap: pretty;
+  animation: celebrateRise 0.5s ease 0.42s backwards;
+}
+
+/* A name someone typed, in quotes under the title. */
+.name {
+  position: relative;
+  margin: 10px 0 0;
+  font-size: 17px;
+  line-height: 1.45;
+  font-weight: 700;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  animation: celebrateRise 0.5s ease 0.42s backwards;
+}
+
+.meta {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  animation: celebrateRise 0.5s ease 0.54s backwards;
+}
+
+/* A chip whose date can be long: it wraps instead of running out of the card. */
+.chip {
+  max-width: 100%;
+  white-space: normal;
+}
+
+/* Small uppercase line in blue (coloured text at any size is blue). */
+.note {
+  position: relative;
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c1);
+  animation: celebrateRise 0.5s ease 0.66s backwards;
+}
+
+/* ── Keyframes ("backwards": nothing is left on an element after the end) ── */
+
+@keyframes celebrateCorner {
+  from {
+    transform: scale(0);
+  }
+}
+
+@keyframes celebrateTile {
+  from {
+    opacity: 0;
+    transform: scale(0.55) rotate(-12deg);
+  }
+}
+
+@keyframes celebrateSpark {
+  from {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.3);
+  }
+}
+
+@keyframes celebrateRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

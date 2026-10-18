@@ -1,0 +1,192 @@
+/* ============================================================
+   First memory (/onboarding/first-memory): the step after Sign
+   Up, outside the dashboard shell. The page root carries appRoot
+   (the app kit's tokens and Plus Jakarta Sans); this file adds
+   the looks the kit (src/components/dashboard/ui/app.module.css)
+   doesn't have. The kit sits in the "components" cascade layer,
+   so a plain rule here wins over it.
+   One centred column: the logo, the heading, the memory card.
+   ============================================================ */
+
+.loading {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(16px, 2.4vw, 28px) 16px clamp(48px, 7vw, 80px);
+}
+
+.top {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* A <main>: globals.css makes every main a scroller, so undo that here. */
+.main {
+  width: min(600px, 100%);
+  margin-top: clamp(28px, 5vw, 56px);
+  overflow: visible;
+}
+
+/* ── Heading: eyebrow, title and lead, centred over the kit's soft glow ── */
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.title {
+  margin: 20px 0 0;
+  font-size: clamp(38px, 5.2vw, 60px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* The family's name sits in these lines, and it may be one long word. */
+.lead {
+  margin: 16px 0 0;
+  max-width: 30em;
+  font-size: clamp(16px, 1.3vw, 18px);
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+/* ── The memory: a white card with a soft lift ────────────── */
+
+.card {
+  margin-top: clamp(28px, 4vw, 40px);
+  padding: clamp(20px, 4vw, 32px);
+}
+
+/* No photo yet: a big drop zone with the camera tile. */
+.drop {
+  min-height: clamp(210px, 32vw, 250px);
+}
+
+/* As big as the camera tile, so the zone keeps its size while photos are processed. */
+.dropSpin {
+  width: 60px;
+  height: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The photos picked so far. */
+.photos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--hover);
+}
+
+/* A faint inset hairline keeps a white photo's edge on the white card. */
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(10, 10, 15, 0.08);
+  pointer-events: none;
+}
+
+.tileImg {
+  object-fit: cover;
+}
+
+/* Remove: on the photo's corner; with a mouse it shows on hover or keyboard focus, on touch
+   screens it is always there. */
+.tileRemove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.tile:hover .tileRemove,
+.tileRemove:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .tileRemove {
+    opacity: 1;
+  }
+}
+
+/* "Add more photos": the kit's drop zone (its 22px corners too) as one short row, like
+   Library's "Add more files". */
+.addMore {
+  flex-direction: row;
+  gap: 10px;
+  min-height: 56px;
+  margin-top: 12px;
+  padding: 10px 16px;
+}
+
+.addMoreText {
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.notice {
+  margin-top: 14px;
+}
+
+/* ── The words ────────────────────────────────────────────── */
+
+.fields {
+  margin-top: 28px;
+}
+
+.error {
+  margin-top: 20px;
+  overflow-wrap: anywhere;
+}
+
+.submit {
+  margin-top: 28px;
+}
+
+/* The line under the card. */
+.foot {
+  margin: 20px auto 0;
+  max-width: 32em;
+  text-align: center;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}

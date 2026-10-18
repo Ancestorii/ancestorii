@@ -52,22 +52,25 @@
 
 /* ── List: one album ──────────────────────────────────────── */
 
+/* A white card (ui.card) holding the framed cover, as the Timelines, Capsules and heirloom
+   lists do: the colour frame (radius 22) sits 6px inside the card (radius 28), so the
+   corners stay concentric. */
 .album {
   display: flex;
   flex-direction: column;
   min-width: 0;
   height: 100%;
+  padding: 6px;
+  border-radius: 28px;
 }
 
-/* The cover in a solid colour frame (ui.frame), like the landing's photo cards. */
-.albumFrame {
-  padding: 8px;
-  border-radius: 26px;
+/* With its menu open, the card sits over the cards after it. */
+.album:has([aria-expanded='true']) {
+  z-index: 5;
 }
 
 .albumCover {
   aspect-ratio: 4 / 3;
-  border-radius: 19px;
   background: #fff;
 }
 
@@ -85,7 +88,7 @@
   }
 }
 
-/* No cover yet: white, the icon in the frame's colour. */
+/* No cover yet: the orange Albums tile on white. */
 .noCover {
   position: absolute;
   inset: 0;
@@ -93,40 +96,39 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   font-size: 14px;
   line-height: 1.3;
   font-weight: 700;
 }
 
-.noCover svg {
-  color: var(--frame);
-}
-
 /* The album's menu sits on the photo's top right corner. */
 .albumMenu {
   position: absolute;
-  top: 18px;
-  right: 18px;
+  top: 14px;
+  right: 14px;
   z-index: 2;
 }
 
+/* The same insets and title size as the Timelines and heirloom lists. */
 .albumBody {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  padding: 18px 4px 0;
+  min-width: 0;
+  padding: 16px 12px 12px;
 }
 
+/* A long name wraps to a second line, then ends in an ellipsis. */
 .albumTitle {
   margin: 0;
-  font-size: 21px;
+  font-size: 20px;
   line-height: 1.2;
   letter-spacing: -0.03em;
   font-weight: 800;
   overflow-wrap: anywhere;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -202,9 +204,10 @@
   min-width: 0;
 }
 
-/* Bottom room for the floating phone navigation, as ui.page gives a list page. */
+/* ui.page's gutters (the top row sits where it does on the other detail pages), and bottom room
+   for the floating phone navigation. */
 .mainInner {
-  padding: clamp(16px, 2.6vw, 32px) clamp(16px, 3.2vw, 44px) clamp(112px, 12vw, 120px);
+  padding: clamp(24px, 3.4vw, 44px) clamp(16px, 3.2vw, 44px) clamp(112px, 12vw, 120px);
 }
 
 .panel {

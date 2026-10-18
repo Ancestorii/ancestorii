@@ -1,0 +1,545 @@
+/* ============================================================
+   My Profile (/dashboard/profile): the looks the app kit
+   (src/components/dashboard/ui/app.module.css) doesn't have.
+   The kit sits in the "components" cascade layer, so a plain
+   rule here wins over it.
+   Account pages are blue: the eyebrow's dot, the header glow.
+   ============================================================ */
+
+/* ── Header: the photo, the name, the meta chips ──────────── */
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 22px 32px;
+}
+
+/* Phones: the photo above the name, as on a profile card. */
+@media (max-width: 599px) {
+  .identity {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.identityText {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* The photo is a label for the hidden file input: a tap anywhere on it picks a new one, and
+   the kit draws its blue ring round it when the input has keyboard focus. */
+.avatarPick {
+  position: relative;
+  flex: none;
+  display: inline-block;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Keyboard focus on the hidden input: the kit's blue ring, drawn outside the photo's 8px
+   coloured ring (at the kit's 3px it sat underneath it). */
+.avatarPick:has(input:focus-visible) {
+  outline-offset: 11px;
+}
+
+/* The kit's avatar at the header's size, with a wider white gap and ring. */
+.avatar {
+  --size: clamp(96px, 9.6vw, 136px);
+  box-shadow:
+    0 0 0 4px #fff,
+    0 0 0 8px var(--ring, var(--c1));
+  font-size: calc(var(--size) * 0.34);
+}
+
+/* The change-photo control: the kit's round white button laid over the photo's corner. */
+.cam {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  box-shadow:
+    inset 0 0 0 1.5px var(--line),
+    0 8px 18px -10px rgba(10, 10, 15, 0.6);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+@media (hover: hover) {
+  .avatarPick:hover .cam {
+    transform: scale(1.06);
+    box-shadow:
+      inset 0 0 0 1.5px var(--ink),
+      0 8px 18px -10px rgba(10, 10, 15, 0.6);
+  }
+}
+
+.avatarPick:active .cam {
+  transform: scale(0.94);
+  transition-duration: 80ms;
+}
+
+/* The title under the name ("Mother of 2, Retired Teacher"): blue, the account pages' colour. */
+.role {
+  margin: 12px 0 0;
+  font-size: clamp(17px, 1.5vw, 20px);
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+  color: var(--c1);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.chipIcon {
+  flex: none;
+}
+
+/* ── Tabs: Profile Details, My Stories (and the admin's two) ── */
+
+.tabs {
+  margin-top: clamp(32px, 4.4vw, 48px);
+}
+
+/* Phones and narrow windows: two equal columns (one row, or two for the admin's four tabs), no
+   icons. On one line the admin's four tabs need about 590px of page, so this holds to 679px. */
+@media (max-width: 679px) {
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    border-radius: 24px;
+  }
+
+  .tab {
+    justify-content: center;
+    padding: 4px 10px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .tab > svg {
+    display: none;
+  }
+}
+
+.panel {
+  margin-top: clamp(24px, 3vw, 32px);
+}
+
+/* ── Profile Details: white cards with a tag heading ──────── */
+
+.details {
+  container-type: inline-size;
+  display: grid;
+  gap: 20px;
+}
+
+.card {
+  padding: clamp(22px, 3vw, 32px);
+}
+
+.cardHead {
+  margin: 0 0 20px;
+  line-height: 1;
+}
+
+/* Personal and Contact: side by side once the column is wide enough. */
+.pair {
+  display: grid;
+  gap: 20px;
+}
+
+@container (min-width: 640px) {
+  .pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Grows with the bio (where the browser can), so a long one isn't cut mid-line on phones;
+   never shorter than the four rows it had. */
+.bio {
+  resize: none;
+  field-sizing: content;
+  min-height: 127px;
+}
+
+.counterRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.counter {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Close to the 300-character limit. */
+.counterNear {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+/* The date of birth: DD/MM/YYYY in capitals, and kept at the start on iPhones. */
+.date {
+  text-transform: uppercase;
+}
+
+.date::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+/* Keyboard focus on the field's calendar button (desktop Chrome): the field keeps its pink ring. */
+.date:focus-within {
+  border-color: var(--c0);
+  box-shadow: 0 0 0 4px rgba(255, 45, 135, 0.14);
+}
+
+/* Preferences: a line of words on the left, the control on the right. */
+.pref {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px 24px;
+}
+
+.pref + .pref {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1.5px solid var(--rule);
+}
+
+.prefText {
+  min-width: 0;
+  flex: 1 1 240px;
+}
+
+/* Story Assistance keeps its switch beside the words at every width. */
+.prefSwitch {
+  flex-wrap: nowrap;
+}
+
+.prefSwitch .prefText {
+  flex-basis: auto;
+}
+
+.prefTitle {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+.prefBody {
+  margin: 6px 0 0;
+  max-width: 40em;
+  font-size: 15.5px;
+  line-height: 1.55;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+/* The switch: a 44px tall invisible hit area around the kit's 30px track. */
+.switch {
+  margin-top: 2px;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  inset: -7px -4px;
+}
+
+.cookieBtn {
+  flex: none;
+}
+
+/* Save: the message on the left, the button on the right (full width on phones). */
+.saveRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: 4px;
+}
+
+.saveStatus {
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
+.saveNote > svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+@container (max-width: 559px) {
+  .saveBtn {
+    width: 100%;
+  }
+}
+
+/* ── My Stories ───────────────────────────────────────────── */
+
+.stories {
+  container-type: inline-size;
+}
+
+/* The four counts: two by two on phones, one row from 640px. */
+.stats {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@container (min-width: 640px) {
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px 20px 20px;
+}
+
+/* At the card's foot, so the numbers in a row line up when a label wraps ("Under Review"). */
+.statValue {
+  margin-top: auto;
+  font-size: clamp(30px, 2.8vw, 38px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+/* One story: the words on the left, its action on the right, then any notice across the
+   whole card. */
+.story {
+  min-width: 0;
+}
+
+.storyRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px 18px;
+}
+
+.storyMain {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.storyHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.storyTitle {
+  margin: 0;
+  min-width: 0;
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* Date, category (and the author in the queue), with round dots between. */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sep {
+  width: 4px;
+  height: 4px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* The queue: the author on a line of their own, then the date and category. */
+.byline {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.metaTight {
+  margin-top: 2px;
+}
+
+.notice {
+  margin-top: 14px;
+  overflow-wrap: anywhere;
+}
+
+.notice > svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.noticeCat {
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.storyActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: none;
+}
+
+/* ── Admin: Nominate Stories and the Moderation Queue ─────── */
+
+.adminPanel {
+  container-type: inline-size;
+}
+
+/* The eight featured slots: one column on phones, two from 720px. */
+.slots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+@container (min-width: 720px) {
+  .slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+}
+
+/* An empty slot's tag: a hollow dot. */
+.tagEmpty::before {
+  background: #fff;
+  box-shadow: inset 0 0 0 2px rgba(10, 10, 15, 0.3);
+}
+
+.slotStory {
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.slotLink {
+  font-size: 17px;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.slotEmpty {
+  margin: 14px 0 0;
+  font-size: 15.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.slotActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.slotSelect {
+  flex: 1 1 200px;
+  min-width: 0;
+  height: 48px;
+  text-overflow: ellipsis;
+}
+
+.slotRemove {
+  flex: none;
+}
+
+/* The queue: one card per story. */
+.review {
+  min-width: 0;
+}
+
+.reviewHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.reviewMain {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.reviewTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+/* The author's initial: a little lower, level with the title's first line. */
+.reviewAvatar {
+  margin-top: 2px;
+}
+
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* Phones: the three buttons share the row. */
+@container (max-width: 479px) {
+  .reviewActions > * {
+    flex: 1 1 auto;
+  }
+}

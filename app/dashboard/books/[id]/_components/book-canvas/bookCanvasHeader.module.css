@@ -28,10 +28,27 @@
   flex: none;
 }
 
-/* The book's name: two lines at most, then an ellipsis (the full name is in the tooltip). */
-.title {
+/* Back, a short rule, then the feature's tag over the book's name (as in the Canvas and
+   Acrylic Print editors). */
+.headerRule {
+  width: 1.5px;
+  height: 34px;
+  flex: none;
+  background: var(--rule);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
   flex: 1 1 auto;
   min-width: 0;
+}
+
+/* The book's name: two lines at most, then an ellipsis (the full name is in the tooltip). */
+.title {
+  max-width: 100%;
   margin: 0;
   font-size: 20px;
   line-height: 1.15;

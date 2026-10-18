@@ -1,9 +1,19 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, type CSSProperties } from "react";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { useEffect, useRef, type CSSProperties } from "react";
+import {
+  Book,
+  Calendar,
+  Frame,
+  Gem,
+  HandHeart,
+  Image as ImageIcon,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
 import { ui } from "@/components/dashboard/ui/AppBits";
-import s from "./LegacyCelebration.module.css";
+import s from "./Celebration.module.css";
 
 type LegacyCelebrationProps = {
   open: boolean;
@@ -13,12 +23,26 @@ type LegacyCelebrationProps = {
   onClose: () => void;
 };
 
-// The burst's dots, in the four brand colours (pink, blue, orange, aqua).
-const DOT_COLOURS = ["var(--c0)", "var(--c1)", "var(--c2)", "var(--c3)"];
+type Moment = { Icon: LucideIcon; tile: string; fg: string };
+
+// The tile for the moment each page names with its emoji: that feature's own icon in its
+// colour (Timelines and Loved Ones aqua; Albums and the heirlooms orange), ink on both.
+const MOMENTS: Record<string, Moment> = {
+  "\u{2728}": { Icon: Calendar, tile: "var(--c3)", fg: "var(--ink)" }, // a new timeline
+  "\u{1F389}": { Icon: ImageIcon, tile: "var(--c2)", fg: "var(--ink)" }, // a new album
+  "\u{1F4D6}": { Icon: Book, tile: "var(--c2)", fg: "var(--ink)" }, // a new memory book
+  "\u{1F5BC}": { Icon: Frame, tile: "var(--c2)", fg: "var(--ink)" }, // a new memory canvas
+  "\u{1F48E}": { Icon: Gem, tile: "var(--c2)", fg: "var(--ink)" }, // a new acrylic print
+  "\u{1F54A}": { Icon: HandHeart, tile: "var(--c3)", fg: "var(--ink)" }, // a new loved one
+};
+
+// Anything else: the pink tile with sparkles.
+const DEFAULT_MOMENT: Moment = { Icon: Sparkles, tile: "var(--c0)", fg: "#fff" };
 
 export default function LegacyCelebration({
   open,
   message,
+  emoji,
   durationMs = 4200,
   onClose,
 }: LegacyCelebrationProps) {
@@ -35,26 +59,10 @@ export default function LegacyCelebration({
     return () => clearTimeout(t);
   }, [open, durationMs]);
 
-  const dots = useMemo(
-    () =>
-      open
-        ? Array.from({ length: 36 }).map((_, i) => {
-            const angle = Math.random() * Math.PI * 2;
-            const radius = Math.random() * 340 + 220;
-
-            return {
-              id: i,
-              x: Math.cos(angle) * radius,
-              y: Math.sin(angle) * radius * 0.75,
-              size: Math.random() * 8 + 6,
-              delay: Math.random() * 0.3 + 0.25,
-              duration: Math.random() * 1.2 + 1.8,
-              colour: DOT_COLOURS[i % DOT_COLOURS.length],
-            };
-          })
-        : [],
-    [open]
-  );
+  // The emoji's variation selector (U+FE0F) is dropped, so an emoji finds its tile with or
+  // without it (the canvas and loved one pages pass it).
+  const moment = MOMENTS[(emoji ?? "").replace(/\uFE0F/g, "")] ?? DEFAULT_MOMENT;
+  const { Icon } = moment;
 
   return (
     <>
@@ -63,58 +71,53 @@ export default function LegacyCelebration({
         {open ? message : ""}
       </p>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            aria-hidden="true"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            // scrim-blur (globals.css) blurs only with a mouse
-            className={`${ui.scrim} scrim-blur ${s.overlay}`}
-          >
-            {/* A burst of round dots in the four colours, played once */}
-            <div className={s.burst}>
-              {dots.map((p) => (
-                <span
-                  key={p.id}
-                  className={s.dot}
-                  style={
-                    {
-                      "--x": `${p.x.toFixed(1)}px`,
-                      "--y": `${p.y.toFixed(1)}px`,
-                      "--size": `${p.size.toFixed(1)}px`,
-                      "--delay": `${p.delay.toFixed(2)}s`,
-                      "--dur": `${p.duration.toFixed(2)}s`,
-                      background: p.colour,
-                    } as CSSProperties
-                  }
-                />
-              ))}
-            </div>
-
-            {/* The card: transform string (not y/scale) so Motion runs it on the compositor */}
+      <MotionConfig reducedMotion="user">
+        <AnimatePresence>
+          {open && (
             <motion.div
-              initial={{ opacity: 0, transform: "translateY(18px) scale(0.96)" }}
-              animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
-              exit={{
-                opacity: 0,
-                transform: "translateY(10px) scale(0.98)",
-                transition: { duration: 0.3, ease: "easeIn" },
-              }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-              className={`${ui.inkCard} ${s.card}`}
+              aria-hidden="true"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className={s.scrim}
             >
-              <span className={ui.dotPink} />
-              <span className={ui.dotBlue} />
+              {/* The card: transform string (not y/scale) so Motion runs it on the compositor */}
+              <motion.div
+                initial={{ opacity: 0, transform: "translateY(30px) scale(0.92)" }}
+                animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
+                exit={{ opacity: 0, transform: "translateY(20px) scale(0.95)" }}
+                transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+                className={s.card}
+              >
+                <span className={s.corners}>
+                  <span className={s.cornerPink} />
+                  <span className={s.cornerBlue} />
+                </span>
 
-              <p className={s.tag}>Ancestorii</p>
-              <p className={s.message}>{message}</p>
+                {/* The moment's tile, and the four colours bursting out of it once */}
+                <div className={s.badge}>
+                  <span className={s.spark} />
+                  <span className={s.spark} />
+                  <span className={s.spark} />
+                  <span className={s.spark} />
+                  <span
+                    className={s.tile}
+                    style={{ "--tile": moment.tile, "--tile-fg": moment.fg } as CSSProperties}
+                  >
+                    <Icon size={36} strokeWidth={2.2} />
+                  </span>
+                </div>
+
+                <p className={s.tag} style={{ "--dot": moment.tile } as CSSProperties}>
+                  Ancestorii
+                </p>
+                <p className={s.title}>{message}</p>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </MotionConfig>
     </>
   );
 }

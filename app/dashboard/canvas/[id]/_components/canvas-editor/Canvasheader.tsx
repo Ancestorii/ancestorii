@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Check, Eye } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Eye, Save } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { safeToast as toast } from '@/lib/safeToast';
 import RewardCodeField from '@/components/dashboard/RewardCodeField';
@@ -101,6 +101,16 @@ export default function CanvasHeader({
       ? 'Saved!'
       : 'Save';
 
+  // As in the Book and Acrylic Print editors: the save icon, a spinner while it saves, a tick.
+  const saveIcon =
+    saveState === 'saving' ? (
+      <Spinner size={16} />
+    ) : saveState === 'saved' ? (
+      <Check size={17} strokeWidth={2.6} aria-hidden="true" />
+    ) : (
+      <Save size={17} strokeWidth={2.2} aria-hidden="true" />
+    );
+
   return (
     <header className={`fade-up ${s.header}`}>
       <div className={s.headerStart}>
@@ -125,11 +135,11 @@ export default function CanvasHeader({
 
       <div className={s.headerActions}>
         <Btn
-          variant={saveState === 'saved' ? 'primary' : 'soft'}
+          variant="soft"
           size="sm"
           onClick={onSave}
           disabled={saveState === 'saving'}
-          icon={saveState === 'saved' ? <Check size={16} strokeWidth={2.6} aria-hidden="true" /> : undefined}
+          icon={saveIcon}
           className={s.saveBtn}
         >
           {saveLabel}

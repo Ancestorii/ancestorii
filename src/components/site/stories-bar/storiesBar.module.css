@@ -74,7 +74,7 @@
   padding: 0 5px;
   border-radius: 999px;
   background: var(--c0);
-  color: #fff;
+  color: var(--ink); /* ink on pink: white text only goes on blue and ink (as the dashboard bell) */
   font-size: 11px;
   font-weight: 800;
   line-height: 21px;

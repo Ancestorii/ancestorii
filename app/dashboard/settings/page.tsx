@@ -1,15 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { safeToast as toast } from '@/lib/safeToast';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import {
   Bell,
   Mail,
-  CheckCircle,
-  Settings as Gear,
+  Check,
   Shield,
 } from 'lucide-react';
+import {
+  ui,
+  AppLoader,
+  Btn,
+  IconTile,
+  PageHeader,
+  Spinner,
+  toneByKey,
+} from '@/components/dashboard/ui/AppBits';
+import s from './settings.module.css';
+
+const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type Prefs = {
   id: string;
@@ -29,6 +40,15 @@ export default function SettingsPage() {
 
   const [newPass, setNewPass] = useState('');
   const [changingPass, setChangingPass] = useState(false);
+
+  // Each switch is named by its card's title and described by its words; the password
+  // field has a label of its own.
+  const inAppTitleId = useId();
+  const inAppTextId = useId();
+  const emailTitleId = useId();
+  const emailTextId = useId();
+  const securityTitleId = useId();
+  const passId = useId();
 
   /* ---------------------------------- */
   /* Change password                    */
@@ -68,7 +88,11 @@ export default function SettingsPage() {
 
       const marketingOptIn = user?.user_metadata?.newsletter_opt_in ?? false;
 
-      if (!user) return;
+      if (!user) {
+        // Without this the loader never ended when there was no user.
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('notification_preferences')
@@ -165,199 +189,194 @@ if (type === 'email') {
 }
   };
 
-  if (loading) {
-    return (
-      <div className="p-10 text-gray-500 text-sm">
-        Loading your settings...
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-7xl mx-auto px-10 py-16 bg-[#FFFCF7] min-h-screen">
+    <div className={ui.page}>
+      <div className={ui.wrap}>
+        {/* Header: always shown, so only the cards wait for the preferences */}
+        <PageHeader
+          eyebrow="Your account"
+          eyebrowDot="var(--c1)"
+          title="Settings"
+          lead={
+            <>
+              Manage how Ancestorii communicates with you and keep your family&apos;s
+              memories protected.
+            </>
+          }
+        />
 
-      {/* Header */}
-      <div className="mb-14">
-        <div className="flex items-center gap-4 mb-3">
-          <div className="p-3 bg-amber-100 rounded-2xl">
-            <Gear className="w-8 h-8 text-[#B8860B]" />
-          </div>
+        {loading ? (
+          <AppLoader label="Loading your settings" />
+        ) : (
+          <div className={cx(ui.section, s.settings)}>
+            <div className={s.prefs}>
+              {/* In App Notifications */}
+              <section className={cx(ui.card, s.card)} aria-labelledby={inAppTitleId}>
+                <div className={s.cardBody}>
+                  <div className={s.cardTop}>
+                    <IconTile Icon={Bell} tone={toneByKey('blue')} />
 
-          <h1 className="text-4xl font-serif font-bold text-[#0F2040] tracking-tight">
-            Settings
-          </h1>
-        </div>
+                    <Toggle
+                      value={prefs?.in_app || false}
+                      onChange={() => toggle('in_app')}
+                      labelledBy={inAppTitleId}
+                      describedBy={inAppTextId}
+                    />
+                  </div>
 
-        <p className="text-[#6B7280] ml-16 font-medium max-w-xl">
-          Manage how Ancestorii communicates with you and keep your family's
-          memories protected.
-        </p>
-      </div>
+                  <h2 id={inAppTitleId} className={s.title}>
+                    In-App Notifications
+                  </h2>
 
-      <div className="grid md:grid-cols-2 gap-10">
-
-        {/* In App Notifications */}
-        <section className="group bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-amber-50/50 hover:shadow-[0_8px_30px_rgb(212,175,55,0.1)] transition-all duration-300">
-
-          <div className="flex flex-col h-full justify-between">
-
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div className="p-2 bg-orange-50 rounded-xl">
-                  <Bell className="w-6 h-6 text-[#D4AF37]" />
+                  <p id={inAppTextId} className={s.text}>
+                    Be gently notified when meaningful updates happen inside your
+                    family library, such as new memories being added or timelines
+                    being expanded.
+                  </p>
                 </div>
 
-                <Toggle
-                  value={prefs?.in_app || false}
-                  onChange={() => toggle('in_app')}
-                />
-              </div>
+                <div className={s.foot}>
+                  <Btn
+                    onClick={() => save('in_app')}
+                    disabled={saving}
+                    icon={saving ? <Spinner size={16} /> : undefined}
+                  >
+                    {saving ? 'Saving...' : 'Save Settings'}
+                  </Btn>
 
-              <h2 className="text-xl font-bold text-[#0F2040] mb-3">
-                In-App Notifications
-              </h2>
+                  <p role="status" className={s.saved}>
+                    {savedInApp && (
+                      <>
+                        <span className={s.savedDot} aria-hidden="true">
+                          <Check size={13} strokeWidth={3.2} />
+                        </span>
+                        Preferences updated successfully.
+                      </>
+                    )}
+                  </p>
+                </div>
+              </section>
 
-              <p className="text-sm leading-relaxed text-gray-500">
-                Be gently notified when meaningful updates happen inside your
-                family library, such as new memories being added or timelines
-                being expanded.
-              </p>
-            </div>
+              {/* Updates & Memory Tips */}
+              <section className={cx(ui.card, s.card)} aria-labelledby={emailTitleId}>
+                <div className={s.cardBody}>
+                  <div className={s.cardTop}>
+                    <IconTile Icon={Mail} tone={toneByKey('pink')} />
 
-            <button
-              onClick={() => save('in_app')}
-              disabled={saving}
-              className="mt-8 w-full py-3 rounded-2xl bg-[#0F2040] text-white font-semibold hover:bg-[#1a3563] transition-colors"
-            >
-              {saving ? 'Saving...' : 'Save Settings'}
-            </button>
+                    <Toggle
+                      value={prefs?.email || false}
+                      onChange={() => toggle('email')}
+                      labelledBy={emailTitleId}
+                      describedBy={emailTextId}
+                    />
+                  </div>
 
-            <div className="mt-4 min-h-[24px]">
-            {savedInApp && (
-              <div className="flex items-center gap-2 mt-4 text-green-600 text-sm font-medium transition-opacity duration-300">
-                <CheckCircle className="w-4 h-4" />
-                Preferences updated successfully.
-              </div>
-            )}
-            </div>
-          </div>
-        </section>
+                  <h2 id={emailTitleId} className={s.title}>
+                    Updates & Memory Tips
+                  </h2>
 
-        {/* Updates & Memory Tips */}
-        <section className="bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-amber-50/50 hover:shadow-[0_8px_30px_rgb(212,175,55,0.1)] transition-all duration-300">
-
-          <div className="flex flex-col h-full justify-between">
-
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div className="p-2 bg-blue-50 rounded-xl">
-                  <Mail className="w-6 h-6 text-[#D4AF37]" />
+                  <p id={emailTextId} className={s.text}>
+                    Send me occasional updates and helpful tips about preserving
+                    family memories, along with thoughtful insights on making the
+                    most of my Ancestorii library.
+                  </p>
                 </div>
 
-                <Toggle
-                  value={prefs?.email || false}
-                  onChange={() => toggle('email')}
-                />
-              </div>
+                <div className={s.foot}>
+                  <Btn
+                    onClick={() => save('email')}
+                    disabled={saving}
+                    icon={saving ? <Spinner size={16} /> : undefined}
+                  >
+                    {saving ? 'Saving...' : 'Save Settings'}
+                  </Btn>
 
-              <h2 className="text-xl font-bold text-[#0F2040] mb-3">
-                Updates & Memory Tips
-              </h2>
-
-              <p className="text-sm leading-relaxed text-gray-500">
-                Send me occasional updates and helpful tips about preserving
-                family memories, along with thoughtful insights on making the
-                most of my Ancestorii library.
-              </p>
+                  <p role="status" className={s.saved}>
+                    {savedEmail && (
+                      <>
+                        <span className={s.savedDot} aria-hidden="true">
+                          <Check size={13} strokeWidth={3.2} />
+                        </span>
+                        Preferences updated successfully.
+                      </>
+                    )}
+                  </p>
+                </div>
+              </section>
             </div>
 
-            <button
-              onClick={() => save('email')}
-              disabled={saving}
-              className="mt-8 w-full py-3 rounded-2xl bg-[#0F2040] text-white font-semibold hover:bg-[#1a3563] transition-colors"
-            >
-              {saving ? 'Saving...' : 'Save Settings'}
-            </button>
-             
-             <div className="mt-4 min-h-[24px]">
-            {savedEmail && (
-  <div className="flex items-center gap-2 mt-4 text-green-600 text-sm font-medium transition-opacity duration-300">
-    <CheckCircle className="w-4 h-4" />
-    Preferences updated successfully.
-  </div>
-)}
-</div>
-          </div>
-        </section>
+            {/* Security Section */}
+            <section className={cx(ui.card, s.security)} aria-labelledby={securityTitleId}>
+              <div className={s.securityHead}>
+                <IconTile Icon={Shield} tone={toneByKey('aqua')} />
 
+                <h2 id={securityTitleId} className={s.title}>
+                  Security
+                </h2>
+
+                <p className={s.text}>
+                  Protect your family’s history by keeping your account secure.
+                </p>
+              </div>
+
+              <div className={s.securityForm}>
+                <label htmlFor={passId} className={ui.label}>
+                  New password
+                </label>
+
+                <div className={s.passRow}>
+                  <input
+                    id={passId}
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Enter new password"
+                    value={newPass}
+                    onChange={(e) => setNewPass(e.target.value)}
+                    className={cx(ui.input, s.passInput)}
+                  />
+
+                  <Btn
+                    onClick={changePassword}
+                    disabled={changingPass}
+                    icon={changingPass ? <Spinner size={16} /> : undefined}
+                    className={s.passBtn}
+                  >
+                    {changingPass ? 'Updating...' : 'Update Password'}
+                  </Btn>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
       </div>
-
-      {/* Security Section */}
-      <section className="mt-12 bg-gradient-to-br from-white to-[#FFFBF0] rounded-[2rem] p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-amber-100">
-
-        <div className="flex items-center gap-4 mb-8">
-          <div className="p-2 bg-green-50 rounded-xl">
-            <Shield className="w-6 h-6 text-[#B8860B]" />
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-bold text-[#0F2040]">
-              Security
-            </h2>
-
-            <p className="text-sm text-gray-500">
-              Protect your family’s history by keeping your account secure.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4">
-
-          <input
-            type="password"
-            placeholder="Enter new password"
-            value={newPass}
-            onChange={(e) => setNewPass(e.target.value)}
-            className="flex-1 bg-white border-2 border-amber-50 rounded-2xl px-6 py-4 focus:outline-none focus:border-[#D4AF37] focus:ring-4 focus:ring-amber-100/50 transition-all"
-          />
-
-          <button
-            onClick={changePassword}
-            disabled={changingPass}
-            className="px-10 py-4 rounded-2xl bg-gradient-to-r from-[#D4AF37] to-[#E6C26E] text-white font-bold hover:scale-[1.02] active:scale-[0.98] transition-all"
-          >
-            {changingPass ? 'Updating...' : 'Update Password'}
-          </button>
-
-        </div>
-
-      </section>
-
     </div>
   );
 }
 
-/* Toggle Component */
+/* Toggle Component: the kit's on/off switch */
 
 function Toggle({
   value,
   onChange,
+  labelledBy,
+  describedBy,
 }: {
   value: boolean;
   onChange: () => void;
+  labelledBy?: string;
+  describedBy?: string;
 }) {
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={value}
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy}
       onClick={onChange}
-      className={`w-12 h-6 rounded-full transition-all ${
-        value ? 'bg-[#D4AF37]' : 'bg-gray-300'
-      } relative`}
+      className={cx(ui.switch, s.switch)}
     >
-      <span
-        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all ${
-          value ? 'translate-x-6' : ''
-        }`}
-      />
+      <span />
     </button>
   );
 }

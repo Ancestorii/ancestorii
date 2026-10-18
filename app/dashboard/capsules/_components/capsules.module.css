@@ -137,17 +137,18 @@
   color: #fff;
 }
 
+/* The same insets and title size as the Timelines, Albums and heirloom lists. */
 .body {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-width: 0;
-  padding: 18px 14px 12px;
+  padding: 16px 12px 12px;
 }
 
 .title {
   margin: 0;
-  font-size: 21px;
+  font-size: 20px;
   line-height: 1.2;
   letter-spacing: -0.03em;
   font-weight: 800;
