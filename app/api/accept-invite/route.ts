@@ -86,18 +86,25 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. The auto-created solo family from handle_new_user (the one they own)
-    const soloMembership = memberships.find((m) => m.role === 'owner') ?? null;
-
-    // 4. Join the inviter's family. A failure here must not mark the invite as used.
-    const { error: joinError } = await admin
-      .from('family_memberships')
-      .upsert(
-        { family_id: invite.family_id, user_id: userId, role: invite.role },
-        { onConflict: 'family_id,user_id' }
-      );
+    // 3. Join the inviter's family in one transaction (join_family_merging_solo, recorded in
+    //    supabase/sql/2026-10-19-joins-shares-authorship-departures.sql): the membership, the
+    //    subscription, and everything in their own one-person family (memories, library,
+    //    albums, timelines, loved ones, heirlooms...) moved across before that family is
+    //    deleted. A failure changes nothing, so it must not mark the invite as used.
+    const { error: joinError } = await admin.rpc('join_family_merging_solo', {
+      p_user_id: userId,
+      p_target_family_id: invite.family_id,
+      p_role: invite.role,
+    });
 
     if (joinError) {
+      // Someone joined their family between the check above and the join.
+      if (joinError.message?.includes('already_in_family')) {
+        return NextResponse.json(
+          { error: 'You already belong to a family library and cannot join another.' },
+          { status: 409 }
+        );
+      }
       console.error('Accept invite: join error', joinError);
       return NextResponse.json(
         { error: 'We could not add you to this family. Please try again.' },
@@ -105,73 +112,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Mark invite as accepted
+    // 4. Mark invite as accepted
     await admin
       .from('family_invites')
       .update({ accepted_at: new Date().toISOString() })
       .eq('id', invite.id);
-
-    // 6. Point subscription to the joined family
-    await admin
-      .from('subscriptions')
-      .update({ family_id: invite.family_id })
-      .eq('user_id', userId);
-
-    // 7. Clean up the solo family (if it's different from the one we just joined)
-    if (soloMembership && soloMembership.family_id !== invite.family_id) {
-      // Move any memories from solo family to the joined family
-      await admin
-        .from('family_memories')
-        .update({ family_id: invite.family_id })
-        .eq('family_id', soloMembership.family_id)
-        .eq('author_id', userId);
-
-      // Move any media references too
-      await admin
-        .from('family_memory_media')
-        .update({ family_id: invite.family_id })
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      // Move any comments
-      await admin
-        .from('family_memory_comments')
-        .update({ family_id: invite.family_id })
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      // Move any reactions
-      await admin
-        .from('family_memory_reactions')
-        .update({ family_id: invite.family_id })
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      // Move any voice notes: they cascade from families, so the delete below would erase them
-      const { error: voiceMoveError } = await admin
-        .from('family_memory_voice_notes')
-        .update({ family_id: invite.family_id })
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      // Remove solo membership
-      await admin
-        .from('family_memberships')
-        .delete()
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      // Delete the now-empty solo family. Not when the voice notes stayed behind: they would go
-      // with it, where a failed move above only leaves rows that block the delete.
-      if (voiceMoveError) {
-        console.error('Accept invite: voice notes not moved, solo family kept', voiceMoveError);
-      } else {
-        await admin
-          .from('families')
-          .delete()
-          .eq('id', soloMembership.family_id);
-      }
-    }
 
     return NextResponse.json({ success: true, family_id: invite.family_id });
   } catch (err) {

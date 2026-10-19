@@ -81,84 +81,28 @@ export async function POST(req: Request) {
       }
     }
 
-    // 4. The auto-created solo family from handle_new_user (the one they own)
-    const soloMembership = memberships.find((m) => m.role === 'owner') ?? null;
-
-    // 5. Join the target family as member
-    const { error: joinError } = await admin
-      .from('family_memberships')
-      .upsert(
-        { family_id: targetFamilyId, user_id: userId, role: 'member' },
-        { onConflict: 'family_id,user_id' }
-      );
+    // 4. Join the target family as member, in one transaction (join_family_merging_solo, as
+    //    accept-invite does): the membership, the subscription, and everything in their own
+    //    one-person family moved across before that family is deleted. A failure changes nothing.
+    const { error: joinError } = await admin.rpc('join_family_merging_solo', {
+      p_user_id: userId,
+      p_target_family_id: targetFamilyId,
+      p_role: 'member',
+    });
 
     if (joinError) {
+      // Someone joined their family between the check above and the join.
+      if (joinError.message?.includes('already_in_family')) {
+        return NextResponse.json(
+          { error: 'You already belong to a family library and cannot join another.' },
+          { status: 409 }
+        );
+      }
       console.error('Join family error:', joinError);
       return NextResponse.json(
         { error: 'Failed to join family' },
         { status: 500 }
       );
-    }
-
-    // 6. Point subscription to the joined family
-    await admin
-      .from('subscriptions')
-      .update({ family_id: targetFamilyId })
-      .eq('user_id', userId);
-
-    // 7. Clean up the solo family (if it's different from the one we just joined)
-    if (soloMembership && soloMembership.family_id !== targetFamilyId) {
-      // Bring their own memories along first (as accept-invite does): family_memories has no
-      // cascade from families, so without this the delete below fails quietly and the memories
-      // are stranded in a family they no longer belong to.
-      await admin
-        .from('family_memories')
-        .update({ family_id: targetFamilyId })
-        .eq('family_id', soloMembership.family_id)
-        .eq('author_id', userId);
-
-      await admin
-        .from('family_memory_media')
-        .update({ family_id: targetFamilyId })
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      await admin
-        .from('family_memory_comments')
-        .update({ family_id: targetFamilyId })
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      await admin
-        .from('family_memory_reactions')
-        .update({ family_id: targetFamilyId })
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      // Voice notes cascade from families, so the delete below would erase them
-      const { error: voiceMoveError } = await admin
-        .from('family_memory_voice_notes')
-        .update({ family_id: targetFamilyId })
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      // Remove solo membership
-      await admin
-        .from('family_memberships')
-        .delete()
-        .eq('family_id', soloMembership.family_id)
-        .eq('user_id', userId);
-
-      // Delete the empty solo family. Not when the voice notes stayed behind: they would go
-      // with it, where a failed move above only leaves rows that block the delete.
-      if (voiceMoveError) {
-        console.error('Join via link: voice notes not moved, solo family kept', voiceMoveError);
-      } else {
-        await admin
-          .from('families')
-          .delete()
-          .eq('id', soloMembership.family_id);
-      }
     }
 
     return NextResponse.json({
