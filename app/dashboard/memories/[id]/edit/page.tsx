@@ -15,7 +15,7 @@ export default async function EditMemoryPage(props: {
 
   const { data: memory } = await supabase
     .from('family_memories')
-    .select('id, family_id, author_id, title, body, voice_note_path, video_path')
+    .select('id, family_id, author_id, title, body, video_path')
     .eq('id', memoryId)
     .maybeSingle();
 
@@ -24,14 +24,21 @@ export default async function EditMemoryPage(props: {
   // Only the author can edit
   if (memory.author_id !== user.id) return notFound();
 
-  // The saved photos and whether this member wants Story Assistance: both at once.
-  const [{ data: mediaRows }, { data: profile }] = await Promise.all([
+  // The saved photos, the author's own voice notes on it (the ones the memory page plays and
+  // only they may delete) and whether this member wants Story Assistance: all at once.
+  const [{ data: mediaRows }, { data: voiceRows }, { data: profile }] = await Promise.all([
     supabase
       .from('family_memory_media')
       .select('id, file_path, file_type')
       .eq('memory_id', memoryId)
       .eq('file_type', 'image')
       .order('display_order'),
+    supabase
+      .from('family_memory_voice_notes')
+      .select('id, file_path')
+      .eq('memory_id', memoryId)
+      .eq('user_id', user.id)
+      .order('created_at'),
     supabase
       .from('Profiles')
       .select('writing_assistance_enabled')
@@ -43,7 +50,7 @@ export default async function EditMemoryPage(props: {
   const paths = [
     ...(mediaRows || []).map((m) => m.file_path),
     ...(memory.video_path ? [memory.video_path] : []),
-    ...(memory.voice_note_path ? [memory.voice_note_path] : []),
+    ...(voiceRows || []).map((v) => v.file_path),
   ];
   const signed = new Map<string, string>();
   if (paths.length) {
@@ -58,6 +65,11 @@ export default async function EditMemoryPage(props: {
     return url ? [{ id: m.id, url, path: m.file_path }] : [];
   });
 
+  const existingVoiceNotes = (voiceRows || []).flatMap((v) => {
+    const url = signed.get(v.file_path);
+    return url ? [{ id: v.id, url, path: v.file_path }] : [];
+  });
+
   return (
     <MemoryEditorPage
       mode="edit"
@@ -67,7 +79,7 @@ export default async function EditMemoryPage(props: {
       initialBody={memory.body}
       initialImages={existingImages}
       initialVideoUrl={(memory.video_path && signed.get(memory.video_path)) || null}
-      initialVoiceUrl={(memory.voice_note_path && signed.get(memory.voice_note_path)) || null}
+      initialVoiceNotes={existingVoiceNotes}
       assistanceEnabled={profile?.writing_assistance_enabled !== false}
     />
   );

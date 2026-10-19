@@ -135,6 +135,13 @@ export async function POST(req: Request) {
         .eq('family_id', soloMembership.family_id)
         .eq('user_id', userId);
 
+      // Voice notes cascade from families, so the delete below would erase them
+      const { error: voiceMoveError } = await admin
+        .from('family_memory_voice_notes')
+        .update({ family_id: targetFamilyId })
+        .eq('family_id', soloMembership.family_id)
+        .eq('user_id', userId);
+
       // Remove solo membership
       await admin
         .from('family_memberships')
@@ -142,11 +149,16 @@ export async function POST(req: Request) {
         .eq('family_id', soloMembership.family_id)
         .eq('user_id', userId);
 
-      // Delete the empty solo family
-      await admin
-        .from('families')
-        .delete()
-        .eq('id', soloMembership.family_id);
+      // Delete the empty solo family. Not when the voice notes stayed behind: they would go
+      // with it, where a failed move above only leaves rows that block the delete.
+      if (voiceMoveError) {
+        console.error('Join via link: voice notes not moved, solo family kept', voiceMoveError);
+      } else {
+        await admin
+          .from('families')
+          .delete()
+          .eq('id', soloMembership.family_id);
+      }
     }
 
     return NextResponse.json({

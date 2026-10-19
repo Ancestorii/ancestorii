@@ -265,10 +265,12 @@ export default function MemoryPageContent({
     return selfRef.current;
   };
 
-  // The files behind a voice note or voice comment: the path on the row (the converted .m4a
-  // once the converter has run) and the .webm it was uploaded as. Only the uploader's own.
+  // The files behind a voice note or voice comment: the .webm it was uploaded as and the
+  // converted .m4a (the row may still point at the .webm if it was loaded before the converter
+  // ran). Only the uploader's own.
   const removeVoiceFiles = async (path: string) => {
-    const paths = [...new Set([path, path.replace(/\.[^/.]+$/, '.webm')])];
+    const stem = path.replace(/\.[^/.]+$/, '');
+    const paths = [...new Set([path, `${stem}.webm`, `${stem}.m4a`])];
     try { await getBrowserClient().storage.from('memory-media').remove(paths); } catch {}
   };
 

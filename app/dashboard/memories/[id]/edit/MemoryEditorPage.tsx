@@ -60,6 +60,9 @@ type PendingMedia = { id: string; file: File; preview: string };
 /** A photo already saved: its id, a signed URL, and its storage path (for the delete). */
 type ExistingImage = { id: string; url: string; path: string };
 
+/** A voice note the author already saved on this memory (a family_memory_voice_notes row). */
+type SavedVoiceNote = { id: string; url: string; path: string };
+
 type EditorProps = {
   mode: 'create' | 'edit';
   memoryId?: string;
@@ -68,7 +71,7 @@ type EditorProps = {
   initialBody?: string;
   initialImages?: ExistingImage[];
   initialVideoUrl?: string | null;
-  initialVoiceUrl?: string | null;
+  initialVoiceNotes?: SavedVoiceNote[];
   /** Profiles.writing_assistance_enabled: off hides the Story Assistance card. */
   assistanceEnabled?: boolean;
 };
@@ -97,7 +100,7 @@ export default function MemoryEditorPage({
   initialBody = '',
   initialImages = [],
   initialVideoUrl = null,
-  initialVoiceUrl = null,
+  initialVoiceNotes = [],
   assistanceEnabled = true,
 }: EditorProps) {
   const router = useRouter();
@@ -107,7 +110,8 @@ export default function MemoryEditorPage({
 
   const [existingImages, setExistingImages] = useState<ExistingImage[]>(initialImages);
   const [existingVideoUrl] = useState<string | null>(initialVideoUrl);
-  const [existingVoiceUrl, setExistingVoiceUrl] = useState<string | null>(initialVoiceUrl);
+  // "Replace" takes a saved note off this list; it is deleted when the memory is saved.
+  const [existingVoiceNotes, setExistingVoiceNotes] = useState<SavedVoiceNote[]>(initialVoiceNotes);
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [videoFile, setVideoFile] = useState<PendingMedia | null>(null);
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
@@ -239,17 +243,46 @@ export default function MemoryEditorPage({
         setUploadingVideo(false);
       }
 
+      // Voice notes are family_memory_voice_notes rows, as the memory page and the app keep
+      // them: that is what both play (the memory's old voice_note_path column is no longer
+      // written). The new recording is saved first, so a failed upload never costs the memory
+      // the note it is replacing.
+      let voiceSaved = true;
       if (voiceFile) {
         setPublishStep('Uploading voice note…');
         const voicePath = `${uid}/${targetId}/voice-${Date.now()}.webm`;
-        const { error: voiceErr } = await supabase.storage.from('memory-media').upload(voicePath, voiceFile);
+        const { error: voiceErr } = await supabase.storage
+          .from('memory-media')
+          .upload(voicePath, voiceFile, { contentType: voiceFile.type || 'audio/webm' });
         const { error: voiceRowErr } = voiceErr
           ? { error: voiceErr }
-          : await supabase.from('family_memories').update({ voice_note_path: voicePath }).eq('id', targetId);
-        if (voiceRowErr) safeToast.error('The voice note could not be uploaded.');
-      } else if (!existingVoiceUrl && initialVoiceUrl) {
+          : await supabase
+              .from('family_memory_voice_notes')
+              .insert({ memory_id: targetId, family_id: familyId, user_id: uid, file_path: voicePath });
+        if (voiceRowErr) {
+          voiceSaved = false;
+          // The file landed but its row didn't: take the orphaned audio back off.
+          if (!voiceErr) { try { await supabase.storage.from('memory-media').remove([voicePath]); } catch {} }
+          safeToast.error('The voice note could not be uploaded.');
+        }
+      }
+
+      // Replaced notes: the row first (a refused delete shows a toast), then its files, both the
+      // uploaded .webm and the converted .m4a (the row may still have pointed at the .webm when
+      // the editor opened).
+      const replaced = voiceSaved
+        ? initialVoiceNotes.filter((v) => !existingVoiceNotes.some((e) => e.id === v.id))
+        : [];
+      for (const v of replaced) {
         setPublishStep('Updating voice note…');
-        await supabase.from('family_memories').update({ voice_note_path: null }).eq('id', targetId);
+        try {
+          if (await deleteWithOwnerCheck(supabase, 'family_memory_voice_notes', v.id, 'voice note')) {
+            const stem = v.path.replace(/\.[^/.]+$/, '');
+            try { await supabase.storage.from('memory-media').remove([...new Set([v.path, `${stem}.webm`, `${stem}.m4a`])]); } catch {}
+          }
+        } catch {
+          safeToast.error('The old voice note could not be removed.');
+        }
       }
 
       if (failed) safeToast.error(failed === 1 ? 'One photo could not be uploaded.' : `${failed} photos could not be uploaded.`);
@@ -271,7 +304,7 @@ export default function MemoryEditorPage({
   const allImages = [...existingImages.map((i) => i.url), ...media.map((m) => m.preview)];
   const completeness = [title.trim().length > 0, stripHtml(body).length > 0].filter(Boolean).length;
   const previewText = stripHtml(body);
-  const hasVoice = !!(voiceFile || existingVoiceUrl);
+  const hasVoice = !!(voiceFile || existingVoiceNotes.length);
   const hasVideo = !!(videoFile || existingVideoUrl);
 
   return (
@@ -430,22 +463,23 @@ export default function MemoryEditorPage({
 
               {/* SECTION 4: VOICE NOTE */}
               <Section Icon={Music} tone={BLUE} title="Voice Note" optional>
-                {existingVoiceUrl && !voiceFile && (
-                  <div className={s.voiceRow}>
-                    <audio id="existing-voice" src={existingVoiceUrl} />
-                    <button type="button" onClick={() => { const el = document.getElementById('existing-voice') as HTMLAudioElement; if (el) { el.paused ? el.play() : el.pause(); } }} className={s.voicePlay} aria-label="Play saved voice note">
+                {existingVoiceNotes.map((v) => (
+                  <div key={v.id} className={s.voiceRow}>
+                    <audio id={`existing-voice-${v.id}`} src={v.url} />
+                    <button type="button" onClick={() => { const el = document.getElementById(`existing-voice-${v.id}`) as HTMLAudioElement | null; if (el) { el.paused ? el.play() : el.pause(); } }} className={s.voicePlay} aria-label="Play saved voice note">
                       <Play size={16} strokeWidth={2.6} fill="currentColor" className={s.playGlyph} aria-hidden="true" />
                     </button>
                     <div className={s.voiceText}>
                       <p className={s.voiceTitle}>Saved voice note</p>
                       <p className={s.voiceSub}>Previously recorded</p>
                     </div>
-                    <IconBtn label="Replace voice note" size="sm" danger onClick={() => setExistingVoiceUrl(null)}>
+                    <IconBtn label="Replace voice note" size="sm" danger onClick={() => setExistingVoiceNotes((prev) => prev.filter((n) => n.id !== v.id))}>
                       <Trash2 size={16} strokeWidth={2.2} aria-hidden="true" />
                     </IconBtn>
                   </div>
-                )}
-                {!existingVoiceUrl && (<VoiceNoteUploader voiceFile={voiceFile} onRecord={setVoiceFile} onRemove={() => setVoiceFile(null)} />)}
+                ))}
+                {/* One recording per save: shown when there is no saved note, or one was replaced */}
+                {(existingVoiceNotes.length === 0 || existingVoiceNotes.length < initialVoiceNotes.length) && (<VoiceNoteUploader voiceFile={voiceFile} onRecord={setVoiceFile} onRemove={() => setVoiceFile(null)} />)}
               </Section>
             </div>
 
