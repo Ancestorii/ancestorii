@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import { ADMIN_USER_ID } from '@/lib/adminUser';
 import { sendEmail, p, esc, box, wrap } from '@/lib/email';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function getAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,19 +45,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
     }
 
-    const { story_id, action } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { story_id, action } = body ?? {};
 
     if (!story_id || !['approve', 'reject'].includes(action)) {
       return NextResponse.json({ error: 'Missing story_id or invalid action (approve|reject)' }, { status: 400 });
+    }
+
+    if (typeof story_id !== 'string' || !UUID_RE.test(story_id)) {
+      return NextResponse.json({ error: 'Invalid story_id' }, { status: 400 });
     }
 
     const admin = getAdminClient();
 
     const { data: story, error: storyError } = await admin
       .from('stories')
-      .select('id, title, body, author_id, author_name, slug, moderation_reason, moderation_category')
+      .select('id, title, body, status, author_id, author_name, slug, moderation_reason, moderation_category')
       .eq('id', story_id)
-      .single();
+      .maybeSingle();
 
     if (storyError || !story) {
       return NextResponse.json({ error: 'Story not found' }, { status: 404 });
@@ -67,7 +74,7 @@ export async function POST(req: NextRequest) {
     const authorFirstName = story.author_name?.split(' ')[0] || 'there';
 
     if (action === 'approve') {
-      await admin
+      const { error: approveError } = await admin
         .from('stories')
         .update({
           status: 'published',
@@ -76,6 +83,11 @@ export async function POST(req: NextRequest) {
           moderation_category: null,
         })
         .eq('id', story_id);
+
+      if (approveError) {
+        console.error('Approve update error:', approveError);
+        return NextResponse.json({ error: 'Could not publish the story' }, { status: 500 });
+      }
 
       await admin.from('moderation_reviews').insert({
         story_id: story.id,
@@ -123,6 +135,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === 'reject') {
+      // Already rejected (a second click): the strike was counted the first time.
+      if (story.status === 'rejected') {
+        return NextResponse.json({ success: true, action: 'rejected', already: true });
+      }
+
       // Count existing strikes
       const { data: strikes } = await admin
         .from('moderation_strikes')
@@ -148,6 +165,17 @@ export async function POST(req: NextRequest) {
         actionTaken = 'ban';
       }
 
+      // Update story status first: a strike is only recorded against a story that is rejected
+      const { error: rejectError } = await admin
+        .from('stories')
+        .update({ status: 'rejected' })
+        .eq('id', story_id);
+
+      if (rejectError) {
+        console.error('Reject update error:', rejectError);
+        return NextResponse.json({ error: 'Could not reject the story' }, { status: 500 });
+      }
+
       // Record the strike
       await admin.from('moderation_strikes').insert({
         user_id: story.author_id,
@@ -156,12 +184,6 @@ export async function POST(req: NextRequest) {
         action_taken: actionTaken,
         suspended_until: suspendedUntil,
       });
-
-      // Update story status
-      await admin
-        .from('stories')
-        .update({ status: 'rejected' })
-        .eq('id', story_id);
 
       // Log the review
       await admin.from('moderation_reviews').insert({
@@ -231,11 +253,8 @@ export async function POST(req: NextRequest) {
         action_taken: actionTaken,
       });
     }
-  } catch (err: any) {
+  } catch (err) {
     console.error('Admin moderate error:', err);
-    return NextResponse.json(
-      { error: err?.message || 'Something went wrong' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

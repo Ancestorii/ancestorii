@@ -1,7 +1,18 @@
 import Stripe from "npm:stripe@14.21.0";
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2?target=deno";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { esc, p, send, SITE_URL, steps, stepsText, wrap, type Letter } from "../_shared/email.ts";
+
+// Supabase's Edge Runtime keeps a promise handed to EdgeRuntime.waitUntil running after the
+// response has gone out. The fulfil call below can take minutes (a book is rendered and sent to
+// Prodigi), so it runs there and Stripe gets its 200 at once.
+declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void } | undefined;
+function inBackground(task: Promise<unknown>): void {
+  if (typeof EdgeRuntime !== "undefined" && EdgeRuntime && typeof EdgeRuntime.waitUntil === "function") {
+    EdgeRuntime.waitUntil(task);
+  } else {
+    task.catch((err) => console.error("Background task failed:", err));
+  }
+}
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -14,6 +25,71 @@ const CORS_HEADERS = {
 async function sendEmail(to: string, letter: Letter, idempotencyKey: string) {
   const result = await send({ to, letter, idempotencyKey, tag: 'stripe' });
   if (!result.ok) console.error(`Resend refused (${result.status}): ${result.message}`);
+}
+
+// ── Hand a paid order to the print pipeline, off the request ──
+// /api/fulfill renders the product and submits it to Prodigi, which takes up to five minutes
+// for a book. Stripe gives a webhook a few seconds before it retries, so this runs through
+// inBackground() and the owner is emailed when the call does not come back 2xx (the route has
+// marked the order 'error' by then, or never received the call at all).
+type FulfilProduct = "Memory Book" | "Memory Canvas" | "Acrylic Print";
+
+function fulfilFailedLetter(product: FulfilProduct, orderId: string, customerEmail: string | null, failure: string): Letter {
+  const first = `A customer has paid for a ${product}, but the order did not reach the printer: the fulfil call for order ${orderId} did not succeed.`;
+  const second = 'The payment is safe and the order is marked paid. Check the order row before re-running the fulfil route for it, or the customer will wait for a print that is not coming.';
+  return {
+    subject: `Action needed: ${product} order ${orderId.slice(0, 8)} did not reach the printer`,
+    preheader: `Order ${orderId} is paid but was not sent to Prodigi.`,
+    eyebrow: 'ACTION NEEDED',
+    heading: 'A paid order did not reach the printer.',
+    bodyHtml: [p(esc(first)), p(esc(second))].join(''),
+    bodyText: [wrap(first), '', wrap(second)].join('\n'),
+    note: `Error: ${failure}`,
+    facts: [
+      { label: 'ORDER', value: orderId, breakable: true },
+      { label: 'PRODUCT', value: product },
+      { label: 'CUSTOMER', value: customerEmail || 'unknown', breakable: true },
+    ],
+    reason: 'You are receiving this because you look after Ancestorii orders.',
+  };
+}
+
+async function triggerFulfil(args: {
+  url: string;
+  secret: string;
+  orderId: string;
+  product: FulfilProduct;
+  customerEmail: string | null;
+}): Promise<void> {
+  let failure = "";
+  try {
+    const res = await fetch(args.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-fulfill-secret": args.secret,
+      },
+      body: JSON.stringify({ order_id: args.orderId }),
+    });
+    if (res.ok) {
+      console.log(`Fulfil triggered for ${args.product} order ${args.orderId}`);
+      return;
+    }
+    const text = await res.text().catch(() => "");
+    failure = `HTTP ${res.status} ${text.slice(0, 500)}`.trim();
+  } catch (err) {
+    failure = `fetch failed: ${(err as Error)?.message ?? String(err)}`;
+  }
+  console.error(`Fulfil trigger failed for ${args.product} order ${args.orderId}: ${failure}`);
+
+  const to = Deno.env.get("ALERT_EMAIL") || "support@ancestorii.com";
+  const result = await send({
+    to,
+    letter: fulfilFailedLetter(args.product, args.orderId, args.customerEmail, failure),
+    idempotencyKey: `fulfil-failed-${args.orderId}`,
+    tag: "alert",
+  });
+  if (!result.ok) console.error(`Alert email refused (${result.status}): ${result.message}`);
 }
 // ── Resolve a customer's email + name from a Stripe customer id ──
 // Subscription/invoice events carry no checkout session, so we read the
@@ -160,7 +236,7 @@ function bookOrderEmail(name: string, bookTitle: string, tierName: string, shipp
 }
 
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
   }
@@ -193,6 +269,7 @@ serve(async (req) => {
       STRIPE_WEBHOOK_SECRET
     );
 
+    if (!SUPABASE_URL || !SERVICE_ROLE) throw new Error("Supabase is not configured");
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
    // 1️⃣ checkout.session.completed
@@ -283,28 +360,14 @@ serve(async (req) => {
           console.error("Book order email failed:", emailErr);
         }
 
-        // ── TRIGGER FULFILLMENT ──
-        try {
-          const fulfillUrl = `${SITE}/api/fulfill/${bookId}`;
-
-          const fulfillRes = await fetch(fulfillUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-fulfill-secret": FULFILL_SECRET || "",
-            },
-            body: JSON.stringify({ order_id: orderId }),
-          });
-
-          if (!fulfillRes.ok) {
-            const errText = await fulfillRes.text();
-            console.error("Fulfill trigger failed:", fulfillRes.status, errText);
-          } else {
-            console.log("Fulfill triggered successfully for order:", orderId);
-          }
-        } catch (fulfillErr) {
-          console.error("Fulfill trigger error:", fulfillErr);
-        }
+        // ── TRIGGER FULFILLMENT (in the background, see triggerFulfil) ──
+        inBackground(triggerFulfil({
+          url: `${SITE}/api/fulfill/${bookId}`,
+          secret: FULFILL_SECRET || "",
+          orderId,
+          product: "Memory Book",
+          customerEmail: session.customer_details?.email ?? null,
+        }));
 
         return new Response("Book order handled", { status: 200 });
       }
@@ -396,28 +459,14 @@ serve(async (req) => {
           console.error("Canvas order email failed:", emailErr);
         }
 
-        // ── TRIGGER CANVAS FULFILLMENT ──
-        try {
-          const fulfillUrl = `${SITE}/api/fulfill/canvas/${canvasId}`;
-
-          const fulfillRes = await fetch(fulfillUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-fulfill-secret": FULFILL_SECRET || "",
-            },
-            body: JSON.stringify({ order_id: orderId }),
-          });
-
-          if (!fulfillRes.ok) {
-            const errText = await fulfillRes.text();
-            console.error("Canvas fulfill trigger failed:", fulfillRes.status, errText);
-          } else {
-            console.log("Canvas fulfill triggered for order:", orderId);
-          }
-        } catch (fulfillErr) {
-          console.error("Canvas fulfill trigger error:", fulfillErr);
-        }
+        // ── TRIGGER CANVAS FULFILLMENT (in the background, see triggerFulfil) ──
+        inBackground(triggerFulfil({
+          url: `${SITE}/api/fulfill/canvas/${canvasId}`,
+          secret: FULFILL_SECRET || "",
+          orderId,
+          product: "Memory Canvas",
+          customerEmail: session.customer_details?.email ?? null,
+        }));
 
         return new Response("Canvas order handled", { status: 200 });
       }
@@ -509,28 +558,14 @@ serve(async (req) => {
           console.error("Acrylic order email failed:", emailErr);
         }
 
-        // ── TRIGGER ACRYLIC FULFILLMENT ──
-        try {
-          const fulfillUrl = `${SITE}/api/fulfill/acrylic/${acrylicId}`;
-
-          const fulfillRes = await fetch(fulfillUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-fulfill-secret": FULFILL_SECRET || "",
-            },
-            body: JSON.stringify({ order_id: orderId }),
-          });
-
-          if (!fulfillRes.ok) {
-            const errText = await fulfillRes.text();
-            console.error("Acrylic fulfill trigger failed:", fulfillRes.status, errText);
-          } else {
-            console.log("Acrylic fulfill triggered for order:", orderId);
-          }
-        } catch (fulfillErr) {
-          console.error("Acrylic fulfill trigger error:", fulfillErr);
-        }
+        // ── TRIGGER ACRYLIC FULFILLMENT (in the background, see triggerFulfil) ──
+        inBackground(triggerFulfil({
+          url: `${SITE}/api/fulfill/acrylic/${acrylicId}`,
+          secret: FULFILL_SECRET || "",
+          orderId,
+          product: "Acrylic Print",
+          customerEmail: session.customer_details?.email ?? null,
+        }));
 
         return new Response("Acrylic order handled", { status: 200 });
       }
@@ -546,7 +581,9 @@ serve(async (req) => {
         return new Response("Missing metadata", { status: 200 });
       }
 
-      const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
+      const stripeSub = await stripe.subscriptions.retrieve(
+        typeof stripeSubId === "string" ? stripeSubId : stripeSubId.id
+      );
 
       const { data: planRow } = await supabase
         .from("plans")
@@ -713,7 +750,7 @@ serve(async (req) => {
     return new Response("Event ignored", { status: 200 });
   } catch (err) {
     console.error("Webhook error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: (err as Error)?.message ?? String(err) }), {
       headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       status: 400,
     });

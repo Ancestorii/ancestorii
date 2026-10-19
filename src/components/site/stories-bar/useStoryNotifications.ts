@@ -1,15 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { getRecentNotifications, getUnreadNotificationCount } from '@/lib/stories/queries';
 import { markAllNotificationsRead, markNotificationRead } from '@/lib/stories/mutations';
 import type { Notification } from '@/lib/stories/types';
+import { notificationHref } from './notificationMeta';
 
 export type StoryNotification = Notification & { story_title?: string | null };
-
-const MEMORY_TYPES = ['memory_reaction', 'memory_comment', 'memory_addition', 'prompt_answered'];
 
 /**
  * The data side of the bell, ported unchanged from NotificationBell and NotificationDropdown
@@ -22,6 +21,7 @@ export function useStoryNotifications(enabled: boolean) {
   const [count, setCount] = useState(0);
   const [notifications, setNotifications] = useState<StoryNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const loadedOnce = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -39,11 +39,13 @@ export function useStoryNotifications(enabled: boolean) {
     return () => clearInterval(interval);
   }, [enabled]);
 
-  // Called each time the panel opens.
+  // Called each time the panel opens. The spinner shows only the first time; after that the
+  // list already on screen stays while the fresh one arrives.
   const loadRecent = useCallback(async () => {
-    setLoading(true);
+    if (!loadedOnce.current) setLoading(true);
     const supabase = getBrowserClient();
     const data = await getRecentNotifications(supabase, 20);
+    loadedOnce.current = true;
     setNotifications(data);
     setLoading(false);
   }, []);
@@ -54,17 +56,19 @@ export function useStoryNotifications(enabled: boolean) {
     if (!notification) return false;
 
     if (!notification.is_read) {
+      // Marked read in the background: the click goes where it is going at once.
       const supabase = getBrowserClient();
-      await markNotificationRead(supabase, notification.id);
+      markNotificationRead(supabase, notification.id).catch(() => {});
       setNotifications((prev) =>
         prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
-      setCount(notifications.filter((n) => !n.is_read && n.id !== notification.id).length);
+      setCount((c) => Math.max(0, c - 1));
     }
 
-    // ── Memory notifications → navigate to memory page ──
-    if (MEMORY_TYPES.includes(notification.type) && notification.target_id) {
-      router.push(`/dashboard/memories/${notification.target_id}`);
+    // ── Memory, capsule and family notifications → their page ──
+    const href = notificationHref(notification.type, notification.target_id);
+    if (href) {
+      router.push(href);
       return true;
     }
 

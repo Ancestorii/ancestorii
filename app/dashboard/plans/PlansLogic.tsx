@@ -37,8 +37,12 @@ export default function PlansLogic() {
   const [showPlanChangeInfo, setShowPlanChangeInfo] = useState(false);
   const [usageLoading, setUsageLoading] = useState(true);
   const [currency, setCurrency] = useState<Currency>('GBP');
+  const [upgrading, setUpgrading] = useState(false);
 
+  // The Free tier's storage comes from the plans table (1GB today); the constant is the
+  // fallback for the moment before that row has loaded or if it cannot be read.
   const FREE_PLAN_STORAGE = 1 * 1024 ** 3;
+  const freePlanStorage = plans.find((pl) => pl.name === 'Free')?.max_storage ?? FREE_PLAN_STORAGE;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -59,46 +63,41 @@ export default function PlansLogic() {
     (async () => {
       setLoading(true);
 
-      const { data: authResp } = await supabase.auth.getUser();
-      const uid = authResp?.user?.id ?? null;
+      // The uid comes from the local session (no round trip); row security is the real check.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const uid = session?.user?.id ?? null;
 
-      const { data: planRows, error: planErr } = await supabase
-        .from('plans')
-        .select('id, name, max_storage')
-        .order('max_storage', { ascending: true });
-
-      if (planErr) console.warn('Plans error:', planErr.message);
-
-      const planList = (planRows ?? []) as Plan[];
-      setPlans(planList);
-
-      let sub: SubscriptionRow | null = null;
-
-      if (uid) {
-        const { data: subRows, error: subErr } = await supabase
-          .from('subscriptions')
-          .select('user_id, plan_id, status, cancel_at_period_end, current_period_end')
-          .eq('user_id', uid)
-          .maybeSingle();
-
-        if (subErr) console.warn('Subscription fetch error:', subErr.message);
-
-        sub = (subRows ?? null) as SubscriptionRow | null;
-        setSubscription(sub);
-
+      // The three reads are independent, so they go out together (they used to run one after
+      // another, after a network call to verify the user: four round trips in a row).
+      const [planRes, subRes, usageRes] = await Promise.all([
+        supabase.from('plans').select('id, name, max_storage').order('max_storage', { ascending: true }),
+        uid
+          ? supabase
+              .from('subscriptions')
+              .select('user_id, plan_id, status, cancel_at_period_end, current_period_end')
+              .eq('user_id', uid)
+              .maybeSingle()
+          : null,
         // Storage is the FAMILY-WIDE shared pool, not this user's uploads alone.
         // get_total_storage_used(uid) is family-scoped: it sums storage across every
         // member who shares this user's family_id (see the RPC definition).
-        const { data: totalBytes, error: usageErr } = await supabase.rpc(
-          'get_total_storage_used',
-          { uid }
-        );
+        uid ? supabase.rpc('get_total_storage_used', { uid }) : null,
+      ]);
 
-        if (usageErr) console.warn('Usage error:', usageErr.message);
+      if (planRes.error) console.warn('Plans error:', planRes.error.message);
+      if (subRes?.error) console.warn('Subscription fetch error:', subRes.error.message);
+      if (usageRes?.error) console.warn('Usage error:', usageRes.error.message);
 
-        setUsage({ used_bytes: Number(totalBytes ?? 0) });
-        setUsageLoading(false);
-      }
+      const planList = (planRes.data ?? []) as Plan[];
+      setPlans(planList);
+
+      const sub = (subRes?.data ?? null) as SubscriptionRow | null;
+      setSubscription(sub);
+
+      setUsage({ used_bytes: Number(usageRes?.data ?? 0) });
+      setUsageLoading(false);
 
       const matchedPlan = planList.find((pl) => pl.id === sub?.plan_id) ?? null;
 
@@ -117,21 +116,6 @@ export default function PlansLogic() {
     })();
   }, [supabase]);
 
-  useEffect(() => {
-    if (!subscription?.user_id) return;
-
-    const interval = setInterval(async () => {
-      const { data } = await supabase.rpc('get_total_storage_used', {
-        uid: subscription.user_id,
-      });
-
-      setUsage({ used_bytes: Number(data ?? 0) });
-      setUsageLoading(false);
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, [subscription?.user_id, supabase]);
-
   function formatBytes(bytes?: number | null) {
     if (!bytes || bytes <= 0) return '0 MB';
 
@@ -147,6 +131,11 @@ export default function PlansLogic() {
     iso ? new Date(iso).toLocaleDateString() : '';
 
   const handleUpgrade = async (planName: PlanName) => {
+    // One checkout at a time: a second click while the first is in flight would open a
+    // second Stripe session for the same person.
+    if (upgrading) return;
+    setUpgrading(true);
+
     try {
       const {
         data: { session },
@@ -155,7 +144,7 @@ export default function PlansLogic() {
       const accessToken = session?.access_token ?? '';
 
       const res = await fetch(
-        'https://wekebqaooixjngznycnm.supabase.co/functions/v1/create-checkout',
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-checkout`,
         {
           method: 'POST',
           headers: {
@@ -173,18 +162,25 @@ export default function PlansLogic() {
       );
 
       const text = await res.text();
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
-
-      const data = JSON.parse(text);
+      let data: { url?: string; error?: string } = {};
+      try {
+        data = JSON.parse(text);
+      } catch {
+        // Not JSON: the status line below is the message.
+      }
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
 
       if (data?.url) {
+        // Stripe's page is off site, so this is a real navigation. The button stays busy until
+        // the browser has left, so it cannot be pressed again on the way out.
         window.location.href = data.url;
       } else {
-        throw new Error('No checkout URL returned from Supabase.');
+        throw new Error('No checkout URL returned.');
       }
     } catch (err: any) {
       console.error('Upgrade error:', err);
       safeToast.error('Error starting checkout: ' + err.message);
+      setUpgrading(false);
     }
   };
 
@@ -203,12 +199,13 @@ export default function PlansLogic() {
       subscription={subscription}
       usage={usage}
       usageLoading={usageLoading}
-      freePlanStorage={FREE_PLAN_STORAGE}
+      freePlanStorage={freePlanStorage}
       showPlanChangeInfo={showPlanChangeInfo}
       setShowPlanChangeInfo={setShowPlanChangeInfo}
       formatBytes={formatBytes}
       formatDate={formatDate}
       handleUpgrade={handleUpgrade}
+      upgrading={upgrading}
       price={PRICE}
     />
   );

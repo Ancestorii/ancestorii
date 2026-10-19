@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback, useId } from 'react';
+import { useState, useCallback, useEffect, useId } from 'react';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { getCroppedImg } from '@/lib/cropImage';
+import { safeToast } from '@/lib/safeToast';
 import { X, ZoomIn, ZoomOut } from 'lucide-react';
 import { ui, appRoot, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './ImageCropModal.module.css';
@@ -27,6 +28,16 @@ export default function ImageCropModal({ imageSrc, onConfirm, onCancel }: Props)
   // focus goes back to the photo picker when it closes.
   const panelRef = useDialog<HTMLDivElement>(true, onCancel);
 
+  // The page behind does not scroll while the dialog is open (as the shell's sheets do);
+  // whatever overflow the body had comes back when it closes.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
+
   const onCropComplete = useCallback((_: Area, areaPixels: Area) => {
     setCroppedAreaPixels(areaPixels);
   }, []);
@@ -39,6 +50,7 @@ export default function ImageCropModal({ imageSrc, onConfirm, onCancel }: Props)
       onConfirm(croppedFile);
     } catch (err) {
       console.error('Crop failed:', err);
+      safeToast.error('Could not crop that photo. Please try another one.');
     } finally {
       setProcessing(false);
     }

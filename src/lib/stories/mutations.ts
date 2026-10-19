@@ -2,6 +2,15 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { uniqueSlug } from './slugify';
 import type { Story } from './types';
 
+// These run in the browser. The signed-in user's id comes from the local session (no round trip
+// to Auth); RLS is what decides whether a write is allowed.
+async function sessionUserId(supabase: SupabaseClient): Promise<string | null> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session?.user?.id ?? null;
+}
+
 /**
  * Create a new story (always starts as draft, immediately published by the editor).
  */
@@ -21,34 +30,38 @@ export async function createStory(
     excerpt?: string | null;
   }
 ): Promise<Story | null> {
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return null;
+  const userId = await sessionUserId(supabase);
+  if (!userId) return null;
 
   const { data: profile } = await supabase
     .from('Profiles')
     .select('full_name, avatar_url')
-    .eq('id', auth.user.id)
+    .eq('id', userId)
     .maybeSingle();
 
-  const { data, error } = await supabase
-    .from('stories')
-    .insert({
-      author_id: auth.user.id,
-      author_name: profile?.full_name || 'Anonymous',
-      author_avatar_url: profile?.avatar_url || null,
-      title,
-      body,
-      slug: uniqueSlug(title),
-      voice_note_path: voiceNotePath || null,
-      category: category || null,
-      excerpt: excerpt || null,
-      status: 'draft',
-    })
-    .select()
-    .single();
+  // Two goes: a slug clash (one chance in two billion) gets a fresh suffix.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { data, error } = await supabase
+      .from('stories')
+      .insert({
+        author_id: userId,
+        author_name: profile?.full_name || 'Anonymous',
+        author_avatar_url: profile?.avatar_url || null,
+        title,
+        body,
+        slug: uniqueSlug(title),
+        voice_note_path: voiceNotePath || null,
+        category: category || null,
+        excerpt: excerpt || null,
+        status: 'draft',
+      })
+      .select()
+      .single();
 
-  if (error) return null;
-  return data as Story;
+    if (!error) return data as Story;
+    if (error.code !== '23505') return null;
+  }
+  return null;
 }
 
 /**
@@ -65,63 +78,69 @@ export async function updateStory(
     excerpt?: string | null;
   }
 ): Promise<boolean> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('stories')
     .update(updates)
-    .eq('id', storyId);
+    .eq('id', storyId)
+    .select('id');
 
-  return !error;
+  // RLS turns a write by anyone but the author into 0 rows, not an error.
+  return !error && (data?.length ?? 0) > 0;
 }
 
 /**
- * Delete a story.
+ * Delete a story. True only if a row really went (RLS blocks silently otherwise).
  */
 export async function deleteStory(
   supabase: SupabaseClient,
   storyId: string
 ): Promise<boolean> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('stories')
     .delete()
-    .eq('id', storyId);
+    .eq('id', storyId)
+    .select('id');
 
-  return !error;
+  return !error && (data?.length ?? 0) > 0;
 }
 
 /**
- * Toggle a reaction (like/unlike).
+ * Toggle a reaction (like/unlike). Reports the state the row is really in afterwards.
  */
 export async function toggleReaction(
   supabase: SupabaseClient,
   storyId: string
 ): Promise<{ reacted: boolean }> {
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return { reacted: false };
+  const userId = await sessionUserId(supabase);
+  if (!userId) return { reacted: false };
 
   const { data: existing } = await supabase
     .from('story_reactions')
     .select('id')
     .eq('story_id', storyId)
-    .eq('user_id', auth.user.id)
+    .eq('user_id', userId)
     .maybeSingle();
 
   if (existing) {
-    await supabase
+    const { data: removed, error } = await supabase
       .from('story_reactions')
       .delete()
-      .eq('id', existing.id);
-    return { reacted: false };
+      .eq('id', existing.id)
+      .select('id');
+    // Still liked if the row could not be removed.
+    return { reacted: !!error || (removed?.length ?? 0) === 0 };
   }
 
-  await supabase
+  const { error } = await supabase
     .from('story_reactions')
     .insert({
       story_id: storyId,
-      user_id: auth.user.id,
+      user_id: userId,
       reaction_type: 'like',
     });
 
-  return { reacted: true };
+  // A second click that raced the first finds the row already there: liked all the same.
+  return { reacted: !error || error.code === '23505' };
 }
 
 /**
@@ -133,20 +152,20 @@ export async function addComment(
   content: string,
   parentId?: string | null
 ): Promise<boolean> {
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return false;
+  const userId = await sessionUserId(supabase);
+  if (!userId) return false;
 
   const { data: profile } = await supabase
     .from('Profiles')
     .select('full_name, avatar_url')
-    .eq('id', auth.user.id)
+    .eq('id', userId)
     .maybeSingle();
 
   const { error } = await supabase
     .from('story_comments')
     .insert({
       story_id: storyId,
-      user_id: auth.user.id,
+      user_id: userId,
       author_name: profile?.full_name || 'Anonymous',
       author_avatar_url: profile?.avatar_url || null,
       content,
@@ -157,18 +176,19 @@ export async function addComment(
 }
 
 /**
- * Delete a comment.
+ * Delete a comment. True only if a row really went (RLS blocks silently otherwise).
  */
 export async function deleteComment(
   supabase: SupabaseClient,
   commentId: string
 ): Promise<boolean> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('story_comments')
     .delete()
-    .eq('id', commentId);
+    .eq('id', commentId)
+    .select('id');
 
-  return !error;
+  return !error && (data?.length ?? 0) > 0;
 }
 
 /**
@@ -179,13 +199,13 @@ export async function logShare(
   storyId: string,
   platform: string
 ): Promise<boolean> {
-  const { data: auth } = await supabase.auth.getUser();
+  const userId = await sessionUserId(supabase);
 
   const { error } = await supabase
     .from('story_shares')
     .insert({
       story_id: storyId,
-      user_id: auth?.user?.id || null,
+      user_id: userId,
       platform,
     });
 
@@ -222,19 +242,21 @@ export async function markAllNotificationsRead(
 }
 
 /**
- * Upload story media file to storage.
+ * Upload a story photo or video to storage and record it. Returns the new story_media row's id
+ * and the storage path, or null if either step failed (an uploaded file nobody points at is
+ * removed again).
  */
 export async function uploadStoryMedia(
   supabase: SupabaseClient,
   storyId: string,
   file: File,
   displayOrder: number
-): Promise<string | null> {
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return null;
+): Promise<{ id: string; path: string } | null> {
+  const userId = await sessionUserId(supabase);
+  if (!userId) return null;
 
   const ext = file.name.split('.').pop();
-  const path = `${auth.user.id}/${storyId}/${displayOrder}-${Date.now()}.${ext}`;
+  const path = `${userId}/${storyId}/${displayOrder}-${Date.now()}.${ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from('story-media')
@@ -242,17 +264,22 @@ export async function uploadStoryMedia(
 
   if (uploadError) return null;
 
-  const { error: insertError } = await supabase
+  const { data: row, error: insertError } = await supabase
     .from('story_media')
     .insert({
       story_id: storyId,
       file_path: path,
       file_type: file.type,
       display_order: displayOrder,
-    });
+    })
+    .select('id')
+    .single();
 
-  if (insertError) return null;
-  return path;
+  if (insertError || !row) {
+    await supabase.storage.from('story-media').remove([path]);
+    return null;
+  }
+  return { id: row.id as string, path };
 }
 
 /**
@@ -263,11 +290,11 @@ export async function uploadVoiceNote(
   storyId: string,
   file: File
 ): Promise<string | null> {
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return null;
+  const userId = await sessionUserId(supabase);
+  if (!userId) return null;
 
   const ext = file.name.split('.').pop() || 'webm';
-  const path = `${auth.user.id}/${storyId}/voice-${Date.now()}.${ext}`;
+  const path = `${userId}/${storyId}/voice-${Date.now()}.${ext}`;
 
   const { error } = await supabase.storage
     .from('story-media')

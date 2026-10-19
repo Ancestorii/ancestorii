@@ -145,11 +145,13 @@ export default function ProfilePage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data: authResp } = await supabase.auth.getUser();
-      const uid = authResp?.user?.id ?? null;
+      // The user comes from the local session (no network round trip); RLS guards the rows.
+      const { data: sess } = await supabase.auth.getSession();
+      const user = sess?.session?.user ?? null;
+      const uid = user?.id ?? null;
       setUserId(uid);
-      setUserEmail(authResp?.user?.email ?? null);
-      setMemberSince(authResp?.user?.created_at ?? null);
+      setUserEmail(user?.email ?? null);
+      setMemberSince(user?.created_at ?? null);
 
       if (!uid) return setLoading(false);
 
@@ -161,22 +163,23 @@ export default function ProfilePage() {
 
       if (!prof) {
         const fullName =
-          authResp?.user?.user_metadata?.full_name ||
-          authResp?.user?.user_metadata?.name ||
+          user?.user_metadata?.full_name ||
+          user?.user_metadata?.name ||
           null;
 
         const { data: inserted } = await supabase
           .from('Profiles')
           .insert({ id: uid, full_name: fullName })
           .select('*')
-          .single();
+          .maybeSingle();
 
-        setProfile(inserted);
+        // If the insert is refused the form still works (Save updates the row by id).
+        setProfile(inserted ?? { id: uid, full_name: fullName, dob: null, profile_image_url: null });
       } else {
         if (!prof.full_name) {
           const fullName =
-            authResp?.user?.user_metadata?.full_name ||
-            authResp?.user?.user_metadata?.name ||
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
             null;
 
           if (fullName) {
@@ -327,12 +330,13 @@ export default function ProfilePage() {
     let active = true;
     setAvatarLoaded(false);
 
+    // No cache buster on this read path: a fresh photo gets its own URL from uploadAvatar.
     const sign = async () => {
       const { data } = await supabase.storage
         .from('user-media')
         .createSignedUrl(path, 3600);
       if (active && data?.signedUrl) {
-        setAvatarUrl(`${data.signedUrl}&cb=${Date.now()}`);
+        setAvatarUrl(data.signedUrl);
       }
     };
 
@@ -368,7 +372,9 @@ export default function ProfilePage() {
     setSuccess(null);
     setSaving(true);
 
-    const { error: upErr } = await supabase
+    // .select() brings the row back, so an update that touched nothing (RLS) reads as a
+    // failure instead of "Profile updated."
+    const { data: saved, error: upErr } = await supabase
       .from('Profiles')
       .update({
         full_name: profile.full_name,
@@ -381,10 +387,12 @@ export default function ProfilePage() {
         writing_assistance_enabled: profile.writing_assistance_enabled,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', userId);
+      .eq('id', userId)
+      .select('id')
+      .maybeSingle();
 
-    if (upErr) {
-      setError(upErr.message);
+    if (upErr || !saved) {
+      setError(upErr?.message ?? 'Your changes could not be saved. Please try again.');
       setTimeout(() => setError(null), 5000);
     } else {
       setSuccess('Profile updated.');
@@ -404,9 +412,15 @@ export default function ProfilePage() {
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const path = `${userId}/avatar.${ext}`;
 
-    await supabase.storage
+    const { error: uploadErr } = await supabase.storage
       .from('user-media')
       .upload(path, file, { upsert: true });
+
+    if (uploadErr) {
+      safeToast.error('Could not upload that photo. Please try again.');
+      setSaving(false);
+      return;
+    }
 
     // Remove the previous photo if it was stored under a different extension,
     // otherwise it would linger in storage forever.
@@ -414,13 +428,24 @@ export default function ProfilePage() {
       await supabase.storage.from('user-media').remove([oldPath]);
     }
 
-    await supabase
+    const { data: saved, error: saveErr } = await supabase
       .from('Profiles')
       .update({ profile_image_url: path })
-      .eq('id', userId);
+      .eq('id', userId)
+      .select('id')
+      .maybeSingle();
+
+    if (saveErr || !saved) {
+      safeToast.error('Could not save your new photo. Please try again.');
+      setSaving(false);
+      return;
+    }
 
     setProfile((p) => (p ? { ...p, profile_image_url: path } : p));
 
+    // The photo replaces the old one at the same storage path, so this one time the URL
+    // carries a buster: the browser must not show the old file. The old image stays on screen
+    // until the new one has decoded (no blank ring in between).
     const { data } = await supabase.storage
       .from('user-media')
       .createSignedUrl(path, 3600);
@@ -428,7 +453,6 @@ export default function ProfilePage() {
     setAvatarUrl(
       data?.signedUrl ? `${data.signedUrl}&cb=${Date.now()}` : null
     );
-    setAvatarLoaded(false);
     window.dispatchEvent(new Event('profile-image-updated'));
     setSaving(false);
   };
@@ -502,6 +526,9 @@ export default function ProfilePage() {
                     priority
                     onLoadingComplete={() => setAvatarLoaded(true)}
                   />
+                ) : profile?.profile_image_url ? (
+                  // A stored photo is being signed: an empty ring, not initials that then vanish.
+                  null
                 ) : (
                   <span aria-hidden="true">{initials}</span>
                 )}

@@ -64,10 +64,14 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const code = typeof body?.code === 'string' ? body.code.trim().toUpperCase() : '';
   const product = body?.product;
-  const tierKey = typeof body?.tier_key === 'string' ? body.tier_key : '';
+  const tierKey = typeof body?.tier_key === 'string' ? body.tier_key.slice(0, 64) : '';
 
   if (!code) {
     return NextResponse.json({ ok: false, reason: 'not_found', message: 'Enter a reward code.' });
+  }
+  // Codes are short (REWARD-XXXXXX): anything long is not one, and need not reach the database.
+  if (code.length > 64) {
+    return NextResponse.json({ ok: false, reason: 'not_found', message: messageFor('not_found') });
   }
   if (product !== 'book' && product !== 'canvas' && product !== 'acrylic') {
     return NextResponse.json({ ok: false, reason: 'bad_request', message: 'Unknown product.' }, { status: 400 });

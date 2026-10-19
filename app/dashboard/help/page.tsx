@@ -28,7 +28,8 @@ export default function HelpPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<StatusState>(null);
 
-  const [plan, setPlan] = useState<string | null>(null);
+  // null until the subscription is read, then whether this account is on Premium.
+  const [premium, setPremium] = useState<boolean | null>(null);
 
   const nameId = useId();
   const emailId = useId();
@@ -37,33 +38,38 @@ export default function HelpPage() {
   // Fetch plan for conditional phone box
   useEffect(() => {
     const fetchPlan = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+      // The user comes from the local session (no network round trip).
+      const { data: sess } = await supabase.auth.getSession();
+      const user = sess?.session?.user;
+      if (!user) {
+        setPremium(false);
+        return;
+      }
 
-      // 1. Get user's family
-      const { data: membership } = await supabase
-        .from("family_memberships")
-        .select("family_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      // The form already knows who is writing.
+      setName((n) => n || user.user_metadata?.full_name || user.user_metadata?.name || '');
+      setEmail((e) => e || user.email || '');
 
-      if (!membership?.family_id) return;
-
-      // 2. Check if any subscription in this family is active
+      // The same test as the sidebar and the Plans page: this user's subscription row, on the
+      // Premium plan, active, not cancelling and not past its period. (The old family-wide read
+      // used maybeSingle, which errors for any family of two or more, since every member has an
+      // active Free row, so Premium families read as Free here.)
       const { data: sub } = await supabase
         .from("subscriptions")
         // Two foreign keys link subscriptions.plan_id to plans (fk_subscriptions_plan and
-        // subscriptions_plan_id_fkey), so a bare plans(name) is ambiguous (HTTP 300) and every family
-        // read as Free. Naming one of them makes the embed work.
-        .select("plan_id, plans!subscriptions_plan_id_fkey(name)")
-        .eq("family_id", membership.family_id)
-        .eq("status", "active")
+        // subscriptions_plan_id_fkey), so a bare plans(name) is ambiguous (HTTP 300). Naming one
+        // of them makes the embed work.
+        .select("status, cancel_at_period_end, current_period_end, plans!subscriptions_plan_id_fkey(name)")
+        .eq("user_id", user.id)
         .maybeSingle();
 
-      const planName = (sub?.plans as any)?.name;
-      setPlan(planName || 'Free');
+      const planName = (sub?.plans as { name?: string } | null)?.name;
+      setPremium(
+        planName === 'Premium' &&
+          sub?.status === 'active' &&
+          sub?.cancel_at_period_end === false &&
+          (!sub?.current_period_end || new Date(sub.current_period_end) > new Date())
+      );
     };
 
     fetchPlan();
@@ -80,33 +86,19 @@ export default function HelpPage() {
     setStatus(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke(
+      const { error } = await supabase.functions.invoke(
         "send-contact-email",
         {
           body: { name, email, message },
         }
       );
 
-      console.log("contact result:", { data, error });
-
       if (error) {
         setStatus("error");
       } else {
-        // ✅ Log notification so it appears in Updates and triggers the bell
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (user) {
-          await supabase.from("notifications").insert({
-            title: "Support request submitted",
-            content:
-              "Your message has been sent to the Ancestorii support team.",
-            user_id: user.id,
-            type: "update",
-          });
-        }
-
+        // No notification row here: the table has no title or content column (the insert was
+        // refused), and the bell has no words for a support request. The confirmation email
+        // and the message below are the receipt.
         setStatus("success");
         setName("");
         setEmail("");
@@ -167,7 +159,7 @@ export default function HelpPage() {
               title="Storage Limits"
               content={[
                 "All uploaded photos, videos, audio and documents count towards your storage.",
-                "You can check your current usage inside the Plans or My Profile section.",
+                "You can check your current usage in the sidebar or inside the Plans section.",
                 "If you reach the limit, you must free space or upgrade to continue uploading.",
               ]}
             />
@@ -194,7 +186,7 @@ export default function HelpPage() {
               title="Account & Login"
               content={[
                 "Use the Forgot Password link if you can't access your account.",
-                "You can update email and details inside Account Settings.",
+                "You can update your details in My Profile and your password in Settings.",
                 "Always use a strong unique password for security.",
               ]}
             />
@@ -294,8 +286,8 @@ export default function HelpPage() {
               <IconTile Icon={Phone} tone={toneByKey('pink')} />
               <h2 className={s.cardTitle}>Prefer to speak to us?</h2>
 
-              {plan ? (
-                plan === "Standard" || plan === "Premium" ? (
+              {premium !== null ? (
+                premium ? (
                   <>
                     <p className={s.cardText}>
                       Priority phone support for Premium members:

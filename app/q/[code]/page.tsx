@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { APPSTORE_URL, PLAYSTORE_URL } from '@/lib/store-links';
@@ -28,6 +29,13 @@ import styles from '@/components/site/utility/handoff.module.css';
 
 // Device detection runs per request; never cache the redirect.
 export const dynamic = 'force-dynamic';
+
+// A private hand-off page (one per code), not one to index. The root layout adds " | Ancestorii".
+export const metadata: Metadata = {
+  title: 'You have a question to answer',
+  description: 'Ancestorii is answered in the app. Install it on your phone, then enter your code.',
+  robots: { index: false, follow: false },
+};
 
 export default async function QStoreRedirect({
   params,

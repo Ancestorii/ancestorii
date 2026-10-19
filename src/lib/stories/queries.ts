@@ -1,8 +1,12 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { StoryComment, Notification } from './types';
 
+// Profile photos are signed for a week, as the server pages do, so a browser can keep them.
+const AVATAR_TTL = 60 * 60 * 24 * 7;
+
 /**
- * Fetch comments for a story.
+ * Fetch comments for a story, with each writer's current name, title and photo. Three round
+ * trips: the comments, the writers' public cards, one signing call for every photo.
  */
 export async function getStoryComments(
   supabase: SupabaseClient,
@@ -21,38 +25,40 @@ export async function getStoryComments(
 
   if (userIds.length === 0) return comments;
 
-  const { data: profiles } = await supabase
-    .from('Profiles')
+  const { data: cards } = await supabase
+    .from('profile_cards')
     .select('id, full_name, profile_image_url, title')
     .in('id', userIds);
 
-  if (!profiles) return comments;
+  if (!cards) return comments;
 
-  const profileMap = new Map(profiles.map((p) => [p.id, p]));
+  const cardMap = new Map(cards.map((p) => [p.id, p]));
 
-  const enriched = await Promise.all(
-    comments.map(async (comment) => {
-      const profile = profileMap.get(comment.user_id);
-      if (!profile) return { ...comment, author_title: null };
+  const paths = [
+    ...new Set(cards.map((p) => p.profile_image_url).filter((p): p is string => !!p)),
+  ];
+  const avatarByPath = new Map<string, string>();
+  if (paths.length) {
+    const { data: signed } = await supabase.storage
+      .from('user-media')
+      .createSignedUrls(paths, AVATAR_TTL);
+    (signed ?? []).forEach((row, i) => {
+      if (row.signedUrl) avatarByPath.set(row.path ?? paths[i], row.signedUrl);
+    });
+  }
 
-      let avatarUrl = comment.author_avatar_url;
-      if (profile.profile_image_url) {
-        const { data: signed } = await supabase.storage
-          .from('user-media')
-          .createSignedUrl(profile.profile_image_url, 3600);
-        if (signed?.signedUrl) avatarUrl = signed.signedUrl;
-      }
-
-      return {
-        ...comment,
-        author_name: profile.full_name || comment.author_name,
-        author_avatar_url: avatarUrl,
-        author_title: profile.title || null,
-      };
-    })
-  );
-
-  return enriched;
+  return comments.map((comment) => {
+    const card = cardMap.get(comment.user_id);
+    if (!card) return { ...comment, author_title: null };
+    return {
+      ...comment,
+      author_name: card.full_name || comment.author_name,
+      author_avatar_url:
+        (card.profile_image_url && avatarByPath.get(card.profile_image_url)) ||
+        comment.author_avatar_url,
+      author_title: card.title || null,
+    };
+  });
 }
 
 /**
@@ -84,27 +90,37 @@ export async function getRecentNotifications(
 
   if (error || !data) return [];
 
-  // Enrich memory notifications with memory titles
+  // Enrich memory and capsule notifications with their titles (side by side)
   const memoryTypes = ['memory_reaction', 'memory_comment', 'memory_addition', 'prompt_answered'];
-  const memoryNotifs = (data as any[]).filter(
-    (n) => memoryTypes.includes(n.type) && n.target_id && n.target_type === 'family_memory'
-  );
-  const memoryIds = [...new Set(memoryNotifs.map((n) => n.target_id))];
+  const rows = data as unknown as (Notification & { stories: { title: string | null } | null })[];
+  const memoryIds = [
+    ...new Set(
+      rows
+        .filter((n) => memoryTypes.includes(n.type) && n.target_id && n.target_type === 'family_memory')
+        .map((n) => n.target_id as string)
+    ),
+  ];
+  const capsuleIds = [
+    ...new Set(
+      rows.filter((n) => n.type === 'capsule_unlocked' && n.target_id).map((n) => n.target_id as string)
+    ),
+  ];
 
-  const memoryTitleMap = new Map<string, string>();
-  if (memoryIds.length > 0) {
-    const { data: memories } = await supabase
-      .from('family_memories')
-      .select('id, title')
-      .in('id', memoryIds);
-    if (memories) {
-      (memories as any[]).forEach((m) => memoryTitleMap.set(m.id, m.title));
-    }
-  }
+  const [{ data: memories }, { data: capsules }] = await Promise.all([
+    memoryIds.length
+      ? supabase.from('family_memories').select('id, title').in('id', memoryIds)
+      : { data: [] as { id: string; title: string }[] },
+    capsuleIds.length
+      ? supabase.from('memory_capsules').select('id, title').in('id', capsuleIds)
+      : { data: [] as { id: string; title: string }[] },
+  ]);
 
-  return (data as any[]).map((n) => ({
+  const titleMap = new Map<string, string>();
+  ((memories ?? []) as { id: string; title: string }[]).forEach((m) => titleMap.set(m.id, m.title));
+  ((capsules ?? []) as { id: string; title: string }[]).forEach((c) => titleMap.set(c.id, c.title));
+
+  return rows.map(({ stories, ...n }) => ({
     ...n,
-    story_title: n.stories?.title ?? memoryTitleMap.get(n.target_id) ?? null,
-    stories: undefined,
+    story_title: stories?.title ?? (n.target_id ? titleMap.get(n.target_id) : null) ?? null,
   }));
 }

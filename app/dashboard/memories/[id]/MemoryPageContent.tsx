@@ -707,7 +707,20 @@ export default function MemoryPageContent({
               </Btn>
               <Btn
                 variant="danger"
-                onClick={async () => { setReporting(true); try { const res = await fetch('/api/report-memory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memory_id: memoryId, reason: reportReason.trim() || null }) }); if (res.ok) { setReportDone(true); setReportOpen(false); } } finally { setReporting(false); } }}
+                onClick={async () => {
+                  setReporting(true);
+                  try {
+                    const res = await fetch('/api/report-memory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ memory_id: memoryId, reason: reportReason.trim() || null }) });
+                    // 409 means this person has already reported it: that counts as done.
+                    if (res.ok || res.status === 409) { setReportDone(true); setReportOpen(false); return; }
+                    const data = await res.json().catch(() => null);
+                    safeToast.error(data?.error || 'Could not send your report. Please try again.');
+                  } catch {
+                    safeToast.error('Could not send your report. Please try again.');
+                  } finally {
+                    setReporting(false);
+                  }
+                }}
                 disabled={reporting}
                 icon={reporting ? <Spinner size={16} /> : undefined}
                 className={s.confirmBtn}

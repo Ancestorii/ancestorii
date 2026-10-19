@@ -1,7 +1,7 @@
 'use client';
 
 import type { LucideIcon } from 'lucide-react';
-import { Heart, MessageCircle, Share2, Users, ImageIcon, PenLine, HelpCircle } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Users, ImageIcon, PenLine, HelpCircle, LockOpen } from 'lucide-react';
 import styles from './notifications.module.css';
 
 // The colour of each kind of notification (as on the Our Stories bar): pink and blue
@@ -91,6 +91,14 @@ function getNotificationMeta(
       return { Icon: HelpCircle, tone: 'blue', message: `${name} answered your question` };
     case 'prompt_received':
       return { Icon: HelpCircle, tone: 'blue', message: `${name} asked you a question` };
+
+    // ── Capsules ──
+    case 'capsule_unlocked':
+      return {
+        Icon: LockOpen,
+        tone: 'pink',
+        message: quoted ? `Your capsule ${quoted} is ready to open` : 'A capsule is ready to open',
+      };
 
     default:
       return { Icon: Heart, tone: 'ink', message: `${name} interacted with ${title}` };

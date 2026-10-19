@@ -101,7 +101,7 @@ export async function getLandingStories(
       .order('display_order', { ascending: true })
       .order('created_at', { ascending: true }),
     authorIds.length
-      ? supabase.from('Profiles').select('id, title').in('id', authorIds)
+      ? supabase.from('profile_cards').select('id, title').in('id', authorIds)
       : Promise.resolve({ data: [] as { id: string; title: string | null }[] }),
   ]);
 

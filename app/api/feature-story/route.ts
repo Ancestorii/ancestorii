@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import { ADMIN_USER_ID } from '@/lib/adminUser';
 import { sendEmail, p, esc, wrap } from '@/lib/email';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function getAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,10 +35,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
     }
 
-    const { story_id, feature_type } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { story_id, feature_type } = body ?? {};
 
     if (!story_id || !feature_type) {
       return NextResponse.json({ error: 'Missing story_id or feature_type' }, { status: 400 });
+    }
+
+    if (typeof story_id !== 'string' || !UUID_RE.test(story_id)) {
+      return NextResponse.json({ error: 'Invalid story_id' }, { status: 400 });
     }
 
     if (!VALID_FEATURE_TYPES.includes(feature_type)) {
@@ -51,29 +58,28 @@ export async function POST(req: NextRequest) {
       .select('id, title, author_id, author_name, slug')
       .eq('id', story_id)
       .eq('status', 'published')
-      .single();
+      .maybeSingle();
 
     if (storyError || !story) {
       return NextResponse.json({ error: 'Story not found or not published' }, { status: 404 });
     }
 
-    // Delete existing featured story in this slot (if any)
-    await admin
+    // One story per slot (unique_feature_type): replace whatever holds it in a single statement,
+    // so a failure can never leave the slot empty.
+    const { error: upsertError } = await admin
       .from('featured_stories')
-      .delete()
-      .eq('feature_type', feature_type);
+      .upsert(
+        {
+          story_id: story.id,
+          feature_type,
+          featured_by: user.id,
+          featured_at: new Date().toISOString(),
+        },
+        { onConflict: 'feature_type' }
+      );
 
-    // Insert new featured story
-    const { error: insertError } = await admin
-      .from('featured_stories')
-      .insert({
-        story_id: story.id,
-        feature_type,
-        featured_by: user.id,
-      });
-
-    if (insertError) {
-      console.error('Failed to feature story:', insertError);
+    if (upsertError) {
+      console.error('Failed to feature story:', upsertError);
       return NextResponse.json({ error: 'Failed to feature story' }, { status: 500 });
     }
 
@@ -128,11 +134,8 @@ export async function POST(req: NextRequest) {
       feature_type,
       story_title: story.title,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Feature story error:', err);
-    return NextResponse.json(
-      { error: err?.message || 'Something went wrong' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

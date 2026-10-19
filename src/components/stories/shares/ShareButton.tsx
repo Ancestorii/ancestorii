@@ -17,10 +17,10 @@ export default function ShareButton({
 }) {
   const [copied, setCopied] = useState(false);
 
-  const storyUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/stories/${slug}`;
-
   const handleShare = async () => {
     const supabase = getBrowserClient();
+    // Worked out on the click, in the browser (the server has no origin to render it with).
+    const storyUrl = `${window.location.origin}/stories/${slug}`;
 
     // Mobile: native share sheet
     if (typeof navigator !== 'undefined' && navigator.share) {

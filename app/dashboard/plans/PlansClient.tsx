@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, type CSSProperties } from 'react';
+import Link from 'next/link';
 import { ShieldCheck, X } from 'lucide-react';
 import {
   ui,
@@ -56,6 +57,7 @@ export default function PlansClient({
   formatBytes,
   formatDate,
   handleUpgrade,
+  upgrading,
   price,
 }: {
   loading: boolean;
@@ -71,6 +73,7 @@ export default function PlansClient({
   formatBytes: (bytes?: number | null) => string;
   formatDate: (iso: string | null | undefined) => string;
   handleUpgrade: (planName: PlanName) => void;
+  upgrading: boolean;
   price: Record<Currency, string>;
 }) {
   const isPremium = currentPlan?.name === 'Premium';
@@ -214,8 +217,23 @@ export default function PlansClient({
                     </div>
 
                     {/* CTA */}
-                    <Btn variant="light" size="lg" block onClick={() => handleUpgrade('Premium')} className={s.cta}>
-                      Upgrade now
+                    <Btn
+                      variant="light"
+                      size="lg"
+                      block
+                      onClick={() => handleUpgrade('Premium')}
+                      disabled={upgrading}
+                      aria-busy={upgrading || undefined}
+                      className={s.cta}
+                    >
+                      {upgrading ? (
+                        <>
+                          <Spinner size={18} />
+                          <span className={ui.srOnly}>Opening secure checkout</span>
+                        </>
+                      ) : (
+                        'Upgrade now'
+                      )}
                     </Btn>
                     <p className={s.ctaNote}>Secure checkout. Cancel any time.</p>
                   </div>
@@ -257,7 +275,10 @@ export default function PlansClient({
 
       {/* ── Manage / cancel dialog (reused): above the floating phone nav ── */}
       {showPlanChangeInfo && (
-        <div className={cx(ui.scrim, ui.fadeIn, 'scrim-blur z-[9999] flex items-end justify-center sm:items-center sm:p-6')}>
+        <div
+          className={cx(ui.scrim, ui.fadeIn, 'scrim-blur z-[9999] flex items-end justify-center sm:items-center sm:p-6')}
+          onClick={closePlanChangeInfo}
+        >
           <div
             ref={infoRef}
             role="dialog"
@@ -265,6 +286,7 @@ export default function PlansClient({
             aria-labelledby={infoTitleId}
             aria-describedby={infoTextId}
             className={cx(ui.sheet, ui.sheetBottom, ui.popIn, s.dialog)}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className={ui.sheetHeader}>
               <h2 id={infoTitleId} className={ui.sheetTitle}>
@@ -290,9 +312,9 @@ export default function PlansClient({
               <Btn variant="soft" onClick={closePlanChangeInfo}>
                 Close
               </Btn>
-              <a href="/dashboard/help" className={btnClass()}>
+              <Link href="/dashboard/help" className={btnClass()}>
                 Visit Help Centre
-              </a>
+              </Link>
             </div>
           </div>
         </div>

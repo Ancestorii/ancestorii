@@ -5,6 +5,31 @@ import { sendEmail, internalNote, p, esc, box, wrap } from '@/lib/email';
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
+// One short model call plus two emails: ask the platform for a minute, give up on the model call
+// well before that.
+export const maxDuration = 60;
+const AI_TIMEOUT_MS = 30_000;
+// The moderator reads up to this much of the body: enough to judge any story, bounded in cost.
+const MAX_BODY_CHARS = 20_000;
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+type ModerationResult = { pass: boolean; category?: string; reason?: string };
+
+// The prompt asks for bare JSON, but a model can still wrap it in fences or a sentence.
+function parseModeration(raw: string): ModerationResult | null {
+  const cleaned = raw.replace(/```(?:json)?/gi, '').trim();
+  const start = cleaned.indexOf('{');
+  const end = cleaned.lastIndexOf('}');
+  if (start === -1 || end <= start) return null;
+  try {
+    const parsed = JSON.parse(cleaned.slice(start, end + 1));
+    if (!parsed || typeof parsed.pass !== 'boolean') return null;
+    return parsed as ModerationResult;
+  } catch {
+    return null;
+  }
+}
 
 function getAdminClient() {
   return createClient(
@@ -41,10 +66,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { story_id } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const story_id = body?.story_id;
 
     if (!story_id) {
       return NextResponse.json({ error: 'Missing story_id' }, { status: 400 });
+    }
+
+    if (typeof story_id !== 'string' || !UUID_RE.test(story_id)) {
+      return NextResponse.json({ error: 'Invalid story_id' }, { status: 400 });
     }
 
     const admin = getAdminClient();
@@ -52,9 +82,9 @@ export async function POST(req: NextRequest) {
     // Fetch the story
     const { data: story, error: storyError } = await admin
       .from('stories')
-      .select('id, title, body, author_id, author_name, slug')
+      .select('id, title, body, status, author_id, author_name, slug, moderation_category')
       .eq('id', story_id)
-      .single();
+      .maybeSingle();
 
     if (storyError || !story) {
       return NextResponse.json({ error: 'Story not found' }, { status: 404 });
@@ -96,95 +126,113 @@ export async function POST(req: NextRequest) {
       }, { status: 403 });
     }
 
-    // Strip HTML from body for moderation
-    const plainBody = story.body
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    // Call Claude API for moderation
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY is not set');
-      // Fail open: publish anyway if AI is unavailable
-      await admin
+    // The one way a story goes live from here. A failed update must never read as "approved".
+    const publish = async () => {
+      const { error: publishError } = await admin
         .from('stories')
         .update({ status: 'published', published_at: new Date().toISOString() })
         .eq('id', story_id);
 
-      return NextResponse.json({ moderation_result: 'approved' });
-    }
-
-    const response = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 150,
-        system: MODERATION_PROMPT,
-        messages: [{
-          role: 'user',
-          content: `Review this story:\n\nTitle: ${story.title}\n\nBody: ${plainBody}`,
-        }],
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('Moderation API error:', response.status);
-      // Fail open: publish if AI is down
-      await admin
-        .from('stories')
-        .update({ status: 'published', published_at: new Date().toISOString() })
-        .eq('id', story_id);
+      if (publishError) {
+        console.error('Publish update error:', publishError);
+        return NextResponse.json(
+          { error: 'Could not publish your story. Please try again.' },
+          { status: 500 }
+        );
+      }
 
       return NextResponse.json({ moderation_result: 'approved' });
+    };
+
+    // A story a person has already rejected does not get a second chance from the model: the
+    // author can edit and resubmit, but it waits for another look by a person.
+    const resubmitted = story.status === 'rejected';
+
+    let result: ModerationResult;
+
+    if (resubmitted) {
+      result = {
+        pass: false,
+        category: story.moderation_category || 'resubmitted',
+        reason: 'Resubmitted after a rejection: needs another look by a person.',
+      };
+    } else {
+      // Strip HTML from body for moderation
+      const plainBody = story.body
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, MAX_BODY_CHARS);
+
+      // Call Claude API for moderation
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) {
+        console.error('ANTHROPIC_API_KEY is not set');
+        // Fail open: publish anyway if AI is unavailable
+        return publish();
+      }
+
+      let response: Response | null = null;
+      try {
+        response = await fetch(ANTHROPIC_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 150,
+            system: MODERATION_PROMPT,
+            messages: [{
+              role: 'user',
+              content: `Review this story:\n\nTitle: ${story.title}\n\nBody: ${plainBody}`,
+            }],
+          }),
+          signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+        });
+      } catch (fetchErr) {
+        console.error('Moderation API request failed:', fetchErr);
+      }
+
+      if (!response || !response.ok) {
+        console.error('Moderation API error:', response?.status ?? 'no response');
+        // Fail open: publish if AI is down
+        return publish();
+      }
+
+      const data = await response.json();
+      const rawText = data.content
+        ?.filter((block: { type?: string; text?: string }) => block.type === 'text')
+        .map((block: { type?: string; text?: string }) => block.text)
+        .join('') || '';
+
+      const parsed = parseModeration(rawText);
+      if (!parsed) {
+        console.error('Failed to parse moderation response:', rawText);
+        // Fail open on parse error
+        return publish();
+      }
+      result = parsed;
+
+      // Log the review
+      await admin.from('moderation_reviews').insert({
+        story_id: story.id,
+        source: 'ai',
+        passed: result.pass,
+        category: result.category || null,
+        reason: result.reason || null,
+      });
     }
-
-    const data = await response.json();
-    const rawText = data.content
-      ?.filter((block: any) => block.type === 'text')
-      .map((block: any) => block.text)
-      .join('') || '';
-
-    let result: { pass: boolean; category?: string; reason?: string };
-    try {
-      result = JSON.parse(rawText.trim());
-    } catch {
-      console.error('Failed to parse moderation response:', rawText);
-      // Fail open on parse error
-      await admin
-        .from('stories')
-        .update({ status: 'published', published_at: new Date().toISOString() })
-        .eq('id', story_id);
-
-      return NextResponse.json({ moderation_result: 'approved' });
-    }
-
-    // Log the review
-    await admin.from('moderation_reviews').insert({
-      story_id: story.id,
-      source: 'ai',
-      passed: result.pass,
-      category: result.category || null,
-      reason: result.reason || null,
-    });
 
     if (result.pass) {
       // Approved: publish immediately
-      await admin
-        .from('stories')
-        .update({ status: 'published', published_at: new Date().toISOString() })
-        .eq('id', story_id);
-
-      return NextResponse.json({ moderation_result: 'approved' });
+      return publish();
     }
 
     // Flagged: set to pending_review with reason
-    await admin
+    const { error: holdError } = await admin
       .from('stories')
       .update({
         status: 'pending_review',
@@ -192,6 +240,14 @@ export async function POST(req: NextRequest) {
         moderation_category: result.category || 'unknown',
       })
       .eq('id', story_id);
+
+    if (holdError) {
+      console.error('Moderation hold update error:', holdError);
+      return NextResponse.json(
+        { error: 'Could not submit your story. Please try again.' },
+        { status: 500 }
+      );
+    }
 
     // Send admin notification email
     try {
@@ -207,7 +263,8 @@ export async function POST(req: NextRequest) {
           ],
           box('STORY BODY', esc(String(story.body ?? '')).replace(/\n/g, '<br />')),
         ),
-        idempotencyKey: `moderation-flagged-${story_id}`,
+        // A 10-minute bucket: a double submit is sent once, a resubmission days later still alerts
+        idempotencyKey: `moderation-flagged-${story_id}-${Math.floor(Date.now() / 600_000)}`,
         tag: 'moderation',
       });
     } catch (emailErr) {
@@ -250,7 +307,7 @@ export async function POST(req: NextRequest) {
             ],
             reason: 'You are receiving this because you published a story to Our Stories on Ancestorii.',
           },
-          idempotencyKey: `moderation-review-${story_id}`,
+          idempotencyKey: `moderation-review-${story_id}-${Math.floor(Date.now() / 600_000)}`,
           tag: 'moderation',
         });
       }
@@ -262,11 +319,8 @@ export async function POST(req: NextRequest) {
       moderation_result: 'flagged',
       reason: result.reason,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Moderation error:', err);
-    return NextResponse.json(
-      { error: err?.message || 'Something went wrong' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

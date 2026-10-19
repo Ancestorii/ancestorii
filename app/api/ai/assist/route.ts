@@ -4,6 +4,19 @@ import { createClient } from '@supabase/supabase-js';
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
+// Sonnet needs a few seconds for 600 tokens, more on a cold start: the route asks the platform for
+// a minute and gives up on the model call well before that.
+export const maxDuration = 60;
+const AI_TIMEOUT_MS = 45_000;
+
+// Generous ceiling per person per hour (genuine use is a handful of clicks): a safety net against a
+// script running up the bill, not a quota.
+const HOURLY_CAP = 40;
+// The context is names, dates and the passage being written, never a whole book.
+const MAX_CONTEXT_CHARS = 12_000;
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const VALID_TYPES = [
   'loved-one-bio',
   'loved-one-early-years',
@@ -272,7 +285,7 @@ export async function POST(req: NextRequest) {
       .from('Profiles')
       .select('writing_assistance_enabled')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!profile?.writing_assistance_enabled) {
       return NextResponse.json(
@@ -281,7 +294,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { type, context, family_id } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { type, context, family_id } = body ?? {};
 
     if (!type || !context) {
       return NextResponse.json({ error: 'Missing type or context' }, { status: 400 });
@@ -291,7 +305,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid assist type' }, { status: 400 });
     }
 
-    if (family_id) {
+    if (typeof context !== 'object' || Array.isArray(context)) {
+      return NextResponse.json({ error: 'Invalid context' }, { status: 400 });
+    }
+
+    if (JSON.stringify(context).length > MAX_CONTEXT_CHARS) {
+      return NextResponse.json(
+        { error: 'That is too much text for one suggestion. Try again with a shorter passage.' },
+        { status: 400 }
+      );
+    }
+
+    // family_id is optional on purpose. This route never reads or writes family content: the
+    // caller sends the names and titles already on its screen, and the text comes back to the same
+    // signed-in user, so authentication plus the Profiles flag is the real gate. When a caller does
+    // send family_id (so the usage log can be grouped by family) it is verified, so nobody can log
+    // usage against a family they are not in.
+    if (family_id !== undefined && family_id !== null) {
+      if (typeof family_id !== 'string' || !UUID_RE.test(family_id)) {
+        return NextResponse.json({ error: 'Invalid family_id' }, { status: 400 });
+      }
       const { data: membership } = await supabase
         .from('family_memberships')
         .select('id')
@@ -316,25 +349,52 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const admin = getAdminClient();
+
+    // Hourly safety net, counted from the usage log this route already writes
+    const { count: recentCount } = await admin
+      .from('story_assistance_log')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString());
+
+    if ((recentCount ?? 0) >= HOURLY_CAP) {
+      return NextResponse.json(
+        { error: 'You have used story assistance a lot in the last hour. Please try again a little later.' },
+        { status: 429 }
+      );
+    }
+
     const userPrompt = buildPrompt(type as AssistType, context);
     const maxTokens = getMaxTokens(type as AssistType);
     const model = 'claude-sonnet-4-6';
     const startTime = Date.now();
 
-    const response = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: userPrompt }],
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(ANTHROPIC_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: 'user', content: userPrompt }],
+        }),
+        signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+      });
+    } catch (fetchErr) {
+      // Timed out or could not reach the API: the card shows this and offers Try again
+      console.error('Claude API request failed:', fetchErr);
+      return NextResponse.json(
+        { error: 'Story assistance took too long. Please try again.' },
+        { status: 504 }
+      );
+    }
 
     const durationMs = Date.now() - startTime;
 
@@ -358,14 +418,13 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
 
     const suggestion = data.content
-      ?.filter((block: any) => block.type === 'text')
-      .map((block: any) => block.text)
+      ?.filter((block: { type?: string; text?: string }) => block.type === 'text')
+      .map((block: { type?: string; text?: string }) => block.text)
       .join('\n') || '';
 
     const inputTokens = data.usage?.input_tokens || null;
     const outputTokens = data.usage?.output_tokens || null;
 
-    const admin = getAdminClient();
     await admin.from('story_assistance_log').insert({
       user_id: user.id,
       family_id: family_id || null,
@@ -377,11 +436,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ suggestion, type });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Story assistance error:', err);
-    return NextResponse.json(
-      { error: err?.message || 'Something went wrong' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

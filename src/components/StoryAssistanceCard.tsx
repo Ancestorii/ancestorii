@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { X, Minus, Maximize2, Feather, ChevronRight, ArrowLeft } from 'lucide-react';
-import { useAssistance } from '@/hooks/use-assistance';
+import { useAssistance, useWritingAssistanceEnabled } from '@/hooks/use-assistance';
 import { ui, Btn, IconBtn, Spinner, Tag, tone } from '@/components/dashboard/ui/AppBits';
 import s from './StoryAssistanceCard.module.css';
 
@@ -31,7 +31,10 @@ export interface StoryAssistanceCardProps {
   assistContext: Record<string, unknown>;
   /** Optional family ID for access check */
   familyId?: string;
-  /** Whether writing assistance is enabled (from user profile) */
+  /**
+   * Profiles.writing_assistance_enabled. false hides the card; true or omitted is still checked
+   * against the profile once (the assist routes answer 403 when it is off).
+   */
   assistanceEnabled?: boolean;
   /** Optional API endpoint override (default: /api/ai/assist) */
   apiEndpoint?: string;
@@ -58,7 +61,7 @@ export default function StoryAssistanceCard({
   options,
   assistContext,
   familyId,
-  assistanceEnabled = true,
+  assistanceEnabled,
   apiEndpoint,
 }: StoryAssistanceCardProps) {
   const [dismissed, setDismissed] = useState(false);
@@ -73,6 +76,9 @@ export default function StoryAssistanceCard({
   const dragStartRef = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
 
   const { suggestion, isLoading, error, assist, clear } = useAssistance();
+
+  // null while the profile is being read: the card waits rather than show and then vanish
+  const enabled = useWritingAssistanceEnabled(assistanceEnabled);
 
   // On a short screen the card scrolls inside itself: each step starts at its top (the next step
   // used to come in part-way down, its Back button and heading out of sight above).
@@ -157,7 +163,7 @@ export default function StoryAssistanceCard({
     }
   };
 
-  if (dismissed || !assistanceEnabled) return null;
+  if (dismissed || enabled !== true) return null;
 
   // ── MINIMIZED STATE (desktop only) ──
   if (minimized && !isMobile) {

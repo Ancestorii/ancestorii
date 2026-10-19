@@ -9,7 +9,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { X, Minus, Maximize2, Feather, ChevronRight, ArrowLeft, Loader2 } from 'lucide-react';
-import { useAssistance } from '@/hooks/use-assistance';
+import { useAssistance, useWritingAssistanceEnabled } from '@/hooks/use-assistance';
 import type { AssistOption, StoryAssistanceCardProps } from '@/components/StoryAssistanceCard';
 import styles from './assist.module.css';
 
@@ -30,7 +30,7 @@ export default function StoryAssistanceCard({
   options,
   assistContext,
   familyId,
-  assistanceEnabled = true,
+  assistanceEnabled,
   apiEndpoint,
 }: StoryAssistanceCardProps) {
   const [dismissed, setDismissed] = useState(false);
@@ -45,6 +45,8 @@ export default function StoryAssistanceCard({
   const dragStartRef = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
 
   const { suggestion, isLoading, error, assist, clear } = useAssistance();
+  // Hidden when the member has turned writing assistance off in Profile (the route answers 403).
+  const enabled = useWritingAssistanceEnabled(assistanceEnabled);
 
   // Responsive check
   useEffect(() => {
@@ -122,7 +124,7 @@ export default function StoryAssistanceCard({
     }
   };
 
-  if (dismissed || !assistanceEnabled) return null;
+  if (dismissed || enabled !== true) return null;
 
   // ── MINIMIZED STATE (desktop only) ──
   if (minimized && !isMobile) {

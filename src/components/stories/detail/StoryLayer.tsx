@@ -11,11 +11,19 @@ import landing from '@/components/landing/landing.module.css';
  */
 export default function StoryLayer({ children }: { children: ReactNode }) {
   const anchorRef = useRef<HTMLSpanElement>(null);
-  const [host, setHost] = useState<HTMLElement | null>(null);
+  // Found as the layer first renders (it only ever renders in the browser, after a click), so
+  // its children mount in the same commit as the state that opened them and a dialog hook on
+  // them finds its element. The anchor then confirms the root nearest this page's own markup.
+  const [host, setHost] = useState<HTMLElement | null>(() =>
+    typeof document === 'undefined'
+      ? null
+      : document.querySelector<HTMLElement>(`.${landing.page}`) ?? document.body
+  );
 
   useEffect(() => {
-    setHost(anchorRef.current?.closest<HTMLElement>(`.${landing.page}`) ?? document.body);
-  }, []);
+    const own = anchorRef.current?.closest<HTMLElement>(`.${landing.page}`) ?? document.body;
+    if (own !== host) setHost(own);
+  }, [host]);
 
   return (
     <>

@@ -24,6 +24,9 @@ import { deleteStory } from '@/lib/stories/mutations';
 import { getTimeAgo, plainTextFromHtml } from '@/lib/stories/format';
 import type { StoryComment } from '@/lib/stories/types';
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast } from '@/lib/safeToast';
+import { useDialog } from '@/components/dashboard/ui/AppBits';
+import { revalidateStories } from '@app/stories/revalidate';
 import { Accent } from '@/components/site/SiteBits';
 import landing from '@/components/landing/landing.module.css';
 import site from '@/components/site/site.module.css';
@@ -71,6 +74,10 @@ type Props = {
   authorTitle: string | null;
   relatedStories: RelatedStory[];
   initialComments?: StoryComment[];
+  /** The reader's id (the server knows it), so the comments need no round trip to find it. */
+  currentUserId?: string | null;
+  /** When the page was rendered on the server; the comments count their "3h ago" from it. */
+  renderedAt?: number;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -109,6 +116,8 @@ export default function StoryPageContent({
   relatedStories,
   video,
   initialComments,
+  currentUserId,
+  renderedAt,
 }: Props) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -121,16 +130,54 @@ export default function StoryPageContent({
   const [reporting, setReporting] = useState(false);
   const [reportDone, setReportDone] = useState(false);
 
+  // Escape closes each of these and focus goes back to the button that opened it; Tab stays
+  // inside while one is open (the kit's dialog hook).
+  const menuRef = useDialog<HTMLDivElement>(menuOpen, () => setMenuOpen(false));
+  const reportRef = useDialog<HTMLDivElement>(reportOpen, () => {
+    if (!reporting) setReportOpen(false);
+  });
+  const deleteRef = useDialog<HTMLDivElement>(deleteModalOpen, () => {
+    if (!deleting) setDeleteModalOpen(false);
+  });
+
   const handleDelete = async () => {
     if (deleting) return;
     setDeleting(true);
     const supabase = getBrowserClient();
+    // False when RLS let nothing go (only the author may delete): the reader is told, not sent on.
     const success = await deleteStory(supabase, story.id);
     if (success) {
+      // The cached feed lets the story go before the reader lands on it.
+      await revalidateStories().catch(() => {});
       router.push('/stories');
     } else {
       setDeleting(false);
       setDeleteModalOpen(false);
+      safeToast.error('This story could not be deleted. Only its author can delete it.');
+    }
+  };
+
+  const submitReport = async () => {
+    setReporting(true);
+    try {
+      const res = await fetch('/api/report-story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ story_id: story.id, reason: reportReason.trim() || null }),
+      });
+      // 409: this reader has reported it before, which comes to the same thing.
+      if (res.ok || res.status === 409) {
+        setReportDone(true);
+        setReportOpen(false);
+        if (res.status === 409) safeToast.info('You have already reported this story.');
+        return;
+      }
+      const body = await res.json().catch(() => null);
+      safeToast.error(body?.error || 'The report could not be sent. Please try again.');
+    } catch {
+      safeToast.error('The report could not be sent. Please check your connection and try again.');
+    } finally {
+      setReporting(false);
     }
   };
 
@@ -373,6 +420,8 @@ export default function StoryPageContent({
                 initialComments={initialComments ?? []}
                 isLoggedIn={isLoggedIn}
                 onLoginPrompt={loginToComment}
+                currentUserId={currentUserId}
+                now={renderedAt}
               />
             </div>
           </div>
@@ -475,6 +524,7 @@ export default function StoryPageContent({
         <StoryLayer>
           <div className={s.menuCatcher} onClick={() => setMenuOpen(false)} />
           <div
+            ref={menuRef}
             className={s.menu}
             style={{
               top: menuBtnRef.current
@@ -522,7 +572,7 @@ export default function StoryPageContent({
               className={s.modalScrim}
               onClick={() => !reporting && setReportOpen(false)}
             />
-            <div className={s.modal} role="dialog" aria-labelledby="report-story-title">
+            <div ref={reportRef} className={s.modal} role="dialog" aria-modal="true" aria-labelledby="report-story-title">
               <h2 id="report-story-title" className={s.modalTitle}>
                 Report this story
               </h2>
@@ -548,22 +598,7 @@ export default function StoryPageContent({
                 </button>
                 <button
                   type="button"
-                  onClick={async () => {
-                    setReporting(true);
-                    try {
-                      const res = await fetch('/api/report-story', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ story_id: story.id, reason: reportReason.trim() || null }),
-                      });
-                      if (res.ok) {
-                        setReportDone(true);
-                        setReportOpen(false);
-                      }
-                    } finally {
-                      setReporting(false);
-                    }
-                  }}
+                  onClick={submitReport}
                   disabled={reporting}
                   className={s.modalDanger}
                 >
@@ -585,7 +620,7 @@ export default function StoryPageContent({
               className={s.modalScrim}
               onClick={() => !deleting && setDeleteModalOpen(false)}
             />
-            <div className={s.modal} role="dialog" aria-labelledby="delete-story-title">
+            <div ref={deleteRef} className={s.modal} role="dialog" aria-modal="true" aria-labelledby="delete-story-title">
               <h2 id="delete-story-title" className={s.modalTitle}>
                 Delete this story?
               </h2>
@@ -632,7 +667,10 @@ function HeroImageCarousel({
   title: string;
 }) {
   const [activeImage, setActiveImage] = useState(0);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  // The first photo is in the server's HTML and preloaded, so it starts shown; only a photo the
+  // reader switches to fades in once it has loaded. (Starting hidden made the photo blink out
+  // for a moment after hydration, between the page taking over and the load event arriving.)
+  const [imageLoaded, setImageLoaded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
 
   const goTo = (index: number) => {

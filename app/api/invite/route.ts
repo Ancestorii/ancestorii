@@ -5,6 +5,9 @@ import { sendEmail, p, esc, wrap, type Letter } from '@/lib/email';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://ancestorii.com';
 
+// Same shape the drawer checks before it sends
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // Admin client for inserting invites (bypasses RLS)
 function getAdminClient() {
   return createClient(
@@ -27,17 +30,25 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Parse request
-    const { email, role = 'member' } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const role = body?.role ?? 'member';
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    if (email.length > 254 || !EMAIL_RE.test(email)) {
+      return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
     }
 
     if (!['admin', 'member'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
-    // 3. Get user's family (must be owner or admin)
+    // 3. Get user's family (must be owner or admin). The drawer sends no family id, so the
+    // family they own comes first, then the one they joined earliest: one row, deterministic,
+    // and no PGRST116 for anyone who is in two families.
     const admin = getAdminClient();
 
     const { data: membership, error: memError } = await admin
@@ -45,7 +56,10 @@ export async function POST(req: NextRequest) {
       .select('family_id, role')
       .eq('user_id', user.id)
       .in('role', ['owner', 'admin'])
-      .single();
+      .order('role', { ascending: false })
+      .order('joined_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
     if (memError || !membership) {
       return NextResponse.json(
@@ -54,33 +68,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Get family name for the email
-    const { data: family } = await admin
-      .from('families')
-      .select('name')
-      .eq('id', membership.family_id)
-      .single();
+    // 4. to 7. Four independent lookups, side by side: family name, inviter's name, a pending
+    // invite to the same address, and whether this person already has an account.
+    const [{ data: family }, { data: profile }, { data: existingInvite }, { data: existingUser }] =
+      await Promise.all([
+        admin.from('families').select('name').eq('id', membership.family_id).maybeSingle(),
+        admin.from('Profiles').select('full_name').eq('id', user.id).maybeSingle(),
+        admin
+          .from('family_invites')
+          .select('id')
+          .eq('family_id', membership.family_id)
+          .eq('email', email)
+          .is('accepted_at', null)
+          .gt('expires_at', new Date().toISOString())
+          .limit(1)
+          .maybeSingle(),
+        admin.from('Profiles').select('id').eq('email', email).limit(1).maybeSingle(),
+      ]);
 
     const familyName = family?.name || 'a family';
-
-    // 5. Get inviter's name
-    const { data: profile } = await admin
-      .from('Profiles')
-      .select('full_name')
-      .eq('id', user.id)
-      .single();
-
     const inviterName = profile?.full_name || 'Someone';
-
-    // 6. Check for existing pending invite to same email for same family
-    const { data: existingInvite } = await admin
-      .from('family_invites')
-      .select('id')
-      .eq('family_id', membership.family_id)
-      .eq('email', email.toLowerCase())
-      .is('accepted_at', null)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle();
 
     if (existingInvite) {
       return NextResponse.json(
@@ -89,34 +96,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 7. Check if this person already has an account
-    const { data: existingUser } = await admin
-      .from('Profiles')
-      .select('id')
-      .eq('email', email.toLowerCase())
-      .maybeSingle();
-
     if (existingUser) {
-      const { data: existingMember } = await admin
+      const { data: theirMemberships } = await admin
         .from('family_memberships')
-        .select('id, family_id')
-        .eq('user_id', existingUser.id)
-        .maybeSingle();
+        .select('family_id')
+        .eq('user_id', existingUser.id);
 
-      if (existingMember) {
-        // Already in the sender's family
-        if (existingMember.family_id === membership.family_id) {
-          return NextResponse.json(
-            { error: 'This person is already a member of your family' },
-            { status: 409 }
-          );
-        }
+      const theirs = theirMemberships ?? [];
 
-        // In a different family, check if it's a real family (not just their auto-created solo one)
+      // Already in the sender's family
+      if (theirs.some((m) => m.family_id === membership.family_id)) {
+        return NextResponse.json(
+          { error: 'This person is already a member of your family' },
+          { status: 409 }
+        );
+      }
+
+      // In a different family, check if it's a real family (not just their auto-created solo one)
+      for (const m of theirs) {
         const { count } = await admin
           .from('family_memberships')
           .select('*', { count: 'exact', head: true })
-          .eq('family_id', existingMember.family_id);
+          .eq('family_id', m.family_id);
 
         if ((count || 0) > 1) {
           return NextResponse.json(
@@ -132,11 +133,11 @@ export async function POST(req: NextRequest) {
       .from('family_invites')
       .insert({
         family_id: membership.family_id,
-        email: email.toLowerCase(),
+        email,
         invited_by: user.id,
         role,
       })
-      .select('token')
+      .select('id, token')
       .single();
 
     if (inviteError || !invite) {
@@ -151,7 +152,7 @@ export async function POST(req: NextRequest) {
     const inviteUrl = `${SITE_URL}/invite/${invite.token}`;
 
     const emailRes = await sendEmail({
-      to: email.toLowerCase(),
+      to: email,
       letter: inviteLetter(inviterName, familyName, inviteUrl),
       idempotencyKey: `invite-${invite.token}`,
       tag: 'invite',
@@ -159,16 +160,19 @@ export async function POST(req: NextRequest) {
 
     if (!emailRes.ok) {
       console.error('Resend error:', emailRes.status, emailRes.message);
-      // The invite is created even if the email fails. They can resend.
+      // Nobody can use an invite that was never delivered, and leaving it pending would answer
+      // every retry with "already been sent" for 7 days. Remove it so they can simply try again.
+      await admin.from('family_invites').delete().eq('id', invite.id);
+      return NextResponse.json(
+        { error: 'We could not send the invitation email. Please try again in a moment.' },
+        { status: 502 }
+      );
     }
 
     return NextResponse.json({ success: true, token: invite.token });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Invite API error:', err);
-    return NextResponse.json(
-      { error: err?.message || 'Something went wrong' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }
 

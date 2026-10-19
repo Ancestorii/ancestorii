@@ -28,7 +28,6 @@ export default function HeroCard({
   publishedAt: string | null; activeCategory?: string;
   overlineLabel?: string | null;
 }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
   // Mouse screens still grow the card for a portrait photo once it loads (phones and tablets get
   // their final shape from the first paint, in feed.module.css).
   const [isPortrait, setIsPortrait] = useState(false);
@@ -62,9 +61,10 @@ export default function HeroCard({
             // Phones crop the photo into a 4:5 frame, so a landscape photo is drawn about twice the
             // frame's width: size for that, or it turns soft.
             sizes="(max-width: 767px) calc(200vw - 136px), (max-width: 1279px) 54vw, 470px"
-            className={`${feed.cover} ${feed.featuredCover} ${imageLoaded ? feed.coverShown : feed.coverHidden}`}
+            // Shown as it arrives (it is preloaded); it used to stay invisible until a script had
+            // seen it load, so the server's HTML showed a blank frame that popped in later.
+            className={`${feed.cover} ${feed.featuredCover} ${feed.coverShown}`}
             onLoad={(e) => {
-              setImageLoaded(true);
               if (e.currentTarget.naturalHeight > e.currentTarget.naturalWidth) setIsPortrait(true);
             }}
           />

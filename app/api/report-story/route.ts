@@ -3,6 +3,8 @@ import { getServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail, internalNote, p, esc, wrap } from '@/lib/email';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function getAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,10 +21,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { story_id, reason } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const story_id = body?.story_id;
+    // Free text from the report dialog: kept to a sensible length for the email and the log
+    const reason = typeof body?.reason === 'string' ? body.reason.trim().slice(0, 1000) : '';
 
     if (!story_id) {
       return NextResponse.json({ error: 'Missing story_id' }, { status: 400 });
+    }
+
+    if (typeof story_id !== 'string' || !UUID_RE.test(story_id)) {
+      return NextResponse.json({ error: 'Invalid story_id' }, { status: 400 });
     }
 
     const admin = getAdminClient();
@@ -30,10 +39,10 @@ export async function POST(req: NextRequest) {
     // Check story exists
     const { data: story, error: storyError } = await admin
       .from('stories')
-      .select('id, title, author_name, author_id')
+      .select('id, title, slug, author_name, author_id')
       .eq('id', story_id)
       .eq('status', 'published')
-      .single();
+      .maybeSingle();
 
     if (storyError || !story) {
       return NextResponse.json({ error: 'Story not found' }, { status: 404 });
@@ -51,6 +60,7 @@ export async function POST(req: NextRequest) {
       .eq('story_id', story_id)
       .eq('source', 'community_report')
       .eq('reviewed_by', user.id)
+      .limit(1)
       .maybeSingle();
 
     if (existing) {
@@ -58,7 +68,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Insert the report
-    await admin.from('moderation_reviews').insert({
+    const { error: reportError } = await admin.from('moderation_reviews').insert({
       story_id: story.id,
       source: 'community_report',
       passed: false,
@@ -67,7 +77,15 @@ export async function POST(req: NextRequest) {
       reviewed_by: user.id,
     });
 
-    // Email admin
+    if (reportError) {
+      console.error('Report insert error:', reportError);
+      return NextResponse.json(
+        { error: 'We could not send your report. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    // Email admin (story pages live at /stories/<slug>)
     try {
       await sendEmail({
         to: process.env.ADMIN_EMAIL || 'support@ancestorii.com',
@@ -78,7 +96,7 @@ export async function POST(req: NextRequest) {
             ['Author', String(story.author_name ?? '')],
             ['Reason', reason || 'No reason provided'],
           ],
-          p(`<a href="https://www.ancestorii.com/stories/${story_id}" style="color:#2B4BFF;">View the story</a>`),
+          p(`<a href="https://www.ancestorii.com/stories/${encodeURIComponent(story.slug)}" style="color:#2B4BFF;">View the story</a>`),
         ),
         tag: 'report',
       });
@@ -86,13 +104,14 @@ export async function POST(req: NextRequest) {
       console.error('Failed to send report email:', emailErr);
     }
 
-    // Email the reporter: thank you
+    // Email the reporter: thank you. Their address and name are on the verified user already.
     try {
-      const { data: { user: reporterUser } } = await admin.auth.admin.getUserById(user.id);
-      const reporterEmail = reporterUser?.email;
+      const reporterEmail = user.email;
 
       if (reporterEmail) {
-        const reporterName = reporterUser?.user_metadata?.full_name?.split(' ')[0] || 'there';
+        const fullName = user.user_metadata?.full_name;
+        const reporterName =
+          (typeof fullName === 'string' && fullName.trim().split(' ')[0]) || 'there';
 
         await sendEmail({
           to: reporterEmail,
@@ -125,11 +144,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Report error:', err);
-    return NextResponse.json(
-      { error: err?.message || 'Something went wrong' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

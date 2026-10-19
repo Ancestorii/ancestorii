@@ -3,14 +3,17 @@ import { Metadata } from 'next';
 import { getServerClient } from '@/lib/supabase/server';
 import StoryEditorPage from '@/components/stories/editor/StoryEditorPage';
 
-// The root layout's template adds " | Ancestorii"
+// The root layout's template adds " | Ancestorii". A writing page, not one to index.
 export const metadata: Metadata = {
   title: 'Edit Story',
+  robots: { index: false, follow: false },
 };
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
+
+type MediaRow = { id: string; file_path: string; file_type: string; display_order: number };
 
 export default async function EditStoryPage({ params }: Props) {
   const { slug } = await params;
@@ -22,35 +25,34 @@ export default async function EditStoryPage({ params }: Props) {
     redirect(`/login?redirect=/stories/${slug}/edit`);
   }
 
-  /* ── Fetch story ── */
+  /* ── Fetch the story with its media (one query; RLS lets the author see a draft) ── */
   const { data: story, error } = await supabase
     .from('stories')
-    .select('*')
+    .select('*, story_media(id, file_path, file_type, display_order)')
     .eq('slug', slug)
     .maybeSingle();
 
-  if (!story || error) notFound();
+  // A failed query is an error, not a missing story
+  if (error) throw new Error(`Could not load story "${slug}": ${error.message}`);
+  if (!story) notFound();
 
   /* ── Only author can edit ── */
   if (story.author_id !== auth.user.id) {
     redirect(`/stories/${slug}`);
   }
 
-  /* ── Fetch existing media ── */
-  const { data: existingMedia } = await supabase
-    .from('story_media')
-    .select('id, file_path, file_type, display_order')
-    .eq('story_id', story.id)
-    .order('display_order', { ascending: true });
+  const existingMedia = ([...((story.story_media ?? []) as MediaRow[])]).sort(
+    (a, b) => a.display_order - b.display_order
+  );
 
-  const existingImages = (existingMedia ?? [])
+  const existingImages = existingMedia
     .filter((m) => m.file_type?.startsWith('image/'))
     .map((m) => ({
       id: m.id,
       url: supabase.storage.from('story-media').getPublicUrl(m.file_path).data.publicUrl,
     }));
 
-  const videoMedia = (existingMedia ?? []).find((m) => m.file_type?.startsWith('video/'));
+  const videoMedia = existingMedia.find((m) => m.file_type?.startsWith('video/'));
   const existingVideoUrl = videoMedia
     ? supabase.storage.from('story-media').getPublicUrl(videoMedia.file_path).data.publicUrl
     : null;

@@ -11,6 +11,7 @@ import landing from '@/components/landing/landing.module.css';
 import site from '@/components/site/site.module.css';
 import topics from '@/components/site/stories-browse/topics.module.css';
 import { TOPICS } from '@/lib/stories/topics';
+import { getTopicCounts } from '@/lib/stories/publicFeed';
 
 const SITE = 'https://www.ancestorii.com';
 
@@ -40,23 +41,14 @@ export default async function TopicsIndexPage() {
     {
       data: { user },
     },
-    { data: rows },
+    counts,
   ] = await Promise.all([
     // The reader, so the signed-in bar is there from the first paint
     supabase.auth.getUser(),
-    // Count published stories per category
-    supabase
-      .from('stories')
-      .select('category')
-      .eq('status', 'published')
-      .not('category', 'is', null),
+    // Published stories per category (kept for a minute, shared by every visitor)
+    getTopicCounts(),
   ]);
   const isLoggedIn = !!user;
-
-  const counts = new Map<string, number>();
-  (rows ?? []).forEach((r) => {
-    if (r.category) counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
-  });
 
   return (
     <>
@@ -122,7 +114,7 @@ export default async function TopicsIndexPage() {
           <div className={landing.wrap}>
             <div className={topics.topicGrid}>
               {TOPICS.map((t, i) => {
-                const count = counts.get(t.key) ?? 0;
+                const count = counts[t.key] ?? 0;
                 const Icon = topicIcon(t.key);
                 return (
                   <Link

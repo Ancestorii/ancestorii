@@ -8,7 +8,7 @@
 // off and checks the shared `x-webhook-secret` (see _shared/email.ts).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   esc,
   firstName,
@@ -121,7 +121,16 @@ Deno.serve(async (req: Request) => {
             tag: 'delivered',
           });
           if (r.ok) emailsSent++;
-          else console.error(`delivery-check: Resend refused (${r.status}) for ${order.id}: ${r.message}`);
+          else {
+            console.error(`delivery-check: Resend refused (${r.status}) for ${order.id}: ${r.message}`);
+            // Resend down, rate-limiting us, or no key set: leave the order 'shipped' so tomorrow's
+            // run writes again (the Idempotency-Key stops a late duplicate). A 4xx is final, a bad
+            // address say, and the order is still marked delivered below.
+            if (r.status === 0 || r.status === 429 || r.status >= 500) {
+              await sleep(600);
+              continue;
+            }
+          }
           await sleep(600);
         }
 

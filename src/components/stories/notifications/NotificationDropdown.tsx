@@ -1,17 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, Check } from 'lucide-react';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { getRecentNotifications } from '@/lib/stories/queries';
 import { markNotificationRead, markAllNotificationsRead } from '@/lib/stories/mutations';
+import { notificationHref } from '@/components/site/stories-bar/notificationMeta';
 import type { Notification } from '@/lib/stories/types';
 import NotificationItem from './NotificationItem';
 import { AppLoader } from '@/components/dashboard/ui/AppBits';
 import styles from './notifications.module.css';
-
-const MEMORY_TYPES = ['memory_reaction', 'memory_comment', 'memory_addition', 'prompt_answered'];
 
 export default function NotificationDropdown({
   open,
@@ -23,16 +22,22 @@ export default function NotificationDropdown({
   onCountUpdate: (count: number) => void;
 }) {
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<
+    (Notification & { story_title?: string | null })[]
+  >([]);
   const [loading, setLoading] = useState(true);
+  const loadedOnce = useRef(false);
 
+  // Each time the panel opens. The loader shows only the first time; after that the list already
+  // on screen stays while the fresh one arrives.
   useEffect(() => {
     if (!open) return;
 
     const load = async () => {
-      setLoading(true);
+      if (!loadedOnce.current) setLoading(true);
       const supabase = getBrowserClient();
       const data = await getRecentNotifications(supabase, 20);
+      loadedOnce.current = true;
       setNotifications(data);
       setLoading(false);
     };
@@ -42,17 +47,19 @@ export default function NotificationDropdown({
 
   const handleClick = async (notification: Notification) => {
     if (!notification.is_read) {
+      // Marked read in the background: the click goes where it is going at once.
       const supabase = getBrowserClient();
-      await markNotificationRead(supabase, notification.id);
+      markNotificationRead(supabase, notification.id).catch(() => {});
       setNotifications((prev) =>
         prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
       );
-      onCountUpdate(notifications.filter((n) => !n.is_read && n.id !== notification.id).length);
+      onCountUpdate(Math.max(0, notifications.filter((n) => !n.is_read).length - 1));
     }
 
-    // ── Memory notifications → navigate to memory page ──
-    if (MEMORY_TYPES.includes(notification.type) && notification.target_id) {
-      router.push(`/dashboard/memories/${notification.target_id}`);
+    // ── Memory, capsule and family notifications → their page ──
+    const href = notificationHref(notification.type, notification.target_id);
+    if (href) {
+      router.push(href);
       onClose();
       return;
     }
@@ -124,7 +131,7 @@ export default function NotificationDropdown({
                   key={n.id}
                   type={n.type}
                   actorName={n.actor_name}
-                  storyTitle={(n as any).story_title}
+                  storyTitle={n.story_title}
                   isRead={n.is_read}
                   createdAt={n.created_at}
                   onClick={() => handleClick(n)}

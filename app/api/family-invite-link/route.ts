@@ -30,7 +30,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const regenerate = body?.regenerate === true;
 
-    // 3. Get user's family (must be owner or admin)
+    // 3. Get user's family (must be owner or admin). The drawer sends no family id, so the
+    // family they own comes first, then the one they joined earliest: one row, deterministic,
+    // and no PGRST116 for anyone who is in two families.
     const admin = getAdminClient();
 
     const { data: membership, error: memError } = await admin
@@ -38,7 +40,10 @@ export async function POST(req: NextRequest) {
       .select('family_id, role')
       .eq('user_id', user.id)
       .in('role', ['owner', 'admin'])
-      .single();
+      .order('role', { ascending: false })
+      .order('joined_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
     if (memError || !membership) {
       return NextResponse.json(
@@ -64,6 +69,8 @@ export async function POST(req: NextRequest) {
       .select('token, created_at')
       .eq('family_id', familyId)
       .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (existingLink) {
@@ -99,11 +106,8 @@ export async function POST(req: NextRequest) {
       created_at: newLink.created_at,
       is_new: true,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Family invite link API error:', err);
-    return NextResponse.json(
-      { error: err?.message || 'Something went wrong' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

@@ -1,6 +1,5 @@
 import Stripe from "npm:stripe@14.21.0";
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2?target=deno";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -85,25 +84,72 @@ function checkRewardEligibility(
 const PRODUCT = "book" as const;
 const STANDARD_TIER = "chapter";
 
-serve(async (req) => {
+type Currency = "GBP" | "USD" | "EUR";
+
+// ── The book tiers: the Stripe price per currency and the amount written on the order ──
+// Which tier applies comes from the book ROW (fixed when the book was created, with its page
+// count), never from the request: a tier_key the browser sends is only checked against it.
+const TIERS: Record<string, { prices: Record<Currency, string | undefined>; amounts: Record<Currency, number> }> = {
+  chapter: {
+    prices: {
+      GBP: Deno.env.get("STRIPE_BOOK_CHAPTER_GBP"),
+      USD: Deno.env.get("STRIPE_BOOK_CHAPTER_USD"),
+      EUR: Deno.env.get("STRIPE_BOOK_CHAPTER_EUR"),
+    },
+    amounts: { GBP: 44.99, USD: 59.99, EUR: 49.99 },
+  },
+  story: {
+    prices: {
+      GBP: Deno.env.get("STRIPE_BOOK_STORY_GBP"),
+      USD: Deno.env.get("STRIPE_BOOK_STORY_USD"),
+      EUR: Deno.env.get("STRIPE_BOOK_STORY_EUR"),
+    },
+    amounts: { GBP: 54.99, USD: 74.99, EUR: 64.99 },
+  },
+  legacy: {
+    prices: {
+      GBP: Deno.env.get("STRIPE_BOOK_LEGACY_GBP"),
+      USD: Deno.env.get("STRIPE_BOOK_LEGACY_USD"),
+      EUR: Deno.env.get("STRIPE_BOOK_LEGACY_EUR"),
+    },
+    amounts: { GBP: 64.99, USD: 84.99, EUR: 74.99 },
+  },
+};
+
+/** An error that carries the HTTP status the browser should see; its message is shown to the user. */
+class HttpError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
+function jsonResponse(body: unknown, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+    status,
+  });
+}
+
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
   }
 
   try {
     const body = await req.json().catch(() => ({}));
-    const tierKey = body?.tier_key;
-    const bookId = body?.book_id;
+    const requestedTier = typeof body?.tier_key === "string" ? body.tier_key : "";
+    const bookId = typeof body?.book_id === "string" ? body.book_id : "";
     const currencyRaw = body?.currency;
-    const currency =
+    const currency: Currency =
       currencyRaw === "USD" || currencyRaw === "EUR" ? currencyRaw : "GBP";
     const rewardCode =
       typeof body?.reward_code === "string"
         ? body.reward_code.trim().toUpperCase()
         : "";
 
-    if (!tierKey) throw new Error("No tier_key provided");
-    if (!bookId) throw new Error("No book_id provided");
+    if (!bookId) throw new HttpError(400, "No book_id provided");
 
     const SITE =
       Deno.env.get("NEXT_PUBLIC_SITE_URL") ??
@@ -114,31 +160,7 @@ serve(async (req) => {
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!STRIPE_SECRET_KEY || !SUPABASE_URL || !SERVICE_ROLE) {
-      throw new Error("Missing environment variables");
-    }
-
-    // ── Price lookup ──
-    const prices: Record<string, Record<string, string | undefined>> = {
-      chapter: {
-        GBP: Deno.env.get("STRIPE_BOOK_CHAPTER_GBP"),
-        USD: Deno.env.get("STRIPE_BOOK_CHAPTER_USD"),
-        EUR: Deno.env.get("STRIPE_BOOK_CHAPTER_EUR"),
-      },
-      story: {
-        GBP: Deno.env.get("STRIPE_BOOK_STORY_GBP"),
-        USD: Deno.env.get("STRIPE_BOOK_STORY_USD"),
-        EUR: Deno.env.get("STRIPE_BOOK_STORY_EUR"),
-      },
-      legacy: {
-        GBP: Deno.env.get("STRIPE_BOOK_LEGACY_GBP"),
-        USD: Deno.env.get("STRIPE_BOOK_LEGACY_USD"),
-        EUR: Deno.env.get("STRIPE_BOOK_LEGACY_EUR"),
-      },
-    };
-
-    const priceId = prices[tierKey]?.[currency];
-    if (!priceId) {
-      throw new Error(`Invalid tier_key (${tierKey}) or currency (${currency})`);
+      throw new HttpError(500, "Checkout is not configured");
     }
 
     // ── Auth ──
@@ -146,37 +168,91 @@ serve(async (req) => {
       req.headers.get("authorization") ||
       req.headers.get("Authorization");
 
-    if (!authHeader) throw new Error("Missing Authorization header");
+    if (!authHeader) throw new HttpError(401, "Missing Authorization header");
 
     const token = authHeader.replace("Bearer ", "").trim();
 
-    const supabase = createClient(SUPABASE_URL!, SERVICE_ROLE!);
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
     const { data: userResp } = await supabase.auth.getUser(token);
 
     const userId = userResp?.user?.id;
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) throw new HttpError(401, "Not authenticated");
 
-    // ── Verify book belongs to user ──
+    // ── The book row is what is being bought: tier, size and page count come from it ──
     const { data: book, error: bookErr } = await supabase
       .from("memory_books")
-      .select("id, title, tier_key, tier_name, price_gbp, family_id")
+      .select("id, user_id, family_id, title, tier_key, tier_name, price_gbp, book_size, total_page_limit, content_page_limit")
       .eq("id", bookId)
       .maybeSingle();
 
     if (bookErr || !book) {
-      throw new Error("Book not found");
+      throw new HttpError(404, "Book not found");
     }
 
-    // Verify user belongs to the same family
-    const { data: bookMembership } = await supabase
-      .from("family_memberships")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("family_id", book.family_id)
-      .maybeSingle();
+    // Access: the rule the app's row security applies (a member of the book's family). A book
+    // with no family falls back to its creator.
+    let allowed = false;
+    if (book.family_id) {
+      const { data: bookMembership } = await supabase
+        .from("family_memberships")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("family_id", book.family_id)
+        .limit(1)
+        .maybeSingle();
+      allowed = !!bookMembership;
+    } else {
+      allowed = book.user_id === userId;
+    }
+    if (!allowed) throw new HttpError(403, "You don't have access to this book");
 
-    if (!bookMembership) {
-      throw new Error("You don't have access to this book");
+    // ── Tier and price from the row, never from the request ──
+    const tierKey: string = book.tier_key;
+    const tier = TIERS[tierKey];
+    if (!tier) throw new HttpError(400, `This book has a tier that cannot be ordered (${tierKey})`);
+    if (requestedTier && requestedTier !== tierKey) {
+      throw new HttpError(400, "The tier sent does not match this book. Reload the page and try again.");
+    }
+
+    const priceId = tier.prices[currency];
+    if (!priceId) {
+      throw new HttpError(500, `No price is configured for the ${tierKey} tier in ${currency}`);
+    }
+    const priceAmount = tier.amounts[currency];
+
+    // ── Ready to print? create_memory_book_with_pages makes every content page up front and the
+    //    editor never adds or removes one, so fewer pages than the tier allows means the book is
+    //    broken (the PDF would be short of the page count Prodigi is told). And a book with no
+    //    photo on any page would print as blank pages. ──
+    const { data: counted, error: countErr } = await supabase
+      .from("memory_books_with_page_count")
+      .select("created_content_pages")
+      .eq("id", bookId)
+      .maybeSingle();
+    if (countErr) throw new HttpError(500, "Could not check the book");
+    const pagesMade = counted?.created_content_pages ?? 0;
+    const pagesNeeded = Number(book.content_page_limit ?? 0);
+    if (pagesNeeded > 0 && pagesMade < pagesNeeded) {
+      throw new HttpError(400, `This book has ${pagesMade} of its ${pagesNeeded} pages. Open it in the editor again before ordering.`);
+    }
+
+    const { data: pageRows, error: pagesErr } = await supabase
+      .from("memory_book_pages")
+      .select("id")
+      .eq("book_id", bookId);
+    if (pagesErr) throw new HttpError(500, "Could not check the book's pages");
+    const pageIds = (pageRows ?? []).map((pg: { id: string }) => pg.id);
+    let photos = 0;
+    if (pageIds.length > 0) {
+      const { count, error: assetsErr } = await supabase
+        .from("memory_book_page_assets")
+        .select("id", { count: "exact", head: true })
+        .in("page_id", pageIds);
+      if (assetsErr) throw new HttpError(500, "Could not check the book's photos");
+      photos = count ?? 0;
+    }
+    if (photos < 1) {
+      throw new HttpError(400, "Add at least one photo to your book before ordering.");
     }
 
     // ── Reuse existing Stripe customer if they have one ──
@@ -191,32 +267,38 @@ serve(async (req) => {
         ? existingSub.stripe_customer_id
         : undefined;
 
-    // ── Check if family has Premium (for heirloom discount) ──
+    // ── Premium discount: the buyer's own subscription, or any family they belong to, on an
+    //    active Premium plan. One query over every membership, so a two-family member is not
+    //    skipped (the old single-row lookup errored for them and quietly charged full price). ──
     let isPremium = false;
-    const { data: userMembership } = await supabase
-      .from("family_memberships")
-      .select("family_id")
-      .eq("user_id", userId)
+    const { data: premiumPlan } = await supabase
+      .from("plans")
+      .select("id")
+      .eq("name", "Premium")
       .maybeSingle();
 
-    if (userMembership?.family_id) {
-      const { data: premiumPlan } = await supabase
-        .from("plans")
+    if (premiumPlan) {
+      const { data: memberships } = await supabase
+        .from("family_memberships")
+        .select("family_id")
+        .eq("user_id", userId);
+      const familyIds = (memberships ?? [])
+        .map((m: { family_id: string | null }) => m.family_id)
+        .filter((id: string | null): id is string => !!id);
+      const scope = familyIds.length
+        ? `user_id.eq.${userId},family_id.in.(${familyIds.join(",")})`
+        : `user_id.eq.${userId}`;
+
+      const { data: premiumSub } = await supabase
+        .from("subscriptions")
         .select("id")
-        .eq("name", "Premium")
+        .eq("plan_id", premiumPlan.id)
+        .eq("status", "active")
+        .or(scope)
+        .limit(1)
         .maybeSingle();
 
-      if (premiumPlan) {
-        const { data: premiumSub } = await supabase
-          .from("subscriptions")
-          .select("id")
-          .eq("family_id", userMembership.family_id)
-          .eq("plan_id", premiumPlan.id)
-          .eq("status", "active")
-          .maybeSingle();
-
-        isPremium = !!premiumSub;
-      }
+      isPremium = !!premiumSub;
     }
     const couponId = Deno.env.get("STRIPE_COUPON_PREMIUM_HEIRLOOM");
 
@@ -234,24 +316,16 @@ serve(async (req) => {
         p_code: rewardCode,
         p_user_id: userId,
       });
-      if (verr) throw new Error("Could not validate reward code");
-      if (!vres?.ok) throw new Error(rewardErrorMessage(vres?.reason));
+      if (verr) throw new HttpError(500, "Could not validate reward code");
+      if (!vres?.ok) throw new HttpError(400, rewardErrorMessage(vres?.reason));
 
       const elig = checkRewardEligibility(vres, PRODUCT, STANDARD_TIER, tierKey);
-      if (!elig.ok) throw new Error(elig.message);
+      if (!elig.ok) throw new HttpError(400, elig.message ?? "This reward code cannot be applied to this product.");
 
       rewardMeta = vres;
     }
 
-    // ── Create order record ──
-    const tierPrices: Record<string, Record<string, number>> = {
-      chapter: { GBP: 44.99, USD: 59.99, EUR: 49.99 },
-      story: { GBP: 54.99, USD: 74.99, EUR: 64.99 },
-      legacy: { GBP: 64.99, USD: 84.99, EUR: 74.99 },
-    };
-
-    const priceAmount = tierPrices[tierKey]?.[currency] ?? 0;
-
+    // ── Create order record (the row's tier and that tier's price) ──
     const { data: order, error: orderErr } = await supabase
       .from("orders")
       .insert({
@@ -269,7 +343,8 @@ serve(async (req) => {
       .single();
 
     if (orderErr || !order) {
-      throw new Error("Failed to create order: " + (orderErr?.message ?? ""));
+      console.error("orders insert failed:", orderErr?.message);
+      throw new HttpError(500, "Failed to create order");
     }
 
     // ── Reward code: REDEEM atomically (tied to this order), then mint coupon ──
@@ -283,10 +358,12 @@ serve(async (req) => {
       });
 
       if (rerr || !rres?.ok) {
-        // Lost the race / already used / expired between validate and redeem, 
+        // Lost the race / already used / expired between validate and redeem,
         // clean up the orphan order so nothing dangles.
         await supabase.from("orders").delete().eq("id", order.id);
-        throw new Error(rerr ? "Could not redeem reward code" : rewardErrorMessage(rres?.reason));
+        throw rerr
+          ? new HttpError(500, "Could not redeem reward code")
+          : new HttpError(400, rewardErrorMessage(rres?.reason));
       }
 
       try {
@@ -311,7 +388,7 @@ serve(async (req) => {
         // Roll the redemption back so the code is reusable, then drop the order.
         await supabase.rpc("release_reward_code", { p_code: rewardCode, p_order_ref: order.id });
         await supabase.from("orders").delete().eq("id", order.id);
-        throw new Error("Could not apply reward discount");
+        throw new HttpError(500, "Could not apply reward discount");
       }
     }
 
@@ -354,23 +431,24 @@ serve(async (req) => {
           order_id: order.id,
           book_id: bookId,
           tier_key: tierKey,
+          tier_name: book.tier_name ?? "",
+          book_size: book.book_size ?? "",
+          page_count: String(book.total_page_limit ?? ""),
           currency,
           user_id: userId,
           reward_code: rewardMeta ? rewardCode : "",
         },
       });
     } catch (sessErr) {
-      // Session creation failed after we may have consumed a code, release + clean up.
-      if (rewardMeta) {
-        if (rewardCouponId) {
-          await supabase.rpc("release_reward_code", { p_code: rewardCode, p_order_ref: order.id });
-        }
-        await supabase.from("orders").delete().eq("id", order.id);
+      // No session, no order: free the code (if one was consumed) and drop the orphan row.
+      if (rewardCouponId) {
+        await supabase.rpc("release_reward_code", { p_code: rewardCode, p_order_ref: order.id });
       }
+      await supabase.from("orders").delete().eq("id", order.id);
       throw sessErr;
     }
 
-    if (!session.url) throw new Error("Failed to create checkout session");
+    if (!session.url) throw new HttpError(500, "Failed to create checkout session");
 
     // ── Save Stripe session ID to order ──
     await supabase
@@ -378,15 +456,13 @@ serve(async (req) => {
       .update({ stripe_session_id: session.id })
       .eq("id", order.id);
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-      status: 200,
-    });
-  } catch (err: any) {
+    return jsonResponse({ url: session.url }, 200);
+  } catch (err) {
+    if (err instanceof HttpError) {
+      console.warn(`Book checkout refused (${err.status}): ${err.message}`);
+      return jsonResponse({ error: err.message }, err.status);
+    }
     console.error("Book checkout error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-      status: 400,
-    });
+    return jsonResponse({ error: "Something went wrong starting checkout. Please try again." }, 500);
   }
 });

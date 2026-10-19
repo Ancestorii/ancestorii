@@ -32,6 +32,8 @@ import site from '@/components/site/site.module.css';
 import styles from '@/components/site/story-editor/editor.module.css';
 
 import { getBrowserClient } from '@/lib/supabase/browser';
+import { safeToast } from '@/lib/safeToast';
+import { revalidateStories } from '@app/stories/revalidate';
 import {
   createStory,
   updateStory,
@@ -92,6 +94,14 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+// The recording preview's bars: fixed heights from a small hash of each bar's position. They
+// used to be re-rolled with Math.random() on every render, so they jumped as the timer ticked.
+const WAVE_BARS = Array.from({ length: 36 }, (_, i) => {
+  const h = ((i + 1) * 2654435761) % 4294967296;
+  const noise = (((h ^ (h >>> 15)) >>> 0) % 1000) / 1000;
+  return 15 + Math.sin(i * 0.4) * 12 + noise * 8;
+});
+
 /* ═══════════════════════════════════════════════════════════════
    MAIN COMPONENT, the landing page's look (SiteShell frame)
    ═══════════════════════════════════════════════════════════════ */
@@ -110,8 +120,6 @@ export default function StoryEditorPage({
 }: EditorProps) {
   const router = useRouter();
 
-  const [mounted, setMounted] = useState(false);
-
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
   const [category, setCategory] = useState<string | null>(initialCategory);
@@ -119,7 +127,7 @@ export default function StoryEditorPage({
 
   const [existingImages, setExistingImages] =
     useState<ExistingImage[]>(initialImages);
-  const [existingVideoUrl] = useState<string | null>(initialVideoUrl);
+  const [existingVideoUrl, setExistingVideoUrl] = useState<string | null>(initialVideoUrl);
   const [existingVoiceUrl, setExistingVoiceUrl] = useState<string | null>(
     initialVoiceUrl
   );
@@ -148,9 +156,27 @@ export default function StoryEditorPage({
     stripHtml(body).length > 0 &&
     category !== null;
 
+  // Unpublished work on the page: the browser asks before a refresh or a closed tab loses it,
+  // and the Back button asks too.
+  const dirty =
+    !publishing &&
+    (title.trim() !== initialTitle.trim() ||
+      stripHtml(body) !== stripHtml(initialBody) ||
+      excerpt.trim() !== initialExcerpt.trim() ||
+      (category ?? null) !== (initialCategory ?? null) ||
+      media.length > 0 ||
+      !!videoFile ||
+      !!voiceFile);
+
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
 
   /* ── Media handlers ── */
 
@@ -189,9 +215,12 @@ export default function StoryEditorPage({
 
   const removeExistingImage = useCallback(async (id: string) => {
     const supabase = getBrowserClient();
-    const { error } = await supabase.from('story_media').delete().eq('id', id);
-    if (!error) {
+    // RLS blocks silently (0 rows), so the row is checked before the thumbnail goes.
+    const { data, error } = await supabase.from('story_media').delete().eq('id', id).select('id');
+    if (!error && (data?.length ?? 0) > 0) {
       setExistingImages((prev) => prev.filter((img) => img.id !== id));
+    } else {
+      safeToast.error('This photo could not be removed. Please try again.');
     }
   }, []);
 
@@ -210,6 +239,8 @@ export default function StoryEditorPage({
     setUploadingMediaIndex(-1);
     setUploadingVideo(false);
     const supabase = getBrowserClient();
+    const publicUrl = (path: string) =>
+      supabase.storage.from('story-media').getPublicUrl(path).data.publicUrl;
 
     try {
       let targetId = storyId;
@@ -222,7 +253,10 @@ export default function StoryEditorPage({
           category,
           excerpt: excerpt.trim() || null,
         });
-        if (!story) return;
+        if (!story) {
+          setModerationError('Your story could not be saved. Please check your connection and try again.');
+          return;
+        }
         targetId = story.id;
         setStoryId(story.id);
       } else {
@@ -233,38 +267,78 @@ export default function StoryEditorPage({
           excerpt: excerpt.trim() || null,
         });
         if (!updated) {
-          setPublishing(false);
+          setModerationError('Your changes could not be saved. Please check your connection and try again.');
           return;
         }
       }
 
+      // Photos. Each one that goes up becomes a saved photo at once, so publishing again after
+      // a failure sends only the ones that are left (and never the same photo twice).
+      const uploaded: { pendingId: string; id: string; path: string }[] = [];
+      let failed = 0;
       for (let i = 0; i < media.length; i++) {
         setPublishStep(`Uploading photo ${i + 1}/${media.length}…`);
         setUploadingMediaIndex(i);
-        await uploadStoryMedia(supabase, targetId, media[i].file, i);
+        const result = await uploadStoryMedia(
+          supabase,
+          targetId,
+          media[i].file,
+          existingImages.length + i
+        );
+        if (result) uploaded.push({ pendingId: media[i].id, ...result });
+        else failed++;
       }
       setUploadingMediaIndex(-1);
+      if (uploaded.length) {
+        const done = new Set(uploaded.map((u) => u.pendingId));
+        setExistingImages((prev) => [
+          ...prev,
+          ...uploaded.map((u) => ({ id: u.id, url: publicUrl(u.path) })),
+        ]);
+        setMedia((prev) => {
+          prev.filter((m) => done.has(m.id)).forEach((m) => URL.revokeObjectURL(m.preview));
+          return prev.filter((m) => !done.has(m.id));
+        });
+      }
+      if (failed > 0) {
+        setModerationError(
+          `${failed === 1 ? 'One photo' : `${failed} photos`} could not be uploaded. Please try publishing again.`
+        );
+        return;
+      }
 
       if (videoFile) {
         setPublishStep('Uploading video…');
         setUploadingVideo(true);
-        await uploadStoryMedia(
+        const result = await uploadStoryMedia(
           supabase,
           targetId,
           videoFile.file,
-          media.length
+          existingImages.length + media.length
         );
         setUploadingVideo(false);
+        if (!result) {
+          setModerationError('Your video could not be uploaded. Please try publishing again.');
+          return;
+        }
+        setExistingVideoUrl(publicUrl(result.path));
+        removeVideo();
       }
 
       if (voiceFile) {
         setPublishStep('Uploading voice note…');
         const voicePath = await uploadVoiceNote(supabase, targetId, voiceFile);
-        if (voicePath) {
-          await updateStory(supabase, targetId, {
+        const saved =
+          !!voicePath &&
+          (await updateStory(supabase, targetId, {
             voice_note_path: voicePath,
-          });
+          }));
+        if (!saved) {
+          setModerationError('Your voice note could not be uploaded. Please try publishing again.');
+          return;
         }
+        setExistingVoiceUrl(publicUrl(voicePath!));
+        setVoiceFile(null);
       } else if (!existingVoiceUrl && initialVoiceUrl) {
         setPublishStep('Updating voice note…');
         await updateStory(supabase, targetId, {
@@ -273,30 +347,37 @@ export default function StoryEditorPage({
       }
 
       setPublishStep('Reviewing…');
-      const modRes = await fetch('/api/moderate-story', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ story_id: targetId }),
-      });
+      // A network failure or a non-JSON answer reads as "not published", not a hung button.
+      let modData: { moderation_result?: string; error?: string } | null = null;
+      try {
+        const modRes = await fetch('/api/moderate-story', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ story_id: targetId }),
+        });
+        modData = await modRes.json();
+      } catch {
+        modData = null;
+      }
 
-      const modData = await modRes.json();
-
-      if (modData.moderation_result === 'approved') {
+      if (modData?.moderation_result === 'approved') {
+        // The cached feed picks the story up at once instead of within the minute.
+        await revalidateStories().catch(() => {});
         const { data: story } = await supabase
           .from('stories')
           .select('slug')
           .eq('id', targetId)
-          .single();
+          .maybeSingle();
 
         if (story?.slug) {
           router.push(`/stories/${story.slug}`);
         } else {
           router.push('/stories');
         }
-      } else if (modData.moderation_result === 'flagged') {
+      } else if (modData?.moderation_result === 'flagged') {
         setModerationFlagged(true);
       } else {
-        setModerationError(modData.error || 'Unable to publish at this time.');
+        setModerationError(modData?.error || 'Unable to publish at this time. Please try again.');
       }
     } finally {
       setPublishing(false);
@@ -431,16 +512,22 @@ export default function StoryEditorPage({
         {/* ═══════════════════════════════════════════════════════
             TOOLBAR (sticky)
             ═══════════════════════════════════════════════════════ */}
-        <div
-          className={`${landing.wrap} ${styles.toolbarWrap} ${
-            mounted ? styles.rise : styles.preMount
-          }`}
-        >
+        {/* The entrance is CSS alone (it ran from the first paint anyway), so the page is no
+            longer invisible until its script has loaded. */}
+        <div className={`${landing.wrap} ${styles.toolbarWrap} ${styles.rise}`}>
           <div className={styles.toolbar}>
             <div className={styles.toolbarStart}>
               <button
                 type="button"
-                onClick={() => router.back()}
+                onClick={() => {
+                  if (
+                    dirty &&
+                    !window.confirm('Leave this page? Your unpublished changes will be lost.')
+                  ) {
+                    return;
+                  }
+                  router.back();
+                }}
                 className={styles.backBtn}
                 aria-label="Go back"
               >
@@ -505,11 +592,7 @@ export default function StoryEditorPage({
         {/* ═══════════════════════════════════════════════════════
             MAIN, editor, plus the live preview on wide screens
             ═══════════════════════════════════════════════════════ */}
-        <div
-          className={`${landing.wrap} ${styles.layout} ${
-            mounted ? styles.rise : styles.preMount
-          }`}
-        >
+        <div className={`${landing.wrap} ${styles.layout} ${styles.rise}`}>
           {/* LEFT: Editor */}
           <div className={styles.editorCol}>
             {/* ═══════════════════════════════════════════
@@ -1213,16 +1296,13 @@ function VoiceNoteUploader({
           )}
         </button>
         <div className={styles.wave} aria-hidden="true">
-          {Array.from({ length: 36 }, (_, i) => {
-            const h = 15 + Math.sin(i * 0.4) * 12 + Math.random() * 8;
-            return (
-              <div
-                key={i}
-                className={`${styles.bar} ${i < 24 ? styles.barOn : ''}`}
-                style={{ height: `${h}%` }}
-              />
-            );
-          })}
+          {WAVE_BARS.map((h, i) => (
+            <div
+              key={i}
+              className={`${styles.bar} ${i < 24 ? styles.barOn : ''}`}
+              style={{ height: `${h}%` }}
+            />
+          ))}
         </div>
         <span className={styles.time}>{fmtTime(elapsed)}</span>
         <button
@@ -1369,7 +1449,7 @@ function VideoUploader({
             video.onloadedmetadata = () => {
               URL.revokeObjectURL(video.src);
               if (video.duration > maxSeconds) {
-                alert(`Video must be ${maxMinutes} minutes or less.`);
+                safeToast.error(`Video must be ${maxMinutes} minutes or less.`);
               } else {
                 onAdd(f);
               }

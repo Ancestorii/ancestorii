@@ -4,7 +4,10 @@ import type { Metadata } from 'next';
 import JsonLd from '@/components/site/seo/JsonLd';
 import SiteShell from '@/components/site/SiteShell';
 import StoryPageContent from '@/components/stories/detail/StoryPageContent';
-import { getStoryComments } from '@/lib/stories/queries';
+import { getPublicStory, loadRelatedStories } from '@/lib/stories/publicStory';
+import { loadProfileCards, publicMediaUrl } from '@/lib/stories/publicFeed';
+import { getPublicClient } from '@/lib/stories/publicClient';
+import { signAvatarUrls } from '@/lib/stories/avatars';
 import { plainTextFromHtml } from '@/lib/stories/format';
 import { sanitizeRichText } from '@/lib/richText/server';
 
@@ -21,17 +24,8 @@ type Props = {
 // ─── SEO: dynamic metadata per story ───
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await getServerClient();
-
-  const { data: story, error } = await supabase
-    .from('stories')
-    .select('title, body, author_name, slug, category, id')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .maybeSingle();
-
-  // As in the page: a failed query is an error, not a missing story
-  if (error) throw new Error(`Could not load story "${slug}": ${error.message}`);
+  // The same read as the page (shared within the request); a failed query throws, as there.
+  const story = await getPublicStory(slug);
   if (!story) {
     return { title: 'Story Not Found' };
   }
@@ -39,20 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const plainBody = plainTextFromHtml(story.body);
   const description = plainBody.length > 160 ? plainBody.slice(0, 157).trim() + '…' : plainBody;
 
-  let ogImageUrl = '/og-default.jpg';
-  const { data: media } = await supabase
-    .from('story_media')
-    .select('file_path, file_type')
-    .eq('story_id', story.id)
-    .order('display_order', { ascending: true })
-    .limit(1);
-
-  const coverMedia = media?.find((m) => m.file_type?.startsWith('image/'));
-  if (coverMedia) {
-    ogImageUrl = supabase.storage
-      .from('story-media')
-      .getPublicUrl(coverMedia.file_path).data.publicUrl;
-  }
+  const coverMedia = story.media.find((m) => m.file_type?.startsWith('image/'));
+  const ogImageUrl = coverMedia ? publicMediaUrl(coverMedia.file_path) : '/og-default.jpg';
 
   return {
     title: story.title,
@@ -88,182 +70,76 @@ export default async function StoryPage({ params }: Props) {
   const { slug } = await params;
   const supabase = await getServerClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const isLoggedIn = !!user;
-
-  // Fetch story. Only a story that isn't there is a 404; a failed query (a timeout, say)
-  // throws to the error boundary, so a blip never tells search engines the story is gone.
-  const { data: story, error: storyError } = await supabase
-    .from('stories')
-    .select('*')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .maybeSingle();
-
-  if (storyError) throw new Error(`Could not load story "${slug}": ${storyError.message}`);
+  // The reader and the story (with its media, comments and like count, in one query), side by
+  // side. Only a story that isn't there is a 404; a failed query (a timeout, say) throws to the
+  // error boundary, so a blip never tells search engines the story is gone.
+  const [
+    {
+      data: { user },
+    },
+    story,
+  ] = await Promise.all([supabase.auth.getUser(), getPublicStory(slug)]);
   if (!story) notFound();
 
+  const isLoggedIn = !!user;
   const isAuthor = user?.id === story.author_id;
 
-  // Fetch media
-  const { data: media } = await supabase
-    .from('story_media')
-    .select('*')
-    .eq('story_id', story.id)
-    .order('display_order', { ascending: true });
-
   // Build image URLs
-  const images = (media ?? [])
+  const images = story.media
     .filter((m) => m.file_type?.startsWith('image/'))
-    .map((m) => ({
-      url: supabase.storage
-        .from('story-media')
-        .getPublicUrl(m.file_path).data.publicUrl,
-      alt: story.title,
-    }));
+    .map((m) => ({ url: publicMediaUrl(m.file_path), alt: story.title }));
 
   const coverUrl = images.length > 0 ? images[0].url : null;
 
   // Video URL
-  const videoMedia = (media ?? []).find((m) => m.file_type?.startsWith('video/'));
-  const videoUrl = videoMedia
-    ? supabase.storage
-        .from('story-media')
-        .getPublicUrl(videoMedia.file_path).data.publicUrl
-    : null;
+  const videoMedia = story.media.find((m) => m.file_type?.startsWith('video/'));
+  const videoUrl = videoMedia ? publicMediaUrl(videoMedia.file_path) : null;
 
   // Voice note URL
-  const voiceNoteUrl = story.voice_note_path
-    ? supabase.storage
-        .from('story-media')
-        .getPublicUrl(story.voice_note_path).data.publicUrl
-    : null;
+  const voiceNoteUrl = story.voice_note_path ? publicMediaUrl(story.voice_note_path) : null;
 
-  // Reaction count
-  const { count: reactionCount } = await supabase
-    .from('story_reactions')
-    .select('*', { count: 'exact', head: true })
-    .eq('story_id', story.id);
-
-  // Comment count
-  const { count: commentCount } = await supabase
-    .from('story_comments')
-    .select('*', { count: 'exact', head: true })
-    .eq('story_id', story.id);
-
-  // User reaction check
-  let userReacted = false;
-  if (user) {
-    const { data: reaction } = await supabase
-      .from('story_reactions')
-      .select('id')
-      .eq('story_id', story.id)
-      .eq('user_id', user.id)
-      .maybeSingle();
-    userReacted = !!reaction;
-  }
-
-  // Author profile
-  const { data: authorProfile } = await supabase
-    .from('Profiles')
-    .select('bio, location, title, profile_image_url')
-    .eq('id', story.author_id)
-    .maybeSingle();
-
-  let authorAvatarUrl = story.author_avatar_url;
-  if (authorProfile?.profile_image_url) {
-    const { data: signed } = await supabase.storage
-      .from('user-media')
-      .createSignedUrl(authorProfile.profile_image_url, 3600);
-    if (signed?.signedUrl) authorAvatarUrl = signed.signedUrl;
-  }
-
-  // Fetch comments for SSR (avoids flash of "0 Comments")
-  const initialComments = await getStoryComments(supabase, story.id);
-
-  // Related stories: same category first, backfill with latest to always show 4
-  const RELATED_LIMIT = 4;
-  let relatedRaw: { id: string; slug: string; title: string }[] = [];
-
-  if (story.category) {
-    const { data: categoryMatches } = await supabase
-      .from('stories')
-      .select('id, slug, title')
-      .eq('status', 'published')
-      .eq('category', story.category)
-      .neq('id', story.id)
-      .order('published_at', { ascending: false })
-      .limit(RELATED_LIMIT);
-
-    relatedRaw = categoryMatches ?? [];
-  }
-
-  if (relatedRaw.length < RELATED_LIMIT) {
-    const excludeIds = [story.id, ...relatedRaw.map((s) => s.id)];
-    const { data: backfill } = await supabase
-      .from('stories')
-      .select('id, slug, title')
-      .eq('status', 'published')
-      .not('id', 'in', `(${excludeIds.join(',')})`)
-      .order('published_at', { ascending: false })
-      .limit(RELATED_LIMIT - relatedRaw.length);
-
-    relatedRaw = [...relatedRaw, ...(backfill ?? [])];
-  }
-
-  const relatedIds = (relatedRaw ?? []).map((s) => s.id);
-  const { data: relatedMedia } = relatedIds.length
-    ? await supabase
-        .from('story_media')
-        .select('story_id, file_path, file_type')
-        .in('story_id', relatedIds)
-        .order('display_order', { ascending: true })
-    : { data: [] };
-
-  const [{ data: relatedReactions }, { data: relatedComments }] = await Promise.all([
-    relatedIds.length
+  // Everyone on the page (the author and the commenters), the related stories and the reader's
+  // own like, side by side.
+  const [cards, relatedStories, ownReaction] = await Promise.all([
+    loadProfileCards(getPublicClient(), [story.author_id, ...story.comments.map((c) => c.user_id)]),
+    loadRelatedStories(story.id, story.category),
+    user
       ? supabase
           .from('story_reactions')
-          .select('story_id')
-          .in('story_id', relatedIds)
-      : { data: [] },
-    relatedIds.length
-      ? supabase
-          .from('story_comments')
-          .select('story_id')
-          .in('story_id', relatedIds)
-      : { data: [] },
+          .select('id')
+          .eq('story_id', story.id)
+          .eq('user_id', user.id)
+          .maybeSingle()
+      : null,
   ]);
+  const userReacted = !!ownReaction?.data;
 
-  const relatedMediaMap = new Map<string, string>();
-  (relatedMedia ?? []).forEach((m: { story_id: string; file_path: string; file_type: string }) => {
-    if (!relatedMediaMap.has(m.story_id) && m.file_type?.startsWith('image/')) {
-      relatedMediaMap.set(
-        m.story_id,
-        supabase.storage.from('story-media').getPublicUrl(m.file_path).data.publicUrl
-      );
-    }
+  // Then their photos (one signed URL a day per photo, see src/lib/stories/avatars.ts).
+  const avatars = await signAvatarUrls([...cards.values()].map((c) => c.profile_image_url));
+  const avatarOf = (userId: string, fallback: string | null) => {
+    const path = cards.get(userId)?.profile_image_url;
+    return (path && avatars.get(path)) || fallback;
+  };
+
+  const authorCard = cards.get(story.author_id);
+  const authorAvatarUrl = avatarOf(story.author_id, story.author_avatar_url);
+
+  // Comments rendered on the server (no flash of "0 Comments"), with each writer's current name,
+  // title and photo.
+  const initialComments = story.comments.map((c) => {
+    const card = cards.get(c.user_id);
+    return {
+      ...c,
+      author_name: card?.full_name || c.author_name,
+      author_avatar_url: avatarOf(c.user_id, c.author_avatar_url),
+      author_title: card?.title || null,
+    };
   });
+  const reactionCount = story.reaction_count;
+  const commentCount = story.comments.length;
 
-  const relatedReactionMap = new Map<string, number>();
-  ((relatedReactions ?? []) as { story_id: string }[]).forEach((r) => {
-    relatedReactionMap.set(r.story_id, (relatedReactionMap.get(r.story_id) ?? 0) + 1);
-  });
-
-  const relatedCommentMap = new Map<string, number>();
-  ((relatedComments ?? []) as { story_id: string }[]).forEach((c) => {
-    relatedCommentMap.set(c.story_id, (relatedCommentMap.get(c.story_id) ?? 0) + 1);
-  });
-
-  const relatedStories = (relatedRaw ?? []).map((s) => ({
-    slug: s.slug,
-    title: s.title,
-    coverUrl: relatedMediaMap.get(s.id) ?? null,
-    reactionCount: relatedReactionMap.get(s.id) ?? 0,
-    commentCount: relatedCommentMap.get(s.id) ?? 0,
-  }));
+  // When this HTML was made: the comments count their "3h ago" from it on both sides.
+  const renderedAt = Date.now();
 
   const plainBody = plainTextFromHtml(story.body);
 
@@ -291,12 +167,12 @@ export default async function StoryPage({ params }: Props) {
             {
               '@type': 'InteractionCounter',
               interactionType: 'https://schema.org/LikeAction',
-              userInteractionCount: reactionCount ?? 0,
+              userInteractionCount: reactionCount,
             },
             {
               '@type': 'InteractionCounter',
               interactionType: 'https://schema.org/CommentAction',
-              userInteractionCount: commentCount ?? 0,
+              userInteractionCount: commentCount,
             },
           ],
         }}
@@ -319,16 +195,18 @@ export default async function StoryPage({ params }: Props) {
             }}
             images={images}
             video={videoUrl}
-            reactionCount={reactionCount ?? 0}
-            commentCount={commentCount ?? 0}
+            reactionCount={reactionCount}
+            commentCount={commentCount}
             userHasReacted={userReacted}
             isLoggedIn={isLoggedIn}
             isAuthor={isAuthor}
-            authorBio={authorProfile?.bio ?? null}
-            authorLocation={authorProfile?.location ?? null}
-            authorTitle={authorProfile?.title ?? null}
+            currentUserId={user?.id ?? null}
+            authorBio={authorCard?.bio ?? null}
+            authorLocation={authorCard?.location ?? null}
+            authorTitle={authorCard?.title ?? null}
             relatedStories={relatedStories}
             initialComments={initialComments}
+            renderedAt={renderedAt}
           />
       </SiteShell>
     </>

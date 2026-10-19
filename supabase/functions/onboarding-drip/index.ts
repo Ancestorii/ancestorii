@@ -141,9 +141,15 @@ const DRIP_STEPS: Array<{ day: number; step: string; letter: (name: string | nul
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function processDripStep(drip: (typeof DRIP_STEPS)[number]): Promise<number> {
-  const targetDate = new Date();
-  targetDate.setDate(targetDate.getDate() - drip.day);
-  const dateStr = targetDate.toISOString().split('T')[0];
+  // The accounts created `day` days ago, and the day before that as well: a run that failed
+  // (Resend down, the cron missed) would otherwise lose that step for good. onboarding_emails_log
+  // keeps the second day from sending it twice. Everything is UTC, like the 09:00 UTC cron.
+  const dates = new Set<string>();
+  for (const back of [drip.day, drip.day + 1]) {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - back);
+    dates.add(d.toISOString().split('T')[0]);
+  }
 
   const matched: { id: string; email: string; name: string | null }[] = [];
   let page = 1;
@@ -159,7 +165,7 @@ async function processDripStep(drip: (typeof DRIP_STEPS)[number]): Promise<numbe
     if (users.length === 0) break;
     for (const u of users) {
       if (!u.created_at || !u.email) continue;
-      if (u.created_at.split('T')[0] === dateStr) {
+      if (dates.has(u.created_at.split('T')[0])) {
         matched.push({ id: u.id, email: u.email, name: u.user_metadata?.full_name ?? null });
       }
     }

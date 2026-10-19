@@ -23,7 +23,8 @@ import s from './settings.module.css';
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 type Prefs = {
-  id: string;
+  // null until the row exists: it is created on the first save, not on load.
+  id: string | null;
   user_id: string;
   in_app: boolean;
   email: boolean;
@@ -82,9 +83,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const fetchPrefs = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // The user comes from the local session (no network round trip); RLS guards the rows.
+      const { data: sess } = await supabase.auth.getSession();
+      const user = sess?.session?.user;
 
       const marketingOptIn = user?.user_metadata?.newsletter_opt_in ?? false;
 
@@ -94,44 +95,23 @@ export default function SettingsPage() {
         return;
       }
 
-      const { data, error } = await supabase
+      // A fresh account has no row yet: maybeSingle answers null where single() answered 406.
+      // Nothing is written on load. A missing row counts as opted in (the column's default, and
+      // what send-push assumes), so the switch shows on; the row is created on the first save.
+      // (The old upsert on user_id answered 400: that column has no unique constraint.)
+      const { data } = await supabase
         .from('notification_preferences')
-        .select('*')
+        .select('id, user_id, in_app, email')
         .eq('user_id', user.id)
-        .single();
+        .limit(1)
+        .maybeSingle();
 
-      if (!error && data) {
-        setPrefs({
-          ...data,
-          email: marketingOptIn,
-        });
-      } else {
-        // No row exists yet, create one with defaults
-        const { data: newRow } = await supabase
-          .from('notification_preferences')
-          .upsert({
-            user_id: user.id,
-            in_app: false,
-            email: marketingOptIn,
-          }, { onConflict: 'user_id' })
-          .select()
-          .single();
-
-        if (newRow) {
-          setPrefs({
-            ...newRow,
-            email: marketingOptIn,
-          });
-        } else {
-          // Fallback: at least make toggles work visually
-          setPrefs({
-            id: 'temp',
-            user_id: user.id,
-            in_app: false,
-            email: marketingOptIn,
-          });
-        }
-      }
+      setPrefs({
+        id: data?.id ?? null,
+        user_id: user.id,
+        in_app: data?.in_app ?? true,
+        email: marketingOptIn,
+      });
 
       setLoading(false);
     };
@@ -149,44 +129,61 @@ export default function SettingsPage() {
 
     setSaving(true);
 
-    const { error } = await supabase
-      .from('notification_preferences')
-      .update({
-        in_app: prefs.in_app,
-        email: prefs.email,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', prefs.id);
+    const values = { in_app: prefs.in_app, email: prefs.email };
+
+    // The row is created on the first save, then updated by id. .select() brings the row back,
+    // so an update that touched nothing (RLS) reads as a failure, not a success.
+    const { data: row, error } = prefs.id
+      ? await supabase
+          .from('notification_preferences')
+          .update({ ...values, updated_at: new Date().toISOString() })
+          .eq('id', prefs.id)
+          .select('id')
+          .maybeSingle()
+      : await supabase
+          .from('notification_preferences')
+          .insert({ user_id: prefs.user_id, ...values })
+          .select('id')
+          .single();
+
+    if (error || !row) {
+      setSaving(false);
+      toast.error('Could not save your settings. Please try again.');
+      return;
+    }
+
+    if (!prefs.id) {
+      const newId = row.id as string;
+      setPrefs((p) => (p ? { ...p, id: newId } : p));
+    }
+
+    /* ---------------------------------- */
+    /* Update Supabase Auth marketing opt-in */
+    /* ---------------------------------- */
+
+    if (type === 'email') {
+      const { error: metaError } = await supabase.auth.updateUser({
+        data: {
+          newsletter_opt_in: prefs.email,
+        },
+      });
+
+      if (metaError) {
+        console.error('Failed to update marketing preference:', metaError);
+      }
+    }
 
     setSaving(false);
 
-    /* ---------------------------------- */
-/* Update Supabase Auth marketing opt-in */
-/* ---------------------------------- */
+    if (type === 'in_app') {
+      setSavedInApp(true);
+      setTimeout(() => setSavedInApp(false), 2500);
+    }
 
-if (type === 'email') {
-  const { error: metaError } = await supabase.auth.updateUser({
-    data: {
-      newsletter_opt_in: prefs.email,
-    },
-  });
-
-  if (metaError) {
-    console.error('Failed to update marketing preference:', metaError);
-  }
-}
-
-    if (!error) {
-  if (type === 'in_app') {
-    setSavedInApp(true);
-    setTimeout(() => setSavedInApp(false), 2500);
-  }
-
-  if (type === 'email') {
-    setSavedEmail(true);
-    setTimeout(() => setSavedEmail(false), 2500);
-  }
-}
+    if (type === 'email') {
+      setSavedEmail(true);
+      setTimeout(() => setSavedEmail(false), 2500);
+    }
   };
 
   return (

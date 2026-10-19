@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, MessageCircle, Play, ImageIcon } from 'lucide-react';
@@ -58,8 +57,6 @@ export default function StoryCard({
   commentCount: number;
   publishedAt: string | null;
 }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
  const strippedBody = plainTextFromHtml(body);
   const preview = excerpt || (strippedBody.length > 100 ? strippedBody.slice(0, 100).trim() + '…' : strippedBody);
 
@@ -97,8 +94,10 @@ export default function StoryCard({
             // The card's width in both grids: the feed has three columns from 960px, the
             // topic pages only from 1000px, so 50vw holds to 999px.
             sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 999px) 50vw, (max-width: 1279px) 34vw, 420px"
-            className={`${feed.cover} ${imageLoaded ? feed.coverShown : feed.coverHidden}`}
-            onLoad={() => setImageLoaded(true)}
+            // Shown as it arrives, like any photo. It used to be kept invisible until a script
+            // had run and seen it load, so every cover in the server's HTML was a blank panel
+            // that popped in later.
+            className={`${feed.cover} ${feed.coverShown}`}
           />
         ) : (
           <div className={feed.fallback}>

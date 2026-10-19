@@ -3,6 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // Service role client: this endpoint is public (no auth),
 // so we need admin access to read the link
 function getAdminClient() {
@@ -23,6 +25,11 @@ export async function GET(
       return NextResponse.json({ error: 'Token is required' }, { status: 400 });
     }
 
+    // The token column is a uuid: anything else is "not found" without a database round trip.
+    if (!UUID_RE.test(token)) {
+      return NextResponse.json({ error: 'Invite link not found', valid: false }, { status: 404 });
+    }
+
     const admin = getAdminClient();
 
     // 1. Look up the invite link
@@ -30,7 +37,7 @@ export async function GET(
       .from('family_invite_links')
       .select('id, family_id, created_by, is_active')
       .eq('token', token)
-      .single();
+      .maybeSingle();
 
     if (error || !link) {
       return NextResponse.json(
@@ -47,26 +54,18 @@ export async function GET(
       );
     }
 
-    // 3. Get family name
-    const { data: family } = await admin
-      .from('families')
-      .select('name')
-      .eq('id', link.family_id)
-      .single();
-
-    // 4. Get link creator's name
-    const { data: creator } = await admin
-      .from('Profiles')
-      .select('full_name')
-      .eq('id', link.created_by)
-      .single();
+    // 3. Family name and the link creator's name, side by side
+    const [{ data: family }, { data: creator }] = await Promise.all([
+      admin.from('families').select('name').eq('id', link.family_id).maybeSingle(),
+      admin.from('Profiles').select('full_name').eq('id', link.created_by).maybeSingle(),
+    ]);
 
     return NextResponse.json({
       valid: true,
       familyName: family?.name || 'a family',
       creatorName: creator?.full_name || 'Someone',
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Join link lookup error:', err);
     return NextResponse.json(
       { error: 'Something went wrong' },

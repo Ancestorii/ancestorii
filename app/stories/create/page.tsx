@@ -3,9 +3,10 @@ import { Metadata } from 'next';
 import { getServerClient } from '@/lib/supabase/server';
 import StoryEditorPage from '@/components/stories/editor/StoryEditorPage';
 
-// The root layout's template adds " | Ancestorii"
+// The root layout's template adds " | Ancestorii". A writing page, not one to index.
 export const metadata: Metadata = {
   title: 'Share a Memory',
+  robots: { index: false, follow: false },
 };
 
 export default async function CreateStoryPage() {

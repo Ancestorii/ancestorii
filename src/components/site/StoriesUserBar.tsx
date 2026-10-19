@@ -67,7 +67,7 @@ export default function StoriesUserBar({ isLoggedIn }: { isLoggedIn?: boolean })
         .from('Profiles')
         .select('profile_image_url')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       if (profile?.profile_image_url) {
         const { data: signed } = await supabase.storage
           .from('user-media')

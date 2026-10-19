@@ -109,6 +109,7 @@ type OrderFields = {
   price_amount: number;
   price_currency: string;
   status: string;
+  payment_status: string;
   prodigi_tracking_url: string | null;
   shipping_city: string | null;
   shipping_country: string | null;
@@ -150,6 +151,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<'book' | 'canvas' | 'acrylic'>('book');
+  const [deleting, setDeleting] = useState(false);
 
   // Escape cancels the delete question, Tab stays inside it.
   const confirmRef = useDialog<HTMLDivElement>(!!deleteTarget, () => setDeleteTarget(null));
@@ -159,98 +161,72 @@ export default function OrdersPage() {
   useEffect(() => {
     (async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        // The uid comes from the local session (no round trip); row security is the real check
+        // (each order table lets a person read only the rows with their own user_id).
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const user = session?.user;
         if (!user) {
           setLoading(false);
           return;
         }
 
-        // ── Book orders (existing) ──
-        const { data: orderRows, error } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+        // ── The three order tables, together (they used to load one after another, each
+        // followed by its own title lookup: seven round trips in a row) ──
+        const [bookRes, canvasRes, acrylicRes] = await Promise.all([
+          supabase.from('orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('canvas_orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+          supabase.from('acrylic_orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        ]);
 
-        if (error) throw error;
-
-        // Fetch book titles
-        const bookIds = [...new Set((orderRows || []).map((o: any) => o.book_id))];
-        let titleMap = new Map<string, string>();
-
-        if (bookIds.length > 0) {
-          const { data: books } = await supabase
-            .from('memory_books')
-            .select('id, title')
-            .in('id', bookIds);
-
-          titleMap = new Map((books || []).map((b: any) => [b.id, b.title]));
+        const loadErr = bookRes.error || canvasRes.error || acrylicRes.error;
+        if (loadErr) {
+          console.error('Failed to load orders:', loadErr);
+          toast.error("Some of your orders couldn't be loaded. Please refresh.");
         }
 
-        const enriched = (orderRows || []).map((o: any) => ({
-          ...o,
-          book_title: titleMap.get(o.book_id) || 'Memory Book',
-        }));
+        const orderRows = bookRes.data || [];
+        const canvasRows = canvasRes.data || [];
+        const acrylicRows = acrylicRes.data || [];
 
-        setOrders(enriched);
+        // ── The products' titles: one batched lookup per table, all three together. A product
+        // that has gone (a deleted book, say) simply falls back to its kind's name. ──
+        const bookIds = [...new Set(orderRows.map((o: any) => o.book_id))];
+        const canvasIds = [...new Set(canvasRows.map((o: any) => o.canvas_id))];
+        const acrylicIds = [...new Set(acrylicRows.map((o: any) => o.acrylic_id))];
 
-        // ── Canvas orders ──
-        const { data: canvasRows, error: canvasErr } = await supabase
-          .from('canvas_orders')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+        const [books, canvases, acrylics] = await Promise.all([
+          bookIds.length > 0 ? supabase.from('memory_books').select('id, title').in('id', bookIds) : null,
+          canvasIds.length > 0 ? supabase.from('memory_canvases').select('id, title').in('id', canvasIds) : null,
+          acrylicIds.length > 0 ? supabase.from('acrylic_prints').select('id, title').in('id', acrylicIds) : null,
+        ]);
 
-        if (!canvasErr && canvasRows) {
-          const canvasIds = [...new Set(canvasRows.map((o: any) => o.canvas_id))];
-          let canvasTitleMap = new Map<string, string>();
+        const titleMap = new Map<string, string>((books?.data || []).map((b: any) => [b.id, b.title]));
+        const canvasTitleMap = new Map<string, string>((canvases?.data || []).map((c: any) => [c.id, c.title]));
+        const acrylicTitleMap = new Map<string, string>((acrylics?.data || []).map((a: any) => [a.id, a.title]));
 
-          if (canvasIds.length > 0) {
-            const { data: canvases } = await supabase
-              .from('memory_canvases')
-              .select('id, title')
-              .in('id', canvasIds);
-
-            canvasTitleMap = new Map((canvases || []).map((c: any) => [c.id, c.title]));
-          }
-
-          setCanvasOrders(
-            canvasRows.map((o: any) => ({
-              ...o,
-              canvas_title: canvasTitleMap.get(o.canvas_id) || 'Memory Canvas',
-            }))
-          );
-        }
-
-        // ── Acrylic orders ──
-        const { data: acrylicRows, error: acrylicErr } = await supabase
-          .from('acrylic_orders')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (!acrylicErr && acrylicRows) {
-          const acrylicIds = [...new Set(acrylicRows.map((o: any) => o.acrylic_id))];
-          let acrylicTitleMap = new Map<string, string>();
-
-          if (acrylicIds.length > 0) {
-            const { data: acrylics } = await supabase
-              .from('acrylic_prints')
-              .select('id, title')
-              .in('id', acrylicIds);
-
-            acrylicTitleMap = new Map((acrylics || []).map((a: any) => [a.id, a.title]));
-          }
-
-          setAcrylicOrders(
-            acrylicRows.map((o: any) => ({
-              ...o,
-              acrylic_title: acrylicTitleMap.get(o.acrylic_id) || 'Acrylic Print',
-            }))
-          );
-        }
+        setOrders(
+          orderRows.map((o: any) => ({
+            ...o,
+            book_title: titleMap.get(o.book_id) || 'Memory Book',
+          }))
+        );
+        setCanvasOrders(
+          canvasRows.map((o: any) => ({
+            ...o,
+            canvas_title: canvasTitleMap.get(o.canvas_id) || 'Memory Canvas',
+          }))
+        );
+        setAcrylicOrders(
+          acrylicRows.map((o: any) => ({
+            ...o,
+            acrylic_title: acrylicTitleMap.get(o.acrylic_id) || 'Acrylic Print',
+          }))
+        );
       } catch (err) {
         console.error('Failed to load orders:', err);
+        toast.error("Your orders couldn't be loaded. Please refresh.");
       } finally {
         setLoading(false);
       }
@@ -385,7 +361,13 @@ export default function OrdersPage() {
 
               <Btn
                 variant="danger"
+                disabled={deleting}
+                aria-busy={deleting || undefined}
                 onClick={async () => {
+                  // One delete at a time: a second click would run again and report "couldn't
+                  // be removed" for a row the first click had already taken.
+                  if (deleting) return;
+                  setDeleting(true);
                   try {
                     const table =
                       deleteType === 'canvas' ? 'canvas_orders'
@@ -415,7 +397,9 @@ export default function OrdersPage() {
                     }
                   } catch (err) {
                     console.error('Failed to delete order:', err);
+                    toast.error("This order couldn't be removed.");
                   } finally {
+                    setDeleting(false);
                     setDeleteTarget(null);
                   }
                 }}
@@ -480,7 +464,13 @@ function OrderCard({
   onDelete: () => void;
 }) {
   const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.error;
-  const canDelete = order.status === 'created' || order.status === 'error' || order.status === 'cancelled';
+  // Never offer to delete a paid order: "error" and "cancelled" can follow a payment (fulfilment
+  // failed, or the printer cancelled), and that record is what a refund or a reprint is traced from.
+  // Only an unpaid order that used no reward code can be removed (the database policy says the same).
+  const canDelete =
+    order.payment_status !== 'paid' &&
+    !order.reward_code &&
+    (order.status === 'created' || order.status === 'error' || order.status === 'cancelled');
   const hasFacts = !!(order.shipping_method || order.shipping_city || order.paid_at || order.shipped_at);
   const titleId = `order-${order.id}-title`;
 

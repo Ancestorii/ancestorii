@@ -6,12 +6,35 @@ import StoryFeed, { type FeedStory } from '@/components/stories/feed/StoryFeed';
 import type { TrendingStory, PopularTopic } from '@/components/stories/feed/FeedSidebar';
 import feed from '@/components/site/stories-browse/feed.module.css';
 
-type StoryMediaRow = {
-  story_id: string;
-  file_path: string;
-  file_type: string;
-  display_order: number;
+type MediaRow = { file_path: string; file_type: string; display_order: number };
+type CountRow = { count: number };
+
+// One query per page of stories: each comes with its media and its like and comment counts
+// (PostgREST embeds), the same shape the server uses (src/lib/stories/publicFeed.ts).
+const CARD_SELECT =
+  'id, slug, title, body, excerpt, author_id, author_name, author_avatar_url, voice_note_path, category, published_at, ' +
+  'story_media(file_path, file_type, display_order), ' +
+  'reaction_count:story_reactions(count), comment_count:story_comments(count)';
+
+type CardRow = {
+  id: string;
+  slug: string;
+  title: string;
+  body: string;
+  excerpt: string | null;
+  author_id: string;
+  author_name: string;
+  author_avatar_url: string | null;
+  voice_note_path: string | null;
+  category: string | null;
+  published_at: string | null;
+  story_media: MediaRow[] | null;
+  reaction_count: CountRow[] | null;
+  comment_count: CountRow[] | null;
 };
+
+// Profile photos are signed for a week, as the server pages do, so the browser can keep them.
+const AVATAR_TTL = 60 * 60 * 24 * 7;
 
 export type FeaturedStory = FeedStory & { feature_type: string };
 
@@ -55,11 +78,8 @@ export default function ExploreFeed({
   const tabsBefore = useRef<{ top: number; doc: number } | null>(null);
 
  const fetchStories = useCallback(
-    async (category: string, sort: string, offset: number = 0) => {
-      let query = supabase
-        .from('stories')
-        .select('id, slug, title, body, excerpt, author_id, author_name, author_avatar_url, voice_note_path, category, published_at')
-        .eq('status', 'published');
+    async (category: string, sort: string, offset: number = 0): Promise<FeedStory[]> => {
+      let query = supabase.from('stories').select(CARD_SELECT).eq('status', 'published');
 
       if (category !== 'all') {
         query = query.eq('category', category);
@@ -71,78 +91,32 @@ export default function ExploreFeed({
       const { data } = await query;
 
       if (!data) return [];
+      const rows = data as unknown as CardRow[];
 
-      const ids = data.map((s) => s.id);
+      // The authors' public cards (title, photo path) in one query
+      const authorIds = [...new Set(rows.map((s) => s.author_id))];
+      const { data: cards } = authorIds.length
+        ? await supabase.from('profile_cards').select('id, profile_image_url, title').in('id', authorIds)
+        : { data: [] as { id: string; profile_image_url: string | null; title: string | null }[] };
 
-      // Fetch media, reactions, and comments in parallel
-      const [{ data: media }, { data: reactionRows }, { data: commentRows }] = await Promise.all([
-        ids.length
-          ? supabase
-              .from('story_media')
-              .select('story_id, file_path, file_type, display_order')
-              .in('story_id', ids)
-              .order('display_order', { ascending: true })
-          : { data: [] },
-        ids.length
-          ? supabase
-              .from('story_reactions')
-              .select('story_id')
-              .in('story_id', ids)
-          : { data: [] },
-        ids.length
-          ? supabase
-              .from('story_comments')
-              .select('story_id')
-              .in('story_id', ids)
-          : { data: [] },
-      ]);
+      const cardMap = new Map((cards ?? []).map((p) => [p.id, p]));
 
-      const mediaByStory = new Map<string, StoryMediaRow[]>();
-      ((media ?? []) as StoryMediaRow[]).forEach((m) => {
-        if (!mediaByStory.has(m.story_id)) mediaByStory.set(m.story_id, []);
-        mediaByStory.get(m.story_id)!.push(m);
-      });
-
-      const reactionMap = new Map<string, number>();
-      ((reactionRows ?? []) as { story_id: string }[]).forEach((r) => {
-        reactionMap.set(r.story_id, (reactionMap.get(r.story_id) ?? 0) + 1);
-      });
-
-      const commentMap = new Map<string, number>();
-      ((commentRows ?? []) as { story_id: string }[]).forEach((c) => {
-        commentMap.set(c.story_id, (commentMap.get(c.story_id) ?? 0) + 1);
-      });
-
-      // Batch-fetch profiles for avatar + title
-      const authorIds = [...new Set(data.map((s) => s.author_id))];
-      const { data: profiles } = authorIds.length
-        ? await supabase
-            .from('Profiles')
-            .select('id, full_name, profile_image_url, title')
-            .in('id', authorIds)
-        : { data: [] };
-
-      const profileMap = new Map<string, { profile_image_url: string | null; title: string | null }>();
-      const signedUrlMap = new Map<string, string>();
-
-      if (profiles) {
-        const signPromises = profiles
-          .filter((p) => p.profile_image_url)
-          .map(async (p) => {
-            const { data: signed } = await supabase.storage
-              .from('user-media')
-              .createSignedUrl(p.profile_image_url!, 3600);
-            if (signed?.signedUrl) signedUrlMap.set(p.id, signed.signedUrl);
-          });
-        await Promise.all(signPromises);
-
-        profiles.forEach((p) => {
-          profileMap.set(p.id, { profile_image_url: p.profile_image_url, title: p.title });
+      // Every photo in one signing call
+      const paths = [
+        ...new Set((cards ?? []).map((p) => p.profile_image_url).filter((p): p is string => !!p)),
+      ];
+      const avatarByPath = new Map<string, string>();
+      if (paths.length) {
+        const { data: signed } = await supabase.storage
+          .from('user-media')
+          .createSignedUrls(paths, AVATAR_TTL);
+        (signed ?? []).forEach((row, i) => {
+          if (row.signedUrl) avatarByPath.set(row.path ?? paths[i], row.signedUrl);
         });
       }
 
-      const results = data.map((s) => {
-        const storyMedia = mediaByStory.get(s.id) ?? [];
+      const results: FeedStory[] = rows.map((s) => {
+        const storyMedia = [...(s.story_media ?? [])].sort((a, b) => a.display_order - b.display_order);
         const coverMedia = storyMedia.find((m) => m.file_type?.startsWith('image/') || m.file_type?.startsWith('video/'));
         const publicUrl = coverMedia
           ? supabase.storage.from('story-media').getPublicUrl(coverMedia.file_path).data.publicUrl
@@ -150,6 +124,8 @@ export default function ExploreFeed({
         const coverType = coverMedia
           ? (coverMedia.file_type.startsWith('video/') ? 'video' : 'image')
           : null;
+        const card = cardMap.get(s.author_id);
+        const avatarPath = card?.profile_image_url;
 
         return {
           id: s.id,
@@ -158,16 +134,16 @@ export default function ExploreFeed({
           body: s.body,
           excerpt: s.excerpt ?? null,
           author_name: s.author_name,
-          author_avatar_url: signedUrlMap.get(s.author_id) || s.author_avatar_url,
-          author_title: profileMap.get(s.author_id)?.title || null,
+          author_avatar_url: (avatarPath && avatarByPath.get(avatarPath)) || s.author_avatar_url,
+          author_title: card?.title || null,
           cover_url: publicUrl,
           cover_type: coverType as 'image' | 'video' | null,
           voice_note_path: s.voice_note_path ?? null,
           voice_note_duration: null as string | null,
           media_count: storyMedia.length,
           category: s.category ?? null,
-          reaction_count: reactionMap.get(s.id) ?? 0,
-          comment_count: commentMap.get(s.id) ?? 0,
+          reaction_count: s.reaction_count?.[0]?.count ?? 0,
+          comment_count: s.comment_count?.[0]?.count ?? 0,
           published_at: s.published_at,
         };
       });

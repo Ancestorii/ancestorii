@@ -143,9 +143,15 @@ export default function BookCanvasHeader({
       );
 
       const text = await res.text();
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
-
-      const data = JSON.parse(text);
+      let data: { url?: string; error?: string } | null = null;
+      try {
+        data = JSON.parse(text) as { url?: string; error?: string };
+      } catch {
+        data = null;
+      }
+      // The checkout function answers errors as { error: "plain English" }: show that, not the
+      // raw JSON.
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}: ${text}`);
 
       if (data?.url) {
         window.location.href = data.url;

@@ -1,5 +1,4 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2?target=deno";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { esc, firstName, FROM_DANTE, p, secretMatches, send, SITE_URL, wrap, type Letter } from "../_shared/email.ts";
 
 // AUTHENTICATION. Prodigi sends no Supabase JWT, so this deploys with verify_jwt off. Every
@@ -28,7 +27,7 @@ async function sendEmail(to: string, letter: Letter, idempotencyKey: string) {
   else console.log(`Email sent to ${to}: ${letter.subject}`);
 }
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
   }
@@ -239,7 +238,7 @@ serve(async (req) => {
     return new Response("OK", { status: 200 });
   } catch (err) {
     console.error("Prodigi webhook error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: (err as Error)?.message ?? String(err) }), {
       headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       status: 400,
     });

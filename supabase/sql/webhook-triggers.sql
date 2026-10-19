@@ -19,7 +19,8 @@ create trigger "member-joined" after insert on public.family_memberships for eac
 
 -- The sender hears when a question is answered (the function acts only on the transition to answered).
 drop trigger if exists "prompt-answered-email" on public.sent_prompts;
-create trigger "prompt-answered-email" after update on public.sent_prompts for each row
+create trigger "prompt-answered-email" after update of status on public.sent_prompts for each row
+  when (old.status is distinct from new.status)
   execute function supabase_functions.http_request('https://wekebqaooixjngznycnm.supabase.co/functions/v1/prompt-answered-email', 'POST', '{"Content-type":"application/json","x-webhook-secret":"<WEBHOOK_SECRET>"}', '{}', '10000');
 
 -- Push notifications for the mobile app.

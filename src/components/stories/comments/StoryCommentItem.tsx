@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import type { StoryComment } from '@/lib/stories/types';
 import StoryVoicePlayer from '@/components/stories/detail/StoryVoicePlayer';
+import { useTimeLabel } from './timeLabel';
 import styles from './storyComments.module.css';
 
 // The public story page's copy of CommentItem (the dashboard keeps using CommentItem):
@@ -25,6 +26,7 @@ export default function StoryCommentItem({
   content,
   voiceNoteUrl,
   createdAt,
+  now,
   isOwn,
   onDelete,
   isTopLevel,
@@ -39,6 +41,8 @@ export default function StoryCommentItem({
   content: string;
   voiceNoteUrl?: string | null;
   createdAt: string;
+  /** When the page was rendered on the server; "3h ago" is counted from it on both sides. */
+  now?: number;
   isOwn?: boolean;
   onDelete?: () => void;
   isTopLevel?: boolean;
@@ -49,7 +53,9 @@ export default function StoryCommentItem({
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const initials = authorName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-  const dateLabel = formatRelative(createdAt);
+  // Counted from the server's clock (timeLabel.ts), so the HTML and the first client render
+  // agree and hydration never redraws the list.
+  const dateLabel = useTimeLabel(createdAt, now);
 
   return (
     <div>
@@ -104,6 +110,7 @@ export default function StoryCommentItem({
             <ReplyItem
               key={reply.id}
               reply={reply}
+              now={now}
               isOwn={currentUserId === reply.user_id}
               onDelete={() => onDeleteReply?.(reply.id)}
             />
@@ -114,10 +121,20 @@ export default function StoryCommentItem({
   );
 }
 
-function ReplyItem({ reply, isOwn, onDelete }: { reply: StoryComment; isOwn: boolean; onDelete: () => void }) {
+function ReplyItem({
+  reply,
+  now,
+  isOwn,
+  onDelete,
+}: {
+  reply: StoryComment;
+  now?: number;
+  isOwn: boolean;
+  onDelete: () => void;
+}) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const initials = reply.author_name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-  const dateLabel = formatRelative(reply.created_at);
+  const dateLabel = useTimeLabel(reply.created_at, now);
 
   return (
     <div className={styles.row}>
@@ -156,18 +173,4 @@ function ReplyItem({ reply, isOwn, onDelete }: { reply: StoryComment; isOwn: boo
       </div>
     </div>
   );
-}
-
-function formatRelative(dateString: string) {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const mins = Math.floor(diff / (1000 * 60));
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  if (mins < 60) return mins <= 1 ? 'Just now' : `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days} days ago`;
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }

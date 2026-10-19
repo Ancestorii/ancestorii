@@ -11,7 +11,8 @@ export default function StoryCommentInput({
   isLoggedIn,
   onLoginPrompt,
 }: {
-  onSubmit: (content: string) => Promise<void>;
+  /** Resolve false when the comment did not go: the words stay in the box. */
+  onSubmit: (content: string) => Promise<boolean | void>;
   isLoggedIn: boolean;
   onLoginPrompt?: () => void;
 }) {
@@ -29,9 +30,12 @@ export default function StoryCommentInput({
   const handleSubmit = async () => {
     if (!value.trim() || submitting) return;
     setSubmitting(true);
-    await onSubmit(value.trim());
-    setValue('');
-    setSubmitting(false);
+    try {
+      const ok = await onSubmit(value.trim());
+      if (ok !== false) setValue('');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

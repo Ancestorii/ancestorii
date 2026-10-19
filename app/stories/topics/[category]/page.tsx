@@ -12,9 +12,10 @@ import landing from '@/components/landing/landing.module.css';
 import site from '@/components/site/site.module.css';
 import topicsCss from '@/components/site/stories-browse/topics.module.css';
 import { TOPICS, getTopicBySlug } from '@/lib/stories/topics';
+import { applyAvatars, getTopicFeed } from '@/lib/stories/publicFeed';
+import { signAvatarUrls } from '@/lib/stories/avatars';
 
 const SITE = 'https://www.ancestorii.com';
-const PAGE_SIZE = 24;
 
 type Props = {
   params: Promise<{ category: string }>;
@@ -60,13 +61,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-type MediaRow = {
-  story_id: string;
-  file_path: string;
-  file_type: string;
-  display_order: number;
-};
-
 export default async function TopicPage({ params }: Props) {
   const { category } = await params;
   const topic = getTopicBySlug(category);
@@ -74,116 +68,19 @@ export default async function TopicPage({ params }: Props) {
 
   const supabase = await getServerClient();
 
+  // The reader (so the signed-in bar is there from the first paint) and the topic's stories
+  // (kept for a minute, shared by every visitor), side by side.
   const [
     {
       data: { user },
     },
-    { data: stories },
-  ] = await Promise.all([
-    // The reader, so the signed-in bar is there from the first paint
-    supabase.auth.getUser(),
-    // Stories in this topic
-    supabase
-      .from('stories')
-      .select(
-        'id, slug, title, body, excerpt, author_id, author_name, author_avatar_url, voice_note_path, category, published_at'
-      )
-      .eq('status', 'published')
-      .eq('category', topic.key)
-      .order('published_at', { ascending: false })
-      .limit(PAGE_SIZE),
-  ]);
+    feed,
+  ] = await Promise.all([supabase.auth.getUser(), getTopicFeed(topic.key)]);
   const isLoggedIn = !!user;
 
-  const storyIds = (stories ?? []).map((s) => s.id);
-
-  const { data: allMedia } = storyIds.length
-    ? await supabase
-        .from('story_media')
-        .select('story_id, file_path, file_type, display_order')
-        .in('story_id', storyIds)
-        .order('display_order', { ascending: true })
-    : { data: [] };
-
-  const { data: reactionRows } = storyIds.length
-    ? await supabase.from('story_reactions').select('story_id').in('story_id', storyIds)
-    : { data: [] };
-
-  const { data: commentRows } = storyIds.length
-    ? await supabase.from('story_comments').select('story_id').in('story_id', storyIds)
-    : { data: [] };
-
-  // Author avatars + titles
-  const authorIds = [...new Set((stories ?? []).map((s) => s.author_id))];
-  const { data: authorProfiles } = authorIds.length
-    ? await supabase.from('Profiles').select('id, profile_image_url, title').in('id', authorIds)
-    : { data: [] };
-
-  const authorProfileMap = new Map<string, { title: string | null }>();
-  const authorAvatarMap = new Map<string, string>();
-  if (authorProfiles) {
-    authorProfiles.forEach((p) => authorProfileMap.set(p.id, { title: p.title }));
-    await Promise.all(
-      authorProfiles
-        .filter((p) => p.profile_image_url)
-        .map(async (p) => {
-          const { data: signed } = await supabase.storage
-            .from('user-media')
-            .createSignedUrl(p.profile_image_url!, 3600);
-          if (signed?.signedUrl) authorAvatarMap.set(p.id, signed.signedUrl);
-        })
-    );
-  }
-
-  const mediaByStory = new Map<string, MediaRow[]>();
-  ((allMedia ?? []) as MediaRow[]).forEach((m) => {
-    if (!mediaByStory.has(m.story_id)) mediaByStory.set(m.story_id, []);
-    mediaByStory.get(m.story_id)!.push(m);
-  });
-
-  const reactionMap = new Map<string, number>();
-  ((reactionRows ?? []) as { story_id: string }[]).forEach((r) => {
-    reactionMap.set(r.story_id, (reactionMap.get(r.story_id) ?? 0) + 1);
-  });
-
-  const commentMap = new Map<string, number>();
-  ((commentRows ?? []) as { story_id: string }[]).forEach((c) => {
-    commentMap.set(c.story_id, (commentMap.get(c.story_id) ?? 0) + 1);
-  });
-
-  const feedStories = (stories ?? []).map((s) => {
-    const media = mediaByStory.get(s.id) ?? [];
-    const coverMedia = media.find(
-      (m) => m.file_type?.startsWith('image/') || m.file_type?.startsWith('video/')
-    );
-    const coverUrl = coverMedia
-      ? supabase.storage.from('story-media').getPublicUrl(coverMedia.file_path).data.publicUrl
-      : null;
-    const coverType = coverMedia
-      ? coverMedia.file_type.startsWith('video/')
-        ? ('video' as const)
-        : ('image' as const)
-      : null;
-
-    return {
-      id: s.id,
-      slug: s.slug,
-      title: s.title,
-      body: s.body,
-      excerpt: s.excerpt ?? null,
-      author_name: s.author_name,
-      author_avatar_url: authorAvatarMap.get(s.author_id) || s.author_avatar_url,
-      author_title: authorProfileMap.get(s.author_id)?.title || null,
-      cover_url: coverUrl,
-      cover_type: coverType,
-      voice_note_path: s.voice_note_path ?? null,
-      media_count: media.length,
-      category: s.category ?? null,
-      reaction_count: reactionMap.get(s.id) ?? 0,
-      comment_count: commentMap.get(s.id) ?? 0,
-      published_at: s.published_at,
-    };
-  });
+  // The authors' photos: one signed URL a day per photo (src/lib/stories/avatars.ts).
+  const avatars = await signAvatarUrls(feed.stories.map((s) => s.avatar_path));
+  const feedStories = applyAvatars(feed.stories, avatars);
 
   const url = `${SITE}/stories/topics/${topic.slug}`;
   const otherTopics = TOPICS.filter((t) => t.slug !== topic.slug);

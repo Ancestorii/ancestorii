@@ -5,6 +5,7 @@ import Image from 'next/image';
 import type { StoryComment } from '@/lib/stories/types';
 import VoiceNotePlayer from '@/components/voice/VoiceNotePlayer';
 import { Avatar } from '@/components/dashboard/ui/AppBits';
+import { useTimeLabel } from './timeLabel';
 import s from './memoryComments.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -40,7 +41,9 @@ export default function CommentItem({
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const initials = authorName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-  const dateLabel = formatRelative(createdAt);
+  // The date on the server, "3h ago" once the browser has taken over (timeLabel.ts): the two
+  // renders agree, so hydration never redraws the list.
+  const dateLabel = useTimeLabel(createdAt);
   const canReply = !!(isTopLevel && onReply);
   const canDelete = !!(isOwn && onDelete);
 
@@ -102,7 +105,7 @@ export default function CommentItem({
 function ReplyItem({ reply, isOwn, onDelete }: { reply: StoryComment; isOwn: boolean; onDelete: () => void }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const initials = reply.author_name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-  const dateLabel = formatRelative(reply.created_at);
+  const dateLabel = useTimeLabel(reply.created_at);
 
   return (
     <div className={s.row}>
@@ -148,18 +151,4 @@ function CommentAvatar({ url, name, initials, size }: { url: string | null; name
       )}
     </Avatar>
   );
-}
-
-function formatRelative(dateString: string) {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const mins = Math.floor(diff / (1000 * 60));
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  if (mins < 60) return mins <= 1 ? 'Just now' : `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days} days ago`;
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }

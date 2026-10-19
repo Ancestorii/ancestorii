@@ -47,28 +47,31 @@ export async function POST(req: Request) {
 
     const targetFamilyId = link.family_id;
 
-    // 3. One-family rule: check current membership
-    const { data: currentMembership } = await admin
+    // 3. One-family rule. Every membership is read as a list: .maybeSingle() errors when a
+    // user has two rows, and that error used to read as "no membership" and skip the check.
+    const { data: membershipRows } = await admin
       .from('family_memberships')
-      .select('family_id')
+      .select('family_id, role')
       .eq('user_id', userId)
-      .maybeSingle();
+      .order('joined_at', { ascending: true });
 
-    if (currentMembership) {
-      // Already in the target family, nothing to do
-      if (currentMembership.family_id === targetFamilyId) {
-        return NextResponse.json({
-          success: true,
-          family_id: targetFamilyId,
-          already_member: true,
-        });
-      }
+    const memberships = (membershipRows ?? []) as { family_id: string; role: string }[];
 
-      // In a different family, check if it's a solo auto-created family
+    // Already in the target family, nothing to do
+    if (memberships.some((m) => m.family_id === targetFamilyId)) {
+      return NextResponse.json({
+        success: true,
+        family_id: targetFamilyId,
+        already_member: true,
+      });
+    }
+
+    // In a different family: allowed only if that is their solo auto-created one
+    for (const m of memberships) {
       const { count } = await admin
         .from('family_memberships')
         .select('*', { count: 'exact', head: true })
-        .eq('family_id', currentMembership.family_id);
+        .eq('family_id', m.family_id);
 
       if ((count || 0) > 1) {
         return NextResponse.json(
@@ -78,13 +81,8 @@ export async function POST(req: Request) {
       }
     }
 
-    // 4. Find the auto-created solo family from handle_new_user
-    const { data: soloMembership } = await admin
-      .from('family_memberships')
-      .select('family_id')
-      .eq('user_id', userId)
-      .eq('role', 'owner')
-      .maybeSingle();
+    // 4. The auto-created solo family from handle_new_user (the one they own)
+    const soloMembership = memberships.find((m) => m.role === 'owner') ?? null;
 
     // 5. Join the target family as member
     const { error: joinError } = await admin
