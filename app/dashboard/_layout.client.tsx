@@ -12,7 +12,7 @@ import PublicNav from '@/components/stories/layout/PublicNav';
 import { motion, AnimatePresence } from "framer-motion";
 import NProgress from 'nprogress';
 import { ChevronRight } from 'lucide-react';
-import { appRoot, btnClass, ui, useDialog } from '@/components/dashboard/ui/AppBits';
+import { appRoot, btnClass, ui, useDialog, jsMotion } from '@/components/dashboard/ui/AppBits';
 
 
 
@@ -393,6 +393,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     <AnimatePresence>
       {memoriesOpen && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -401,6 +402,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
           onClick={() => setMemoriesOpen(false)}
         >
           <motion.div
+            {...jsMotion}
             initial={{ transform: 'translateY(100%)', opacity: 0 }}
             animate={{ transform: 'translateY(0%)', opacity: 1 }}
             exit={{ transform: 'translateY(100%)', opacity: 0 }}
@@ -429,6 +431,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
             </div>
 
             <motion.div
+              {...jsMotion}
               className={sheetBody}
               initial="hidden"
               animate="show"
@@ -439,6 +442,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                   const active = pathname === item.href || pathname.startsWith(item.href + "/");
                   return (
                     <motion.div
+                      {...jsMotion}
                       key={item.href}
                       variants={{ hidden: { opacity: 0, transform: 'translateY(6px)' }, show: { opacity: 1, transform: 'translateY(0px)' } }}
                     >
@@ -475,6 +479,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     <AnimatePresence>
       {heirloomsOpen && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -483,6 +488,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
           onClick={() => setHeirloomsOpen(false)}
         >
           <motion.div
+            {...jsMotion}
             initial={{ transform: 'translateY(100%)', opacity: 0 }}
             animate={{ transform: 'translateY(0%)', opacity: 1 }}
             exit={{ transform: 'translateY(100%)', opacity: 0 }}
@@ -511,6 +517,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
             </div>
 
             <motion.div
+              {...jsMotion}
               className={`${sheetBody} space-y-2`}
               initial="hidden"
               animate="show"
@@ -520,6 +527,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                 const active = pathname === item.href || pathname.startsWith(item.href + "/");
                 return (
                   <motion.div
+                    {...jsMotion}
                     key={item.href}
                     variants={{ hidden: { opacity: 0, transform: 'translateY(6px)' }, show: { opacity: 1, transform: 'translateY(0px)' } }}
                   >
@@ -555,6 +563,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
     <AnimatePresence>
       {accountOpen && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -563,6 +572,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
           onClick={() => setAccountOpen(false)}
         >
           <motion.div
+            {...jsMotion}
             initial={{ transform: 'translateY(100%)', opacity: 0 }}
             animate={{ transform: 'translateY(0%)', opacity: 1 }}
             exit={{ transform: 'translateY(100%)', opacity: 0 }}
@@ -591,6 +601,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
             </div>
 
             <motion.div
+              {...jsMotion}
               className={`${sheetBody} space-y-2`}
               initial="hidden"
               animate="show"
@@ -600,6 +611,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
                 const active = pathname === item.href || pathname.startsWith(item.href + "/");
                 return (
                   <motion.div
+                    {...jsMotion}
                     key={item.href}
                     variants={{ hidden: { opacity: 0, transform: 'translateY(6px)' }, show: { opacity: 1, transform: 'translateY(0px)' } }}
                   >

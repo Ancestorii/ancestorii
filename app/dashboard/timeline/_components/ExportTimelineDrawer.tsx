@@ -3,7 +3,7 @@
 import { useEffect, useId, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X } from 'lucide-react';
-import { ui, AppLoader, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, AppLoader, Btn, IconBtn, Spinner, useDialog, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './timelineList.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -72,6 +72,7 @@ export default function ExportTimelineDrawer({
         <>
           {/* Backdrop: scrim-blur (globals.css) blurs only with a mouse; above the floating phone nav (z-[200]) */}
           <motion.div
+            {...jsMotion}
             className={cx(ui.scrim, 'scrim-blur z-[9998]')}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -81,6 +82,7 @@ export default function ExportTimelineDrawer({
 
           {/* Drawer: transform string (not x) so Motion runs the slide on the compositor */}
           <motion.div
+            {...jsMotion}
             ref={panelRef}
             role="dialog"
             aria-modal="true"

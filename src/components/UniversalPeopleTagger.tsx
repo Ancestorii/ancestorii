@@ -17,6 +17,7 @@ import {
   Spinner,
   toneByKey,
   useDialog,
+  jsMotion,
 } from "@/components/dashboard/ui/AppBits";
 import s from "./UniversalPeopleTagger.module.css";
 
@@ -186,6 +187,7 @@ export default function UniversalPeopleTagger({
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -194,6 +196,7 @@ export default function UniversalPeopleTagger({
         >
           {/* transform string (not y) so Motion runs the slide on the compositor */}
           <motion.div
+            {...jsMotion}
             initial={{ opacity: 0, transform: "translateY(40px)" }}
             animate={{ opacity: 1, transform: "translateY(0px)" }}
             exit={{ opacity: 0, transform: "translateY(20px)" }}

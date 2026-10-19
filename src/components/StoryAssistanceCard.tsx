@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { X, Minus, Maximize2, Feather, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useAssistance, useWritingAssistanceEnabled } from '@/hooks/use-assistance';
-import { ui, Btn, IconBtn, Spinner, Tag, tone } from '@/components/dashboard/ui/AppBits';
+import { ui, Btn, IconBtn, Spinner, Tag, tone, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './StoryAssistanceCard.module.css';
 
 // ── Generic types: each page provides its own options ──
@@ -170,6 +170,7 @@ export default function StoryAssistanceCard({
     return (
       <MotionConfig reducedMotion="user">
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className={cx('fixed z-[150]', s.float)}
@@ -239,6 +240,7 @@ export default function StoryAssistanceCard({
       return (
         <MotionConfig reducedMotion="user">
           <motion.div
+            {...jsMotion}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className={cx('fixed z-[150]', s.float, s.mDock)}
@@ -273,6 +275,7 @@ export default function StoryAssistanceCard({
       <MotionConfig reducedMotion="user">
         <AnimatePresence>
           <motion.div
+            {...jsMotion}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
@@ -346,6 +349,7 @@ export default function StoryAssistanceCard({
     <MotionConfig reducedMotion="user">
       <AnimatePresence>
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0, y: 16, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.96 }}
@@ -445,6 +449,7 @@ function CardContent({
         {/* ── STEP 1: Welcome ── */}
         {step === 'welcome' && (
           <motion.div
+            {...jsMotion}
             key="welcome"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -473,6 +478,7 @@ function CardContent({
         {/* ── STEP 2: Options ── */}
         {step === 'options' && (
           <motion.div
+            {...jsMotion}
             key="options"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -518,6 +524,7 @@ function CardContent({
         {/* ── STEP 3: Suggestion ── */}
         {step === 'suggestion' && (
           <motion.div
+            {...jsMotion}
             key="suggestion"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}

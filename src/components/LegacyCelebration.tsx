@@ -12,7 +12,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import { ui } from "@/components/dashboard/ui/AppBits";
+import { ui, jsMotion } from "@/components/dashboard/ui/AppBits";
 import s from "./Celebration.module.css";
 
 type LegacyCelebrationProps = {
@@ -84,6 +84,7 @@ export default function LegacyCelebration({
         <AnimatePresence>
           {open && (
             <motion.div
+              {...jsMotion}
               aria-hidden="true"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -94,6 +95,7 @@ export default function LegacyCelebration({
             >
               {/* The card: transform string (not y/scale) so Motion runs it on the compositor */}
               <motion.div
+                {...jsMotion}
                 initial={{ opacity: 0, transform: "translateY(30px) scale(0.92)" }}
                 animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
                 exit={{ opacity: 0, transform: "translateY(20px) scale(0.95)" }}

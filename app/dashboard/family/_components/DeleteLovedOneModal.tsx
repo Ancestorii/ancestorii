@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ui, Btn, useDialog } from "@/components/dashboard/ui/AppBits";
+import { ui, Btn, useDialog, jsMotion } from "@/components/dashboard/ui/AppBits";
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
@@ -37,6 +37,7 @@ export default function DeleteLovedOneModal({
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           // scrim-blur (globals.css) blurs only with a mouse. Above the floating phone nav (z-[200]).
           className={cx(ui.scrim, "scrim-blur z-[9999] flex items-center justify-center p-4")}
           initial={{ opacity: 0 }}
@@ -45,6 +46,7 @@ export default function DeleteLovedOneModal({
         >
           {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
+            {...jsMotion}
             ref={panelRef}
             role="alertdialog"
             aria-modal="true"

@@ -20,6 +20,7 @@ import {
   Tag,
   toneByKey,
   type Tone,
+  jsMotion,
 } from "@/components/dashboard/ui/AppBits";
 import s from "./lovedOne.module.css";
 
@@ -85,6 +86,7 @@ export default function LinkedContentSection({
 
   return (
     <motion.section
+      {...jsMotion}
       initial={{ opacity: 0, y: 22 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7 }}

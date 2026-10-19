@@ -6,7 +6,7 @@ import { safeToast as toast } from '@/lib/safeToast';
 import { X, ImagePlus, Check, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ensureDisplayableImage } from '@/lib/convertImage';
-import { ui, Btn, IconBtn, IconTile, Spinner, toneByKey, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, Btn, IconBtn, IconTile, Spinner, toneByKey, useDialog, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './timelineList.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -212,6 +212,7 @@ useEffect(() => {
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -221,6 +222,7 @@ useEffect(() => {
         >
           {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
+            {...jsMotion}
             ref={panelRef}
             role="dialog"
             aria-modal="true"

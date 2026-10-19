@@ -30,6 +30,7 @@ import {
   btnClass,
   toneByKey,
   type ToneKey,
+  jsMotion,
 } from "@/components/dashboard/ui/AppBits";
 import s from "./lovedOne.module.css";
 
@@ -500,6 +501,7 @@ function StoryEditorCard({
 
   return (
     <motion.article
+      {...jsMotion}
       initial={{ opacity: 0, y: 26 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.06 }}

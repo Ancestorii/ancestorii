@@ -6,7 +6,7 @@ import { safeToast as toast } from '@/lib/safeToast';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { X, ImagePlus, Check, Plus } from 'lucide-react';
 import { ensureDisplayableImage } from '@/lib/convertImage';
-import { ui, Btn, IconBtn, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, Btn, IconBtn, Spinner, useDialog, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './albums.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -163,6 +163,7 @@ export default function CreateAlbumDrawer({
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -172,6 +173,7 @@ export default function CreateAlbumDrawer({
         >
           {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
+            {...jsMotion}
             initial={{ opacity: 0, transform: 'translateY(40px) scale(0.95)' }}
             animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
             exit={{ opacity: 0, transform: 'translateY(40px) scale(0.95)' }}

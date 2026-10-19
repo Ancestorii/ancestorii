@@ -6,7 +6,7 @@ import { safeToast as toast } from '@/lib/safeToast';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import { ArrowRight, Check, ImagePlus, X } from 'lucide-react';
 import { ensureDisplayableImage } from '@/lib/convertImage';
-import { ui, Btn, IconBtn, IconTile, Spinner, Tag, toneByKey, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, Btn, IconBtn, IconTile, Spinner, Tag, toneByKey, useDialog, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './createBookDrawer.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -434,6 +434,7 @@ export default function CreateBookDrawer({
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -445,6 +446,7 @@ export default function CreateBookDrawer({
         >
           {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
+            {...jsMotion}
             ref={panelRef}
             role="dialog"
             aria-modal="true"

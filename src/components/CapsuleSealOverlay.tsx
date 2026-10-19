@@ -3,7 +3,7 @@
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useEffect, useId, useMemo, useRef, type CSSProperties } from 'react';
 import { Lock } from 'lucide-react';
-import { ui, Accent, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, Accent, useDialog, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './Celebration.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -74,6 +74,7 @@ export default function CapsuleSealedOverlay({
       <AnimatePresence>
         {open && (
           <motion.div
+            {...jsMotion}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -83,6 +84,7 @@ export default function CapsuleSealedOverlay({
           >
             {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
             <motion.div
+              {...jsMotion}
               ref={panelRef}
               role="dialog"
               aria-modal="true"

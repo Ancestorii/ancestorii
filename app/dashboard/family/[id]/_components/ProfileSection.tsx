@@ -23,6 +23,7 @@ import {
   IconTile,
   toneByKey,
   type ToneKey,
+  jsMotion,
 } from "@/components/dashboard/ui/AppBits";
 import s from "./lovedOne.module.css";
 
@@ -87,6 +88,7 @@ export default function ProfileSection({
   return (
     <section aria-labelledby="loved-one-name">
       <motion.div
+        {...jsMotion}
         initial={{ opacity: 0, y: 28 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
@@ -225,6 +227,7 @@ export default function ProfileSection({
 
           {!isEditingPreview ? (
             <motion.button
+              {...jsMotion}
               type="button"
               /* No entrance of its own: it sits inside the hero's, and it remounts after every
                  Save or Cancel, where a fade and slide read as a flash. */
@@ -255,6 +258,7 @@ export default function ProfileSection({
             </motion.button>
           ) : (
             <motion.div
+              {...jsMotion}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className={s.aboutEdit}

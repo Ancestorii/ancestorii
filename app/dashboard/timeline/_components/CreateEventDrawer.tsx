@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Check, ImagePlus } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ui, appRoot, IconTile, Spinner, toneByKey } from '@/components/dashboard/ui/AppBits';
+import { ui, appRoot, IconTile, Spinner, toneByKey, jsMotion } from '@/components/dashboard/ui/AppBits';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
@@ -199,6 +199,7 @@ export default function CreateEventDrawer({
         </SheetHeader>
 
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}

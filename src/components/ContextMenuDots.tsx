@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { ui, IconBtn } from "@/components/dashboard/ui/AppBits";
+import { ui, IconBtn, jsMotion } from "@/components/dashboard/ui/AppBits";
 
 // The "more" button on a card (books, canvases, acrylics, capsules, timelines, albums, the
 // Library): a round white button that reads over a photo or a white card, opening the kit's
@@ -70,6 +70,7 @@ export function ContextMenuDots({
         {open && (
           // transform string (not y) so Motion runs the drop-in on the compositor
           <motion.div
+            {...jsMotion}
             id={menuId}
             initial={{ opacity: 0, transform: "translateY(6px)" }}
             animate={{ opacity: 1, transform: "translateY(0px)" }}

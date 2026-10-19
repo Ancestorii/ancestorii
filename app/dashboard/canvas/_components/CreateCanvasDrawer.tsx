@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, TriangleAlert, X } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
 import { getBrowserClient } from '@/lib/supabase/browser';
-import { ui, Btn, IconBtn, Spinner, Tag, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, Btn, IconBtn, Spinner, Tag, useDialog, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './CreateCanvasDrawer.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -248,6 +248,7 @@ export default function CreateCanvasDrawer({
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -259,6 +260,7 @@ export default function CreateCanvasDrawer({
         >
           {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
+            {...jsMotion}
             ref={panelRef}
             role="dialog"
             aria-modal="true"

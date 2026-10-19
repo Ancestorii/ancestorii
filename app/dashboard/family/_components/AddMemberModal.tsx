@@ -8,7 +8,7 @@ import { X, ImagePlus, Plus, Check } from "lucide-react";
 import LegacyCelebration from "@/components/LegacyCelebration";
 import { ensureDisplayableImage } from '@/lib/convertImage';
 import { parseDateOnly } from "../_utils/dateOnly";
-import { ui, Btn, IconBtn, Spinner, useDialog } from "@/components/dashboard/ui/AppBits";
+import { ui, Btn, IconBtn, Spinner, useDialog, jsMotion } from "@/components/dashboard/ui/AppBits";
 import s from "./lovedOnes.module.css";
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
@@ -286,6 +286,7 @@ return;
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           // A bottom sheet on phones, a centred card from 640px. scrim-blur (globals.css) blurs
           // only with a mouse. Above the floating phone nav (z-[200]).
           className={cx(
@@ -302,6 +303,7 @@ return;
 
           {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
+            {...jsMotion}
             ref={panelRef}
             role="dialog"
             aria-modal="true"

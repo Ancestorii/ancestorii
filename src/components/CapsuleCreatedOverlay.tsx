@@ -3,7 +3,7 @@
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useEffect, useId, useRef, type CSSProperties } from 'react';
 import { Sparkles } from 'lucide-react';
-import { Accent, useDialog } from '@/components/dashboard/ui/AppBits';
+import { Accent, useDialog, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './Celebration.module.css';
 
 type CapsuleCreatedOverlayProps = {
@@ -41,6 +41,7 @@ export default function CapsuleCreatedOverlay({
       <AnimatePresence>
         {open && (
           <motion.div
+            {...jsMotion}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -50,6 +51,7 @@ export default function CapsuleCreatedOverlay({
           >
             {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
             <motion.div
+              {...jsMotion}
               ref={panelRef}
               role="dialog"
               aria-modal="true"

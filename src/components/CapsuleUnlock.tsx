@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, type CSSProperties } from 'react';
 import { MotionConfig, motion } from 'framer-motion';
 import { LockOpen } from 'lucide-react';
-import { Accent } from '@/components/dashboard/ui/AppBits';
+import { Accent, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './Celebration.module.css';
 
 export default function CapsuleUnlock({
@@ -32,6 +32,7 @@ export default function CapsuleUnlock({
   return (
     <MotionConfig reducedMotion="user">
       <motion.div
+        {...jsMotion}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -40,6 +41,7 @@ export default function CapsuleUnlock({
       >
         {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
         <motion.div
+          {...jsMotion}
           role="alert"
           aria-labelledby={titleId}
           initial={{ opacity: 0, transform: 'translateY(30px) scale(0.92)' }}

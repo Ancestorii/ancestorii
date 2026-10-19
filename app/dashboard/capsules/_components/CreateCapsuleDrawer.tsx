@@ -6,7 +6,7 @@ import { getBrowserClient } from '@/lib/supabase/browser';
 import { X, ImagePlus, CalendarDays, Check, Package, Plus } from 'lucide-react';
 import { safeToast as toast } from '@/lib/safeToast';
 import { ensureDisplayableImage } from '@/lib/convertImage';
-import { ui, Btn, IconBtn, IconTile, Spinner, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, Btn, IconBtn, IconTile, Spinner, useDialog, jsMotion } from '@/components/dashboard/ui/AppBits';
 import s from './capsules.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -281,6 +281,7 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -290,6 +291,7 @@ const filePath = `${user.id}/capsules/cover_${uniqueId}.${fileExt}`;
         >
           {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
           <motion.div
+            {...jsMotion}
             initial={{ opacity: 0, transform: 'translateY(40px) scale(0.95)' }}
             animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
             exit={{ opacity: 0, transform: 'translateY(40px) scale(0.95)' }}
