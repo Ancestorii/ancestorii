@@ -8,6 +8,7 @@ import MemberCard from './_components/MemberCard';
 import PendingInviteCard from './_components/PendingInviteCard';
 import InviteMemberDrawer from './_components/InviteMemberDrawer';
 import MemberDetailDrawer from './_components/MemberDetailDrawer';
+import FamilyMemories from './_components/FamilyMemories';
 import { safeToast as toast } from '@/lib/safeToast';
 import { deleteWithOwnerCheck } from '@/lib/deleteWithOwnerCheck';
 import { ui, Accent, AppLoader, Btn, SectionHead } from '@/components/dashboard/ui/AppBits';
@@ -267,6 +268,9 @@ export default function OurFamilyPage() {
           onInvite={() => setInviteDrawerOpen(true)}
           onRename={handleRename}
         />
+
+        {/* ── Memories section: the private feed, first thing after sign-up's first memory ── */}
+        {familyId && <FamilyMemories familyId={familyId} />}
 
         {/* ── Members section ── */}
         <section className={ui.section} aria-labelledby="family-members-title">
