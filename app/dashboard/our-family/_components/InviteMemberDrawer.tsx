@@ -21,7 +21,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { ui, Accent, Btn, IconBtn, Spinner, Tag, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, Accent, Btn, IconBtn, Spinner, Tag, jsMotion, useDialog } from '@/components/dashboard/ui/AppBits';
 import s from './family.module.css';
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
@@ -180,6 +180,7 @@ export default function InviteMemberDrawer({
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -187,8 +188,10 @@ export default function InviteMemberDrawer({
           className={cx(ui.scrim, 'scrim-blur z-[9999] flex items-center justify-center p-4')}
           onClick={handleClose}
         >
-          {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
+          {/* jsMotion (AppBits): JavaScript-driven, not WAAPI, which flashed the page for one frame
+              at the end of every open and close */}
           <motion.div
+            {...jsMotion}
             initial={{ opacity: 0, transform: 'translateY(30px) scale(0.96)' }}
             animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
             exit={{ opacity: 0, transform: 'translateY(30px) scale(0.96)' }}
@@ -266,6 +269,7 @@ export default function InviteMemberDrawer({
               <AnimatePresence>
                 {showShareConfirm && (
                   <motion.div
+                    {...jsMotion}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
@@ -405,6 +409,7 @@ export default function InviteMemberDrawer({
               <AnimatePresence>
                 {showConfirm && (
                   <motion.div
+                    {...jsMotion}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}

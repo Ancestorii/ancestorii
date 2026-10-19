@@ -4,7 +4,7 @@ import { useId, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { ui, Btn, IconBtn, Tag, toneFor, useDialog } from '@/components/dashboard/ui/AppBits';
+import { ui, Btn, IconBtn, Tag, jsMotion, toneFor, useDialog } from '@/components/dashboard/ui/AppBits';
 
 type FamilyMember = {
   user_id: string;
@@ -77,6 +77,7 @@ export default function MemberDetailDrawer({
     <AnimatePresence>
       {open && (
         <motion.div
+          {...jsMotion}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -85,8 +86,10 @@ export default function MemberDetailDrawer({
           className={cx(ui.scrim, 'scrim-blur z-[9999] flex items-center justify-center p-4')}
           onClick={onClose}
         >
-          {/* transform string (not y/scale) so Motion runs the pop-in on the compositor */}
+          {/* jsMotion (AppBits): JavaScript-driven, not WAAPI, which flashed the page for one frame
+              at the end of every open and close */}
           <motion.div
+            {...jsMotion}
             initial={{ opacity: 0, transform: 'translateY(30px) scale(0.96)' }}
             animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
             exit={{ opacity: 0, transform: 'translateY(30px) scale(0.96)' }}

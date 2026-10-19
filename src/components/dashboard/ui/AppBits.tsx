@@ -15,6 +15,17 @@ export { useDialog } from './useDialog';
 export const appRoot = `${jakarta.variable} ${ui.app}`;
 
 /**
+ * Spread onto a motion element whose opacity or transform animates (a drawer's scrim and
+ * panel). Motion then runs the animation from JavaScript instead of the browser's Web
+ * Animations API. On the WAAPI path (Motion 12) the finished browser animation is cancelled
+ * one frame before Motion writes the final value into the element's style, so for one frame
+ * the element shows its starting style: at the end of an open the scrim and panel vanish (a
+ * white flash across the window), at the end of a close the dim pops back. Motion skips WAAPI
+ * for an element that has an onUpdate handler, so this no-op handler is the switch.
+ */
+export const jsMotion = { onUpdate: () => {} } as const;
+
+/**
  * The four colours in the landing's order, each with the text colour that reads on it
  * (ink on pink, orange and aqua; white on blue). Cycle them with `tone(i)` for lists.
  */
