@@ -26,21 +26,17 @@ What was checked across the whole site after the redesign, what was fixed, the d
 
 In order of importance. Nothing in the code can do these for you.
 
-### 2.1 Deploy the Edge Functions
+### 2.1 The Edge Functions (deployed on 19 October)
 
-Nine Supabase Edge Functions were fixed in the repo but **not deployed**, because payment code cannot be run or tested on this machine (they are type-checked with Deno and pass, but that is not a live test). Until you deploy, production still runs the old versions: the checkout price trick, the Stripe timeout on book orders and the unchecked verification email sender are all still live.
+The nine fixed Edge Functions were deployed to the live project on 19 October from the repo's own files (`supabase functions deploy`, in this order: send-verification-email, create-canvas-checkout, create-acrylic-checkout, create-book-checkout, create-checkout, stripe-webhook, prodigi-webhook, delivery-check, onboarding-drip). Each was then called with an empty request to prove it starts and refuses correctly: the four checkouts answer 400 with their new plain-English messages, the verification sender answers 400, stripe-webhook answers 400 "Missing Stripe signature", and the three Postgres-called functions answer 401. The browser preflight answers 200. The stale duplicate "Onboarding-drip" (capital O, from May) was deleted; the cron calls the lowercase one.
 
-Run these from the repo root, one at a time, and do the test after each:
+What is still worth doing by hand, because it needs a real payment or a real email:
 
-1. `supabase functions deploy send-verification-email`. Test: sign up a throwaway account; the confirmation email arrives and its link verifies.
-2. `supabase functions deploy create-canvas-checkout`. Test: open a canvas with no photo and press Order: the toast says "Add at least one photo before ordering your canvas." Add a photo and press again: Stripe Checkout opens at that canvas's tier price.
-3. `supabase functions deploy create-acrylic-checkout`. Test: a Grid layout with one photo is refused with "3 still empty"; fill all four slots and Stripe opens.
-4. `supabase functions deploy create-book-checkout`. Test: a book with no photos is refused; a finished book opens Stripe at its tier price.
-5. `supabase functions deploy create-checkout`. Test: Plans, Upgrade, on a Free account opens the subscription Checkout; on an account that already has a live subscription the toast says it already has Premium.
-6. `supabase functions deploy stripe-webhook`. Test in Stripe test mode: complete a canvas order; in Stripe, Developers, Webhooks, the delivery shows 200 within a few seconds (not a timeout); the function log shows "Fulfil triggered for Memory Canvas order"; the order moves from paid to generating_image to printing with a Prodigi id.
-7. `supabase functions deploy prodigi-webhook`. Test: replay a Prodigi event from their dashboard; the order status updates and the log no longer shows the "runMicrotasks" line.
-8. `supabase functions deploy delivery-check`. Test: the 10:00 UTC run logs clean.
-9. `supabase functions deploy onboarding-drip`. Test: the next 09:00 UTC run logs its counts and `onboarding_emails_log` shows no duplicate user and step.
+1. Sign up a throwaway account: the confirmation email arrives and its link verifies.
+2. Open a canvas with no photo and press Order: the toast says "Add at least one photo before ordering your canvas." Add a photo and press again: Stripe Checkout opens at that canvas's tier price. Same idea for an acrylic Grid layout with one photo ("3 still empty") and a book with no photos.
+3. Plans, Upgrade, on a Free account opens the subscription Checkout.
+4. In Stripe test mode, complete a canvas order: in Stripe, Developers, Webhooks, the delivery shows 200 within a few seconds (not a timeout); the function log shows "Fulfil triggered for Memory Canvas order"; the order moves from paid to generating_image to printing with a Prodigi id.
+5. After the next Prodigi event, the prodigi-webhook log no longer shows the "runMicrotasks" line; the 09:00 and 10:00 UTC cron runs log clean.
 
 What changed in them, in one line each: the three product checkouts take the tier, size and price from the product row (never from the browser), check the buyer belongs to the product's family, refuse a product that is not ready to print, and tidy up the order row when Stripe refuses; create-checkout refuses a second live subscription on the same account; stripe-webhook answers Stripe at once, runs fulfilment in the background and emails you when a paid order does not reach the printer; send-verification-email checks who is asking and whether the token was stored; the old Deno standard library imports that produced the "runMicrotasks" log line are gone; delivery-check no longer marks an order delivered when the email service was down; onboarding-drip catches up a missed day.
 
@@ -49,9 +45,8 @@ What changed in them, in one line each: the three product checkouts take the tie
 - **ALERT_EMAIL.** Fulfilment failures email this address, or support@ancestorii.com if it is not set. Use an inbox you read daily: `supabase secrets set ALERT_EMAIL=you@example.com`.
 - **FULFILL_SECRET** must be the same value in Vercel and in Supabase secrets. If they differ, every Prodigi status update is refused and nobody is told their order shipped.
 - **Price ids.** Confirm these secrets exist: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, WEBHOOK_SECRET, VOICE_CONVERT_SECRET, CLOUDCONVERT_API_KEY, STRIPE_COUPON_PREMIUM_HEIRLOOM, the three STRIPE_PREMIUM_MONTHLY_PRICE_* ids, the nine STRIPE_PRICE_CANVAS_* ids, the nine STRIPE_PRICE_ACRYLIC_* ids and the nine STRIPE_BOOK_* ids. A missing price id now produces a clear error instead of a misleading "Invalid tier".
-- **Leaked password protection** is off. Supabase dashboard, Authentication, Password settings: one switch. Recommended on.
-- **Password reset email template.** Reset links only work in the browser that asked for them. In Authentication, Email Templates, Recovery, point the link at `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`. The redirect allow-list already has /auth/confirm, /auth/callback and /reset-password.
-- **Stale and undocumented functions.** "Onboarding-drip" (capital O) is an old duplicate of onboarding-drip; delete it in Dashboard, Edge Functions. send-contact-email (used by the Help page), delete-account and convert-voice-notes are deployed but have no source in this repo: download their source into `supabase/functions/` so they are versioned and reviewable. The contact one sends hand-written HTML outside the shared letter design and has an em dash in its subject line.
+- **Leaked password protection** is off, and the **password reset email template** still uses a link that only works in the browser that asked for it. Both live in the Auth service's settings, which none of the access I have can change (the Supabase connector exposes the database, storage, logs and functions but not Auth settings, and the command line's config push would overwrite every Auth setting from the local file, not just these two). Two clicks for you: Authentication, Sign In / Providers, Email, switch on "Prevent use of leaked passwords"; and Authentication, Email Templates, Reset Password, point the link at `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`. The redirect allow-list already has /auth/confirm, /auth/callback and /reset-password.
+- **Undocumented functions.** send-contact-email (used by the Help page), delete-account and convert-voice-notes are deployed but have no source in this repo: download their source into `supabase/functions/` so they are versioned and reviewable. The contact one sends hand-written HTML outside the shared letter design and has an em dash in its subject line. (The stale duplicate "Onboarding-drip" has been deleted.)
 
 ### 2.3 Stripe dashboard
 
@@ -61,7 +56,7 @@ What changed in them, in one line each: the three product checkouts take the tie
 
 ### 2.4 Other checks
 
-- The Help page tells Premium members to ring 0330 133 2268, 9am to 6pm, Monday to Saturday. Confirm the number is live and staffed, or remove the phone card.
+- The Help page tells Premium members to ring 0330 133 2268, 9am to 6pm, Monday to Saturday. Your decision on 19 October: leave it as it is (nobody is on Premium yet).
 - Re-upload one legacy profile photo: one member's photo is stored under an old file name the public pages cannot sign, so they show initials on Our Stories. Re-uploading from their Profile page fixes it (or the policy can be widened, see 4.6).
 
 ## 3. Decisions made for you (and how to undo them)
@@ -264,4 +259,4 @@ A throwaway account (qa-verify-20261018@ancestorii.com) was created for the sign
 - **Typeface loading.** If you ever want zero shift on a visitor's very first, slow visit as well, the brand font could load with `display: optional` (that page view would then stay in the fallback typeface). Not changed; the em fix is enough by measurement.
 - **One feature title runs to 62 characters** with the suffix ("Shared Family Photo Albums with Stories and Voices"). Fine as it is; trim if you want every title under 60.
 
-**One thing not finished on this machine.** The last local production build of batch 5 was stopped by the system while the computer was low on memory, which also damaged the build folder the local test server was using, so the final Chrome pass over all 62 SEO pages could not be completed here. What was verified for batch 5: the whole project type-checks and lints clean on the final source; the layout-shift fix was measured on a successful build (0.000 on both pages, cold and warm); the only source change after that build is the restored photo preload on seven compare pages, a prop those pages already had before this run. The push to main triggers Vercel's own production build, which is the real one. To repeat the local pass: `npm run build`, `npx next start -p 3001`, then the smoke script in section 6 over the Guides, Features and Compare URLs.
+**The final pass.** After the rebuild, every one of the 63 Guides, Features and Compare pages was loaded in Chrome (in four batches, to be kind to the laptop): all answer 200, with zero console errors and zero hydration warnings. The two pages that shifted the most are now at 0.000. Eleven pages still move a little at first paint, between 0.02 and 0.08 (six guides, /features/our-stories, /compare/ancestorii-vs-whatsapp and /compare/best-family-memory-apps among them): measured element by element, it is always text re-wrapping when the brand typeface replaces the fallback font, so a title or a quote gains a line. The only complete cure is the typeface loading choice above (`display: optional`): zero movement, at the price of a slow first visit staying in the fallback typeface for that one page. Recommended, but it is a brand decision, so it was left for you.
