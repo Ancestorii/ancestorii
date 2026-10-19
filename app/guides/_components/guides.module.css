@@ -500,6 +500,20 @@
   color: var(--ink);
 }
 
+/* Links inside the cards sit outside Prose (which styles its own links), and Tailwind's
+   preflight leaves an anchor looking like plain text, so give them the .prose a look. */
+.itemText a,
+.tipText a,
+.promptContext a,
+.setList a,
+.compareCell a {
+  font-weight: 700;
+  color: var(--c1);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
 /* A real photo in a colour frame, between paragraphs. */
 .figure {
   margin: clamp(40px, 5vw, 64px) 0;

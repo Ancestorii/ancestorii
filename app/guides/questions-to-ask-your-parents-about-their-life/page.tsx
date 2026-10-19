@@ -4,16 +4,38 @@ import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
 import JsonLd from '@/components/site/seo/JsonLd';
 import { AuthorBox } from '@/components/site/seo/SeoBits';
-import { FOUNDER } from '@/lib/seo/schema';
+import { SITE_URL, articleSchema, breadcrumbSchema } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { QuestionSet, QuestionSets, Step, Steps } from '../_components/GuideBlocks';
 
+const PATH = '/guides/questions-to-ask-your-parents-about-their-life';
+const PAGE_URL = `${SITE_URL}${PATH}`;
+const TITLE = 'Questions to Ask Your Parents About Their Life';
+const DESCRIPTION =
+  'Thirty questions to ask your parents and grandparents about their lives, grouped by theme, plus how to have the conversation before the stories are gone.';
+const PUBLISHED = '2026-06-20';
+const MODIFIED = '2026-06-20';
+
 export const metadata: Metadata = {
-  title: 'Questions to Ask Your Parents About Their Life',
-  description:
-    'Thirty questions to ask your parents and grandparents about their lives, grouped by theme, plus how to have the conversation before the stories are gone.',
-  alternates: {
-    canonical: 'https://www.ancestorii.com/guides/questions-to-ask-your-parents-about-their-life',
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Questions to ask your parents about their life' }],
+    locale: 'en_GB',
+    type: 'article',
+    publishedTime: PUBLISHED,
+    modifiedTime: MODIFIED,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 
@@ -84,26 +106,20 @@ export default function QuestionsToAskParentsPage() {
   return (
     <>
       <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'Article',
-          headline: 'Questions to ask your parents about their life',
-          description: 'Thirty questions to ask your parents and grandparents about their lives, grouped by theme, plus how to have the conversation.',
-          author: FOUNDER,
-          publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
-          mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/questions-to-ask-your-parents-about-their-life' },
-          datePublished: '2026-06-20', dateModified: '2026-06-20',
-        }}
-      />
-
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
-            { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
-            { '@type': 'ListItem', position: 3, name: 'Questions to Ask Your Parents About Their Life', item: 'https://www.ancestorii.com/guides/questions-to-ask-your-parents-about-their-life' },
-          ],
-        }}
+        data={[
+          articleSchema({
+            path: PATH,
+            headline: 'Questions to ask your parents about their life',
+            description: 'Thirty questions to ask your parents and grandparents about their lives, grouped by theme, plus how to have the conversation.',
+            datePublished: PUBLISHED,
+            dateModified: MODIFIED,
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Guides', path: '/guides' },
+            { name: 'Questions to Ask Your Parents About Their Life', path: PATH },
+          ]),
+        ]}
       />
 
       <JsonLd
@@ -115,8 +131,8 @@ export default function QuestionsToAskParentsPage() {
           step: [
             { '@type': 'HowToStep', position: 1, name: 'Pick one theme, not all of them', text: 'Do not try to cover a whole life in one sitting. Choose one area, such as childhood, and let the conversation wander from there.' },
             { '@type': 'HowToStep', position: 2, name: 'Ask open questions', text: 'Ask questions that cannot be answered with yes or no. The best ones begin with what, how, or why, and invite a story rather than a fact.' },
-            { '@type': 'HowToStep', position: 3, name: 'Record it, do not interrupt it', text: 'Use a voice recording so you can listen rather than scribble. The way someone tells a story matters as much as the story itself.' },
-            { '@type': 'HowToStep', position: 4, name: 'Write it down somewhere that lasts', text: 'Save the answers somewhere intentional and private, so the whole family can find them in years to come rather than losing them in a phone.' },
+            { '@type': 'HowToStep', position: 3, name: 'Record it. Do not interrupt it', text: 'Use a voice recording so you can listen rather than scribble. The way someone tells a story matters as much as the story itself.' },
+            { '@type': 'HowToStep', position: 4, name: 'Put the answers somewhere that lasts', text: 'Save the answers somewhere intentional and private, so the whole family can find them in years to come rather than losing them in a phone.' },
           ],
         }}
       />

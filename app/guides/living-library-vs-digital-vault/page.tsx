@@ -3,16 +3,38 @@ import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
 import JsonLd from '@/components/site/seo/JsonLd';
 import { AuthorBox } from '@/components/site/seo/SeoBits';
-import { FOUNDER } from '@/lib/seo/schema';
+import { SITE_URL, articleSchema, breadcrumbSchema } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { Compare, CompareRow } from '../_components/GuideBlocks';
 
+const PATH = '/guides/living-library-vs-digital-vault';
+const PAGE_URL = `${SITE_URL}${PATH}`;
+const TITLE = 'Living Library vs Digital Vault for Family Memories';
+const DESCRIPTION =
+  'What is the difference between a digital vault and a living library? Discover why structure, context, and connection matter when preserving family memories.';
+const PUBLISHED = '2026-02-17';
+const MODIFIED = '2026-05-22';
+
 export const metadata: Metadata = {
-  title: 'Living Library vs Digital Vault | What Preserves Family Memories Best?',
-  description:
-    'What is the difference between a digital vault and a living library? Discover why structure, context, and connection matter when preserving family memories.',
-  alternates: {
-    canonical: 'https://www.ancestorii.com/guides/living-library-vs-digital-vault',
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Living library vs digital vault' }],
+    locale: 'en_GB',
+    type: 'article',
+    publishedTime: PUBLISHED,
+    modifiedTime: MODIFIED,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 
@@ -20,26 +42,20 @@ export default function LivingLibraryVsVaultPage() {
   return (
     <>
       <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'Article',
-          headline: 'Living library vs digital vault',
-          description: 'Understanding the difference between storing memories and helping them grow.',
-          author: FOUNDER,
-          publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
-          mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/living-library-vs-digital-vault' },
-          datePublished: '2026-02-17', dateModified: '2026-05-22',
-        }}
-      />
-
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
-            { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
-            { '@type': 'ListItem', position: 3, name: 'Living Library vs Digital Vault', item: 'https://www.ancestorii.com/guides/living-library-vs-digital-vault' },
-          ],
-        }}
+        data={[
+          articleSchema({
+            path: PATH,
+            headline: 'Living library vs digital vault',
+            description: 'Understanding the difference between storing memories and helping them grow.',
+            datePublished: PUBLISHED,
+            dateModified: MODIFIED,
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Guides', path: '/guides' },
+            { name: 'Living Library vs Digital Vault', path: PATH },
+          ]),
+        ]}
       />
 
       <SiteShell>

@@ -4,16 +4,38 @@ import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
 import JsonLd from '@/components/site/seo/JsonLd';
 import { AuthorBox } from '@/components/site/seo/SeoBits';
-import { FOUNDER } from '@/lib/seo/schema';
+import { SITE_URL, articleSchema, breadcrumbSchema } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { Point, Points, Prompt, Prompts } from '../_components/GuideBlocks';
 
+const PATH = '/guides/how-to-record-family-stories';
+const PAGE_URL = `${SITE_URL}${PATH}`;
+const TITLE = 'How to Record Family Stories and Voices';
+const DESCRIPTION =
+  'Learn how to record family stories in a simple, meaningful way. Capture personal memories while life is happening and grow a living family collection over time.';
+const PUBLISHED = '2026-02-10';
+const MODIFIED = '2026-05-22';
+
 export const metadata: Metadata = {
-  title: 'How to Record Family Stories and Voices',
-  description:
-    'Learn how to record family stories in a simple, meaningful way. Capture personal memories while life is happening and grow a living family collection over time.',
-  alternates: {
-    canonical: 'https://www.ancestorii.com/guides/how-to-record-family-stories',
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'How to record family stories' }],
+    locale: 'en_GB',
+    type: 'article',
+    publishedTime: PUBLISHED,
+    modifiedTime: MODIFIED,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 
@@ -21,26 +43,20 @@ export default function RecordFamilyStoriesPage() {
   return (
     <>
       <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'Article',
-          headline: 'How to record family stories',
-          description: 'A practical guide to recording family stories while life is happening.',
-          author: FOUNDER,
-          publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
-          mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/how-to-record-family-stories' },
-          datePublished: '2026-02-10', dateModified: '2026-05-22',
-        }}
-      />
-
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
-            { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
-            { '@type': 'ListItem', position: 3, name: 'How to Record Family Stories', item: 'https://www.ancestorii.com/guides/how-to-record-family-stories' },
-          ],
-        }}
+        data={[
+          articleSchema({
+            path: PATH,
+            headline: 'How to record family stories',
+            description: 'A practical guide to recording family stories while life is happening.',
+            datePublished: PUBLISHED,
+            dateModified: MODIFIED,
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Guides', path: '/guides' },
+            { name: 'How to Record Family Stories', path: PATH },
+          ]),
+        ]}
       />
 
       <SiteShell>

@@ -3,16 +3,38 @@ import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
 import JsonLd from '@/components/site/seo/JsonLd';
 import { AuthorBox } from '@/components/site/seo/SeoBits';
-import { FOUNDER } from '@/lib/seo/schema';
+import { SITE_URL, articleSchema, breadcrumbSchema } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { Compare, CompareRow, GuideFigure } from '../_components/GuideBlocks';
 
+const PATH = '/guides/what-to-do-with-old-family-photos';
+const PAGE_URL = `${SITE_URL}${PATH}`;
+const TITLE = 'What to Do with Old Family Photos';
+const DESCRIPTION =
+  'A practical guide on how to preserve old family photos by adding context, stories, and meaning so each image becomes part of a living family library.';
+const PUBLISHED = '2026-02-10';
+const MODIFIED = '2026-05-22';
+
 export const metadata: Metadata = {
-  title: 'What to Do with Old Family Photos',
-  description:
-    'A practical guide on how to preserve old family photos by adding context, stories, and meaning so each image becomes part of a living family library.',
-  alternates: {
-    canonical: 'https://www.ancestorii.com/guides/what-to-do-with-old-family-photos',
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'What to do with old family photos' }],
+    locale: 'en_GB',
+    type: 'article',
+    publishedTime: PUBLISHED,
+    modifiedTime: MODIFIED,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 
@@ -20,26 +42,20 @@ export default function OldFamilyPhotosPage() {
   return (
     <>
       <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'Article',
-          headline: 'What to do with old family photos',
-          description: 'A practical guide on how to preserve old family photos by adding context, stories, and meaning.',
-          author: FOUNDER,
-          publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
-          mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/what-to-do-with-old-family-photos' },
-          datePublished: '2026-02-10', dateModified: '2026-05-22',
-        }}
-      />
-
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
-            { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
-            { '@type': 'ListItem', position: 3, name: 'What to Do with Old Family Photos', item: 'https://www.ancestorii.com/guides/what-to-do-with-old-family-photos' },
-          ],
-        }}
+        data={[
+          articleSchema({
+            path: PATH,
+            headline: 'What to do with old family photos',
+            description: 'A practical guide on how to preserve old family photos by adding context, stories, and meaning.',
+            datePublished: PUBLISHED,
+            dateModified: MODIFIED,
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Guides', path: '/guides' },
+            { name: 'What to Do with Old Family Photos', path: PATH },
+          ]),
+        ]}
       />
 
       <SiteShell>

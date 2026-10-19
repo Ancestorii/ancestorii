@@ -459,7 +459,7 @@ export default function AncestoriiVsAncestryPage() {
               </li>
               <li>
                 <strong>Questions</strong>, 46 of them in 10 chapters, are sent from the app and help
-                the older generation tell their own stories. Their answers land in the family feed.
+                the older generation tell their own stories. Their answers land in the My Family feed.
               </li>
               <li>
                 <strong>Memory Books</strong> turn your photos and words into an A4 hardcover of 24, 36

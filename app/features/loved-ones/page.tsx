@@ -201,6 +201,7 @@ export default function LovedOnesPage() {
                   family photos.
                 </>
               }
+              priority
             />
           }
         >

@@ -233,7 +233,7 @@ export default function AncestoriiVsWhatsappPage() {
           aside={
             <CaptionedPhoto
               src="/sister.jpg"
-              alt="A toddler in a red top eating from a mug with a spoon"
+              alt="A small child in a pink cardigan over a red top, eating from a mug with a spoon"
               label="A childhood memory"
               color="var(--c0)"
               caption="“The kind of moment that disappears if nobody writes it down.” From the founder’s own family photos."

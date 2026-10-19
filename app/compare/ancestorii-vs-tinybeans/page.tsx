@@ -251,7 +251,7 @@ export default function AncestoriiVsTinybeansPage() {
           aside={
             <CaptionedPhoto
               src="/sister.jpg"
-              alt="A small child in a pink jumper eating from a mug, from the Ancestorii founder's family album"
+              alt="A small child in a pink cardigan over a red top, eating from a mug with a spoon, from the Ancestorii founder's family album"
               label="A childhood memory · the founder's family"
               color="var(--c2)"
               position="45% 50%"
@@ -402,7 +402,7 @@ export default function AncestoriiVsTinybeansPage() {
               </li>
               <li>
                 <strong>Questions:</strong> send a grandparent one of 46 ready-made questions from the
-                app. Their answer lands in the family feed.
+                app. Their answer lands in the My Family feed.
               </li>
               <li>
                 <strong>Capsules</strong> seal photos, a letter and voice notes until a date you choose,

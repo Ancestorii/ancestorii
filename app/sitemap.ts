@@ -9,110 +9,89 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/`,
-      lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
       url: `${baseUrl}/stories`,
-      lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/pricing`,
-      lastModified: new Date(),
       priority: 0.8,
     },
     {
       url: `${baseUrl}/how-it-works`,
-      lastModified: new Date(),
       priority: 0.8,
     },
     {
       url: `${baseUrl}/memory-books`,
-      lastModified: new Date(),
       priority: 0.8,
     },
     {
       url: `${baseUrl}/guides`,
-      lastModified: new Date(),
       priority: 0.8,
     },
     {
       url: `${baseUrl}/guides/living-library-vs-digital-vault`,
-      lastModified: new Date(),
       priority: 0.7,
     },
     {
       url: `${baseUrl}/guides/how-to-preserve-family-memories`,
-      lastModified: new Date(),
       priority: 0.7,
     },
     {
       url: `${baseUrl}/guides/how-to-save-family-voices`,
-      lastModified: new Date(),
       priority: 0.7,
     },
     {
       url: `${baseUrl}/guides/how-to-record-family-stories`,
-      lastModified: new Date(),
       priority: 0.7,
     },
     {
       url: `${baseUrl}/guides/what-to-do-with-old-family-photos`,
-      lastModified: new Date(),
       priority: 0.7,
     },
     {
       url: `${baseUrl}/guides/questions-to-ask-your-parents-about-their-life`,
-      lastModified: new Date(),
       priority: 0.7,
     },
     {
       url: `${baseUrl}/guides/what-to-write-in-a-memory-book`,
-      lastModified: new Date(),
       priority: 0.7,
     },
     {
       url: `${baseUrl}/why-this-exists`,
-      lastModified: new Date(),
       priority: 0.6,
     },
     {
       url: `${baseUrl}/digital-legacy`,
-      lastModified: new Date(),
       priority: 0.6,
     },
     {
       url: `${baseUrl}/living-library`,
-      lastModified: new Date(),
       priority: 0.6,
     },
     {
       url: `${baseUrl}/compare`,
-      lastModified: new Date(),
       priority: 0.7,
     },
     {
       url: `${baseUrl}/compare/storyworth-alternative`,
-      lastModified: new Date(),
       priority: 0.7,
     },
     {
       url: `${baseUrl}/stories/topics`,
-      lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/privacy-policy`,
-      lastModified: new Date(),
       priority: 0.3,
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: new Date(),
       priority: 0.3,
     },
   ];
@@ -120,7 +99,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Feature, print, comparison and guide pages, checked monthly
   const monthly = (path: string, priority: number) => ({
     url: `${baseUrl}${path}`,
-    lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority,
   });
@@ -195,7 +173,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Topic hub pages
   const topicPages: MetadataRoute.Sitemap = TOPICS.map((t) => ({
     url: `${baseUrl}/stories/topics/${t.slug}`,
-    lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
   }));

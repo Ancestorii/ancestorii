@@ -194,7 +194,7 @@ export function GuideFigure({
         color={color}
         aspect="5 / 4"
         position={position}
-        sizes="(max-width: 808px) 92vw, 760px"
+        sizes="(max-width: 808px) 92vw, 660px"
       />
     </div>
   );

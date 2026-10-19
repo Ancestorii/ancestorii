@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import SiteShell from '@/components/site/SiteShell';
-import { AuthorBox } from '@/components/site/seo/SeoBits';
+import { AuthorBox, Sources, type Source } from '@/components/site/seo/SeoBits';
 import JsonLd from '@/components/site/seo/JsonLd';
+import { articleSchema, breadcrumbSchema, faqSchema } from '@/lib/seo/schema';
 import { Accent } from '@/components/site/SiteBits';
 import {
   ArticleCta,
@@ -19,8 +20,8 @@ import articles from '@/components/site/seo-articles/articles.module.css';
 import site from '@/components/site/site.module.css';
 
 export const metadata: Metadata = {
-  title: { absolute: 'Ancestorii vs Storyworth vs Remento: Which Family Memory Platform Is Right for You?' },
-  description: 'An honest comparison of Ancestorii, Storyworth, and Remento. See how a living family library compares to prompt-based book services, and decide which approach fits your family.',
+  title: { absolute: 'Ancestorii vs Storyworth vs Remento: Which Is Right for You?' },
+  description: 'An honest comparison of Ancestorii, Storyworth and Remento: a living family library against two prompt-based book services, and which approach fits your family.',
   alternates: { canonical: 'https://www.ancestorii.com/compare' },
   robots: { index: true, follow: true },
   openGraph: {
@@ -95,29 +96,54 @@ const MORE_COMPARISONS = [
   { href: '/compare/ancestorii-vs-tinybeans', label: 'Ancestorii vs Tinybeans', text: "Sharing a child's photos with family, or keeping every generation's photos, voices and stories." },
 ];
 
+// Where the Storyworth and Remento details come from (the same pages the other comparisons cite).
+const SOURCES: Source[] = [
+  {
+    publisher: 'Storyworth',
+    title: 'Storyworth UK homepage: plans, weekly questions and books',
+    href: 'https://welcome.storyworth.com/gb',
+    date: 'accessed October 2026',
+  },
+  {
+    publisher: 'Remento',
+    title: 'Remento homepage: recording, Speech-to-Story and QR codes',
+    href: 'https://www.remento.co/',
+    date: 'accessed October 2026',
+  },
+  {
+    publisher: 'Remento',
+    title: 'Remento’s Pricing Guide',
+    href: 'https://help.remento.co/en/articles/8365892-remento-s-pricing-guide',
+    date: 'accessed October 2026',
+  },
+  {
+    publisher: 'Remento',
+    title: 'Where does Remento ship books (internationally)?',
+    href: 'https://help.remento.co/en/articles/8365901-where-does-remento-ship-books-internationally',
+    date: '30 June 2026',
+  },
+];
+
 export default function ComparePage() {
   return (
     <>
+      {/* The FAQ is built from the questions the page shows, so the two can never differ. */}
       <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'WebPage',
-          name: 'Ancestorii vs Storyworth vs Remento',
-          description: 'An honest, side-by-side comparison of three different approaches to preserving family stories.',
-          url: 'https://www.ancestorii.com/compare',
-          isPartOf: { '@type': 'WebSite', name: 'Ancestorii' },
-        }}
-      />
-
-      {/* Built from the questions the page shows, so the two can never differ. */}
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'FAQPage',
-          mainEntity: QUESTIONS.map((item) => ({
-            '@type': 'Question',
-            name: item.q,
-            acceptedAnswer: { '@type': 'Answer', text: item.a },
-          })),
-        }}
+        data={[
+          articleSchema({
+            path: '/compare',
+            headline: 'Ancestorii vs Storyworth vs Remento: three platforms, three different ideas',
+            description: 'An honest, side-by-side comparison of three different approaches to preserving family stories.',
+            datePublished: '2026-04-22',
+            dateModified: '2026-10-17',
+            type: 'WebPage',
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Compare', path: '/compare' },
+          ]),
+          faqSchema(QUESTIONS),
+        ]}
       />
 
       <SiteShell>
@@ -171,7 +197,6 @@ export default function ComparePage() {
                 'The storyteller records voice or video responses to prompts. AI transcribes them into polished written stories.',
                 'Removes the writing barrier completely. For families where the person with the stories will talk but will not type, this solves a real problem.',
                 'The printed book includes QR codes that play the original recordings. So you get the written version and the voice.',
-                'The founder built Remento after his mother was diagnosed with cancer. That personal motivation shows in every detail of the product.',
               ]}
               bestFor="Families where the storyteller prefers speaking over writing. Especially powerful when preserving someone's voice matters as much as their words."
             />
@@ -259,7 +284,9 @@ export default function ComparePage() {
           </div>
         </ArticleSection>
 
+        {/* Sources, then who wrote it */}
         <ArticleSection>
+          <Sources items={SOURCES} />
           <div className={site.sectionBody}>
             <AuthorBox updated="17 October 2026" />
           </div>

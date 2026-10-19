@@ -44,18 +44,37 @@ import {
 } from 'lucide-react';
 import SiteShell from '@/components/site/SiteShell';
 import JsonLd from '@/components/site/seo/JsonLd';
+import { ORG_ID } from '@/lib/seo/schema';
 import { Accent } from '@/components/site/SiteBits';
 import landing from '@/components/landing/landing.module.css';
 import { GuideCta, GuideSection, GuidesIndexHero } from './_components/GuideLayout';
 import { GuideCard, type GuideTone } from './_components/GuideBlocks';
 import styles from './_components/guides.module.css';
 
+const PAGE_URL = 'https://www.ancestorii.com/guides';
+const TITLE = 'Family Memory Guides';
+const DESCRIPTION =
+  'Practical guides on capturing stories, voices, and photos while life is happening. Learn how to begin building your family library with clarity and intention.';
+
 export const metadata: Metadata = {
-  title: 'Family Memory Guides',
-  description:
-    'Practical guides on capturing stories, voices, and photos while life is happening. Learn how to begin building your family library with clarity and intention.',
-  alternates: {
-    canonical: 'https://www.ancestorii.com/guides',
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'Ancestorii family memory guides' }],
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 
@@ -381,7 +400,7 @@ export default function GuidesPage() {
               url: `https://www.ancestorii.com${g.href}`,
             })),
           },
-          publisher: { '@type': 'Organization', name: 'Ancestorii' },
+          publisher: { '@type': 'Organization', '@id': ORG_ID, name: 'Ancestorii' },
         }}
       />
 

@@ -14,16 +14,38 @@ import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
 import JsonLd from '@/components/site/seo/JsonLd';
 import { AuthorBox } from '@/components/site/seo/SeoBits';
-import { FOUNDER } from '@/lib/seo/schema';
+import { SITE_URL, articleSchema, breadcrumbSchema } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { Point, Points, Tip, Tips } from '../_components/GuideBlocks';
 
+const PATH = '/guides/how-to-save-family-voices';
+const PAGE_URL = `${SITE_URL}${PATH}`;
+const TITLE = 'How to Capture and Keep Family Voices';
+const DESCRIPTION =
+  'A practical guide to capturing family voices while life is happening: simple ways to record tone, personality and presence as part of a growing family library.';
+const PUBLISHED = '2026-02-10';
+const MODIFIED = '2026-05-22';
+
 export const metadata: Metadata = {
-  title: 'How to Capture and Keep Family Voices',
-  description:
-    'A practical guide to capturing family voices and recordings while life is happening. Learn simple ways to record tone, personality, and presence as part of a growing family library.',
-  alternates: {
-    canonical: 'https://www.ancestorii.com/guides/how-to-save-family-voices',
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'How to save family voices' }],
+    locale: 'en_GB',
+    type: 'article',
+    publishedTime: PUBLISHED,
+    modifiedTime: MODIFIED,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 
@@ -31,26 +53,20 @@ export default function SaveFamilyVoicesPage() {
   return (
     <>
       <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'Article',
-          headline: 'How to capture family voices',
-          description: 'A practical guide to capturing and preserving family voices.',
-          author: FOUNDER,
-          publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
-          mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/how-to-save-family-voices' },
-          datePublished: '2026-02-10', dateModified: '2026-05-22',
-        }}
-      />
-
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
-            { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
-            { '@type': 'ListItem', position: 3, name: 'How to Save Family Voices', item: 'https://www.ancestorii.com/guides/how-to-save-family-voices' },
-          ],
-        }}
+        data={[
+          articleSchema({
+            path: PATH,
+            headline: 'How to capture family voices',
+            description: 'A practical guide to capturing and preserving family voices.',
+            datePublished: PUBLISHED,
+            dateModified: MODIFIED,
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Guides', path: '/guides' },
+            { name: 'How to Save Family Voices', path: PATH },
+          ]),
+        ]}
       />
 
       <SiteShell>

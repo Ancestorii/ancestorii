@@ -4,16 +4,38 @@ import SiteShell from '@/components/site/SiteShell';
 import { Accent, Prose, PullQuote } from '@/components/site/SiteBits';
 import JsonLd from '@/components/site/seo/JsonLd';
 import { AuthorBox } from '@/components/site/seo/SeoBits';
-import { FOUNDER } from '@/lib/seo/schema';
+import { SITE_URL, articleSchema, breadcrumbSchema } from '@/lib/seo/schema';
 import { GuideArticle, GuideCta, GuideSection, Lead } from '../_components/GuideLayout';
 import { GuideFigure, Step, Steps } from '../_components/GuideBlocks';
 
+const PATH = '/guides/what-to-write-in-a-memory-book';
+const PAGE_URL = `${SITE_URL}${PATH}`;
+const TITLE = 'What to Write in a Memory Book';
+const DESCRIPTION =
+  'What to write in a memory book, what to include on every page, and how to turn scattered memories into a keepsake your family will actually return to.';
+const PUBLISHED = '2026-06-20';
+const MODIFIED = '2026-06-20';
+
 export const metadata: Metadata = {
-  title: 'What to Write in a Memory Book',
-  description:
-    'A practical guide to what to write in a memory book, what to include on every page, and how to turn scattered memories into a keepsake your family will actually return to.',
-  alternates: {
-    canonical: 'https://www.ancestorii.com/guides/what-to-write-in-a-memory-book',
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL },
+  openGraph: {
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    siteName: 'Ancestorii',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630, alt: 'What to write in a memory book' }],
+    locale: 'en_GB',
+    type: 'article',
+    publishedTime: PUBLISHED,
+    modifiedTime: MODIFIED,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${TITLE} | Ancestorii`,
+    description: DESCRIPTION,
+    images: ['/og-default.jpg'],
   },
 };
 
@@ -21,26 +43,20 @@ export default function WhatToWriteInAMemoryBookPage() {
   return (
     <>
       <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'Article',
-          headline: 'What to write in a memory book',
-          description: 'A practical guide to what to write in a memory book and what to include on every page.',
-          author: FOUNDER,
-          publisher: { '@type': 'Organization', name: 'Ancestorii', logo: { '@type': 'ImageObject', url: 'https://www.ancestorii.com/logo.png' } },
-          mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://www.ancestorii.com/guides/what-to-write-in-a-memory-book' },
-          datePublished: '2026-06-20', dateModified: '2026-06-20',
-        }}
-      />
-
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.ancestorii.com/' },
-            { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://www.ancestorii.com/guides' },
-            { '@type': 'ListItem', position: 3, name: 'What to Write in a Memory Book', item: 'https://www.ancestorii.com/guides/what-to-write-in-a-memory-book' },
-          ],
-        }}
+        data={[
+          articleSchema({
+            path: PATH,
+            headline: 'What to write in a memory book',
+            description: 'A practical guide to what to write in a memory book and what to include on every page.',
+            datePublished: PUBLISHED,
+            dateModified: MODIFIED,
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Guides', path: '/guides' },
+            { name: 'What to Write in a Memory Book', path: PATH },
+          ]),
+        ]}
       />
 
       <JsonLd

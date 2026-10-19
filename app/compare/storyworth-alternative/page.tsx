@@ -2,8 +2,9 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { CalendarX2, ListChecks, MapPin, UserRound } from 'lucide-react';
 import SiteShell from '@/components/site/SiteShell';
-import { AuthorBox } from '@/components/site/seo/SeoBits';
+import { AuthorBox, Sources, type Source } from '@/components/site/seo/SeoBits';
 import JsonLd from '@/components/site/seo/JsonLd';
+import { articleSchema, breadcrumbSchema, faqSchema } from '@/lib/seo/schema';
 import { Accent } from '@/components/site/SiteBits';
 import site from '@/components/site/site.module.css';
 import {
@@ -22,7 +23,7 @@ const SITE = 'https://www.ancestorii.com';
 export const metadata: Metadata = {
   title: 'The Best Storyworth Alternative for 2026',
   description:
-    'Looking for a Storyworth alternative? See how Ancestorii compares: a living family library with a private space, a public story feed, and printed Memory Books you design yourself. Built in the UK, delivering to 20 countries.',
+    'Looking for a Storyworth alternative? How Ancestorii compares: a living family library with a private space, a public story feed and Memory Books you design.',
   alternates: { canonical: `${SITE}/compare/storyworth-alternative` },
   robots: { index: true, follow: true },
   openGraph: {
@@ -102,7 +103,7 @@ const FEATURES = [
   ['Prompt system', 'Optional questions you send when you like', '500+ questions or your own, weekly by text or email'],
   ['Private family space', 'Yes, invite only', 'No'],
   ['Public story feed', 'Yes, Our Stories', 'No'],
-  ['Voice recordings', 'Yes, kept in the library', 'Limited'],
+  ['Voice recordings', 'Yes, kept in the library', 'Yes, by phone'],
   ['Book design control', 'You design every page', 'Auto compiled'],
   ['Canvas and acrylic prints', 'Yes', 'No'],
   ['Free plan', 'Yes, free forever', 'No'],
@@ -110,39 +111,36 @@ const FEATURES = [
   ['Delivery', 'To 20 countries, from £4.99', 'Free US, extra internationally'],
 ];
 
+// Where the Storyworth details come from (the same page the other comparisons cite).
+const SOURCES: Source[] = [
+  {
+    publisher: 'Storyworth',
+    title: 'Storyworth UK homepage: plans, weekly questions and books',
+    href: 'https://welcome.storyworth.com/gb',
+    date: 'accessed October 2026',
+  },
+];
+
 export default function StoryworthAlternativePage() {
   return (
     <>
+      {/* The FAQ is built from the questions the page shows, so the two can never differ. */}
       <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'WebPage',
-          name: 'The best Storyworth alternative',
-          description: 'How Ancestorii compares to Storyworth as a way to preserve family stories.',
-          url: `${SITE}/compare/storyworth-alternative`,
-          isPartOf: { '@id': `${SITE}/#website` },
-        }}
-      />
-
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-          itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
-            { '@type': 'ListItem', position: 2, name: 'Compare', item: `${SITE}/compare` },
-            { '@type': 'ListItem', position: 3, name: 'Storyworth alternative', item: `${SITE}/compare/storyworth-alternative` },
-          ],
-        }}
-      />
-
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org', '@type': 'FAQPage',
-          mainEntity: FAQ.map((item) => ({
-            '@type': 'Question',
-            name: item.q,
-            acceptedAnswer: { '@type': 'Answer', text: item.a },
-          })),
-        }}
+        data={[
+          articleSchema({
+            path: '/compare/storyworth-alternative',
+            headline: 'A Storyworth alternative that does not end with the book',
+            description: 'How Ancestorii compares to Storyworth as a way to preserve family stories.',
+            datePublished: '2026-06-20',
+            dateModified: '2026-10-17',
+          }),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Compare', path: '/compare' },
+            { name: 'Storyworth alternative', path: '/compare/storyworth-alternative' },
+          ]),
+          faqSchema(FAQ),
+        ]}
       />
 
       <SiteShell>
@@ -226,7 +224,9 @@ export default function StoryworthAlternativePage() {
           <FaqBlock items={FAQ} variant="open" />
         </ArticleSection>
 
+        {/* Sources, then who wrote it */}
         <ArticleSection>
+          <Sources items={SOURCES} />
           <div className={site.sectionBody}>
             <AuthorBox updated="17 October 2026" />
           </div>

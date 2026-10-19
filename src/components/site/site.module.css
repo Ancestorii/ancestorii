@@ -73,7 +73,11 @@
 
 .heroLeft .heroTitle {
   margin: 0;
-  max-width: 16ch;
+  /* 11.2em is what 16ch measures in Plus Jakarta Sans 800. In em the cap is the same before and
+     after the web font swaps in, so a long balanced title wraps the same way in both and the page
+     below it no longer jumps a line (measured 0.10 to 0.12 layout shift on /features and the
+     Ancestry comparison). */
+  max-width: 11.2em;
 }
 
 .heroLead {
