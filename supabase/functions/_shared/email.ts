@@ -27,7 +27,6 @@ export const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 export const WEBHOOK_SECRET = Deno.env.get('WEBHOOK_SECRET') ?? '';
 
 export const FROM_TEAM = 'Ancestorii <support@ancestorii.com>';
-export const FROM_DANTE = 'Dante from Ancestorii <support@ancestorii.com>';
 export const FROM_ORDERS = 'Ancestorii <orders@ancestorii.com>';
 
 export function json(body: unknown, status = 200): Response {

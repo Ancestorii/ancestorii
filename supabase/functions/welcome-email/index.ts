@@ -14,7 +14,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   esc,
   firstName,
-  FROM_DANTE,
+  FROM_TEAM,
   json,
   p,
   preview,
@@ -117,7 +117,7 @@ Deno.serve(async (req: Request) => {
 
   const result = await send({
     to: email,
-    from: FROM_DANTE,
+    from: FROM_TEAM,
     letter: letter(name, email, familyName),
     idempotencyKey: `welcome-${record.id}`,
     tag: 'welcome',

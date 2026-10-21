@@ -12,7 +12,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   esc,
   firstName,
-  FROM_DANTE,
+  FROM_TEAM,
   json,
   p,
   preview,
@@ -115,7 +115,7 @@ Deno.serve(async (req: Request) => {
         if (order.shipping_email) {
           const r = await send({
             to: order.shipping_email,
-            from: FROM_DANTE,
+            from: FROM_TEAM,
             letter: letter(firstName(order.shipping_name), title, kind),
             idempotencyKey: `delivered-${kind}-${order.id}`,
             tag: 'delivered',

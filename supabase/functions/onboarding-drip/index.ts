@@ -14,7 +14,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   esc,
   firstName,
-  FROM_DANTE,
+  FROM_TEAM,
   json,
   p,
   preview,
@@ -195,7 +195,7 @@ async function processDripStep(drip: (typeof DRIP_STEPS)[number]): Promise<numbe
     const name = firstName(nameById.get(user.id) ?? user.name);
     const result = await send({
       to: user.email,
-      from: FROM_DANTE,
+      from: FROM_TEAM,
       letter: drip.letter(name),
       idempotencyKey: `drip-${drip.step}-${user.id}`,
       tag: `drip-${drip.step}`,

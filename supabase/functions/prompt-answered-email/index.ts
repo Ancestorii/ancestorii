@@ -11,7 +11,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   esc,
   firstName,
-  FROM_DANTE,
+  FROM_TEAM,
   json,
   p,
   preview,
@@ -102,7 +102,7 @@ Deno.serve(async (req: Request) => {
 
   const result = await send({
     to: senderUser.email,
-    from: FROM_DANTE,
+    from: FROM_TEAM,
     letter: letter(senderName, recipientName, question, memoryUrl),
     idempotencyKey: `answered-${record.id}`,
     tag: 'prompt-answered',

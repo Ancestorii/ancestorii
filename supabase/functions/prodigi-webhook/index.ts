@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { esc, firstName, FROM_DANTE, p, secretMatches, send, SITE_URL, wrap, type Letter } from "../_shared/email.ts";
+import { esc, firstName, FROM_TEAM, p, secretMatches, send, SITE_URL, wrap, type Letter } from "../_shared/email.ts";
 
 // AUTHENTICATION. Prodigi sends no Supabase JWT, so this deploys with verify_jwt off. Every
 // order we submit carries a callbackUrl ending in ?secret=<hash> (src/lib/prodigiCallback.ts),
@@ -22,7 +22,7 @@ const CORS_HEADERS = {
 // ── Email helper (every letter is drawn in the shared shell, _shared/letter.ts) ──
 async function sendEmail(to: string, letter: Letter, idempotencyKey: string) {
   if (!to) return;
-  const result = await send({ to, from: FROM_DANTE, letter, idempotencyKey, tag: 'shipped' });
+  const result = await send({ to, from: FROM_TEAM, letter, idempotencyKey, tag: 'shipped' });
   if (!result.ok) console.error(`Resend refused (${result.status}): ${result.message}`);
   else console.log(`Email sent to ${to}: ${letter.subject}`);
 }
